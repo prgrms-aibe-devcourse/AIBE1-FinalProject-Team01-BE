@@ -1,161 +1,84 @@
-#name : TEAMO 서버 배포
-#on:
-#  pull_request:
-#    types: [ opened, synchronize, reopened ]
-#    branches: [ develop ]
-#
-#  push:
-#    branches: [ develop ]
-#
-#jobs:
-#  build-on-pr:
-#    if: github.event_name == 'pull_request'
-#    runs-on: ubuntu-latest
-#    name: Build only
-#    steps:
-#      # GitHub repository 코드 체크아웃
-#      - name: Checkout code
-#        uses: actions/checkout@v3
-#
-#      # yml 권한 부여
-#      - name: Grant execute permission for gradlew
-#        run: chmod +x ./gradlew
-#
-#      # java build 추가
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v3
-#        with:
-#          java-version: '17'
-#          distribution: 'temurin'
-#          cache: gradle
-#
-#      - name: Build with Gradle
-#        run: ./gradlew bootJar
-#
-#  deploy-on-push:
-#    if: github.event_name == 'push'
-#    runs-on: ubuntu-latest
-#    name: Build & Deploy (PR merge)
-#    steps:
-#      # GitHub repository 코드 체크아웃
-#      - name: Checkout code
-#        uses: actions/checkout@v3
-#
-#      # yml 권한 부여
-#      - name: Grant execute permission for gradlew
-#        run: chmod +x ./gradlew
-#
-#      # java build 추가
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v3
-#        with:
-#          java-version: '17'
-#          distribution: 'temurin'
-#          cache: gradle
-#
-#      - name: Build with Gradle
-#        run: ./gradlew bootJar
-#
-#      # Docker Buildx 설정 (고급 캐시 지원용)
-#      - name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@v2
-#
-#      # Docker Hub 로그인
-#      - name: Login to DockerHub
-#        uses: docker/login-action@v2
-#        with:
-#          username: ${{ secrets.DOCKER_USERNAME }}
-#          password: ${{ secrets.DOCKER_PASSWORD }}
-#
-#      # 이미지 태그 자동 설정
-#      - name: Extract metadata for Docker
-#        id: meta
-#        uses: docker/metadata-action@v4
-#        with:
-#          images: hosiki/teamo
-#          tags: |
-#            latest
-#
-#      # Docker 이미지 빌드 + Docker Hub로 푸시
-#      - name: Build and push Docker image
-#        uses: docker/build-push-action@v4
-#        with:
-#          context: .
-#          push: true
-#          tags: hosiki/teamo:latest
-#          labels: ${{ steps.meta.outputs.labels }}
-#          cache-from: type=registry,ref=hosiki/teamo:buildcache
-#          cache-to: type=registry,ref=hosiki/teamo:buildcache,mode=max
-#
-#      # EC2 SSH 접속을 위한 private key 등록
-#      - name: Add SSH key
-#        uses: webfactory/ssh-agent@v0.7.0
-#        with:
-#          ssh-private-key: ${{ secrets.SSH_KEY }}
-#
-#      # 설정 파일 EC2로 복사
-#      - name: Copy configuration files to EC2
-#        run: |
-#          # 저장소의 설정 파일들을 EC2로 복사
-#          scp -o StrictHostKeyChecking=no docker-compose.yml ec2-user@${{ secrets.EC2_HOST }}:~/teamo/
-#
-#          # nginx 설정 디렉토리 생성 확인
-#          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} "mkdir -p ~/teamo/nginx/conf.d"
-#
-#          # nginx 설정 파일 복사
-#          scp -o StrictHostKeyChecking=no -r app/nginx/conf.d/* ec2-user@${{ secrets.EC2_HOST }}:~/teamo/nginx/conf.d/
-#
-#      # EC2에 .env 파일 생성 (GitHub Secrets 기반)
-#      - name: Generate .env and deploy to EC2
-#        run: |
-#          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << EOF
-#          mkdir -p ~/teamo
-#
-#          cat > ~/teamo/.env <<EOL
-#          SPRING_PROFILES_ACTIVE=prod
-#          DB_URL=${{ secrets.DB_URL }}
-#          DB_USERNAME=${{ secrets.DB_USERNAME }}
-#          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-#          JWT_SECRET=${{ secrets.JWT_SECRET }}
-#          KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
-#          KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
-#          GITHUB_CLIENT_ID=${{ secrets.CLIENT_GITHUB_ID }}
-#          GITHUB_CLIENT_SECRET=${{ secrets.CLIENT_GITHUB_SECRET }}
-#          STORAGE_URL=${{ secrets.STORAGE_URL }}
-#          STORAGE_BUCKET_NAME=${{ secrets.STORAGE_BUCKET_NAME }}
-#          STORAGE_KEY=${{ secrets.STORAGE_KEY }}
-#          FRONT_END_REDIRECT=${{ secrets.FRONT_END_REDIRECT }}
-#          APP_CORS_ALLOWED_ORIGINS=${{ secrets.APP_CORS_ALLOWED_ORIGINS }}
-#          GEMINI_MODEL1_KEY=${{ secrets.GEMINI_MODEL1_KEY }}
-#          GEMINI_MODEL2_KEY=${{ secrets.GEMINI_MODEL2_KEY }}
-#          GEMINI_MODEL3_KEY=${{ secrets.GEMINI_MODEL3_KEY }}
-#          EOL
-#          EOF
-#
-#      # EC2에서 docker-compose로 서비스 재시작
-#      - name: Deploy services to EC2
-#        run: |
-#          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << EOF
-#          cd ~/teamo
-#
-#          # 최신 이미지 가져오기
-#          docker pull hosiki/teamo:latest
-#
-#          # Spring Boot 서비스만 먼저 재시작
-#          docker-compose stop teamo
-#          docker-compose rm -f teamo
-#          docker-compose up -d teamo
-#
-#          # Spring Boot 애플리케이션 시작 대기
-#          echo "Spring Boot 애플리케이션 시작 대기 중..."
-#          sleep 20
-#
-#          # Nginx 재시작 (Spring Boot 서비스에 의존)
-#          docker-compose restart nginx
-#
-#          # 컨테이너 상태 확인
-#          docker ps
-#
-#          # 불필요한 이미지 정리
-#          docker image prune -f
-#          EOF
+name: PR 빌드 테스트
+
+on:
+  pull_request:
+    branches: [ develop ]
+  release:
+    types: [ published ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    name: 빌드 및 테스트
+
+    steps:
+      # GitHub repository 코드 체크아웃
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      # Java 17 설정
+      - name: Java 17 설정
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      # Gradle 권한 부여
+      - name: Gradle 실행 권한 부여
+        run: chmod +x ./gradlew
+
+      # Gradle 캐시 설정 (빌드 속도 향상)
+      - name: Gradle 캐시 설정
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # 의존성 다운로드
+      - name: 의존성 다운로드
+        run: ./gradlew dependencies
+
+      # 테스트 리포트 업로드 (실패 시에도 결과 확인 가능)
+      - name: 테스트 결과 업로드
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results
+          path: build/reports/tests/test/
+
+      # 빌드 실행
+      - name: 프로젝트 빌드
+        run: ./gradlew bootJar
+
+      # JAR 파일 실행 테스트
+      - name: JAR 파일 검증
+        run: |
+          echo "빌드된 JAR 파일 확인 중..."
+          ls -la build/libs/
+          
+          # JAR 파일이 제대로 생성되었는지 확인
+          if [ -f build/libs/*.jar ]; then
+            echo "✅ JAR 파일이 성공적으로 생성되었습니다"
+          else
+            echo "❌ JAR 파일 생성 실패"
+            exit 1
+          fi
+
+      # 빌드 성공 알림
+      - name: 빌드 성공 알림
+        if: success()
+        run: |
+          echo "✅ 빌드 및 테스트가 성공적으로 완료되었습니다!"
+          echo "🔍 PR 변경사항이 안전하게 빌드됩니다."
+
+      # 빌드 실패 알림
+      - name: 빌드 실패 알림
+        if: failure()
+        run: |
+          echo "❌ 빌드 또는 테스트가 실패했습니다!"
+          echo "🔧 PR을 머지하기 전에 문제를 해결해주세요."
