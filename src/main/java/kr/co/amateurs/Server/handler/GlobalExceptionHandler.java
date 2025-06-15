@@ -1,0 +1,62 @@
+package kr.co.amateurs.Server.handler;
+
+import jakarta.servlet.http.HttpServletRequest;
+import kr.co.amateurs.Server.domain.dto.ErrorResponse;
+import kr.co.amateurs.Server.exception.CustomException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@Slf4j
+@RestControllerAdvice
+@RequiredArgsConstructor
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    protected ResponseEntity<ErrorResponse> handleException(final Exception e, HttpServletRequest request) {
+        logError(request, e, "UnhandledException");
+        ErrorResponse error = ErrorResponse.from(e, HttpStatus.INTERNAL_SERVER_ERROR);
+        return ResponseEntity.internalServerError().body(error);
+    }
+
+    @ExceptionHandler(CustomException.class)
+    protected ResponseEntity<ErrorResponse> handleCustom(final CustomException e, HttpServletRequest request) {
+        logError(request, e, "CustomException");
+        ErrorResponse error = ErrorResponse.from(e, e.getErrorCode().getHttpStatus());
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus()).body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(final MethodArgumentNotValidException e, HttpServletRequest request) {
+        logError(request, e, "MethodArgumentNotValidException");
+        ErrorResponse error = ErrorResponse.from(e, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    private void logError(HttpServletRequest request, Exception e, String errorMessage) {
+        String method = request.getMethod();
+        String uri = getFullRequestPath(request);
+        String userInfo = getCurrentUser(request);
+
+        log.error("[{}] occurred | {} {} | User: {} | Error: {}",
+                errorMessage, method, uri, userInfo, e.getMessage(), e);
+    }
+
+    private String getCurrentUser(HttpServletRequest request) {
+        String remoteUser = request.getRemoteUser();
+        return remoteUser != null ? remoteUser : "anonymous";
+    }
+
+    private String getFullRequestPath(HttpServletRequest request) {
+        String requestURI = request.getRequestURI();
+        String queryString = request.getQueryString();
+        return queryString != null ? requestURI + "?" + queryString : requestURI;
+    }
+}
