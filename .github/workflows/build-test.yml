@@ -3,6 +3,7 @@ name: PR 빌드 테스트
 on:
   pull_request:
     branches: [ develop ]
+    types: [ opened, synchronize, reopened ]
   release:
     types: [ published ]
 
@@ -39,9 +40,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      # 의존성 다운로드
-      - name: 의존성 다운로드
-        run: ./gradlew dependencies
+      # 의존성 다운로드 및 테스트 실행
+      - name: 테스트 실행
+        run: ./gradlew clean test
 
       # 테스트 리포트 업로드 (실패 시에도 결과 확인 가능)
       - name: 테스트 결과 업로드
