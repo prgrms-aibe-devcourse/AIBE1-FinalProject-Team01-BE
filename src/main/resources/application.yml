@@ -6,7 +6,7 @@ spring:
     password: 1234
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
     show-sql: true
@@ -16,5 +16,6 @@ spring:
       path: /swagger-ui.html
       operationsSorter: method
       tagsSorter: alpha
+      docExpansion: none
 
 spring.output.ansi.enabled: always
