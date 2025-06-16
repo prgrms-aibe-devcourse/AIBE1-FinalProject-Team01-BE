@@ -1,18 +1,16 @@
 package kr.co.amateurs.server.domain.entity.topic;
 
 import jakarta.persistence.*;
-import kr.co.amateurs.server.domain.entity.common.TimeEntity;
+import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import lombok.*;
 
 @Entity
+@Table(name = "topics")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Topic extends TimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Topic extends BaseEntity {
 
     @Column(nullable = false)
     private String name;

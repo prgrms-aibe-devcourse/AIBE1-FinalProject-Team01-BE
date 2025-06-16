@@ -1,7 +1,7 @@
 package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
-import kr.co.amateurs.server.domain.entity.common.TimeEntity;
+import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -12,10 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Project extends TimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Project extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)

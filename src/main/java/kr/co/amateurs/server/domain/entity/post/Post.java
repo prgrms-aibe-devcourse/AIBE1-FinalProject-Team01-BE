@@ -2,7 +2,7 @@ package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
-import kr.co.amateurs.server.domain.entity.common.TimeEntity;
+import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import lombok.*;
@@ -16,10 +16,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Post extends TimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Post extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
@@ -53,11 +50,11 @@ public class Post extends TimeEntity {
 
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<Comment> comments = new ArrayList<>();
+    private List<Comment> comments = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<PostImage> postImages = new ArrayList<>();
+    private List<PostImage> postImages = new ArrayList<>();
 
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private MarketItem marketItem;

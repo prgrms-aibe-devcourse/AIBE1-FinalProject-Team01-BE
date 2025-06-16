@@ -1,20 +1,18 @@
 package kr.co.amateurs.server.domain.entity.user;
 
 import jakarta.persistence.*;
-import kr.co.amateurs.server.domain.entity.common.TimeEntity;
+import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "tokens")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Token extends TimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Token extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)

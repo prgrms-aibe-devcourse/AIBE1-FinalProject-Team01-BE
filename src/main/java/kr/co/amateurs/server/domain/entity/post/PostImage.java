@@ -1,7 +1,7 @@
 package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
-import kr.co.amateurs.server.domain.entity.common.TimeEntity;
+import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import lombok.*;
 
 @Entity
@@ -10,10 +10,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class PostImage extends TimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class PostImage extends BaseEntity {
 
     @Column(nullable = false)
     private String imageUrl;

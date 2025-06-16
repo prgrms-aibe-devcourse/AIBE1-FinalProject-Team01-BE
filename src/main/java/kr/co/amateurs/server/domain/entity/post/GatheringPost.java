@@ -1,7 +1,7 @@
 package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
-import kr.co.amateurs.server.domain.entity.common.TimeEntity;
+import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import lombok.*;
@@ -12,10 +12,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class GatheringPost extends TimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class GatheringPost extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)

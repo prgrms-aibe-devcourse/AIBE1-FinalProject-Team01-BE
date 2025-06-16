@@ -1,7 +1,7 @@
 package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
-import kr.co.amateurs.server.domain.entity.common.TimeEntity;
+import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import lombok.*;
 
@@ -11,10 +11,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class MarketItem extends TimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class MarketItem extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
@@ -24,6 +21,6 @@ public class MarketItem extends TimeEntity {
     private Integer price;
 
     @Enumerated(EnumType.STRING)
-    @JoinColumn(nullable = false)
+    @Column(nullable = false)
     private MarketStatus status;
 }

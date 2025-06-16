@@ -1,7 +1,7 @@
 package kr.co.amateurs.server.domain.entity.comment;
 
 import jakarta.persistence.*;
-import kr.co.amateurs.server.domain.entity.common.TimeEntity;
+import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.user.User;
 import lombok.*;
@@ -15,10 +15,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Comment extends TimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Comment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
@@ -32,12 +29,14 @@ public class Comment extends TimeEntity {
     private Comment parentComment;
 
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
-    private final List<Comment> replies = new ArrayList<>();
+    @Builder.Default
+    private List<Comment> replies = new ArrayList<>();
 
     @Lob
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(nullable = false)
-    private final Boolean isDeleted = false;
+    @Builder.Default
+    private Boolean isDeleted = false;
 }
