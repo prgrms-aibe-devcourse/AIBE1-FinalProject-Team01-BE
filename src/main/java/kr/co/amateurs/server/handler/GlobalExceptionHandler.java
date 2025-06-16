@@ -1,8 +1,8 @@
-package kr.co.amateurs.Server.handler;
+package kr.co.amateurs.server.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
-import kr.co.amateurs.Server.domain.dto.ErrorResponse;
-import kr.co.amateurs.Server.exception.CustomException;
+import kr.co.amateurs.server.domain.dto.ErrorResponse;
+import kr.co.amateurs.server.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

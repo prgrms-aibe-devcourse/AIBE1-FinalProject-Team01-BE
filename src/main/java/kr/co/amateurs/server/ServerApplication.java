@@ -1,4 +1,4 @@
-package kr.co.amateurs.Server;
+package kr.co.amateurs.server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

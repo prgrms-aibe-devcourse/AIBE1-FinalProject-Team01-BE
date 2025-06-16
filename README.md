@@ -1,4 +1,4 @@
-# 🧑‍💻 Amatuers - 프로그래머스 데브코스 수강생들을 위한 커뮤니티
+# 🧑‍💻 Amateurs - 프로그래머스 데브코스 수강생들을 위한 커뮤니티
 
 # 1. 프로젝트 소개
 **Amatuers**는 프로그래머스 데브코스 수강생들을 위한 커뮤니티입니다. 다양한 코스의 사람들과 소통하고 정보를 공유합니다.
@@ -30,10 +30,10 @@
 | **배포**             | ![Vercel](https://img.shields.io/badge/vercel-000000.svg?&style=for-the-badge&logo=vercel&logoColor=white)    
 
 # 4. 팀원
-|<img src="https://github.com/user-attachments/assets/da192400-eb03-4017-86b1-54a84d6ffd24" width=150px>|<img src="https://github.com/user-attachments/assets/4c3787a5-3629-4672-ad8e-e7be303efaf7" width=150px>|<img src="https://github.com/user-attachments/assets/ed28c2c0-c7b8-4253-b023-c28ee81a6a50" width=150px>|<img src="https://github.com/user-attachments/assets/f8cb7035-19fe-471b-8352-2d8c0edb5cbb" width=150px>|<img src="https://avatars.githubusercontent.com/s0ooo0k" width=150px>|<img src="https://github.com/user-attachments/assets/a75a43cd-c8d4-470e-b935-a2e923c00949" width=150px>|
+|<img src="https://github.com/user-attachments/assets/da192400-eb03-4017-86b1-54a84d6ffd24" width=150px>|<img src="https://github.com/user-attachments/assets/4c3787a5-3629-4672-ad8e-e7be303efaf7" width=150px>|<img src="https://github.com/user-attachments/assets/ed28c2c0-c7b8-4253-b023-c28ee81a6a50" width=150px>|<img src="https://github.com/user-attachments/assets/a9837136-b610-4d6f-84e4-6f1a928d7acc" width=150px>|<img src="https://avatars.githubusercontent.com/s0ooo0k" width=150px>|<img src="https://github.com/user-attachments/assets/a75a43cd-c8d4-470e-b935-a2e923c00949" width=150px>|
 |:------:|:------:|:-------:|:-------:|:-------:|:-------:|
 |김민호|권규태|이영빈|김주엽|지현숙|조경혜|
-|[Kim minho](https://github.com/klaus9267)|[@rbxo0128](https://github.com/rbxo0128)|[@dldudqlsdlqslek](https://github.com/dldudqlsdlqslek)|[@kjyy08](https://github.com/kjyy08)|[@s0ooo0k](https://github.com/s0ooo0k)|[[@shienka07](https://github.com/shienka07)|
+|[@klaus9267](https://github.com/klaus9267)|[@rbxo0128](https://github.com/rbxo0128)|[@dldudqlsdlqslek](https://github.com/dldudqlsdlqslek)|[@kjyy08](https://github.com/kjyy08)|[@s0ooo0k](https://github.com/s0ooo0k)|[@shienka07](https://github.com/shienka07)|
 |백엔드|백엔드|백엔드|백엔드|백엔드|백엔드|
 
 # 5. Database 설정 가이드 [Link](https://github.com/prgrms-aibe-devcourse/AIBE1-FinalProject-Team01-BE/wiki/Database-%EC%84%A4%EC%A0%95-%EA%B0%80%EC%9D%B4%EB%93%9C)
