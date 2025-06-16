@@ -1,4 +1,4 @@
-package kr.co.amateurs.Server.domain.dto;
+package kr.co.amateurs.server.domain.dto;
 
 import lombok.Builder;
 import org.springframework.http.HttpStatus;

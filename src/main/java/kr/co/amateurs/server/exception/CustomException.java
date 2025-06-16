@@ -1,6 +1,6 @@
-package kr.co.amateurs.Server.exception;
+package kr.co.amateurs.server.exception;
 
-import kr.co.amateurs.Server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.common.ErrorCode;
 import lombok.Getter;
 
 @Getter

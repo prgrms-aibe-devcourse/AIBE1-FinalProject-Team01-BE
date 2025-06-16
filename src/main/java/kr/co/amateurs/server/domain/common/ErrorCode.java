@@ -1,6 +1,6 @@
-package kr.co.amateurs.Server.domain.common;
+package kr.co.amateurs.server.domain.common;
 
-import kr.co.amateurs.Server.exception.CustomException;
+import kr.co.amateurs.server.exception.CustomException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
