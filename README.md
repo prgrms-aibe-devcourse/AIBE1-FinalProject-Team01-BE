@@ -39,3 +39,4 @@
 # 5. Database 설정 가이드 [Link](https://github.com/prgrms-aibe-devcourse/AIBE1-FinalProject-Team01-BE/wiki/Database-%EC%84%A4%EC%A0%95-%EA%B0%80%EC%9D%B4%EB%93%9C)
 
 # 5. 팀 컨벤션 [Link](https://github.com/prgrms-aibe-devcourse/AIBE1-FinalProject-Team01-BE/wiki/%EC%BB%A8%EB%B2%A4%EC%85%98)
+.
