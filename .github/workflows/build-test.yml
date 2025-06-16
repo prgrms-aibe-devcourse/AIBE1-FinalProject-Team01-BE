@@ -31,7 +31,7 @@ jobs:
 
       # Gradle 캐시 설정 (빌드 속도 향상)
       - name: Gradle 캐시 설정
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
@@ -46,7 +46,7 @@ jobs:
 
       # 테스트 리포트 업로드 (실패 시에도 결과 확인 가능)
       - name: 테스트 결과 업로드
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
