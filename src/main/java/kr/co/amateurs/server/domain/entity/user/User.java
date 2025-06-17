@@ -1,10 +1,10 @@
 package kr.co.amateurs.server.domain.entity.user;
 
 import jakarta.persistence.*;
+import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
-import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -21,9 +21,6 @@ public class User extends BaseEntity {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
-    private String password;
-
     @Column(unique = true, nullable = false)
     private String nickname;
 
@@ -34,19 +31,13 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Role role;
 
-    @Column(nullable = false)
-    private String providerId;
-
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private ProviderType providerType;
 
-    @Column(name = "devcourse_name", nullable = false)
+    private String providerId;
     private String devcourseName;
-
-    @Column(nullable = false)
+    private String password;
     private String devcourseBatch;
-
     private String imageUrl;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

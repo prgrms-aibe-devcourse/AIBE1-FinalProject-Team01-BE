@@ -18,7 +18,7 @@ public class Token extends BaseEntity {
     @JoinColumn(nullable = false)
     private User user;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String token;
 
     @Column(nullable = false)
