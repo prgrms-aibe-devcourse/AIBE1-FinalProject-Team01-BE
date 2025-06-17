@@ -6,10 +6,14 @@ spring:
     password: 1234
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
     show-sql: true
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URL}
 
   springdoc:
     swagger-ui:
