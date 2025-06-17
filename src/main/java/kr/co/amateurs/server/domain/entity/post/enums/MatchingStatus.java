@@ -6,9 +6,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum MatchingStatus {
-    OPEN("열린"),
-    CLOSED("닫힌"),
-    MATCHED("매칭됨");
+    OPEN("매칭 중"),
+    MATCHED("매칭 완료");
 
     private final String description;
 }
