@@ -1,17 +1,22 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+#    url: ${DB_URL}
+#    username: ${DB_USERNAME}
+#    password: ${DB_PASSWORD}
+    url: jdbc:mysql://localhost:3306/amatuers
+    username: admin
+    password: 1234
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create-drop
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
     show-sql: true
 
   springdoc:
+    api-docs:
+      enabled: false
     swagger-ui:
       path: /swagger-ui.html
       operationsSorter: method

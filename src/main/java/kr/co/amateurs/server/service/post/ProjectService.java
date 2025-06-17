@@ -6,17 +6,17 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class ProjectService implements BasePostService{
+public class ProjectService implements BasePostService {
     private final ProjectRepository projectRepository;
 
     @Override
-    public void createPost() {
-        System.out.println("this is project service!!!");
+    public String createPost() {
+        return "this is project service create method!!!!";
     }
 
     @Override
-    public void reatPost() {
-
+    public String readPost() {
+        return "this is project service read method!!!!";
     }
 
     @Override

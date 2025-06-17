@@ -1,13 +1,13 @@
 package kr.co.amateurs.server.service.post;
 
 public interface BasePostService {
-    public void createPost();
+    String createPost();
 
-    public void reatPost();
+    String readPost();
 
-    public void readPosts();
+    void readPosts();
 
-    public void updatePost();
+    void updatePost();
 
-    public void deletePost();
+    void deletePost();
 }

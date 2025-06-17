@@ -17,17 +17,9 @@ public class PostServiceFactory {
 
     public BasePostService getService(BoardType boardType) {
         return switch (boardType) {
-            case FREE:
-            case STUDENT:
-            case GATHER:
-            case RETROSPECT:
-            case MATCH:
-            case INFO:
-                yield postService;
-            case MARKET:
-                yield marketService;
-            case PROJECT_HUB:
-                yield projectService;
+            case FREE, STUDENT, GATHER, RETROSPECT, MATCH, INFO -> postService;
+            case MARKET -> marketService;
+            case PROJECT_HUB -> projectService;
         };
     }
 }

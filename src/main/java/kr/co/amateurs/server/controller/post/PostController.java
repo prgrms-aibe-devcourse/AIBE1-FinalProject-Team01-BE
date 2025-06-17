@@ -13,13 +13,13 @@ public class PostController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createPost(@RequestParam("type") BoardType boardType) {
-        postServiceFactory.getService(boardType).createPost();
+    public String createPost(@RequestParam("type") BoardType boardType) {
+        return postServiceFactory.getService(boardType).createPost();
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public void readPost(@RequestParam("type") BoardType boardType) {
-        postServiceFactory.getService(boardType).reatPost();
+    public String readPost(@RequestParam("type") BoardType boardType) {
+        return postServiceFactory.getService(boardType).readPost();
     }
 }

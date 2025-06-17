@@ -10,13 +10,13 @@ public class MarketService implements BasePostService {
     private final MarketRepository marketRepository;
 
     @Override
-    public void createPost() {
-        System.out.println("this is market service!!!!!!!");
+    public String createPost() {
+        return "this is market service create method!!!!!!!";
     }
 
     @Override
-    public void reatPost() {
-
+    public String readPost() {
+        return "this is market service read method!!!!!!!";
     }
 
     @Override

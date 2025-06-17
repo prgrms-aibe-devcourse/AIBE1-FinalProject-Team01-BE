@@ -10,13 +10,13 @@ public class PostService implements BasePostService {
     private final PostRepository postRepository;
 
     @Override
-    public void createPost() {
-        System.out.println("this is post service!!");
+    public String createPost() {
+        return "this is post service create method!!";
     }
 
     @Override
-    public void reatPost() {
-
+    public String readPost() {
+        return "this is post service read method!!";
     }
 
     @Override
