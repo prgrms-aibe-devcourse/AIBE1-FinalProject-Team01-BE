@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -30,12 +31,10 @@ public class CommunityPostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    private final int SIZE = 8;
-    
     // TODO CustomException 변경
 
-    public CommunityPageDTO searchPosts(String keyword, int page, BoardType boardType, SortType sortType) {
-        Pageable pageable = createPageable(page, sortType);
+    public CommunityPageDTO searchPosts(String keyword, int page, BoardType boardType, SortType sortType, int pageSize) {
+        Pageable pageable = createPageable(page, sortType, pageSize);
 
         Page<Post> communityPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
@@ -43,25 +42,21 @@ public class CommunityPostService {
         } else {
             communityPage = postRepository.findByBoardType(boardType, pageable);
         }
-        
+
         List<CommunityResponseDTO> communityList = communityPage.getContent().stream()
                 .map((Post post) -> convertToResponseDTO(post, false))
                 .collect(Collectors.toList());
-        
+
         return new CommunityPageDTO(
                 communityList,
                 page,
-                SIZE,
+                pageSize,
                 communityPage.getTotalPages()
         );
     }
 
     public CommunityResponseDTO getPost(BoardType boardType, Long postId) {
-        Post post = postRepository.findById(postId).orElse(null);
-
-        if (post == null || post.getBoardType() != boardType) {
-            throw new CustomException(ErrorCode.NOT_FOUND);
-        }
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
         // TODO 좋아요 확인 로직 필요 << 로그인 기능 이후 구현 예정
         boolean hasLiked = false;
@@ -72,9 +67,9 @@ public class CommunityPostService {
     @Transactional
     public CommunityResponseDTO createPost(CommunityRequestDTO requestDTO, BoardType boardType) {
         // TODO 유저 불러오기
-        User user = null;
+        Optional<User> user = Optional.ofNullable(userRepository.findByNickname("testUser").orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND)));
 
-        Post post = Post.from(requestDTO, user, boardType);
+        Post post = Post.from(requestDTO, user.get(), boardType);
 
         postRepository.save(post);
 
@@ -83,12 +78,8 @@ public class CommunityPostService {
 
     @Transactional
     public void updatePost(CommunityRequestDTO requestDTO, Long postId) {
-        Post post = postRepository.findById(postId).orElse(null);
+        Post post = postRepository.findById(postId).orElseThrow(()-> new CustomException(ErrorCode.NOT_FOUND));
 
-        if (post == null) {
-            throw new CustomException(ErrorCode.NOT_FOUND);
-        }
-        
         // TODO 유저 검증 로직
         User user = null;
         if (post.getUser().getId() != user.getId()) {
@@ -102,30 +93,24 @@ public class CommunityPostService {
 
     @Transactional
     public void deletePost(Long postId) {
-        Post post = postRepository.findById(postId).orElse(null);
-
-        if (post == null) {
-            throw new CustomException(ErrorCode.NOT_FOUND);
-        }
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
         // TODO 유저 검증 로직
         User user = null;
-        if (post.getUser().getId() != user.getId()) {
-            throw new CustomException(ErrorCode.NOT_FOUND);
-        }
+
 
         // TODO soft delete 구현 시 변경 >> deletedAT??
         postRepository.delete(post);
     }
 
-    private Pageable createPageable(int page, SortType sortType) {
+    private Pageable createPageable(int page, SortType sortType, int pageSize) {
         Sort sort = switch (sortType) {
             case LATEST -> Sort.by(Sort.Direction.DESC, "createdAt");
             case POPULAR -> Sort.by(Sort.Direction.DESC, "likeCount");
             case VIEW_COUNT -> Sort.by(Sort.Direction.DESC, "viewCount");
         };
 
-        return PageRequest.of(page, SIZE, sort);
+        return PageRequest.of(page, pageSize, sort);
     }
 
     private CommunityResponseDTO convertToResponseDTO(Post post, boolean hasLiked) {
@@ -134,9 +119,9 @@ public class CommunityPostService {
         if (hasImages) {
             thumbnailImage = post.getPostImages().get(0).getImageUrl();
         }
-        
+
         int commentCount = post.getComments().size();
-        
+
         return CommunityResponseDTO.from(post, commentCount, thumbnailImage, hasImages, hasLiked);
     }
 

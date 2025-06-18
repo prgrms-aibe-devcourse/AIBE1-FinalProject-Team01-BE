@@ -25,9 +25,11 @@ public class CommunityPostController {
             @PathVariable BoardType boardType,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "LATEST") SortType sortType) {
+            @RequestParam(defaultValue = "LATEST") SortType sortType,
+            @RequestParam(defaultValue = "8") int pageSize
+            ) {
 
-        CommunityPageDTO postsPage = communityPostService.searchPosts(keyword, page, boardType, sortType);
+        CommunityPageDTO postsPage = communityPostService.searchPosts(keyword, page, boardType, sortType, pageSize);
 
         return ResponseEntity.ok(postsPage);
     }
