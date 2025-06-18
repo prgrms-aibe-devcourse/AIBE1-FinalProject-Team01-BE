@@ -32,23 +32,7 @@ public class GatheringService {
                 .stream()
                 .map(gp -> {
                     Post post = gp.getPost();
-                    return new GatheringPostResponseDTO(
-                            post.getId(),
-                            post.getUser().getId(),
-                            post.getTitle(),
-                            post.getContent(),
-                            post.getTags(),
-                            post.getViewCount(),
-                            post.getLikeCount(),
-                            gp.getGatheringType(),
-                            gp.getStatus(),
-                            gp.getHeadCount(),
-                            gp.getPlace(),
-                            gp.getPeriod(),
-                            gp.getSchedule(),
-                            post.getCreatedAt(),
-                            post.getUpdatedAt()
-                    );
+                    return convertToDTO(gp, post);
                 })
                 .collect(Collectors.toList());
     }
@@ -57,33 +41,15 @@ public class GatheringService {
     public GatheringPostResponseDTO getGatheringPost(Long id) {
         GatheringPost gp = gatheringRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Post not found: " + id));
         Post post = gp.getPost();
-        return new GatheringPostResponseDTO(
-                post.getId(),
-                post.getUser().getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getTags(),
-                post.getViewCount(),
-                post.getLikeCount(),
-                gp.getGatheringType(),
-                gp.getStatus(),
-                gp.getHeadCount(),
-                gp.getPlace(),
-                gp.getPeriod(),
-                gp.getSchedule(),
-                post.getCreatedAt(),
-                post.getUpdatedAt()
-        );
+        return convertToDTO(gp, post);
     }
 
     @Transactional
     public GatheringPostResponseDTO createGatheringPost(GatheringPostRequestDTO dto) {
 
-        //유저 인증 생기면 request dto에서 userId 제거하고 글 작성 유저 정보로 넣겠습니다.
-
+        //TODO - 유저 인증 생기면 request dto에서 userId 제거하고 유저 인증 관련 로직으로 수정할 예정입니다.
         User user = userRepository.findById(dto.userId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + dto.userId()));
-
 
 
         Post post = Post.builder()
@@ -106,23 +72,7 @@ public class GatheringService {
                 .build();
         GatheringPost savedGp = gatheringRepository.save(gp);
 
-        return new GatheringPostResponseDTO(
-                savedPost.getId(),
-                savedPost.getUser().getId(),
-                savedPost.getTitle(),
-                savedPost.getContent(),
-                savedPost.getTags(),
-                savedPost.getViewCount(),
-                savedPost.getLikeCount(),
-                savedGp.getGatheringType(),
-                savedGp.getStatus(),
-                savedGp.getHeadCount(),
-                savedGp.getPlace(),
-                savedGp.getPeriod(),
-                savedGp.getSchedule(),
-                savedPost.getCreatedAt(),
-                savedPost.getUpdatedAt()
-        );
+        return convertToDTO(savedGp, savedPost);
     }
 
 
@@ -150,6 +100,26 @@ public class GatheringService {
     @Transactional
     public void deleteGatheringPost(Long gatheringId) {
         gatheringRepository.deleteById(gatheringId);
+    }
+
+    private GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post) {
+        return new GatheringPostResponseDTO(
+                post.getId(),
+                post.getUser().getId(),
+                post.getTitle(),
+                post.getContent(),
+                post.getTags(),
+                post.getViewCount(),
+                post.getLikeCount(),
+                gp.getGatheringType(),
+                gp.getStatus(),
+                gp.getHeadCount(),
+                gp.getPlace(),
+                gp.getPeriod(),
+                gp.getSchedule(),
+                post.getCreatedAt(),
+                post.getUpdatedAt()
+        );
     }
 }
 

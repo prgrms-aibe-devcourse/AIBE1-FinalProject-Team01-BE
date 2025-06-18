@@ -42,6 +42,7 @@ public class MatchController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
     @DeleteMapping("/{matchId}")
     public ResponseEntity<Void> deleteMatchPost(@PathVariable("matchId") Long matchId){
         matchService.deleteMatchPost(matchId);

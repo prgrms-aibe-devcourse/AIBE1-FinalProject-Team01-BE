@@ -19,6 +19,7 @@ public class MarketItem extends BaseEntity {
 
     @Column(nullable = false)
     private Integer price;
+    private String place;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

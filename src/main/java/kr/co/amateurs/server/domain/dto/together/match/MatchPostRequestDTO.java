@@ -1,6 +1,5 @@
 package kr.co.amateurs.server.domain.dto.together.match;
 
-import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 
 public record MatchPostRequestDTO(
@@ -9,6 +8,5 @@ public record MatchPostRequestDTO(
         String content,
         String tags,
         MatchingType matchingType,
-        MatchingStatus status,
         String expertiseArea
 ) {}

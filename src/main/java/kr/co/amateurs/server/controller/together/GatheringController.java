@@ -43,6 +43,7 @@ public class GatheringController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
     @DeleteMapping("/{gatheringId}")
     public ResponseEntity<Void> deleteGatheringPost(@PathVariable("gatheringId") Long gatheringId){
         gatheringService.deleteGatheringPost(gatheringId);

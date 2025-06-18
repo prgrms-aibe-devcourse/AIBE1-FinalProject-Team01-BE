@@ -1,6 +1,5 @@
 package kr.co.amateurs.server.domain.dto.together.gathering;
 
-import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 
 public record GatheringPostRequestDTO(

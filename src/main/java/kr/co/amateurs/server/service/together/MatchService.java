@@ -32,20 +32,7 @@ public class MatchService {
                 .stream()
                 .map(mp -> {
                     Post post = mp.getPost();
-                    return new MatchPostResponseDTO(
-                            post.getId(),
-                            post.getUser().getId(),
-                            post.getTitle(),
-                            post.getContent(),
-                            post.getTags(),
-                            post.getViewCount(),
-                            post.getLikeCount(),
-                            mp.getMatchingType(),
-                            mp.getStatus(),
-                            mp.getExpertiseAreas(),
-                            post.getCreatedAt(),
-                            post.getUpdatedAt()
-                    );
+                    return convertToDTO(mp, post);
                 })
                 .collect(Collectors.toList());
     }
@@ -54,31 +41,15 @@ public class MatchService {
     public MatchPostResponseDTO getMatchPost(Long id) {
         MatchingPost mp = matchRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Post not found: " + id));
         Post post = mp.getPost();
-        return new MatchPostResponseDTO(
-                post.getId(),
-                post.getUser().getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getTags(),
-                post.getViewCount(),
-                post.getLikeCount(),
-                mp.getMatchingType(),
-                mp.getStatus(),
-                mp.getExpertiseAreas(),
-                post.getCreatedAt(),
-                post.getUpdatedAt()
-        );
+        return convertToDTO(mp, post);
     }
 
     @Transactional
     public MatchPostResponseDTO createMatchPost(MatchPostRequestDTO dto) {
 
-        //유저 인증 생기면 request dto에서 userId 제거하고 글 작성 유저 정보로 넣겠습니다.
-
+        //TODO - 유저 인증 생기면 request dto에서 userId 제거하고 유저 인증 관련 로직으로 수정할 예정입니다.
         User user = userRepository.findById(dto.userId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + dto.userId()));
-
-
 
         Post post = Post.builder()
                 .user(user)
@@ -97,20 +68,7 @@ public class MatchService {
                 .build();
         MatchingPost savedMp = matchRepository.save(mp);
 
-        return new MatchPostResponseDTO(
-                savedPost.getId(),
-                savedPost.getUser().getId(),
-                savedPost.getTitle(),
-                savedPost.getContent(),
-                savedPost.getTags(),
-                savedPost.getViewCount(),
-                savedPost.getLikeCount(),
-                savedMp.getMatchingType(),
-                savedMp.getStatus(),
-                savedMp.getExpertiseAreas(),
-                savedPost.getCreatedAt(),
-                savedPost.getUpdatedAt()
-        );
+        return convertToDTO(savedMp, savedPost);
     }
 
 
@@ -138,5 +96,22 @@ public class MatchService {
     @Transactional
     public void deleteMatchPost(Long matchId) {
         matchRepository.deleteById(matchId);
+    }
+
+    private MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post) {
+        return new MatchPostResponseDTO(
+                post.getId(),
+                post.getUser().getId(),
+                post.getTitle(),
+                post.getContent(),
+                post.getTags(),
+                post.getViewCount(),
+                post.getLikeCount(),
+                mp.getMatchingType(),
+                mp.getStatus(),
+                mp.getExpertiseAreas(),
+                post.getCreatedAt(),
+                post.getUpdatedAt()
+        );
     }
 }

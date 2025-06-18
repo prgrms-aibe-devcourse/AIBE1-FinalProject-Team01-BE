@@ -1,14 +1,53 @@
 package kr.co.amateurs.server.controller.together;
 
 
+import kr.co.amateurs.server.domain.dto.together.market.MarketPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.market.MarketPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.market.UpdateMarketPostRequestDTO;
+import kr.co.amateurs.server.service.together.MarketService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/market")
 @RequiredArgsConstructor
 public class MarketController {
+    private final MarketService marketService;
+    
+    @GetMapping
+    public ResponseEntity<List<MarketPostResponseDTO>> getMarketPostList(){
+        List<MarketPostResponseDTO> marketList = marketService.getMarketPostList();
+        return ResponseEntity.ok(marketList);
+    }
+
+    @GetMapping("/{marketId}")
+    public ResponseEntity<MarketPostResponseDTO> getMarketPost(@PathVariable("marketId") Long marketId){
+        MarketPostResponseDTO gatherPost = marketService.getMarketPost(marketId);
+        return ResponseEntity.ok(gatherPost);
+    }
+
+    @PostMapping
+    public ResponseEntity<MarketPostResponseDTO> createMarketPost(@RequestBody MarketPostRequestDTO dto){
+        MarketPostResponseDTO post = marketService.createMarketPost(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(post);
+    }
+
+    @PutMapping("/{marketId}")
+    public ResponseEntity<Void> updateMarketPost(@PathVariable("marketId") Long marketId, @RequestBody UpdateMarketPostRequestDTO dto){
+        marketService.updateMarketPost(marketId, dto);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
+    @DeleteMapping("/{marketId}")
+    public ResponseEntity<Void> deleteMarketPost(@PathVariable("marketId") Long marketId){
+        marketService.deleteMarketPost(marketId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 
 
 }
