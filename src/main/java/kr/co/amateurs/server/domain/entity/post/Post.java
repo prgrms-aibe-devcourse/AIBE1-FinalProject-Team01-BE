@@ -70,6 +70,8 @@ public class Post extends BaseEntity {
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private Project project;
 
+
+    //community랑 병합할 때 제거하고 하나로 통일할 예정
     public void updatePost(UpdatePostRequestDTO dto) {
         this.title = dto.title();
         this.content = dto.content();

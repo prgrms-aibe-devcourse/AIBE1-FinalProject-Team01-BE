@@ -5,11 +5,11 @@ import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.service.together.GatheringService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/gatherings")
@@ -19,8 +19,13 @@ public class GatheringController {
     private final GatheringService gatheringService;
 
     @GetMapping
-    public ResponseEntity<List<GatheringPostResponseDTO>> getGatheringPostList(){
-        List<GatheringPostResponseDTO> gatheringList = gatheringService.getGatheringPostList();
+    public ResponseEntity<Page<GatheringPostResponseDTO>> getGatheringPostList(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "LATEST") String sortType      //커뮤니티와 병합 시 SortType enum으로 수정 예정
+    ){
+        Page<GatheringPostResponseDTO> gatheringList = gatheringService.getGatheringPostList(keyword, page, size, sortType);
         return ResponseEntity.ok(gatheringList);
     }
 

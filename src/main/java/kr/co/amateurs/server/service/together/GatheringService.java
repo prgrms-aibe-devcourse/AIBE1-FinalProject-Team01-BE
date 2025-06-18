@@ -14,10 +14,11 @@ import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,14 +28,22 @@ public class GatheringService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    public List<GatheringPostResponseDTO> getGatheringPostList() {
-        return gatheringRepository.findAll()
-                .stream()
-                .map(gp -> {
+    //TODO - 인증 및 타 기능과의 연관성 고려 확장성 확보
+    //TODO - 테스트 코드
+
+    public Page<GatheringPostResponseDTO> getGatheringPostList(String keyword, int page, int size, String sortType) {
+        Pageable pageable = createPageable(page, size, sortType);
+        Page<GatheringPost> gpPage;
+        if(keyword == null || keyword.isBlank()){
+            gpPage = gatheringRepository.findAll(pageable);
+        }
+        else{
+            gpPage = gatheringRepository.findAllByKeyword(keyword.trim(), pageable);
+        }
+        return gpPage.map(gp -> {
                     Post post = gp.getPost();
                     return convertToDTO(gp, post);
-                })
-                .collect(Collectors.toList());
+                });
     }
 
 
@@ -83,7 +92,7 @@ public class GatheringService {
     public void updateGatheringPost(Long gatheringId, GatheringPostRequestDTO dto) {
         GatheringPost gp = gatheringRepository.findById(gatheringId).orElseThrow(() -> new IllegalArgumentException("Gathering Post not found: " + gatheringId));
         Post post = gp.getPost();
-        UpdatePostRequestDTO updatePostDTO= new UpdatePostRequestDTO(dto.title(), dto.content(), dto.tags());
+        UpdatePostRequestDTO updatePostDTO = new UpdatePostRequestDTO(dto.title(), dto.content(), dto.tags());
 
         post.updatePost(updatePostDTO);
         gp.update(dto);
@@ -112,6 +121,18 @@ public class GatheringService {
                 post.getCreatedAt(),
                 post.getUpdatedAt()
         );
+    }
+
+    //TODO - 커뮤니티 병합 시 SortType 수정 예정
+    private Pageable createPageable(int page, int pageSize, String sortType) {
+        Sort sort = switch (sortType) {
+            case "LATEST" -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case "POPULAR" -> Sort.by(Sort.Direction.DESC, "likeCount");
+            case "VIEW_COUNT" -> Sort.by(Sort.Direction.DESC, "viewCount");
+            default -> Sort.by(Sort.Direction.DESC, "createdAt");
+        };
+
+        return PageRequest.of(page, pageSize, sort);
     }
 }
 

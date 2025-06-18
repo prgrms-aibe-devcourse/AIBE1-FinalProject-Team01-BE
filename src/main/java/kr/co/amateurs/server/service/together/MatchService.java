@@ -14,10 +14,12 @@ import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,14 +29,19 @@ public class MatchService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    public List<MatchPostResponseDTO> getMatchPostList() {
-        return matchRepository.findAll()
-                .stream()
-                .map(mp -> {
-                    Post post = mp.getPost();
-                    return convertToDTO(mp, post);
-                })
-                .collect(Collectors.toList());
+    public Page<MatchPostResponseDTO> getMatchPostList(String keyword, int page, int size, String sortType) {
+        Pageable pageable = createPageable(page, size, sortType);
+        Page<MatchingPost> mpPage;
+        if(keyword == null || keyword.isBlank()){
+            mpPage = matchRepository.findAll(pageable);
+        }
+        else{
+            mpPage = matchRepository.findAllByKeyword(keyword.trim(), pageable);
+        }
+        return mpPage.map(mp -> {
+            Post post = mp.getPost();
+            return convertToDTO(mp, post);
+        });
     }
 
 
@@ -78,7 +85,7 @@ public class MatchService {
     public void updateMatchPost(Long matchId, MatchPostRequestDTO dto) {
         MatchingPost mp = matchRepository.findById(matchId).orElseThrow(() -> new IllegalArgumentException("Match Post not found: " + matchId));
         Post post = mp.getPost();
-        UpdatePostRequestDTO updatePostDTO= new UpdatePostRequestDTO(dto.title(), dto.content(), dto.tags());
+        UpdatePostRequestDTO updatePostDTO = new UpdatePostRequestDTO(dto.title(), dto.content(), dto.tags());
 
         mp.update(dto);
         post.updatePost(updatePostDTO);
@@ -105,5 +112,17 @@ public class MatchService {
                 post.getCreatedAt(),
                 post.getUpdatedAt()
         );
+    }
+
+    //TODO - 커뮤니티 병합 시 SortType 수정 예정
+    private Pageable createPageable(int page, int pageSize, String sortType) {
+        Sort sort = switch (sortType) {
+            case "LATEST" -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case "POPULAR" -> Sort.by(Sort.Direction.DESC, "likeCount");
+            case "VIEW_COUNT" -> Sort.by(Sort.Direction.DESC, "viewCount");
+            default -> Sort.by(Sort.Direction.DESC, "createdAt");
+        };
+
+        return PageRequest.of(page, pageSize, sort);
     }
 }

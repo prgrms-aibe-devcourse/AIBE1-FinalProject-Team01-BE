@@ -4,11 +4,11 @@ import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
 import kr.co.amateurs.server.service.together.MatchService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/matches")
@@ -18,8 +18,13 @@ public class MatchController {
     private final MatchService matchService;
 
     @GetMapping
-    public ResponseEntity<List<MatchPostResponseDTO>> getMatchPostList(){
-        List<MatchPostResponseDTO> matchList = matchService.getMatchPostList();
+    public ResponseEntity<Page<MatchPostResponseDTO>> getMatchPostList(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "LATEST") String sortType  //커뮤니티와 병합 시 SortType enum으로 수정 예정
+    ){
+        Page<MatchPostResponseDTO> matchList = matchService.getMatchPostList(keyword, page, size, sortType);
         return ResponseEntity.ok(matchList);
     }
 
