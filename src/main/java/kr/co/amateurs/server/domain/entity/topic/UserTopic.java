@@ -19,6 +19,6 @@ public class UserTopic extends BaseEntity {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @JoinColumn(nullable = false)
+    @Column(nullable = false)
     private Topic topic;
 }

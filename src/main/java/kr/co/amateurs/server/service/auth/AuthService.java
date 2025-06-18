@@ -53,6 +53,6 @@ public class AuthService {
 
         userTopicRepository.saveAll(userTopics);
 
-        return SignupResponseDto.fromEntity(savedUser);
+        return SignupResponseDto.fromEntity(savedUser, request.topics());
     }
 }

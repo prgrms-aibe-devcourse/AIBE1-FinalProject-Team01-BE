@@ -17,11 +17,7 @@ public record SignupResponseDto(
         LocalDateTime createdAt
 ) {
 
-    public static SignupResponseDto fromEntity(User user) {
-        Set<Topic> topics = user.getUserTopics().stream()
-                .map(UserTopic::getTopic)
-                .collect(Collectors.toSet());
-
+    public static SignupResponseDto fromEntity(User user, Set<Topic> topics) {
         return new SignupResponseDto(
                 user.getId(),
                 user.getEmail(),
