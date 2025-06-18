@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.controller.community;
 
+import jakarta.validation.constraints.Min;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -24,9 +25,9 @@ public class CommunityPostController {
     public ResponseEntity<CommunityPageDTO> getCommunity(
             @PathVariable BoardType boardType,
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "LATEST") SortType sortType,
-            @RequestParam(defaultValue = "8") int pageSize
+            @RequestParam(defaultValue = "8") @Min(1) int pageSize
             ) {
 
         CommunityPageDTO postsPage = communityPostService.searchPosts(keyword, page, boardType, sortType, pageSize);
@@ -49,7 +50,7 @@ public class CommunityPostController {
     @PostMapping("/{boardType}")
     public ResponseEntity<CommunityResponseDTO> createPost(
             @PathVariable BoardType boardType,
-            @RequestPart CommunityRequestDTO requestDTO
+            @RequestBody CommunityRequestDTO requestDTO
     ){
         CommunityResponseDTO post = communityPostService.createPost(requestDTO, boardType);
 
@@ -61,7 +62,7 @@ public class CommunityPostController {
     public ResponseEntity<Void> updatePost(
             @PathVariable BoardType boardType,
             @PathVariable Long postId,
-            @RequestPart CommunityRequestDTO requestDTO
+            @RequestBody CommunityRequestDTO requestDTO
     ){
         communityPostService.updatePost(requestDTO, postId);
 

@@ -2,15 +2,20 @@ package kr.co.amateurs.server.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import kr.co.amateurs.server.domain.dto.ErrorResponse;
+import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Arrays;
 
 @Slf4j
 @RestControllerAdvice
@@ -36,6 +41,28 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(final MethodArgumentNotValidException e, HttpServletRequest request) {
         logError(request, e, "MethodArgumentNotValidException");
+        ErrorResponse error = ErrorResponse.from(e, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
+            final MethodArgumentTypeMismatchException e,
+            HttpServletRequest request) {
+
+        logError(request, e, "MethodArgumentTypeMismatchException");
+        ErrorResponse error = ErrorResponse.from(e, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected ResponseEntity<ErrorResponse> handleMethodValidation(
+            final HandlerMethodValidationException e,
+            HttpServletRequest request) {
+
+        logError(request, e, "HandlerMethodValidationException");
         ErrorResponse error = ErrorResponse.from(e, HttpStatus.BAD_REQUEST);
         return ResponseEntity.badRequest().body(error);
     }

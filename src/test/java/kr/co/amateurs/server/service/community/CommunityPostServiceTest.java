@@ -75,7 +75,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_키워드없이_게시글목록조회_성공() {
+    void 유저가_키워드없이_검색하면_게시글목록이_반환되어야_한다() {
         // given
         int page = 0;
         int pageSize = 10;
@@ -103,7 +103,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_키워드로_게시글목록조회_성공() {
+    void 유저가_키워드로_검색하면_해당_게시글목록이_반환되어야_한다() {
         // given
         String keyword = "테스트";
         int page = 0;
@@ -131,7 +131,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_유효한postId로_게시글상세조회_성공() {
+    void 유저가_유효한_postId로_조회하면_게시글상세가_반환되어야_한다() {
         // given
         Long postId = 1L;
         BoardType boardType = BoardType.FREE;
@@ -153,7 +153,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_존재하지않는postId로_게시글조회_실패() {
+    void 유저가_존재하지않는_postId로_조회하면_예외가_발생해야_한다() {
         // given
         Long postId = 999L;
         BoardType boardType = BoardType.FREE;
@@ -168,11 +168,10 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_유효한요청으로_게시글생성_성공() {
+    void 유저가_유효한_요청으로_게시글을_생성하면_게시글이_생성되어야_한다() {
         // given
         BoardType boardType = BoardType.FREE;
 
-        // userRepository.findByNickname 모킹 추가
         given(userRepository.findByNickname("testUser")).willReturn(Optional.of(testUser));
         given(postRepository.save(any(Post.class))).willReturn(testPost);
 
@@ -190,7 +189,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_존재하지않는사용자로_게시글생성_실패() {
+    void 유저가_존재하지않는_사용자로_게시글을_생성하면_예외가_발생해야_한다() {
         // given
         BoardType boardType = BoardType.FREE;
 
@@ -205,24 +204,21 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 현재미구현_유저가_게시글수정_성공() {
+    void 유저가_게시글을_수정하면_게시글이_수정되어야_한다() {
         // given
         Long postId = 1L;
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
-        // postRepository.save() 모킹 제거 - 실제로 호출되지 않음
 
         // when & then
-        // 실제 서비스에서 사용자 검증 로직이 TODO로 남아있어서 NullPointerException 발생
-        assertThatThrownBy(() -> communityPostService.updatePost(testRequestDTO, postId))
-                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> communityPostService.updatePost(testRequestDTO, postId));
 
         verify(postRepository, times(1)).findById(postId);
         verify(postRepository, never()).save(any(Post.class));
     }
 
     @Test
-    void 유저가_존재하지_않는_postId로_게시글수정_실패() {
+    void 유저가_존재하지않는_postId로_수정하면_예외가_발생해야_한다() {
         // given
         Long postId = 999L;
 
@@ -237,7 +233,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_유효한_postId로_게시글삭제_성공() {
+    void 유저가_유효한_postId로_삭제하면_게시글이_삭제되어야_한다() {
         // given
         Long postId = 1L;
 
@@ -252,7 +248,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_존재하지_않는_postId로_게시글삭제_실패() {
+    void 유저가_존재하지않는_postId로_삭제하면_예외가_발생해야_한다() {
         // given
         Long postId = 999L;
 
@@ -267,7 +263,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_이미지_있는_게시글로_썸네일조회_성공() {
+    void 유저가_이미지있는_게시글을_조회하면_썸네일과_댓글수가_반환되어야_한다() {
         // given
         PostImage postImage = PostImage.builder()
                 .imageUrl("https://example.com/image.jpg")
@@ -296,7 +292,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_최신순_정렬로_게시글목록조회_성공() {
+    void 유저가_최신순으로_정렬하면_최신순_게시글목록이_반환되어야_한다() {
         // given
         int page = 0;
         int pageSize = 10;
@@ -315,7 +311,6 @@ class CommunityPostServiceTest {
         // then
         assertThat(result).isNotNull();
 
-        // Sort 조건 검증
         verify(postRepository, times(1)).findByBoardType(eq(boardType), argThat(pageable -> {
             Sort sort = pageable.getSort();
             return sort.getOrderFor("createdAt") != null &&
@@ -324,7 +319,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_인기순_정렬로_게시글목록조회_성공() {
+    void 유저가_인기순으로_정렬하면_인기순_게시글목록이_반환되어야_한다() {
         // given
         int page = 0;
         int pageSize = 10;
@@ -343,7 +338,6 @@ class CommunityPostServiceTest {
         // then
         assertThat(result).isNotNull();
 
-        // Sort 조건 검증
         verify(postRepository, times(1)).findByBoardType(eq(boardType), argThat(pageable -> {
             Sort sort = pageable.getSort();
             return sort.getOrderFor("likeCount") != null &&
@@ -352,7 +346,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_조회순_정렬로_게시글목록조회_성공() {
+    void 유저가_조회순으로_정렬하면_조회순_게시글목록이_반환되어야_한다() {
         // given
         int page = 0;
         int pageSize = 10;
@@ -371,7 +365,6 @@ class CommunityPostServiceTest {
         // then
         assertThat(result).isNotNull();
 
-        // Sort 조건 검증
         verify(postRepository, times(1)).findByBoardType(eq(boardType), argThat(pageable -> {
             Sort sort = pageable.getSort();
             return sort.getOrderFor("viewCount") != null &&
