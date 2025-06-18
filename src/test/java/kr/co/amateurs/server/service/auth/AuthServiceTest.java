@@ -1,10 +1,12 @@
 package kr.co.amateurs.server.service.auth;
 
+import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -15,9 +17,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -69,5 +71,30 @@ class AuthServiceTest {
         verify(userService).validateNicknameDuplicate("testnick");
         verify(passwordEncoder).encode("password123");
         verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void 중복된_이메일로_회원가입_시_예외가_발생한다() {
+        // given
+        SignupRequestDto request = SignupRequestDto.builder()
+                .email("duplicate@test.com")
+                .nickname("testnick")
+                .name("testname")
+                .password("password123")
+                .build();
+
+        doThrow(ErrorCode.DUPLICATE_EMAIL.get())
+                .when(userService).validateEmailDuplicate("duplicate@test.com");
+
+        // when & then
+        assertThatThrownBy(() -> authService.signup(request))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.DUPLICATE_EMAIL);
+
+        verify(userService).validateEmailDuplicate("duplicate@test.com");
+        verify(userService, never()).validateNicknameDuplicate(any());
+        verify(passwordEncoder, never()).encode(any());
+        verify(userRepository, never()).save(any());
     }
 }
