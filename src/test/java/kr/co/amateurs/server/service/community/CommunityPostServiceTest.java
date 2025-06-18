@@ -75,7 +75,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_키워드없이검색_목록반환() {
+    void 유저가_키워드없이_게시글목록조회_성공() {
         // given
         int page = 0;
         int pageSize = 10;
@@ -103,7 +103,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_키워드로검색_키워드목록반환() {
+    void 유저가_키워드로_게시글목록조회_성공() {
         // given
         String keyword = "테스트";
         int page = 0;
@@ -131,7 +131,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_특정게시글_상세조회() {
+    void 유저가_유효한postId로_게시글상세조회_성공() {
         // given
         Long postId = 1L;
         BoardType boardType = BoardType.FREE;
@@ -153,7 +153,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_존재하지않는게시글조회_실패() {
+    void 유저가_존재하지않는postId로_게시글조회_실패() {
         // given
         Long postId = 999L;
         BoardType boardType = BoardType.FREE;
@@ -168,7 +168,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_게시글생성_성공() {
+    void 유저가_유효한요청으로_게시글생성_성공() {
         // given
         BoardType boardType = BoardType.FREE;
 
@@ -190,7 +190,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 사용자의_정보를찾을수없는경우_글생성실패() {
+    void 유저가_존재하지않는사용자로_게시글생성_실패() {
         // given
         BoardType boardType = BoardType.FREE;
 
@@ -205,7 +205,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 미구현_유저가_게시글수정_글수정() {
+    void 현재미구현_유저가_게시글수정_성공() {
         // given
         Long postId = 1L;
 
@@ -222,7 +222,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_존재하지않는게시글수정_실패() {
+    void 유저가_존재하지_않는_postId로_게시글수정_실패() {
         // given
         Long postId = 999L;
 
@@ -237,7 +237,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_게시글삭제_성공() {
+    void 유저가_유효한_postId로_게시글삭제_성공() {
         // given
         Long postId = 1L;
 
@@ -252,7 +252,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_존재하지않는게시글삭제_실패() {
+    void 유저가_존재하지_않는_postId로_게시글삭제_실패() {
         // given
         Long postId = 999L;
 
@@ -267,8 +267,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    @DisplayName("이미지가 있는 게시글의 썸네일 이미지 설정 테스트")
-    void 게시글이_이미지가있는게시글썸네일설정_썸네일확인() {
+    void 유저가_이미지_있는_게시글로_썸네일조회_성공() {
         // given
         PostImage postImage = PostImage.builder()
                 .imageUrl("https://example.com/image.jpg")
@@ -297,7 +296,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_최신순목록조회_최신순성공() {
+    void 유저가_최신순_정렬로_게시글목록조회_성공() {
         // given
         int page = 0;
         int pageSize = 10;
@@ -325,7 +324,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_인기순목록조회_인기순성공() {
+    void 유저가_인기순_정렬로_게시글목록조회_성공() {
         // given
         int page = 0;
         int pageSize = 10;
@@ -353,7 +352,7 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_조회순목록조회_조회순성공() {
+    void 유저가_조회순_정렬로_게시글목록조회_성공() {
         // given
         int page = 0;
         int pageSize = 10;
