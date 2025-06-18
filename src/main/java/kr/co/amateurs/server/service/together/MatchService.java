@@ -2,9 +2,9 @@ package kr.co.amateurs.server.service.together;
 
 
 import jakarta.transaction.Transactional;
-import kr.co.amateurs.server.domain.dto.together.match.MatchPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.match.MatchPostResponseDTO;
-import kr.co.amateurs.server.domain.dto.together.match.UpdateMatchPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.UpdatePostRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -44,6 +44,8 @@ public class MatchService {
         return convertToDTO(mp, post);
     }
 
+
+    //TODO - validation 추가 필요
     @Transactional
     public MatchPostResponseDTO createMatchPost(MatchPostRequestDTO dto) {
 
@@ -71,26 +73,16 @@ public class MatchService {
         return convertToDTO(savedMp, savedPost);
     }
 
-
-    /*
-        JPA에서 update 처리하는 법 조사중
-     */
+    //TODO - validation 추가 필요
     @Transactional
-    public void updateMatchPost(Long matchId, UpdateMatchPostRequestDTO dto) {
-//        MatchPost existing = matchRepository.findById(matchId)
-//                .orElseThrow(() -> new IllegalArgumentException("MatchPost not found: " + matchId));
-//
-//        Post post = existing.getPost();
-//        post.setTitle(dto.title());
-//        post.setContent(dto.content());
-//        post.setTags(dto.tags());
-//
-//        existing.setMatchType(dto.matchType());
-//        existing.setStatus(dto.status());
-//        existing.setHeadCount(dto.headCount());
-//        existing.setPlace(dto.place());
-//        existing.setPeriod(dto.period());
-//        existing.setRequiredSkills(dto.requiredSkills());
+    public void updateMatchPost(Long matchId, MatchPostRequestDTO dto) {
+        MatchingPost mp = matchRepository.findById(matchId).orElseThrow(() -> new IllegalArgumentException("Match Post not found: " + matchId));
+        Post post = mp.getPost();
+        UpdatePostRequestDTO updatePostDTO= new UpdatePostRequestDTO(dto.title(), dto.content(), dto.tags());
+
+        mp.update(dto);
+        post.updatePost(updatePostDTO);
+
     }
 
     @Transactional

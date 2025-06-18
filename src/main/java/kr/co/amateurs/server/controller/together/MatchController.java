@@ -1,8 +1,7 @@
 package kr.co.amateurs.server.controller.together;
 
-import kr.co.amateurs.server.domain.dto.together.match.MatchPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.match.MatchPostResponseDTO;
-import kr.co.amateurs.server.domain.dto.together.match.UpdateMatchPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
 import kr.co.amateurs.server.service.together.MatchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -37,7 +36,7 @@ public class MatchController {
     }
 
     @PutMapping("/{matchId}")
-    public ResponseEntity<Void> updateMatchPost(@PathVariable("matchId") Long matchId, @RequestBody UpdateMatchPostRequestDTO dto){
+    public ResponseEntity<Void> updateMatchPost(@PathVariable("matchId") Long matchId, @RequestBody MatchPostRequestDTO dto){
         matchService.updateMatchPost(matchId, dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

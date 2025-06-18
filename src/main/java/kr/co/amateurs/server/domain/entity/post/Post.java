@@ -1,6 +1,8 @@
 package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
+import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.UpdatePostRequestDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -67,4 +69,10 @@ public class Post extends BaseEntity {
 
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private Project project;
+
+    public void updatePost(UpdatePostRequestDTO dto) {
+        this.title = dto.title();
+        this.content = dto.content();
+        this.tags = dto.tags();
+    }
 }

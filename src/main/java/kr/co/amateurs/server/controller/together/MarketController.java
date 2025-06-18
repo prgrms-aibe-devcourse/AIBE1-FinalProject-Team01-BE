@@ -1,9 +1,8 @@
 package kr.co.amateurs.server.controller.together;
 
 
-import kr.co.amateurs.server.domain.dto.together.market.MarketPostResponseDTO;
-import kr.co.amateurs.server.domain.dto.together.market.MarketPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.market.UpdateMarketPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.service.together.MarketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -37,7 +36,7 @@ public class MarketController {
     }
 
     @PutMapping("/{marketId}")
-    public ResponseEntity<Void> updateMarketPost(@PathVariable("marketId") Long marketId, @RequestBody UpdateMarketPostRequestDTO dto){
+    public ResponseEntity<Void> updateMarketPost(@PathVariable("marketId") Long marketId, @RequestBody MarketPostRequestDTO dto){
         marketService.updateMarketPost(marketId, dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

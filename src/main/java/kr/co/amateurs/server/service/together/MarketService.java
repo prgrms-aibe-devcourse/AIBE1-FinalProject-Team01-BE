@@ -1,9 +1,10 @@
 package kr.co.amateurs.server.service.together;
 
 import jakarta.transaction.Transactional;
-import kr.co.amateurs.server.domain.dto.together.market.MarketPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.market.MarketPostResponseDTO;
-import kr.co.amateurs.server.domain.dto.together.market.UpdateMarketPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.UpdatePostRequestDTO;
+import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -42,6 +43,8 @@ public class MarketService {
         return convertToDTO(mp, post);
     }
 
+
+    //TODO - validation 추가 필요
     @Transactional
     public MarketPostResponseDTO createMarketPost(MarketPostRequestDTO dto) {
 
@@ -69,26 +72,16 @@ public class MarketService {
         return convertToDTO(savedMp, savedPost);
     }
 
-
-    /*
-        JPA에서 update 처리하는 법 조사중
-     */
+    //TODO - validation 추가 필요
     @Transactional
-    public void updateMarketPost(Long marketId, UpdateMarketPostRequestDTO dto) {
-//        MarketPost existing = marketRepository.findById(marketId)
-//                .orElseThrow(() -> new IllegalArgumentException("MarketPost not found: " + marketId));
-//
-//        Post post = existing.getPost();
-//        post.setTitle(dto.title());
-//        post.setContent(dto.content());
-//        post.setTags(dto.tags());
-//
-//        existing.setMarketType(dto.marketType());
-//        existing.setStatus(dto.status());
-//        existing.setHeadCount(dto.headCount());
-//        existing.setPlace(dto.place());
-//        existing.setPeriod(dto.period());
-//        existing.setRequiredSkills(dto.requiredSkills());
+    public void updateMarketPost(Long marketId, MarketPostRequestDTO dto) {
+        MarketItem mp = marketRepository.findById(marketId).orElseThrow(() -> new IllegalArgumentException("Market Post not found: " + marketId));
+        Post post = mp.getPost();
+        UpdatePostRequestDTO updatePostDTO= new UpdatePostRequestDTO(dto.title(), dto.content(), dto.tags());
+
+        post.updatePost(updatePostDTO);
+        mp.update(dto);
+
     }
 
     @Transactional

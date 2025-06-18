@@ -1,9 +1,8 @@
 package kr.co.amateurs.server.controller.together;
 
 
-import kr.co.amateurs.server.domain.dto.together.gathering.GatheringPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.gathering.GatheringPostResponseDTO;
-import kr.co.amateurs.server.domain.dto.together.gathering.UpdateGatheringPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.service.together.GatheringService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,7 +37,7 @@ public class GatheringController {
     }
 
     @PutMapping("/{gatheringId}")
-    public ResponseEntity<Void> updateGatheringPost(@PathVariable("gatheringId") Long gatheringId, @RequestBody UpdateGatheringPostRequestDTO dto){
+    public ResponseEntity<Void> updateGatheringPost(@PathVariable("gatheringId") Long gatheringId, @RequestBody GatheringPostRequestDTO dto){
         gatheringService.updateGatheringPost(gatheringId, dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

@@ -1,5 +1,6 @@
-package kr.co.amateurs.server.domain.dto.together.gathering;
+package kr.co.amateurs.server.domain.dto.together;
 
+import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 
 public record GatheringPostRequestDTO(
@@ -8,6 +9,7 @@ public record GatheringPostRequestDTO(
         String content,
         String tags,
         GatheringType gatheringType,
+        GatheringStatus status,
         Integer headCount,
         String place,
         String period,

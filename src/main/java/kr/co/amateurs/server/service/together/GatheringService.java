@@ -2,9 +2,9 @@ package kr.co.amateurs.server.service.together;
 
 
 import jakarta.transaction.Transactional;
-import kr.co.amateurs.server.domain.dto.together.gathering.GatheringPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.gathering.GatheringPostResponseDTO;
-import kr.co.amateurs.server.domain.dto.together.gathering.UpdateGatheringPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.UpdatePostRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -44,6 +44,8 @@ public class GatheringService {
         return convertToDTO(gp, post);
     }
 
+
+    //TODO - validation 추가 필요
     @Transactional
     public GatheringPostResponseDTO createGatheringPost(GatheringPostRequestDTO dto) {
 
@@ -76,25 +78,15 @@ public class GatheringService {
     }
 
 
-    /*
-        JPA에서 update 처리하는 법 조사중
-     */
+    //TODO - validation 추가 필요
     @Transactional
-    public void updateGatheringPost(Long gatheringId, UpdateGatheringPostRequestDTO dto) {
-//        GatheringPost existing = gatheringRepository.findById(gatheringId)
-//                .orElseThrow(() -> new IllegalArgumentException("GatheringPost not found: " + gatheringId));
-//
-//        Post post = existing.getPost();
-//        post.setTitle(dto.title());
-//        post.setContent(dto.content());
-//        post.setTags(dto.tags());
-//
-//        existing.setGatheringType(dto.gatheringType());
-//        existing.setStatus(dto.status());
-//        existing.setHeadCount(dto.headCount());
-//        existing.setPlace(dto.place());
-//        existing.setPeriod(dto.period());
-//        existing.setRequiredSkills(dto.requiredSkills());
+    public void updateGatheringPost(Long gatheringId, GatheringPostRequestDTO dto) {
+        GatheringPost gp = gatheringRepository.findById(gatheringId).orElseThrow(() -> new IllegalArgumentException("Gathering Post not found: " + gatheringId));
+        Post post = gp.getPost();
+        UpdatePostRequestDTO updatePostDTO= new UpdatePostRequestDTO(dto.title(), dto.content(), dto.tags());
+
+        post.updatePost(updatePostDTO);
+        gp.update(dto);
     }
 
     @Transactional

@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
+import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
@@ -30,4 +31,12 @@ public class GatheringPost extends BaseEntity {
     private String period;
     private String schedule;
 
+    public void update(GatheringPostRequestDTO dto){
+        this.gatheringType = dto.gatheringType();
+        this.status = dto.status();
+        this.headCount = dto.headCount();
+        this.place = dto.place();
+        this.period = dto.period();
+        this.schedule = dto.schedule();
+    }
 }

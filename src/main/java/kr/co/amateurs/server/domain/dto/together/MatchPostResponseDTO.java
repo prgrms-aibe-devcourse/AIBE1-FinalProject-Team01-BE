@@ -1,4 +1,4 @@
-package kr.co.amateurs.server.domain.dto.together.match;
+package kr.co.amateurs.server.domain.dto.together;
 
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;

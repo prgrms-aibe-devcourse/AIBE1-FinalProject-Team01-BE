@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
+import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import lombok.*;
@@ -24,4 +25,11 @@ public class MarketItem extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MarketStatus status;
+
+    public void update (MarketPostRequestDTO dto){
+        this.status = dto.status();
+        this.price = dto.price();
+        this.place = dto.place();
+
+    }
 }
