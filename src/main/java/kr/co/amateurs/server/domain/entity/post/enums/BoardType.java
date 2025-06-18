@@ -13,7 +13,8 @@ public enum BoardType {
     GATHER("팀원구하기"),
     MATCH("매칭"),
     PROJECT_HUB("프로젝트 허브"),
-    INFO("정보게시판");
+    INFO("정보게시판"),
+    REVIEW("데브코스후기");
 
     private final String description;
 }
