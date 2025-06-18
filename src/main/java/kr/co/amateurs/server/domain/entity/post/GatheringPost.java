@@ -27,8 +27,7 @@ public class GatheringPost extends BaseEntity {
     private GatheringStatus status;
     private Integer headCount;
     private String place;
-    private Integer period;
+    private String period;
+    private String schedule;
 
-    @Column(name = "required_skills")
-    private String requiredSkills;
 }
