@@ -1,20 +1,22 @@
 package kr.co.amateurs.server.domain.dto.auth;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import kr.co.amateurs.server.domain.entity.user.User;
 
 import java.time.LocalDateTime;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class SignupResponseDto {
+public record SignupResponseDto(
+        Long userId,
+        String email,
+        String nickname,
+        LocalDateTime createdAt
+) {
 
-    private Long userId;
-    private String email;
-    private String nickname;
-    private LocalDateTime createdAt;
+    public static SignupResponseDto fromEntity(User user) {
+        return new SignupResponseDto(
+                user.getId(),
+                user.getEmail(),
+                user.getNickname(),
+                user.getCreatedAt()
+        );
+    }
 }

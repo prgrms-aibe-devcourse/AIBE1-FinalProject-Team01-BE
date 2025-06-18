@@ -22,27 +22,22 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     public SignupResponseDto signup(SignupRequestDto request){
-        userService.validateEmailDuplicate(request.getEmail());
-        userService.validateNicknameDuplicate(request.getNickname());
+        userService.validateEmailDuplicate(request.email());
+        userService.validateNicknameDuplicate(request.nickname());
 
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        String encodedPassword = passwordEncoder.encode(request.password());
 
         User user = User.builder()
-                .email(request.getEmail())
-                .nickname(request.getNickname())
-                .name(request.getName())
+                .email(request.email())
+                .nickname(request.nickname())
+                .name(request.name())
                 .password(encodedPassword)
-                .role(Role.STUDENT)
+                .role(Role.GUEST)
                 .providerType(ProviderType.LOCAL)
                 .build();
 
         User savedUser = userRepository.save(user);
 
-        return SignupResponseDto.builder()
-                .userId(savedUser.getId())
-                .email(savedUser.getEmail())
-                .nickname(savedUser.getNickname())
-                .createdAt(savedUser.getCreatedAt())
-                .build();
+        return SignupResponseDto.fromEntity(savedUser);
     }
 }
