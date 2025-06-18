@@ -7,7 +7,6 @@ import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,12 +16,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class AuthServiceTest {
+class AuthServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -37,38 +35,39 @@ public class AuthServiceTest {
     private AuthService authService;
 
     @Test
-    @DisplayName("회원가입이 성공적으로 처리된다")
-    void signup_Success() {
+    void 정상적인_유저_등록_시_201_응답을_반환한다() {
         // given
-        SignupRequestDto request = new SignupRequestDto();
+        SignupRequestDto request = SignupRequestDto.builder()
+                .email("test@test.com")
+                .nickname("testnick")
+                .name("testname")
+                .password("password123")
+                .build();
 
         String encodedPassword = "encodedPassword123";
-        when(passwordEncoder.encode(anyString())).thenReturn(encodedPassword);
+        when(passwordEncoder.encode("password123")).thenReturn(encodedPassword);
 
         User savedUser = User.builder()
                 .email("test@test.com")
                 .nickname("testnick")
                 .name("testname")
                 .password(encodedPassword)
-                .role(Role.STUDENT)
+                .role(Role.GUEST)
                 .providerType(ProviderType.LOCAL)
                 .build();
 
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
-
         // when
         SignupResponseDto response = authService.signup(request);
 
         // then
-        assertThat(response.getUserId()).isEqualTo(1L);
-        assertThat(response.getEmail()).isEqualTo("test@test.com");
-        assertThat(response.getNickname()).isEqualTo("testnick");
+        assertThat(response.email()).isEqualTo("test@test.com");
+        assertThat(response.nickname()).isEqualTo("testnick");
 
-        verify(userService).validateEmailDuplicate(anyString());
-        verify(userService).validateNicknameDuplicate(anyString());
-        verify(passwordEncoder).encode(anyString());
+        verify(userService).validateEmailDuplicate("test@test.com");
+        verify(userService).validateNicknameDuplicate("testnick");
+        verify(passwordEncoder).encode("password123");
         verify(userRepository).save(any(User.class));
     }
-
 }
