@@ -32,6 +32,7 @@ public class AuthService {
                 .nickname(request.nickname())
                 .name(request.name())
                 .password(encodedPassword)
+                .topics(request.topics())
                 .role(Role.GUEST)
                 .providerType(ProviderType.LOCAL)
                 .build();
