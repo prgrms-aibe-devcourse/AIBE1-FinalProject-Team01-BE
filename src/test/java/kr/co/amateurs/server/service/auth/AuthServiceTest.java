@@ -7,7 +7,9 @@ import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.topic.UserTopicRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -21,6 +23,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,6 +35,9 @@ class AuthServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private UserTopicRepository userTopicRepository;
 
     @Mock
     private UserService userService;
@@ -50,6 +56,7 @@ class AuthServiceTest {
                 .nickname("testnick")
                 .name("testname")
                 .password("password123")
+                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
 
         String encodedPassword = "encodedPassword123";
@@ -77,6 +84,7 @@ class AuthServiceTest {
         verify(userService).validateNicknameDuplicate("testnick");
         verify(passwordEncoder).encode("password123");
         verify(userRepository).save(any(User.class));
+        verify(userTopicRepository).saveAll(any());
     }
 
     @Test
@@ -87,6 +95,7 @@ class AuthServiceTest {
                 .nickname("testnick")
                 .name("testname")
                 .password("password123")
+                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
 
         doThrow(ErrorCode.DUPLICATE_EMAIL.get())
@@ -102,6 +111,7 @@ class AuthServiceTest {
         verify(userService, never()).validateNicknameDuplicate(any());
         verify(passwordEncoder, never()).encode(any());
         verify(userRepository, never()).save(any());
+        verify(userTopicRepository, never()).saveAll(any());
     }
 
     @Test
@@ -112,6 +122,7 @@ class AuthServiceTest {
                 .nickname("duplicateNick")
                 .name("testname")
                 .password("password123")
+                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
 
         doThrow(ErrorCode.DUPLICATE_NICKNAME.get())
@@ -127,6 +138,7 @@ class AuthServiceTest {
         verify(userService).validateNicknameDuplicate("duplicateNick");
         verify(passwordEncoder, never()).encode(any());
         verify(userRepository, never()).save(any());
+        verify(userTopicRepository, never()).saveAll(any());
     }
 
     @Test
@@ -137,6 +149,7 @@ class AuthServiceTest {
                 .nickname("testnick")
                 .name("testname")
                 .password("rawPassword123")
+                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
 
         PasswordEncoder realEncoder = new BCryptPasswordEncoder();
@@ -182,5 +195,7 @@ class AuthServiceTest {
                     user.getRole() == Role.GUEST &&
                     user.getProviderType() == ProviderType.LOCAL;
         }));
+
+        verify(userTopicRepository).saveAll(any());
     }
 }
