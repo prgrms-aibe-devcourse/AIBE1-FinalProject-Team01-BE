@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum BoardType {
     FREE("자유게시판"),
-    STUDENT("수강생 게시판"),
+    QNA("질문/토론"),
     MARKET("장터"),
     RETROSPECT("회고"),
     GATHER("팀원구하기"),
