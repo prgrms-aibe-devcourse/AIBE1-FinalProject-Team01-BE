@@ -97,4 +97,32 @@ class AuthServiceTest {
         verify(passwordEncoder, never()).encode(any());
         verify(userRepository, never()).save(any());
     }
+
+    @Test
+    void 중복된_닉네임으로_회원가입_시_예외가_발생한다() {
+        // given
+        SignupRequestDto request = SignupRequestDto.builder()
+                .email("test@test.com")
+                .nickname("duplicateNick")
+                .name("testname")
+                .password("password123")
+                .build();
+
+        doThrow(ErrorCode.DUPLICATE_NICKNAME.get())
+                .when(userService).validateNicknameDuplicate("duplicateNick");
+
+        // when & then
+        assertThatThrownBy(() -> authService.signup(request))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.DUPLICATE_NICKNAME);
+
+        verify(userService).validateEmailDuplicate("test@test.com");
+        verify(userService).validateNicknameDuplicate("duplicateNick");
+        verify(passwordEncoder, never()).encode(any());
+        verify(userRepository, never()).save(any());
+    }
+
+
+
 }
