@@ -103,9 +103,7 @@ public class CommentService {
             comments = comments.subList(0, size);
         }
 
-        Long nextCursor = hasMore && !comments.isEmpty()
-                ? comments.get(comments.size() - 1).getId()
-                : null;
+        Long nextCursor = hasMore ? comments.get(comments.size() - 1).getId() : null;
 
         List<CommentResponseDTO> commentDTOs = converter.apply(comments);
 
@@ -116,6 +114,7 @@ public class CommentService {
         if (parentCommentId == null) {
             return Optional.empty();
         }
+
         Comment parentComment = findCommentById(parentCommentId);
         if (parentComment.getParentComment() != null) {
             throw new CustomException(ErrorCode.NOT_FOUND); // ErrorCode > 답글에는 답글을 달 수 없습니다.
@@ -160,7 +159,7 @@ public class CommentService {
         return comments.stream()
                 .map(comment -> {
                     int replyCount = replyCountMap.getOrDefault(comment.getId(), 0);
-                    return CommentResponseDTO.from(comment, replyCount, true);
+                    return CommentResponseDTO.from(comment, replyCount, false);
                 })
                 .collect(Collectors.toList());
     }

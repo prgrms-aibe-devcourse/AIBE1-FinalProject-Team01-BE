@@ -5,6 +5,6 @@ import java.util.List;
 public record CommentPageDTO(
         List<CommentResponseDTO> comments,
         Long nextCursor,
-        boolean hasMore
+        boolean hasNext
 ) {
 }

@@ -1,11 +1,8 @@
 package kr.co.amateurs.server.domain.dto.comment;
 
-import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
-import kr.co.amateurs.server.domain.entity.post.Post;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public record CommentResponseDTO(
     Long id,
