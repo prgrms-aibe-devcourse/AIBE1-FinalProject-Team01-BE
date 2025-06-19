@@ -1,8 +1,6 @@
 package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
-import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.UpdatePostRequestDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -69,6 +67,32 @@ public class Post extends BaseEntity {
 
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private Project project;
+
+    public void incrementLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decrementLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
+    }
+
+    public static Post from(CommunityRequestDTO requestDTO, User user, BoardType boardType) {
+        return Post.builder()
+                .user(user)
+                .title(requestDTO.title())
+                .content(requestDTO.content())
+                .tags(requestDTO.tags())
+                .boardType(boardType)
+                .build();
+    }
+
+    public void update(CommunityRequestDTO requestDTO) {
+        this.title = requestDTO.title();
+        this.content = requestDTO.content();
+        this.tags = requestDTO.tags();
+    }
 
 
     //community랑 병합할 때 제거하고 하나로 통일할 예정

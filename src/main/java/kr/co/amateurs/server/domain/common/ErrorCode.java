@@ -10,7 +10,8 @@ import java.util.function.Supplier;
 @Getter
 @RequiredArgsConstructor
 public enum ErrorCode implements Supplier<CustomException> {
-    NOT_FOUND(HttpStatus.NOT_FOUND, "조회할 대상을 찾을 수 없습니다.");
+    NOT_FOUND(HttpStatus.NOT_FOUND, "조회할 대상을 찾을 수 없습니다."),
+    ACCESS_DENIED(HttpStatus.BAD_REQUEST, "접근 할 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
