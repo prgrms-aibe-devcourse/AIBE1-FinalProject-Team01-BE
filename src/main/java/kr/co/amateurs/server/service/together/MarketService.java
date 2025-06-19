@@ -1,13 +1,14 @@
 package kr.co.amateurs.server.service.together;
 
 import jakarta.transaction.Transactional;
+import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
-import kr.co.amateurs.server.domain.dto.together.UpdatePostRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
+import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
@@ -27,7 +28,7 @@ public class MarketService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    public Page<MarketPostResponseDTO> getMarketPostList(String keyword, int page, int size, String sortType) {
+    public Page<MarketPostResponseDTO> getMarketPostList(String keyword, int page, int size, SortType sortType) {
         Pageable pageable = createPageable(page, size, sortType);
         Page<MarketItem> miPage;
         if(keyword == null || keyword.isBlank()){
@@ -60,7 +61,7 @@ public class MarketService {
 
         Post post = Post.builder()
                 .user(user)
-                .boardType(BoardType.MATCH)
+                .boardType(BoardType.MARKET)
                 .title(dto.title())
                 .content(dto.content())
                 .tags(dto.tags())
@@ -83,9 +84,9 @@ public class MarketService {
     public void updateMarketPost(Long marketId, MarketPostRequestDTO dto) {
         MarketItem mi = marketRepository.findById(marketId).orElseThrow(() -> new IllegalArgumentException("Market Post not found: " + marketId));
         Post post = mi.getPost();
-        UpdatePostRequestDTO updatePostDTO = new UpdatePostRequestDTO(dto.title(), dto.content(), dto.tags());
+        CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
 
-        post.updatePost(updatePostDTO);
+        post.update(updatePostDTO);
         mi.update(dto);
 
     }
@@ -112,13 +113,11 @@ public class MarketService {
         );
     }
 
-    //TODO - 커뮤니티 병합 시 SortType 수정 예정
-    private Pageable createPageable(int page, int pageSize, String sortType) {
+    private Pageable createPageable(int page, int pageSize, SortType sortType) {
         Sort sort = switch (sortType) {
-            case "LATEST" -> Sort.by(Sort.Direction.DESC, "createdAt");
-            case "POPULAR" -> Sort.by(Sort.Direction.DESC, "likeCount");
-            case "VIEW_COUNT" -> Sort.by(Sort.Direction.DESC, "viewCount");
-            default -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case LATEST -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case POPULAR -> Sort.by(Sort.Direction.DESC, "likeCount");
+            case VIEW_COUNT -> Sort.by(Sort.Direction.DESC, "viewCount");
         };
 
         return PageRequest.of(page, pageSize, sort);

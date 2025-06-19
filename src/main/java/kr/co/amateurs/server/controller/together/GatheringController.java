@@ -3,12 +3,15 @@ package kr.co.amateurs.server.controller.together;
 
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.together.GatheringService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static kr.co.amateurs.server.domain.entity.post.enums.SortType.LATEST;
 
 
 @RestController
@@ -23,7 +26,7 @@ public class GatheringController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "LATEST") String sortType      //커뮤니티와 병합 시 SortType enum으로 수정 예정
+            @RequestParam(defaultValue = "LATEST") SortType sortType
     ){
         Page<GatheringPostResponseDTO> gatheringList = gatheringService.getGatheringPostList(keyword, page, size, sortType);
         return ResponseEntity.ok(gatheringList);

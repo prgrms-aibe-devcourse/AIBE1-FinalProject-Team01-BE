@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
+import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -92,13 +93,5 @@ public class Post extends BaseEntity {
         this.title = requestDTO.title();
         this.content = requestDTO.content();
         this.tags = requestDTO.tags();
-    }
-
-
-    //community랑 병합할 때 제거하고 하나로 통일할 예정
-    public void updatePost(UpdatePostRequestDTO dto) {
-        this.title = dto.title();
-        this.content = dto.content();
-        this.tags = dto.tags();
     }
 }

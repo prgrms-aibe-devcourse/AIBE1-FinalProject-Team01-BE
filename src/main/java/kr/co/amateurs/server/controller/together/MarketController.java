@@ -3,6 +3,7 @@ package kr.co.amateurs.server.controller.together;
 
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
+import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.together.MarketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,7 +23,7 @@ public class MarketController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "LATEST") String sortType  //커뮤니티와 병합 시 SortType enum으로 수정 예정
+            @RequestParam(defaultValue = "LATEST") SortType sortType
     ){
         Page<MarketPostResponseDTO> marketList = marketService.getMarketPostList(keyword, page, size, sortType);
         return ResponseEntity.ok(marketList);

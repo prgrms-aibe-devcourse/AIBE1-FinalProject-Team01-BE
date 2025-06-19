@@ -13,10 +13,10 @@ public interface MarketRepository extends JpaRepository<MarketItem, Long> {
       select mi
         from MarketItem mi
         join mi.post p
-       where lower(p.title)   like lower(concat('%', :keyword, '%'))
-          or lower(p.content) like lower(concat('%', :keyword, '%'))
+       where p.title  like concat('%', :keyword, '%')
+          or p.content like concat('%', :keyword, '%')
     """)
         // TODO - 쿼리에 아래 코드 추가 시 검색어가 태그에도 포함되는 지 확인 가능
-        // or lower(p.tags)    like lower(concat('%', :keyword, '%'))
+        // or p.tags    like concat('%', :keyword, '%')
     Page<MarketItem> findAllByKeyword(@Param("keyword") String keyword, Pageable pageable);
 }

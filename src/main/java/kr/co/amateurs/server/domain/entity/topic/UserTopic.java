@@ -17,7 +17,7 @@ public class UserTopic extends BaseEntity {
     @JoinColumn(nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    private Topic topic;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "topic_id", nullable = false)
+//    private Topic topic;
 }
