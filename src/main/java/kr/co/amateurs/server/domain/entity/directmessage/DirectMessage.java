@@ -2,32 +2,38 @@ package kr.co.amateurs.server.domain.entity.directmessage;
 
 import jakarta.persistence.Id;
 import kr.co.amateurs.server.domain.entity.directmessage.enums.MessageType;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Document(collection = "direct_messages")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Builder
 public class DirectMessage {
     @Id
     private String id;
 
     @Indexed
-    private String senderId;
+    private String roomId;
 
-    @Indexed
-    private String receiverId;
+    private Long senderId;
     private String content;
-    private final MessageType messageType = MessageType.TEXT;
 
-    @Indexed
+    @Builder.Default
+    private MessageType messageType = MessageType.TEXT;
+
+    @Builder.Default
+    private boolean isRead = false;
+
+    @Builder.Default
     private LocalDateTime sentAt = LocalDateTime.now();
-    private LocalDateTime readAt;
+
+    public void markAsRead() {
+        this.isRead = true;
+    }
 }
