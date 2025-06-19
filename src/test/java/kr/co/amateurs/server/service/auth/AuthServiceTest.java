@@ -1,9 +1,14 @@
 package kr.co.amateurs.server.service.auth;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
+import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -23,6 +28,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +60,7 @@ class AuthServiceTest {
         SignupRequestDto request = SignupRequestDto.builder()
                 .email("test@test.com")
                 .nickname("testnick")
-                .name("testname")
+                .name("김테스트")
                 .password("password123")
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
@@ -65,7 +71,7 @@ class AuthServiceTest {
         User savedUser = User.builder()
                 .email("test@test.com")
                 .nickname("testnick")
-                .name("testname")
+                .name("김테스트")
                 .password(encodedPassword)
                 .role(Role.GUEST)
                 .providerType(ProviderType.LOCAL)
@@ -93,7 +99,7 @@ class AuthServiceTest {
         SignupRequestDto request = SignupRequestDto.builder()
                 .email("duplicate@test.com")
                 .nickname("testnick")
-                .name("testname")
+                .name("김테스트")
                 .password("password123")
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
@@ -120,7 +126,7 @@ class AuthServiceTest {
         SignupRequestDto request = SignupRequestDto.builder()
                 .email("test@test.com")
                 .nickname("duplicateNick")
-                .name("testname")
+                .name("김테스트")
                 .password("password123")
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
@@ -147,7 +153,7 @@ class AuthServiceTest {
         SignupRequestDto request = SignupRequestDto.builder()
                 .email("test@test.com")
                 .nickname("testnick")
-                .name("testname")
+                .name("김테스트")
                 .password("rawPassword123")
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
@@ -198,4 +204,113 @@ class AuthServiceTest {
 
         verify(userTopicRepository).saveAll(any());
     }
+
+
+    @Test
+    void 토픽이_올바르게_UserTopic으로_변환되어_저장된다() {
+        // given
+        SignupRequestDto request = SignupRequestDto.builder()
+                .email("test@test.com")
+                .nickname("testnick")
+                .name("김테스트")
+                .password("password123")
+                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.AI))
+                .build();
+
+        String encodedPassword = "encodedPassword123";
+        when(passwordEncoder.encode("password123")).thenReturn(encodedPassword);
+
+        User savedUser = User.builder()
+                .email("test@test.com")
+                .nickname("testnick")
+                .name("김테스트")
+                .password(encodedPassword)
+                .role(Role.GUEST)
+                .providerType(ProviderType.LOCAL)
+                .build();
+
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+
+        // when
+        SignupResponseDto response = authService.signup(request);
+
+        // then
+        assertThat(response.topics()).hasSize(3);
+        assertThat(response.topics()).containsExactlyInAnyOrder(
+                Topic.FRONTEND, Topic.BACKEND, Topic.AI
+        );
+
+        verify(userTopicRepository).saveAll(argThat(userTopics -> {
+            List<UserTopic> userTopicList = (List<UserTopic>) userTopics;
+            return userTopicList.size() == 3 &&
+                    userTopicList.stream().anyMatch(ut -> ut.getTopic() == Topic.FRONTEND) &&
+                    userTopicList.stream().anyMatch(ut -> ut.getTopic() == Topic.BACKEND) &&
+                    userTopicList.stream().anyMatch(ut -> ut.getTopic() == Topic.AI) &&
+                    userTopicList.stream().allMatch(ut -> ut.getUser().equals(savedUser));
+        }));
+    }
+
+    @Test
+    void 토픽_4개_이상_선택_시_validation_에러가_발생한다() {
+        // given
+        Set<Topic> tooManyTopics = Set.of(
+                Topic.FRONTEND, Topic.BACKEND, Topic.AI, Topic.MOBILE
+        );
+
+        SignupRequestDto request = SignupRequestDto.builder()
+                .email("test@test.com")
+                .nickname("testnick")
+                .name("김테스트")
+                .password("password123")
+                .topics(tooManyTopics)
+                .build();
+
+        // when
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+        Set<ConstraintViolation<SignupRequestDto>> violations = validator.validate(request);
+
+        // then
+        assertThat(violations).hasSize(1);
+        assertThat(violations.iterator().next().getMessage())
+                .isEqualTo("토픽은 1개 이상 3개 이하로 선택해주세요");
+        assertThat(violations.iterator().next().getPropertyPath().toString())
+                .isEqualTo("topics");
+    }
+
+    @Test
+    void UserTopic_저장_실패_시_예외가_발생한다() {
+        // given
+        SignupRequestDto request = SignupRequestDto.builder()
+                .email("test@test.com")
+                .nickname("testnick")
+                .name("김테스트")
+                .password("password123")
+                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
+                .build();
+
+        String encodedPassword = "encodedPassword123";
+        when(passwordEncoder.encode("password123")).thenReturn(encodedPassword);
+
+        User savedUser = User.builder()
+                .email("test@test.com")
+                .nickname("testnick")
+                .name("김테스트")
+                .password(encodedPassword)
+                .role(Role.GUEST)
+                .providerType(ProviderType.LOCAL)
+                .build();
+
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(userTopicRepository.saveAll(any())).thenThrow(new RuntimeException("DB 저장 실패"));
+
+        // when & then
+        assertThatThrownBy(() -> authService.signup(request))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("DB 저장 실패");
+
+        verify(userRepository).save(any(User.class));
+        verify(userTopicRepository).saveAll(any());
+    }
+
 }
