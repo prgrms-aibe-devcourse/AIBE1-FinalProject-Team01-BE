@@ -363,4 +363,29 @@ class AuthServiceTest {
         verify(userRepository, never()).save(any());
     }
 
+    @Test
+    void 닉네임_중복_시_비밀번호_암호화와_유저_저장이_호출되지_않는다() {
+        // given
+        SignupRequestDto request = SignupRequestDto.builder()
+                .email("test@test.com")
+                .nickname("duplicateNick")
+                .name("김테스트")
+                .password("password123")
+                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
+                .build();
+
+        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
+        when(userRepository.existsByNickname("duplicateNick")).thenReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> authService.signup(request))
+                .isInstanceOf(CustomException.class);
+
+        InOrder inOrder = inOrder(userRepository, passwordEncoder);
+        inOrder.verify(userRepository).existsByEmail("test@test.com");
+        inOrder.verify(userRepository).existsByNickname("duplicateNick");
+
+        verify(passwordEncoder, never()).encode(any());
+        verify(userRepository, never()).save(any());
+    }
 }
