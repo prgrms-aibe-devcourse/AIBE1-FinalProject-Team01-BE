@@ -1,14 +1,15 @@
 package kr.co.amateurs.server.service.auth;
 
+import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
 import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.topic.UserTopicRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
-import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,12 +25,15 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final UserTopicRepository userTopicRepository;
-    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
     public SignupResponseDto signup(SignupRequestDto request){
-        userService.validateEmailDuplicate(request.email());
-        userService.validateNicknameDuplicate(request.nickname());
+        if (userRepository.existsByEmail(request.email())) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
+        }
+        if (userRepository.existsByNickname(request.nickname())) {
+            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
+        }
 
         String encodedPassword = passwordEncoder.encode(request.password());
 
