@@ -5,17 +5,20 @@ import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class User extends BaseEntity {
 
     @Column(unique = true, nullable = false)
@@ -43,4 +46,13 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<UserTopic> userTopics = new ArrayList<>();
+
+    public void addUserTopics(Set<Topic> topics) {
+        this.userTopics = topics.stream()
+                .map(topic -> UserTopic.builder()
+                        .user(this)
+                        .topic(topic)
+                        .build())
+                .collect(Collectors.toList());
+    }
 }
