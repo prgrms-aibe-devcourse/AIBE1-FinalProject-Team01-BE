@@ -16,6 +16,7 @@ import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -294,5 +295,45 @@ class AuthServiceTest {
                 .hasMessage("DB 저장 실패");
 
         verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void 회원가입_시_메서드_호출_순서가_올바른지_검증한다() {
+        // given
+        SignupRequestDto request = SignupRequestDto.builder()
+                .email("test@test.com")
+                .nickname("testnick")
+                .name("김테스트")
+                .password("password123")
+                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
+                .build();
+
+        String encodedPassword = "encodedPassword123";
+
+        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
+        when(userRepository.existsByNickname("testnick")).thenReturn(false);
+        when(passwordEncoder.encode("password123")).thenReturn(encodedPassword);
+
+        User savedUser = User.builder()
+                .email("test@test.com")
+                .nickname("testnick")
+                .name("김테스트")
+                .password(encodedPassword)
+                .role(Role.GUEST)
+                .providerType(ProviderType.LOCAL)
+                .build();
+
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+
+        // when
+        authService.signup(request);
+
+        // then
+        InOrder inOrder = inOrder(userRepository, passwordEncoder);
+
+        inOrder.verify(userRepository).existsByEmail("test@test.com");
+        inOrder.verify(userRepository).existsByNickname("testnick");
+        inOrder.verify(passwordEncoder).encode("password123");
+        inOrder.verify(userRepository).save(any(User.class));
     }
 }
