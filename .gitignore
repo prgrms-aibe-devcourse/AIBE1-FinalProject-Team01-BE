@@ -36,11 +36,10 @@ out/
 ### VS Code ###
 .vscode/
 
+*.properties
+
 ### macOS ###
 .DS_Store
 ._.DS_Store
 **/.DS_Store
 **/._.DS_Store
-
-### env ###
-application.properties
