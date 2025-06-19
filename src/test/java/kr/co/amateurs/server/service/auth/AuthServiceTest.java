@@ -266,16 +266,17 @@ class AuthServiceTest {
                 .build();
 
         // when
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        Validator validator = factory.getValidator();
-        Set<ConstraintViolation<SignupRequestDto>> violations = validator.validate(request);
+        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
+            Validator validator = factory.getValidator();
+            Set<ConstraintViolation<SignupRequestDto>> violations = validator.validate(request);
 
-        // then
-        assertThat(violations).hasSize(1);
-        assertThat(violations.iterator().next().getMessage())
-                .isEqualTo("토픽은 1개 이상 3개 이하로 선택해주세요");
-        assertThat(violations.iterator().next().getPropertyPath().toString())
-                .isEqualTo("topics");
+            // then
+            assertThat(violations).hasSize(1);
+            assertThat(violations.iterator().next().getMessage())
+                    .isEqualTo("토픽은 1개 이상 3개 이하로 선택해주세요");
+            assertThat(violations.iterator().next().getPropertyPath().toString())
+                    .isEqualTo("topics");
+        }
     }
 
     @Test
