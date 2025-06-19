@@ -10,6 +10,8 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
@@ -44,4 +46,13 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<UserTopic> userTopics = new ArrayList<>();
+
+    public void addUserTopics(Set<Topic> topics) {
+        this.userTopics = topics.stream()
+                .map(topic -> UserTopic.builder()
+                        .user(this)
+                        .topic(topic)
+                        .build())
+                .collect(Collectors.toList());
+    }
 }
