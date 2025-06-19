@@ -8,15 +8,12 @@ import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
-import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
-import kr.co.amateurs.server.repository.topic.UserTopicRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
-import kr.co.amateurs.server.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,7 +25,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,12 +37,6 @@ class AuthServiceTest {
 
     @Mock
     private UserRepository userRepository;
-
-    @Mock
-    private UserTopicRepository userTopicRepository;
-
-    @Mock
-    private UserService userService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -68,6 +58,9 @@ class AuthServiceTest {
         String encodedPassword = "encodedPassword123";
         when(passwordEncoder.encode("password123")).thenReturn(encodedPassword);
 
+        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
+        when(userRepository.existsByNickname("testnick")).thenReturn(false);
+
         User savedUser = User.builder()
                 .email("test@test.com")
                 .nickname("testnick")
@@ -86,11 +79,10 @@ class AuthServiceTest {
         assertThat(response.email()).isEqualTo("test@test.com");
         assertThat(response.nickname()).isEqualTo("testnick");
 
-        verify(userService).validateEmailDuplicate("test@test.com");
-        verify(userService).validateNicknameDuplicate("testnick");
+        verify(userRepository).existsByEmail("test@test.com");
+        verify(userRepository).existsByNickname("testnick");
         verify(passwordEncoder).encode("password123");
         verify(userRepository).save(any(User.class));
-        verify(userTopicRepository).saveAll(any());
     }
 
     @Test
@@ -104,8 +96,7 @@ class AuthServiceTest {
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
 
-        doThrow(ErrorCode.DUPLICATE_EMAIL.get())
-                .when(userService).validateEmailDuplicate("duplicate@test.com");
+        when(userRepository.existsByEmail("duplicate@test.com")).thenReturn(true);
 
         // when & then
         assertThatThrownBy(() -> authService.signup(request))
@@ -113,11 +104,10 @@ class AuthServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.DUPLICATE_EMAIL);
 
-        verify(userService).validateEmailDuplicate("duplicate@test.com");
-        verify(userService, never()).validateNicknameDuplicate(any());
+        verify(userRepository).existsByEmail("duplicate@test.com");
+        verify(userRepository, never()).existsByNickname(any());
         verify(passwordEncoder, never()).encode(any());
         verify(userRepository, never()).save(any());
-        verify(userTopicRepository, never()).saveAll(any());
     }
 
     @Test
@@ -131,8 +121,8 @@ class AuthServiceTest {
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
 
-        doThrow(ErrorCode.DUPLICATE_NICKNAME.get())
-                .when(userService).validateNicknameDuplicate("duplicateNick");
+        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
+        when(userRepository.existsByNickname("duplicateNick")).thenReturn(true);
 
         // when & then
         assertThatThrownBy(() -> authService.signup(request))
@@ -140,11 +130,10 @@ class AuthServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.DUPLICATE_NICKNAME);
 
-        verify(userService).validateEmailDuplicate("test@test.com");
-        verify(userService).validateNicknameDuplicate("duplicateNick");
+        verify(userRepository).existsByEmail("test@test.com");
+        verify(userRepository).existsByNickname("duplicateNick");
         verify(passwordEncoder, never()).encode(any());
         verify(userRepository, never()).save(any());
-        verify(userTopicRepository, never()).saveAll(any());
     }
 
     @Test
@@ -160,6 +149,9 @@ class AuthServiceTest {
 
         PasswordEncoder realEncoder = new BCryptPasswordEncoder();
         ReflectionTestUtils.setField(authService, "passwordEncoder", realEncoder);
+
+        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
+        when(userRepository.existsByNickname("testnick")).thenReturn(false);
 
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
@@ -201,13 +193,10 @@ class AuthServiceTest {
                     user.getRole() == Role.GUEST &&
                     user.getProviderType() == ProviderType.LOCAL;
         }));
-
-        verify(userTopicRepository).saveAll(any());
     }
 
-
     @Test
-    void 토픽이_올바르게_UserTopic으로_변환되어_저장된다() {
+    void 토픽이_올바르게_User에_설정되어_저장된다() {
         // given
         SignupRequestDto request = SignupRequestDto.builder()
                 .email("test@test.com")
@@ -219,6 +208,9 @@ class AuthServiceTest {
 
         String encodedPassword = "encodedPassword123";
         when(passwordEncoder.encode("password123")).thenReturn(encodedPassword);
+
+        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
+        when(userRepository.existsByNickname("testnick")).thenReturn(false);
 
         User savedUser = User.builder()
                 .email("test@test.com")
@@ -240,13 +232,11 @@ class AuthServiceTest {
                 Topic.FRONTEND, Topic.BACKEND, Topic.AI
         );
 
-        verify(userTopicRepository).saveAll(argThat(userTopics -> {
-            List<UserTopic> userTopicList = (List<UserTopic>) userTopics;
-            return userTopicList.size() == 3 &&
-                    userTopicList.stream().anyMatch(ut -> ut.getTopic() == Topic.FRONTEND) &&
-                    userTopicList.stream().anyMatch(ut -> ut.getTopic() == Topic.BACKEND) &&
-                    userTopicList.stream().anyMatch(ut -> ut.getTopic() == Topic.AI) &&
-                    userTopicList.stream().allMatch(ut -> ut.getUser().equals(savedUser));
+        verify(userRepository).save(argThat(user -> {
+            return user.getEmail().equals("test@test.com") &&
+                    user.getNickname().equals("testnick") &&
+                    user.getRole() == Role.GUEST &&
+                    user.getProviderType() == ProviderType.LOCAL;
         }));
     }
 
@@ -280,7 +270,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void UserTopic_저장_실패_시_예외가_발생한다() {
+    void User_저장_실패_시_예외가_발생한다() {
         // given
         SignupRequestDto request = SignupRequestDto.builder()
                 .email("test@test.com")
@@ -293,17 +283,10 @@ class AuthServiceTest {
         String encodedPassword = "encodedPassword123";
         when(passwordEncoder.encode("password123")).thenReturn(encodedPassword);
 
-        User savedUser = User.builder()
-                .email("test@test.com")
-                .nickname("testnick")
-                .name("김테스트")
-                .password(encodedPassword)
-                .role(Role.GUEST)
-                .providerType(ProviderType.LOCAL)
-                .build();
+        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
+        when(userRepository.existsByNickname("testnick")).thenReturn(false);
 
-        when(userRepository.save(any(User.class))).thenReturn(savedUser);
-        when(userTopicRepository.saveAll(any())).thenThrow(new RuntimeException("DB 저장 실패"));
+        when(userRepository.save(any(User.class))).thenThrow(new RuntimeException("DB 저장 실패"));
 
         // when & then
         assertThatThrownBy(() -> authService.signup(request))
@@ -311,7 +294,5 @@ class AuthServiceTest {
                 .hasMessage("DB 저장 실패");
 
         verify(userRepository).save(any(User.class));
-        verify(userTopicRepository).saveAll(any());
     }
-
 }
