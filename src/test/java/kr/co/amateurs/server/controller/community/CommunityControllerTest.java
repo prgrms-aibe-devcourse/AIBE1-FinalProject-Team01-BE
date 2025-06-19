@@ -159,7 +159,7 @@ class CommunityControllerTest {
                 .andExpect(jsonPath("$.content").value("새 게시글 내용"));
     }
 
-    @DisplayName("커뮤니티 게시글 수정 성공")
+    @Test
     void 유저가_게시글을_수정하면_게시글_내용이_변경되어야_한다() throws Exception {
         // given
         Long postId = 1L;

@@ -4,9 +4,9 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.Page;
@@ -16,7 +16,6 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @ActiveProfiles("test")
 public class PostRepositoryTest {
     @Autowired
@@ -25,19 +24,24 @@ public class PostRepositoryTest {
     @Autowired
     private PostRepository postRepository;
 
-    @Test
-    void 특정_보드타입으로_조회하면_해당_게시글들이_반환되어야_한다() {
-        // Given
-        User user = User.builder()
+    private User testUser;
+
+    @BeforeEach
+    void setUp() {
+        testUser = User.builder()
                 .email("test@example.com")
                 .nickname("testuser")
                 .name("테스트유저")
                 .role(Role.STUDENT)
                 .build();
-        entityManager.persistAndFlush(user);
+        entityManager.persistAndFlush(testUser);
+    }
 
+    @Test
+    void 특정_보드타입으로_조회하면_해당_게시글들이_반환되어야_한다() {
+        // Given
         Post post = Post.builder()
-                .user(user)
+                .user(testUser)
                 .title("테스트 제목")
                 .content("테스트 내용")
                 .boardType(BoardType.FREE)
@@ -58,16 +62,8 @@ public class PostRepositoryTest {
     @Test
     void 제목에_키워드가_포함된_게시글을_보드타입으로_조회하면_해당_게시글이_반환되어야_한다() {
         // Given
-        User user = User.builder()
-                .email("test@example.com")
-                .nickname("testuser")
-                .name("테스트유저")
-                .role(Role.STUDENT)
-                .build();
-        entityManager.persistAndFlush(user);
-
         Post post = Post.builder()
-                .user(user)
+                .user(testUser)
                 .title("자바 프로그래밍 질문")
                 .content("내용입니다")
                 .boardType(BoardType.FREE)
@@ -89,16 +85,8 @@ public class PostRepositoryTest {
     @Test
     void 내용에_키워드가_포함된_게시글을_보드타입으로_조회하면_해당_게시글이_반환되어야_한다() {
         // Given
-        User user = User.builder()
-                .email("test@example.com")
-                .nickname("testuser")
-                .name("테스트유저")
-                .role(Role.STUDENT)
-                .build();
-        entityManager.persistAndFlush(user);
-
         Post post = Post.builder()
-                .user(user)
+                .user(testUser)
                 .title("질문 제목")
                 .content("스프링 부트 설정 방법을 알고 싶습니다")
                 .boardType(BoardType.FREE)
@@ -120,16 +108,8 @@ public class PostRepositoryTest {
     @Test
     void 키워드가_없는_게시글을_조회하면_빈_결과가_반환되어야_한다() {
         // Given
-        User user = User.builder()
-                .email("test@example.com")
-                .nickname("testuser")
-                .name("테스트유저")
-                .role(Role.STUDENT)
-                .build();
-        entityManager.persistAndFlush(user);
-
         Post post = Post.builder()
-                .user(user)
+                .user(testUser)
                 .title("일반 제목")
                 .content("일반 내용")
                 .boardType(BoardType.FREE)
@@ -150,16 +130,8 @@ public class PostRepositoryTest {
     @Test
     void 다른_보드타입의_게시글은_조회되지_않아야_한다() {
         // Given
-        User user = User.builder()
-                .email("test@example.com")
-                .nickname("testuser")
-                .name("테스트유저")
-                .role(Role.STUDENT)
-                .build();
-        entityManager.persistAndFlush(user);
-
         Post freePost = Post.builder()
-                .user(user)
+                .user(testUser)
                 .title("자유게시판 글")
                 .content("자유게시판 내용")
                 .boardType(BoardType.FREE)
@@ -167,7 +139,7 @@ public class PostRepositoryTest {
         entityManager.persistAndFlush(freePost);
 
         Post qnaPost = Post.builder()
-                .user(user)
+                .user(testUser)
                 .title("질문/토론 글")
                 .content("질문/토론 내용")
                 .boardType(BoardType.QNA)
