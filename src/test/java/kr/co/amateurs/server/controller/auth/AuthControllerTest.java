@@ -128,4 +128,20 @@ public class AuthControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.statusCode").value(400));
     }
+
+    @Test
+    void 빈_비밀번호로_로그인_시_400_에러가_발생해야_한다() throws Exception {
+        // given
+        LoginRequestDto request = LoginRequestDto.builder()
+                .email("test@test.com")
+                .password("")
+                .build();
+
+        // when & then
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.statusCode").value(400));
+    }
 }
