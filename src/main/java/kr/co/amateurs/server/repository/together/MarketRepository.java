@@ -10,13 +10,19 @@ import org.springframework.data.repository.query.Param;
 
 public interface MarketRepository extends JpaRepository<MarketItem, Long> {
     @Query("""
-      select mi
-        from MarketItem mi
-        join mi.post p
-       where p.title  like concat('%', :keyword, '%')
-          or p.content like concat('%', :keyword, '%')
+      select g
+        from MarketItem g
+        join g.post p
+       where (:keyword is null
+               or :keyword = ''
+               or p.title   like concat('%', :keyword, '%')
+               or p.content like concat('%', :keyword, '%')
+             )
     """)
         // TODO - 쿼리에 아래 코드 추가 시 검색어가 태그에도 포함되는 지 확인 가능
         // or p.tags    like concat('%', :keyword, '%')
-    Page<MarketItem> findAllByKeyword(@Param("keyword") String keyword, Pageable pageable);
+    Page<MarketItem> findAllByKeyword(
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }

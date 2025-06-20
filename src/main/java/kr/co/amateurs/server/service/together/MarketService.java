@@ -31,12 +31,7 @@ public class MarketService {
     public Page<MarketPostResponseDTO> getMarketPostList(String keyword, int page, int size, SortType sortType) {
         Pageable pageable = createPageable(page, size, sortType);
         Page<MarketItem> miPage;
-        if(keyword == null || keyword.isBlank()){
-            miPage = marketRepository.findAll(pageable);
-        }
-        else{
-            miPage = marketRepository.findAllByKeyword(keyword.trim(), pageable);
-        }
+        miPage = marketRepository.findAllByKeyword(keyword, pageable);
         return miPage.map(mi -> {
             Post post = mi.getPost();
             return convertToDTO(mi, post);

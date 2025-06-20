@@ -37,17 +37,30 @@ public class MatchRepositoryTest {
     private UserRepository userRepository;
 
 
+    private User user;
+    @BeforeEach
+    void setUp() {
+        user = User.builder()
+                .email("test@email.com")
+                .password("password")
+                .nickname("testUser")
+                .name("이름")
+                .role(Role.STUDENT)
+                .build();
+        user = userRepository.save(user);
+    }
+
     @Test
     void 모든_모집글_조회시_전체목록_반환() {
         // given
-        User user = createAndSaveUser();
+        
         createAndSaveMatchingPost(user, "Java 커피챗", "Java 커피챗 모집합니다");
         createAndSaveMatchingPost(user, "React 멘토링", "React 멘토링 멘티 구합니다");
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         // when
-        Page<MatchingPost> result = matchRepository.findAll(pageable);
+        Page<MatchingPost> result = matchRepository.findAllByKeyword(null, pageable);
 
         // then
         assertThat(result.getContent()).hasSize(2);
@@ -57,7 +70,7 @@ public class MatchRepositoryTest {
     @Test
     void 제목에_키워드가_포함된_모집글_검색시_해당글만_반환() {
         // given
-        User user = createAndSaveUser();
+        
         createAndSaveMatchingPost(user, "Java 커피챗", "Java와 관련된 커피챗");
         createAndSaveMatchingPost(user, "Python 커피챗", "Python와 관련된 커피챗");
         createAndSaveMatchingPost(user, "React 멘토링", "React를 배우는 멘토링");
@@ -76,7 +89,7 @@ public class MatchRepositoryTest {
     @Test
     void 내용에_키워드가_포함된_모집글_검색시_해당글만_반환() {
         // given
-        User user = createAndSaveUser();
+        
         createAndSaveMatchingPost(user, "웹 개발 커피챗", "Spring Boot를 이용한 백엔드 개발 이야기");
         createAndSaveMatchingPost(user, "앱 개발 멘토링", "React Native로 모바일 앱 개발");
         createAndSaveMatchingPost(user, "데이터 분석", "Python을 이용한 데이터 분석 커피챗");
@@ -95,7 +108,7 @@ public class MatchRepositoryTest {
     @Test
     void 제목이나_내용에_키워드가_포함된_모집글_검색시_모든해당글_반환() {
         // given
-        User user = createAndSaveUser();
+        
         createAndSaveMatchingPost(user, "React 커피챗", "React 이야기 커피챗");
         createAndSaveMatchingPost(user, "프론트엔드 멘토링", "React를 이용한 프론트엔드 개발");
         createAndSaveMatchingPost(user, "백엔드 커피챗", "Spring Boot 백엔드 개발");
@@ -116,7 +129,7 @@ public class MatchRepositoryTest {
     @Test
     void 존재하지않는_키워드로_검색시_빈결과_반환() {
         // given
-        User user = createAndSaveUser();
+        
         createAndSaveMatchingPost(user, "Java 커피챗", "Java 개발자 커피챗");
 
         Pageable pageable = PageRequest.of(0, 10);
@@ -133,7 +146,7 @@ public class MatchRepositoryTest {
     @Test
     void 공백이_포함된_키워드로_검색시_정상작동() {
         // given
-        User user = createAndSaveUser();
+        
         createAndSaveMatchingPost(user, "Spring Boot 멘토링", "Spring Boot로 웹 개발");
 
         Pageable pageable = PageRequest.of(0, 10);
@@ -149,7 +162,7 @@ public class MatchRepositoryTest {
     @Test
     void 페이징_처리가_정상적으로_작동() {
         // given
-        User user = createAndSaveUser();
+        
         for (int i = 1; i <= 15; i++) {
             createAndSaveMatchingPost(user, "커피챗 " + i, "커피챗 내용 " + i);
         }
@@ -158,8 +171,8 @@ public class MatchRepositoryTest {
         Pageable secondPage = PageRequest.of(1, 5);
 
         // when
-        Page<MatchingPost> firstResult = matchRepository.findAll(firstPage);
-        Page<MatchingPost> secondResult = matchRepository.findAll(secondPage);
+        Page<MatchingPost> firstResult = matchRepository.findAllByKeyword(null, firstPage);
+        Page<MatchingPost> secondResult = matchRepository.findAllByKeyword(null, secondPage);
 
         // then
         assertThat(firstResult.getContent()).hasSize(5);
@@ -171,7 +184,7 @@ public class MatchRepositoryTest {
     @Test
     void ID로_모집글_조회시_해당글_반환() {
         // given
-        User user = createAndSaveUser();
+        
         MatchingPost savedPost = createAndSaveMatchingPost(user, "테스트 모집", "테스트 내용");
 
         // when
@@ -195,7 +208,7 @@ public class MatchRepositoryTest {
     @Test
     void 모집글_저장시_정상적으로_저장됨() {
         // given
-        User user = createAndSaveUser();
+        
         Post post = createAndSavePost(user, "새 모집", "새 모집 내용");
 
         MatchingPost matchingPost = MatchingPost.builder()
@@ -218,7 +231,7 @@ public class MatchRepositoryTest {
     @Test
     void 모집글_삭제시_정상적으로_삭제됨() {
         // given
-        User user = createAndSaveUser();
+        
         MatchingPost savedPost = createAndSaveMatchingPost(user, "삭제할 모집", "삭제할 내용");
         Long postId = savedPost.getId();
 
@@ -229,18 +242,7 @@ public class MatchRepositoryTest {
         boolean exists = matchRepository.findById(postId).isPresent();
         assertThat(exists).isFalse();
     }
-
-
-    private User createAndSaveUser() {
-        User user = User.builder()
-                .email("test@email.com")
-                .password("password")
-                .nickname("testUser")
-                .name("이름")
-                .role(Role.STUDENT)
-                .build();
-        return userRepository.save(user);
-    }
+    
 
     private Post createAndSavePost(User user, String title, String content) {
         Post post = Post.builder()

@@ -14,6 +14,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -47,6 +48,18 @@ public class MatchServiceTest {
     @InjectMocks
     private MatchService matchService;
 
+    private User user;
+    @BeforeEach
+    void setUp() {
+        user = User.builder()
+                .email("test@email.com")
+                .password("password")
+                .nickname("testUser")
+                .name("이름")
+                .role(Role.STUDENT)
+                .build();
+    }
+
     @Test
     void 검색어없이_전체목록조회하면_모든게시글페이지반환() {
         // given
@@ -57,7 +70,7 @@ public class MatchServiceTest {
         Page<MatchingPost> page = new PageImpl<>(matchPosts);
         Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        given(matchRepository.findAll(expectedPageable)).willReturn(page);
+        given(matchRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
 
         // when
         Page<MatchPostResponseDTO> result = matchService.getMatchPostList(null, 0, 10, SortType.LATEST);
@@ -66,7 +79,7 @@ public class MatchServiceTest {
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).title()).isEqualTo("첫 번째 모집");
         assertThat(result.getContent().get(1).title()).isEqualTo("두 번째 모집");
-        verify(matchRepository).findAll(expectedPageable);
+        verify(matchRepository).findAllByKeyword(null, expectedPageable);
     }
 
     @Test
@@ -78,14 +91,14 @@ public class MatchServiceTest {
         Page<MatchingPost> page = new PageImpl<>(matchPosts);
         Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        given(matchRepository.findAll(expectedPageable)).willReturn(page);
+        given(matchRepository.findAllByKeyword("", expectedPageable)).willReturn(page);
 
         // when
         Page<MatchPostResponseDTO> result = matchService.getMatchPostList("", 0, 10, SortType.LATEST);
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(matchRepository).findAll(expectedPageable);
+        verify(matchRepository).findAllByKeyword("", expectedPageable);
     }
 
     @Test
@@ -116,14 +129,14 @@ public class MatchServiceTest {
         Page<MatchingPost> page = new PageImpl<>(matchPosts);
         Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "likeCount"));
 
-        given(matchRepository.findAll(expectedPageable)).willReturn(page);
+        given(matchRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
 
         // when
         Page<MatchPostResponseDTO> result = matchService.getMatchPostList(null, 0, 10, SortType.POPULAR);
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(matchRepository).findAll(expectedPageable);
+        verify(matchRepository).findAllByKeyword(null, expectedPageable);
     }
 
     @Test
@@ -133,20 +146,20 @@ public class MatchServiceTest {
         Page<MatchingPost> page = new PageImpl<>(matchPosts);
         Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "viewCount"));
 
-        given(matchRepository.findAll(expectedPageable)).willReturn(page);
+        given(matchRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
 
         // when
         Page<MatchPostResponseDTO> result = matchService.getMatchPostList(null, 0, 10, SortType.VIEW_COUNT);
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(matchRepository).findAll(expectedPageable);
+        verify(matchRepository).findAllByKeyword(null, expectedPageable);
     }
 
     @Test
     void 존재하는게시글ID로_단건조회하면_해당게시글정보반환() {
         // given
-        User user = createUser();
+        
         Post post = createPost(user, "테스트 모집");
         MatchingPost matchPost = createMatchPost(post.getId(), "테스트 모집");
         Long matchId = matchPost.getId();
@@ -178,7 +191,7 @@ public class MatchServiceTest {
     void 유효한데이터로_게시글생성하면_게시글과모집정보모두저장() {
         // given
         MatchPostRequestDTO requestDTO = createMatchPostRequestDTO();
-        User user = createUser();
+        
         Post savedPost = createPost(user, "테스트 모집");
         MatchingPost savedMatchingPost = createMatchPost(1L, "테스트 모집");
 
@@ -227,7 +240,7 @@ public class MatchServiceTest {
         // given
         Long matchId = 1L;
         MatchPostRequestDTO requestDTO = createMatchPostRequestDTO();
-        User user = createUser();
+        
         Post post = createPost(user, "기존 제목");
         MatchingPost matchPost = createMatchPostWithPost(matchId, post);
 
@@ -268,7 +281,7 @@ public class MatchServiceTest {
     @Test
     void DTO변환이_올바르게_수행됨() {
         // given
-        User user = createUser();
+        
         Post post = createPost(user, "테스트 제목");
         MatchingPost matchPost = createMatchPostWithPost(1L, post);
 
@@ -292,15 +305,6 @@ public class MatchServiceTest {
         assertThat(result.updatedAt()).isEqualTo(post.getUpdatedAt());
     }
 
-    private User createUser() {
-        return User.builder()
-                .email("test@example.com")
-                .password("password")
-                .nickname("testuser")
-                .name("이름")
-                .role(Role.STUDENT)
-                .build();
-    }
 
     private Post createPost(User user, String title) {
         return Post.builder()
@@ -316,7 +320,7 @@ public class MatchServiceTest {
     }
 
     private MatchingPost createMatchPost(Long id, String title) {
-        User user = createUser();
+        
         Post post = createPost(user, title);
         return createMatchPostWithPost(id, post);
     }

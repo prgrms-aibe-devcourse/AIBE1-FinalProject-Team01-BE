@@ -35,12 +35,7 @@ public class GatheringService {
     public Page<GatheringPostResponseDTO> getGatheringPostList(String keyword, int page, int size, SortType sortType) {
         Pageable pageable = createPageable(page, size, sortType);
         Page<GatheringPost> gpPage;
-        if(keyword == null || keyword.isBlank()){
-            gpPage = gatheringRepository.findAll(pageable);
-        }
-        else{
-            gpPage = gatheringRepository.findAllByKeyword(keyword.trim(), pageable);
-        }
+        gpPage = gatheringRepository.findAllByKeyword(keyword, pageable);
         return gpPage.map(gp -> {
                     Post post = gp.getPost();
                     return convertToDTO(gp, post);

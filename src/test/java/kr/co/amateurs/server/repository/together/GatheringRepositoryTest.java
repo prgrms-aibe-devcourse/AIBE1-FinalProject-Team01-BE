@@ -34,18 +34,30 @@ public class GatheringRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
+    private User user;
+    @BeforeEach
+    void setUp() {
+        user = User.builder()
+                .email("test@email.com")
+                .password("password")
+                .nickname("testUser")
+                .name("이름")
+                .role(Role.STUDENT)
+                .build();
+        user = userRepository.save(user);
+    }
+
 
     @Test
     void 모든_모집글_조회시_전체목록_반환() {
         // given
-        User user = createAndSaveUser();
         createAndSaveGatheringPost(user, "Java 스터디", "Java 스터디 모집합니다");
         createAndSaveGatheringPost(user, "React 프로젝트", "React 프로젝트 팀원 구합니다");
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         // when
-        Page<GatheringPost> result = gatheringRepository.findAll(pageable);
+        Page<GatheringPost> result = gatheringRepository.findAllByKeyword(null, pageable);
 
         // then
         assertThat(result.getContent()).hasSize(2);
@@ -55,7 +67,6 @@ public class GatheringRepositoryTest {
     @Test
     void 제목에_키워드가_포함된_모집글_검색시_해당글만_반환() {
         // given
-        User user = createAndSaveUser();
         createAndSaveGatheringPost(user, "Java 스터디", "Java 언어를 배우는 스터디");
         createAndSaveGatheringPost(user, "Python 스터디", "Python 언어를 배우는 스터디");
         createAndSaveGatheringPost(user, "React 프로젝트", "React로 프로젝트를 만드는 모집");
@@ -74,7 +85,6 @@ public class GatheringRepositoryTest {
     @Test
     void 내용에_키워드가_포함된_모집글_검색시_해당글만_반환() {
         // given
-        User user = createAndSaveUser();
         createAndSaveGatheringPost(user, "웹 개발 스터디", "Spring Boot를 이용한 백엔드 개발");
         createAndSaveGatheringPost(user, "앱 개발 프로젝트", "React Native로 모바일 앱 개발");
         createAndSaveGatheringPost(user, "데이터 분석", "Python을 이용한 데이터 분석 스터디");
@@ -93,7 +103,6 @@ public class GatheringRepositoryTest {
     @Test
     void 제목이나_내용에_키워드가_포함된_모집글_검색시_모든해당글_반환() {
         // given
-        User user = createAndSaveUser();
         createAndSaveGatheringPost(user, "React 스터디", "React 기초부터 배우는 스터디");
         createAndSaveGatheringPost(user, "프론트엔드 프로젝트", "React를 이용한 프론트엔드 개발");
         createAndSaveGatheringPost(user, "백엔드 스터디", "Spring Boot 백엔드 개발");
@@ -113,7 +122,6 @@ public class GatheringRepositoryTest {
     @Test
     void 존재하지않는_키워드로_검색시_빈결과_반환() {
         // given
-        User user = createAndSaveUser();
         createAndSaveGatheringPost(user, "Java 스터디", "Java 언어 스터디");
 
         Pageable pageable = PageRequest.of(0, 10);
@@ -130,7 +138,6 @@ public class GatheringRepositoryTest {
     @Test
     void 공백이_포함된_키워드로_검색시_정상작동() {
         // given
-        User user = createAndSaveUser();
         createAndSaveGatheringPost(user, "Spring Boot 스터디", "Spring Boot로 웹 개발");
 
         Pageable pageable = PageRequest.of(0, 10);
@@ -146,7 +153,6 @@ public class GatheringRepositoryTest {
     @Test
     void 페이징_처리가_정상적으로_작동() {
         // given
-        User user = createAndSaveUser();
         for (int i = 1; i <= 15; i++) {
             createAndSaveGatheringPost(user, "스터디 " + i, "스터디 내용 " + i);
         }
@@ -155,8 +161,8 @@ public class GatheringRepositoryTest {
         Pageable secondPage = PageRequest.of(1, 5);
 
         // when
-        Page<GatheringPost> firstResult = gatheringRepository.findAll(firstPage);
-        Page<GatheringPost> secondResult = gatheringRepository.findAll(secondPage);
+        Page<GatheringPost> firstResult = gatheringRepository.findAllByKeyword(null, firstPage);
+        Page<GatheringPost> secondResult = gatheringRepository.findAllByKeyword(null, secondPage);
 
         // then
         assertThat(firstResult.getContent()).hasSize(5);
@@ -166,9 +172,27 @@ public class GatheringRepositoryTest {
     }
 
     @Test
+    void 모집글_생성일자_내림차순으로_정렬되는지_검증() throws InterruptedException {
+        // given
+
+        GatheringPost first = createAndSaveGatheringPost(user, "오래된 모집", "내용1");
+        Thread.sleep(10);
+        GatheringPost second = createAndSaveGatheringPost(user, "최근 모집", "내용2");
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        //when
+        Page<GatheringPost> result = gatheringRepository.findAllByKeyword("모집", pageable);
+
+        // then
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getPost().getTitle()).isEqualTo("최근 모집");
+        assertThat(result.getContent().get(1).getPost().getTitle()).isEqualTo("오래된 모집");
+    }
+
+    @Test
     void ID로_모집글_조회시_해당글_반환() {
         // given
-        User user = createAndSaveUser();
         GatheringPost savedPost = createAndSaveGatheringPost(user, "테스트 모집", "테스트 내용");
 
         // when
@@ -192,7 +216,6 @@ public class GatheringRepositoryTest {
     @Test
     void 모집글_저장시_정상적으로_저장됨() {
         // given
-        User user = createAndSaveUser();
         Post post = createAndSavePost(user, "새 모집", "새 모집 내용");
 
         GatheringPost gatheringPost = GatheringPost.builder()
@@ -218,7 +241,6 @@ public class GatheringRepositoryTest {
     @Test
     void 모집글_삭제시_정상적으로_삭제됨() {
         // given
-        User user = createAndSaveUser();
         GatheringPost savedPost = createAndSaveGatheringPost(user, "삭제할 모집", "삭제할 내용");
         Long postId = savedPost.getId();
 
@@ -231,16 +253,7 @@ public class GatheringRepositoryTest {
     }
 
 
-    private User createAndSaveUser() {
-        User user = User.builder()
-                .email("test@email.com")
-                .password("password")
-                .nickname("testUser")
-                .name("이름")
-                .role(Role.STUDENT)
-                .build();
-        return userRepository.save(user);
-    }
+
 
     private Post createAndSavePost(User user, String title, String content) {
         Post post = Post.builder()

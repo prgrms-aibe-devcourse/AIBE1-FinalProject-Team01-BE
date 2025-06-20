@@ -36,17 +36,30 @@ public class MarketRepositoryTest {
     @Autowired
     private UserRepository userRepository;
 
+    private User user;
+    @BeforeEach
+    void setUp() {
+        user = User.builder()
+                .email("test@email.com")
+                .password("password")
+                .nickname("testUser")
+                .name("이름")
+                .role(Role.STUDENT)
+                .build();
+        user = userRepository.save(user);
+    }
+
     @Test
     void 모든_장터글_조회시_전체목록_반환() {
         // given
-        User user = createAndSaveUser();
+        
         createAndSaveMarketPost(user, "Java 책", "Java 책 팝니다");
         createAndSaveMarketPost(user, "React 책", "React 책 팝니다");
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         // when
-        Page<MarketItem> result = marketRepository.findAll(pageable);
+        Page<MarketItem> result = marketRepository.findAllByKeyword(null, pageable);
 
         // then
         assertThat(result.getContent()).hasSize(2);
@@ -56,7 +69,7 @@ public class MarketRepositoryTest {
     @Test
     void 제목에_키워드가_포함된_장터글_검색시_해당글만_반환() {
         // given
-        User user = createAndSaveUser();
+        
         createAndSaveMarketPost(user, "Java 책", "Java 언어를 배우는 책");
         createAndSaveMarketPost(user, "Python 책", "Python 언어를 배우는 책");
         createAndSaveMarketPost(user, "React 책", "React 책입니다");
@@ -75,7 +88,7 @@ public class MarketRepositoryTest {
     @Test
     void 내용에_키워드가_포함된_장터글_검색시_해당글만_반환() {
         // given
-        User user = createAndSaveUser();
+        
         createAndSaveMarketPost(user, "웹 개발 책", "Spring Boot를 이용한 백엔드 개발");
         createAndSaveMarketPost(user, "앱 개발 책", "React Native로 모바일 앱 개발");
         createAndSaveMarketPost(user, "데이터 분석", "Python을 이용한 데이터 분석 책");
@@ -94,7 +107,7 @@ public class MarketRepositoryTest {
     @Test
     void 제목이나_내용에_키워드가_포함된_장터글_검색시_모든해당글_반환() {
         // given
-        User user = createAndSaveUser();
+        
         createAndSaveMarketPost(user, "React 책", "React 기초부터 배우는 책");
         createAndSaveMarketPost(user, "프론트엔드 책", "React를 이용한 프론트엔드 개발");
         createAndSaveMarketPost(user, "백엔드 책", "Spring Boot 백엔드 개발");
@@ -115,7 +128,7 @@ public class MarketRepositoryTest {
     @Test
     void 존재하지않는_키워드로_검색시_빈결과_반환() {
         // given
-        User user = createAndSaveUser();
+        
         createAndSaveMarketPost(user, "Java 책", "Java 언어 책");
 
         Pageable pageable = PageRequest.of(0, 10);
@@ -132,7 +145,7 @@ public class MarketRepositoryTest {
     @Test
     void 공백이_포함된_키워드로_검색시_정상작동() {
         // given
-        User user = createAndSaveUser();
+        
         createAndSaveMarketPost(user, "Spring Boot 책", "Spring Boot로 웹 개발");
 
         Pageable pageable = PageRequest.of(0, 10);
@@ -148,7 +161,7 @@ public class MarketRepositoryTest {
     @Test
     void 페이징_처리가_정상적으로_작동() {
         // given
-        User user = createAndSaveUser();
+        
         for (int i = 1; i <= 15; i++) {
             createAndSaveMarketPost(user, "책 " + i, "책 내용 " + i);
         }
@@ -157,8 +170,8 @@ public class MarketRepositoryTest {
         Pageable secondPage = PageRequest.of(1, 5);
 
         // when
-        Page<MarketItem> firstResult = marketRepository.findAll(firstPage);
-        Page<MarketItem> secondResult = marketRepository.findAll(secondPage);
+        Page<MarketItem> firstResult = marketRepository.findAllByKeyword(null, firstPage);
+        Page<MarketItem> secondResult = marketRepository.findAllByKeyword(null, secondPage);
 
         // then
         assertThat(firstResult.getContent()).hasSize(5);
@@ -170,7 +183,7 @@ public class MarketRepositoryTest {
     @Test
     void ID로_장터글_조회시_해당글_반환() {
         // given
-        User user = createAndSaveUser();
+        
         MarketItem savedPost = createAndSaveMarketPost(user, "테스트 장터", "테스트 내용");
 
         // when
@@ -193,7 +206,7 @@ public class MarketRepositoryTest {
     @Test
     void 장터글_저장시_정상적으로_저장됨() {
         // given
-        User user = createAndSaveUser();
+        
         Post post = createAndSavePost(user, "새 장터", "새 장터 내용");
 
         MarketItem marketPost = MarketItem.builder()
@@ -216,7 +229,7 @@ public class MarketRepositoryTest {
     @Test
     void 장터글_삭제시_정상적으로_삭제됨() {
         // given
-        User user = createAndSaveUser();
+        
         MarketItem savedPost = createAndSaveMarketPost(user, "삭제할 장터", "삭제할 내용");
         Long postId = savedPost.getId();
 
@@ -227,19 +240,7 @@ public class MarketRepositoryTest {
         boolean exists = marketRepository.findById(postId).isPresent();
         assertThat(exists).isFalse();
     }
-
-
-    private User createAndSaveUser() {
-        User user = User.builder()
-                .email("test@email.com")
-                .password("password")
-                .nickname("testUser")
-                .name("이름")
-                .role(Role.STUDENT)
-                .build();
-        return userRepository.save(user);
-    }
-
+    
     private Post createAndSavePost(User user, String title, String content) {
         Post post = Post.builder()
                 .user(user)

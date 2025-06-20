@@ -12,6 +12,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -45,6 +46,18 @@ public class MarketServiceTest {
     @InjectMocks
     private MarketService marketService;
 
+    private User user;
+    @BeforeEach
+    void setUp() {
+        user = User.builder()
+                .email("test@email.com")
+                .password("password")
+                .nickname("testUser")
+                .name("이름")
+                .role(Role.STUDENT)
+                .build();
+    }
+
     @Test
     void 검색어없이_전체목록조회하면_모든게시글페이지반환() {
         // given
@@ -55,7 +68,7 @@ public class MarketServiceTest {
         Page<MarketItem> page = new PageImpl<>(marketPosts);
         Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        given(marketRepository.findAll(expectedPageable)).willReturn(page);
+        given(marketRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
 
         // when
         Page<MarketPostResponseDTO> result = marketService.getMarketPostList(null, 0, 10, SortType.LATEST);
@@ -64,7 +77,7 @@ public class MarketServiceTest {
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).title()).isEqualTo("첫 번째 물건");
         assertThat(result.getContent().get(1).title()).isEqualTo("두 번째 물건");
-        verify(marketRepository).findAll(expectedPageable);
+        verify(marketRepository).findAllByKeyword(null, expectedPageable);
     }
 
     @Test
@@ -76,14 +89,14 @@ public class MarketServiceTest {
         Page<MarketItem> page = new PageImpl<>(marketPosts);
         Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        given(marketRepository.findAll(expectedPageable)).willReturn(page);
+        given(marketRepository.findAllByKeyword("", expectedPageable)).willReturn(page);
 
         // when
         Page<MarketPostResponseDTO> result = marketService.getMarketPostList("", 0, 10, SortType.LATEST);
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(marketRepository).findAll(expectedPageable);
+        verify(marketRepository).findAllByKeyword("", expectedPageable);
     }
 
     @Test
@@ -114,14 +127,14 @@ public class MarketServiceTest {
         Page<MarketItem> page = new PageImpl<>(marketPosts);
         Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "likeCount"));
 
-        given(marketRepository.findAll(expectedPageable)).willReturn(page);
+        given(marketRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
 
         // when
         Page<MarketPostResponseDTO> result = marketService.getMarketPostList(null, 0, 10, SortType.POPULAR);
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(marketRepository).findAll(expectedPageable);
+        verify(marketRepository).findAllByKeyword(null, expectedPageable);
     }
 
     @Test
@@ -131,20 +144,20 @@ public class MarketServiceTest {
         Page<MarketItem> page = new PageImpl<>(marketPosts);
         Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "viewCount"));
 
-        given(marketRepository.findAll(expectedPageable)).willReturn(page);
+        given(marketRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
 
         // when
         Page<MarketPostResponseDTO> result = marketService.getMarketPostList(null, 0, 10, SortType.VIEW_COUNT);
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(marketRepository).findAll(expectedPageable);
+        verify(marketRepository).findAllByKeyword(null, expectedPageable);
     }
 
     @Test
     void 존재하는게시글ID로_단건조회하면_해당게시글정보반환() {
         // given
-        User user = createUser();
+        
         Post post = createPost(user, "테스트 물건");
         MarketItem marketPost = createMarketPost(post.getId(), "테스트 물건");
         Long marketId = marketPost.getId();
@@ -176,7 +189,7 @@ public class MarketServiceTest {
     void 유효한데이터로_게시글생성하면_게시글과물건정보모두저장() {
         // given
         MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
-        User user = createUser();
+        
         Post savedPost = createPost(user, "테스트 물건");
         MarketItem savedMarketItem = createMarketPost(1L, "테스트 물건");
 
@@ -223,7 +236,7 @@ public class MarketServiceTest {
         // given
         Long marketId = 1L;
         MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
-        User user = createUser();
+        
         Post post = createPost(user, "기존 제목");
         MarketItem marketPost = createMarketPostWithPost(marketId, post);
 
@@ -264,7 +277,7 @@ public class MarketServiceTest {
     @Test
     void DTO변환이_올바르게_수행됨() {
         // given
-        User user = createUser();
+        
         Post post = createPost(user, "테스트 제목");
         MarketItem marketPost = createMarketPostWithPost(1L, post);
 
@@ -288,15 +301,6 @@ public class MarketServiceTest {
         assertThat(result.updatedAt()).isEqualTo(post.getUpdatedAt());
     }
 
-    private User createUser() {
-        return User.builder()
-                .email("test@example.com")
-                .password("password")
-                .nickname("testuser")
-                .name("이름")
-                .role(Role.STUDENT)
-                .build();
-    }
 
     private Post createPost(User user, String title) {
         return Post.builder()
@@ -309,10 +313,11 @@ public class MarketServiceTest {
                 .likeCount(0)
                 .isDeleted(false)
                 .build();
+
     }
 
     private MarketItem createMarketPost(Long id, String title) {
-        User user = createUser();
+        
         Post post = createPost(user, title);
         return createMarketPostWithPost(id, post);
     }

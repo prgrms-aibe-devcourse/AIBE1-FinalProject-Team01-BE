@@ -33,12 +33,7 @@ public class MatchService {
     public Page<MatchPostResponseDTO> getMatchPostList(String keyword, int page, int size, SortType sortType) {
         Pageable pageable = createPageable(page, size, sortType);
         Page<MatchingPost> mpPage;
-        if(keyword == null || keyword.isBlank()){
-            mpPage = matchRepository.findAll(pageable);
-        }
-        else{
-            mpPage = matchRepository.findAllByKeyword(keyword.trim(), pageable);
-        }
+        mpPage = matchRepository.findAllByKeyword(keyword, pageable);
         return mpPage.map(mp -> {
             Post post = mp.getPost();
             return convertToDTO(mp, post);
