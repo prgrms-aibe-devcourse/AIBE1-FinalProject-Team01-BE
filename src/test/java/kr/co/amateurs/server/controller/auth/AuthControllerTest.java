@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.amateurs.server.config.SecurityConfig;
+import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.LoginResponseDto;
 import kr.co.amateurs.server.service.auth.AuthService;
@@ -52,5 +53,26 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.accessToken").value("accessToken123"))
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.expiresIn").value(3600000L));
+    }
+
+    @Test
+    void 존재하지_않는_사용자로_로그인_시_404_에러가_발생해야_한다() throws Exception {
+        // given
+        LoginRequestDto request = LoginRequestDto.builder()
+                .email("notfound@test.com")
+                .password("password123")
+                .build();
+
+        given(authService.login(any(LoginRequestDto.class)))
+                .willThrow(ErrorCode.USER_NOT_FOUND.get());
+
+        // when & then
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("존재하지 않는 사용자입니다."))
+                .andExpect(jsonPath("$.statusMessage").value("Not Found"))
+                .andExpect(jsonPath("$.statusCode").value(404));
     }
 }
