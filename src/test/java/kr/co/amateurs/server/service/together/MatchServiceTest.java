@@ -68,7 +68,7 @@ public class MatchServiceTest {
                 createMatchPost(2L, "두 번째 모집")
         );
         Page<MatchingPost> page = new PageImpl<>(matchPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
         given(matchRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
 
@@ -89,7 +89,7 @@ public class MatchServiceTest {
                 createMatchPost(1L, "테스트 모집")
         );
         Page<MatchingPost> page = new PageImpl<>(matchPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
         given(matchRepository.findAllByKeyword("", expectedPageable)).willReturn(page);
 
@@ -109,7 +109,7 @@ public class MatchServiceTest {
                 createMatchPost(1L, "Java 커피챗")
         );
         Page<MatchingPost> page = new PageImpl<>(searchResults);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
         given(matchRepository.findAllByKeyword(keyword, expectedPageable)).willReturn(page);
 
@@ -127,16 +127,16 @@ public class MatchServiceTest {
         // given
         List<MatchingPost> matchPosts = Arrays.asList(createMatchPost(1L, "인기 모집"));
         Page<MatchingPost> page = new PageImpl<>(matchPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "likeCount"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
-        given(matchRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
+        given(matchRepository.findAllByKeywordOrderByLikeCountDesc(null, expectedPageable)).willReturn(page);
 
         // when
         Page<MatchPostResponseDTO> result = matchService.getMatchPostList(null, 0, 10, SortType.POPULAR);
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(matchRepository).findAllByKeyword(null, expectedPageable);
+        verify(matchRepository).findAllByKeywordOrderByLikeCountDesc(null, expectedPageable);
     }
 
     @Test
@@ -144,16 +144,16 @@ public class MatchServiceTest {
         // given
         List<MatchingPost> matchPosts = Arrays.asList(createMatchPost(1L, "조회 많은 모집"));
         Page<MatchingPost> page = new PageImpl<>(matchPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "viewCount"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
-        given(matchRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
+        given(matchRepository.findAllByKeywordOrderByViewCountDesc(null, expectedPageable)).willReturn(page);
 
         // when
         Page<MatchPostResponseDTO> result = matchService.getMatchPostList(null, 0, 10, SortType.VIEW_COUNT);
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(matchRepository).findAllByKeyword(null, expectedPageable);
+        verify(matchRepository).findAllByKeywordOrderByViewCountDesc(null, expectedPageable);
     }
 
     @Test

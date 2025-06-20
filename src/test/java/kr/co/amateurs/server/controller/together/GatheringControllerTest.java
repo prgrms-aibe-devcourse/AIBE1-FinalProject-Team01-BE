@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.together;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.co.amateurs.server.config.SecurityConfig;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
@@ -14,6 +15,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
@@ -31,6 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = GatheringController.class)
+@Import(SecurityConfig.class)
 public class GatheringControllerTest {
 
     @MockitoBean

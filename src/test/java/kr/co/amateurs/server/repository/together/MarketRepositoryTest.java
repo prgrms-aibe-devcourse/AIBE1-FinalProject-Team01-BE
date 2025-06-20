@@ -1,6 +1,6 @@
 package kr.co.amateurs.server.repository.together;
 
-import kr.co.amateurs.server.domain.entity.post.GatheringPost;
+import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -15,17 +15,31 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@EnableJpaAuditing(auditorAwareRef = "auditorProvider")
+@Import(MarketRepositoryTest.AuditConfig.class)
 @ActiveProfiles("test")
 public class MarketRepositoryTest {
+
+    @TestConfiguration
+    static class AuditConfig {
+        @Bean
+        AuditorAware<String> auditorProvider() {
+            // 테스트라면 단순히 빈 값 반환
+            return () -> Optional.empty();
+        }
+    }
 
     @Autowired
     private MarketRepository marketRepository;
@@ -178,6 +192,25 @@ public class MarketRepositoryTest {
         assertThat(secondResult.getContent()).hasSize(5);
         assertThat(firstResult.getTotalElements()).isEqualTo(15);
         assertThat(firstResult.getTotalPages()).isEqualTo(3);
+    }
+
+    @Test
+    void 모집글_생성일자_내림차순으로_정렬되는지_검증() throws InterruptedException {
+        // given
+
+        MarketItem first = createAndSaveMarketPost(user, "오래된 물건", "내용1");
+        Thread.sleep(10);
+        MarketItem second = createAndSaveMarketPost(user, "최근 물건", "내용2");
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        //when
+        Page<MarketItem> result = marketRepository.findAllByKeyword("물건", pageable);
+
+        // then
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getPost().getTitle()).isEqualTo("최근 물건");
+        assertThat(result.getContent().get(1).getPost().getTitle()).isEqualTo("오래된 물건");
     }
 
     @Test

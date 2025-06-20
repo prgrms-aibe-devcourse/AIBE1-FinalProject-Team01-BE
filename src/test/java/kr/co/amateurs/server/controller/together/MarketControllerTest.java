@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.controller.together;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.co.amateurs.server.config.SecurityConfig;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
@@ -31,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = MarketController.class)
+@Import(SecurityConfig.class)
 public class MarketControllerTest {
 
     @MockitoBean

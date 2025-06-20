@@ -66,7 +66,7 @@ public class MarketServiceTest {
                 createMarketPost(2L, "두 번째 물건")
         );
         Page<MarketItem> page = new PageImpl<>(marketPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
         given(marketRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
 
@@ -87,7 +87,7 @@ public class MarketServiceTest {
                 createMarketPost(1L, "테스트 물건")
         );
         Page<MarketItem> page = new PageImpl<>(marketPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
         given(marketRepository.findAllByKeyword("", expectedPageable)).willReturn(page);
 
@@ -107,7 +107,7 @@ public class MarketServiceTest {
                 createMarketPost(1L, "Java 책")
         );
         Page<MarketItem> page = new PageImpl<>(searchResults);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
         given(marketRepository.findAllByKeyword(keyword, expectedPageable)).willReturn(page);
 
@@ -125,16 +125,16 @@ public class MarketServiceTest {
         // given
         List<MarketItem> marketPosts = Arrays.asList(createMarketPost(1L, "인기 물건"));
         Page<MarketItem> page = new PageImpl<>(marketPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "likeCount"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
-        given(marketRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
+        given(marketRepository.findAllByKeywordOrderByLikeCountDesc(null, expectedPageable)).willReturn(page);
 
         // when
         Page<MarketPostResponseDTO> result = marketService.getMarketPostList(null, 0, 10, SortType.POPULAR);
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(marketRepository).findAllByKeyword(null, expectedPageable);
+        verify(marketRepository).findAllByKeywordOrderByLikeCountDesc(null, expectedPageable);
     }
 
     @Test
@@ -142,16 +142,16 @@ public class MarketServiceTest {
         // given
         List<MarketItem> marketPosts = Arrays.asList(createMarketPost(1L, "조회 많은 물건"));
         Page<MarketItem> page = new PageImpl<>(marketPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "viewCount"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
-        given(marketRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
+        given(marketRepository.findAllByKeywordOrderByViewCountDesc(null, expectedPageable)).willReturn(page);
 
         // when
         Page<MarketPostResponseDTO> result = marketService.getMarketPostList(null, 0, 10, SortType.VIEW_COUNT);
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(marketRepository).findAllByKeyword(null, expectedPageable);
+        verify(marketRepository).findAllByKeywordOrderByViewCountDesc(null, expectedPageable);
     }
 
     @Test

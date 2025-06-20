@@ -80,7 +80,7 @@ public class GatheringServiceTest {
                 createGatheringPost(2L, "두 번째 모집")
         );
         Page<GatheringPost> page = new PageImpl<>(gatheringPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
         given(gatheringRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
 
@@ -101,7 +101,7 @@ public class GatheringServiceTest {
                 createGatheringPost(1L, "테스트 모집")
         );
         Page<GatheringPost> page = new PageImpl<>(gatheringPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
         given(gatheringRepository.findAllByKeyword("", expectedPageable)).willReturn(page);
 
@@ -122,7 +122,7 @@ public class GatheringServiceTest {
                 createGatheringPost(1L, "Java 스터디")
         );
         Page<GatheringPost> page = new PageImpl<>(searchResults);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
         given(gatheringRepository.findAllByKeyword(keyword, expectedPageable)).willReturn(page);
 
@@ -140,16 +140,16 @@ public class GatheringServiceTest {
         // given
         List<GatheringPost> gatheringPosts = Arrays.asList(createGatheringPost(1L, "인기 모집"));
         Page<GatheringPost> page = new PageImpl<>(gatheringPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "likeCount"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
-        given(gatheringRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
+        given(gatheringRepository.findAllByKeywordOrderByLikeCountDesc(null, expectedPageable)).willReturn(page);
 
         // when
         Page<GatheringPostResponseDTO> result = gatheringService.getGatheringPostList(null, 0, 10, SortType.POPULAR);
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(gatheringRepository).findAllByKeyword(null, expectedPageable);
+        verify(gatheringRepository).findAllByKeywordOrderByLikeCountDesc(null, expectedPageable);
     }
 
     @Test
@@ -157,22 +157,22 @@ public class GatheringServiceTest {
         // given
         List<GatheringPost> gatheringPosts = Arrays.asList(createGatheringPost(1L, "조회 많은 모집"));
         Page<GatheringPost> page = new PageImpl<>(gatheringPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "viewCount"));
+        Pageable expectedPageable = PageRequest.of(0, 10);
 
-        given(gatheringRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
+        given(gatheringRepository.findAllByKeywordOrderByViewCountDesc(null, expectedPageable)).willReturn(page);
 
         // when
         Page<GatheringPostResponseDTO> result = gatheringService.getGatheringPostList(null, 0, 10, SortType.VIEW_COUNT);
 
         // then
         assertThat(result.getContent()).hasSize(1);
-        verify(gatheringRepository).findAllByKeyword(null, expectedPageable);
+        verify(gatheringRepository).findAllByKeywordOrderByViewCountDesc(null, expectedPageable);
     }
 
     @Test
     void 존재하는게시글ID로_단건조회하면_해당게시글정보반환() {
         // given
-        
+
         Post post = createPost(user, "테스트 모집");
         GatheringPost gatheringPost = createGatheringPost(post.getId(), "테스트 모집");
         Long gatheringId = gatheringPost.getId();
@@ -206,7 +206,7 @@ public class GatheringServiceTest {
     void 유효한데이터로_게시글생성하면_게시글과모집정보모두저장() {
         // given
         GatheringPostRequestDTO requestDTO = createGatheringPostRequestDTO();
-        
+
         Post savedPost = createPost(user, "테스트 모집");
         GatheringPost savedGatheringPost = createGatheringPost(1L, "테스트 모집");
 
@@ -255,7 +255,7 @@ public class GatheringServiceTest {
         // given
         Long gatheringId = 1L;
         GatheringPostRequestDTO requestDTO = createGatheringPostRequestDTO();
-        
+
         Post post = createPost(user, "기존 제목");
         GatheringPost gatheringPost = createGatheringPostWithPost(gatheringId, post);
 
@@ -296,7 +296,7 @@ public class GatheringServiceTest {
     @Test
     void DTO변환이_올바르게_수행됨() {
         // given
-        
+
         Post post = createPost(user, "테스트 제목");
         GatheringPost gatheringPost = createGatheringPostWithPost(1L, post);
 
@@ -322,7 +322,7 @@ public class GatheringServiceTest {
         assertThat(result.createdAt()).isEqualTo(post.getCreatedAt());
         assertThat(result.updatedAt()).isEqualTo(post.getUpdatedAt());
     }
-    
+
 
     private Post createPost(User user, String title) {
         return Post.builder()
@@ -338,7 +338,7 @@ public class GatheringServiceTest {
     }
 
     private GatheringPost createGatheringPost(Long id, String title) {
-        
+
         Post post = createPost(user, title);
         return createGatheringPostWithPost(id, post);
     }

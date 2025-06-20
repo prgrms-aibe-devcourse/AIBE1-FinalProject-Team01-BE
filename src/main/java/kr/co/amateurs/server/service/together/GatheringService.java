@@ -21,6 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import static kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO.convertToDTO;
+
 @Service
 @RequiredArgsConstructor
 public class GatheringService {
@@ -29,17 +31,14 @@ public class GatheringService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    //TODO - 인증 및 타 기능과의 연관성 고려 확장성 확보
-    //TODO - 테스트 코드
-
     public Page<GatheringPostResponseDTO> getGatheringPostList(String keyword, int page, int size, SortType sortType) {
-        Pageable pageable = createPageable(page, size, sortType);
-        Page<GatheringPost> gpPage;
-        gpPage = gatheringRepository.findAllByKeyword(keyword, pageable);
-        return gpPage.map(gp -> {
-                    Post post = gp.getPost();
-                    return convertToDTO(gp, post);
-                });
+        Pageable pageable = PageRequest.of(page, size);
+        Page<GatheringPost> gpPage = switch (sortType) {
+            case LATEST -> gatheringRepository.findAllByKeyword(keyword, pageable);
+            case POPULAR -> gatheringRepository.findAllByKeywordOrderByLikeCountDesc(keyword, pageable);
+            case VIEW_COUNT -> gatheringRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
+        };
+        return convertToDTO(gpPage);
     }
 
 
@@ -99,34 +98,5 @@ public class GatheringService {
         gatheringRepository.deleteById(gatheringId);
     }
 
-    private GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post) {
-        return new GatheringPostResponseDTO(
-                post.getId(),
-                post.getUser().getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getTags(),
-                post.getViewCount(),
-                post.getLikeCount(),
-                gp.getGatheringType(),
-                gp.getStatus(),
-                gp.getHeadCount(),
-                gp.getPlace(),
-                gp.getPeriod(),
-                gp.getSchedule(),
-                post.getCreatedAt(),
-                post.getUpdatedAt()
-        );
-    }
-
-    private Pageable createPageable(int page, int pageSize, SortType sortType) {
-        Sort sort = switch (sortType) {
-            case LATEST -> Sort.by(Sort.Direction.DESC, "createdAt");
-            case POPULAR -> Sort.by(Sort.Direction.DESC, "likeCount");
-            case VIEW_COUNT -> Sort.by(Sort.Direction.DESC, "viewCount");
-        };
-
-        return PageRequest.of(page, pageSize, sort);
-    }
 }
 

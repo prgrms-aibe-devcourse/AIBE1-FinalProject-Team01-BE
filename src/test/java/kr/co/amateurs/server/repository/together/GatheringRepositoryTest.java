@@ -13,17 +13,34 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@EnableJpaAuditing(auditorAwareRef = "auditorProvider")
+@Import(GatheringRepositoryTest.AuditConfig.class)
 @ActiveProfiles("test")
 public class GatheringRepositoryTest {
+
+    @TestConfiguration
+    static class AuditConfig {
+        @Bean
+        AuditorAware<String> auditorProvider() {
+            // 테스트라면 단순히 빈 값 반환
+            return () -> Optional.empty();
+        }
+    }
 
     @Autowired
     private GatheringRepository gatheringRepository;
@@ -54,7 +71,7 @@ public class GatheringRepositoryTest {
         createAndSaveGatheringPost(user, "Java 스터디", "Java 스터디 모집합니다");
         createAndSaveGatheringPost(user, "React 프로젝트", "React 프로젝트 팀원 구합니다");
 
-        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(0, 10);
 
         // when
         Page<GatheringPost> result = gatheringRepository.findAllByKeyword(null, pageable);
@@ -179,7 +196,11 @@ public class GatheringRepositoryTest {
         Thread.sleep(10);
         GatheringPost second = createAndSaveGatheringPost(user, "최근 모집", "내용2");
 
-        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        gatheringRepository.save(first);
+        gatheringRepository.save(second);
+        gatheringRepository.flush();
+
+        Pageable pageable = PageRequest.of(0, 10);
 
         //when
         Page<GatheringPost> result = gatheringRepository.findAllByKeyword("모집", pageable);

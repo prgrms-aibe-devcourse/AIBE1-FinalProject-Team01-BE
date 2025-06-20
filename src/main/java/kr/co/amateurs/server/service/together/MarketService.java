@@ -2,8 +2,10 @@ package kr.co.amateurs.server.service.together;
 
 import jakarta.transaction.Transactional;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -20,6 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import static kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO.convertToDTO;
+
 
 @Service
 @RequiredArgsConstructor
@@ -29,13 +33,13 @@ public class MarketService {
     private final UserRepository userRepository;
 
     public Page<MarketPostResponseDTO> getMarketPostList(String keyword, int page, int size, SortType sortType) {
-        Pageable pageable = createPageable(page, size, sortType);
-        Page<MarketItem> miPage;
-        miPage = marketRepository.findAllByKeyword(keyword, pageable);
-        return miPage.map(mi -> {
-            Post post = mi.getPost();
-            return convertToDTO(mi, post);
-        });
+        Pageable pageable = PageRequest.of(page, size);
+        Page<MarketItem> miPage = switch (sortType) {
+            case LATEST -> marketRepository.findAllByKeyword(keyword, pageable);
+            case POPULAR -> marketRepository.findAllByKeywordOrderByLikeCountDesc(keyword, pageable);
+            case VIEW_COUNT -> marketRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
+        };
+        return convertToDTO(miPage);
     }
 
 
@@ -91,31 +95,5 @@ public class MarketService {
         marketRepository.deleteById(marketId);
     }
 
-    private MarketPostResponseDTO convertToDTO(MarketItem mi, Post post) {
-        return new MarketPostResponseDTO(
-                post.getId(),
-                post.getUser().getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getTags(),
-                post.getViewCount(),
-                post.getLikeCount(),
-                mi.getStatus(),
-                mi.getPrice(),
-                mi.getPlace(),
-                post.getCreatedAt(),
-                post.getUpdatedAt()
-        );
-    }
-
-    private Pageable createPageable(int page, int pageSize, SortType sortType) {
-        Sort sort = switch (sortType) {
-            case LATEST -> Sort.by(Sort.Direction.DESC, "createdAt");
-            case POPULAR -> Sort.by(Sort.Direction.DESC, "likeCount");
-            case VIEW_COUNT -> Sort.by(Sort.Direction.DESC, "viewCount");
-        };
-
-        return PageRequest.of(page, pageSize, sort);
-    }
 
 }

@@ -3,8 +3,10 @@ package kr.co.amateurs.server.service.together;
 
 import jakarta.transaction.Transactional;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -21,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import static kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO.convertToDTO;
+
 
 @Service
 @RequiredArgsConstructor
@@ -31,13 +35,13 @@ public class MatchService {
     private final UserRepository userRepository;
 
     public Page<MatchPostResponseDTO> getMatchPostList(String keyword, int page, int size, SortType sortType) {
-        Pageable pageable = createPageable(page, size, sortType);
-        Page<MatchingPost> mpPage;
-        mpPage = matchRepository.findAllByKeyword(keyword, pageable);
-        return mpPage.map(mp -> {
-            Post post = mp.getPost();
-            return convertToDTO(mp, post);
-        });
+        Pageable pageable = PageRequest.of(page, size);
+        Page<MatchingPost> mpPage = switch (sortType) {
+            case LATEST -> matchRepository.findAllByKeyword(keyword, pageable);
+            case POPULAR -> matchRepository.findAllByKeywordOrderByLikeCountDesc(keyword, pageable);
+            case VIEW_COUNT -> matchRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
+        };
+        return convertToDTO(mpPage);
     }
 
 
@@ -91,33 +95,5 @@ public class MatchService {
     @Transactional
     public void deleteMatchPost(Long matchId) {
         matchRepository.deleteById(matchId);
-    }
-
-    private MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post) {
-        return new MatchPostResponseDTO(
-                post.getId(),
-                post.getUser().getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getTags(),
-                post.getViewCount(),
-                post.getLikeCount(),
-                mp.getMatchingType(),
-                mp.getStatus(),
-                mp.getExpertiseAreas(),
-                post.getCreatedAt(),
-                post.getUpdatedAt()
-        );
-    }
-
-    //TODO - 커뮤니티 병합 시 SortType 수정 예정
-    private Pageable createPageable(int page, int pageSize, SortType sortType) {
-        Sort sort = switch (sortType) {
-            case LATEST -> Sort.by(Sort.Direction.DESC, "createdAt");
-            case POPULAR -> Sort.by(Sort.Direction.DESC, "likeCount");
-            case VIEW_COUNT -> Sort.by(Sort.Direction.DESC, "viewCount");
-        };
-
-        return PageRequest.of(page, pageSize, sort);
     }
 }
