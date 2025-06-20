@@ -3,7 +3,6 @@ name: CI Pipeline
 on:
   push:
     branches: [ main, develop ]
-    paths: ['src/**', 'build.gradle'] # src 폴더 안의 파일 혹은 build.gradle 파일 변경 시 워크플로우 실행
   pull_request:
     branches: [ main, develop ]
 
