@@ -4,7 +4,10 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
+import kr.co.amateurs.server.domain.dto.auth.LoginResponseDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
@@ -44,6 +47,9 @@ class AuthServiceTest {
 
     @InjectMocks
     private AuthService authService;
+
+    @Mock
+    private JwtProvider jwtProvider;
 
     @Test
     void 정상적인_유저_등록_시_201_응답을_반환한다() {
@@ -392,5 +398,37 @@ class AuthServiceTest {
 
         verify(passwordEncoder, never()).encode(any());
         verify(userService, never()).saveUser(any());
+    }
+
+    @Test
+    void 정상적인_로그인_시_JWT_토큰을_반환한다() {
+        // given
+        LoginRequestDto request = LoginRequestDto.builder()
+                .email("test@test.com")
+                .password("password123")
+                .build();
+
+        User user = User.builder()
+                .email("test@test.com")
+                .password("encodedPassword123")
+                .build();
+
+        when(userService.findByEmail("test@test.com")).thenReturn(user);
+        when(passwordEncoder.matches("password123", "encodedPassword123")).thenReturn(true);
+        when(jwtProvider.generateAccessToken("test@test.com")).thenReturn("accessToken123");
+        when(jwtProvider.getAccessTokenExpirationMs()).thenReturn(3600000L);
+
+        // when
+        LoginResponseDto response = authService.login(request);
+
+        // then
+        assertThat(response.accessToken()).isEqualTo("accessToken123");
+        assertThat(response.tokenType()).isEqualTo("Bearer");
+        assertThat(response.expiresIn()).isEqualTo(3600000L);
+
+        verify(userService).findByEmail("test@test.com");
+        verify(passwordEncoder).matches("password123", "encodedPassword123");
+        verify(jwtProvider).generateAccessToken("test@test.com");
+        verify(jwtProvider).getAccessTokenExpirationMs();
     }
 }
