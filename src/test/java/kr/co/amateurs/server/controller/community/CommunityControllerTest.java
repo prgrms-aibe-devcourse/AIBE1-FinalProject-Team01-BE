@@ -1,16 +1,17 @@
 package kr.co.amateurs.server.controller.community;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.co.amateurs.server.config.SecurityConfig;
 import kr.co.amateurs.server.domain.dto.community.CommunityPageDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.community.CommunityPostService;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CommunityPostController.class)
+@Import(SecurityConfig.class)
 class CommunityControllerTest {
 
     @Autowired

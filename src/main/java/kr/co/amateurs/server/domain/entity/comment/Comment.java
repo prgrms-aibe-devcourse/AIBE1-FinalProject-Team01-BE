@@ -1,13 +1,11 @@
 package kr.co.amateurs.server.domain.entity.comment;
 
 import jakarta.persistence.*;
+import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.user.User;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "comments")
@@ -28,9 +26,9 @@ public class Comment extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Comment parentComment;
 
-    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(nullable = false)
     @Builder.Default
-    private List<Comment> replies = new ArrayList<>();
+    private Integer likeCount = 0;
 
     @Lob
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -39,4 +37,17 @@ public class Comment extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private Boolean isDeleted = false;
+
+    public static Comment from(CommentRequestDTO requestDTO, Post post, User user, Comment parentComment) {
+        return Comment.builder()
+                .user(user)
+                .post(post)
+                .content(requestDTO.content())
+                .parentComment(parentComment)
+                .build();
+    }
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

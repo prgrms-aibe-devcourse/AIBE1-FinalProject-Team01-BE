@@ -3,6 +3,7 @@ package kr.co.amateurs.server.domain.entity.topic;
 import jakarta.persistence.*;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import lombok.*;
 
 @Entity
@@ -17,7 +18,7 @@ public class UserTopic extends BaseEntity {
     @JoinColumn(nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Topic topic;
 }
