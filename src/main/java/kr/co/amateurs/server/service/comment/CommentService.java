@@ -34,21 +34,19 @@ public class CommentService {
     public CommentPageDTO getCommentsByPostId(Long postId, Long cursor, int size) {
         Post post = findPostById(postId);
 
-        return createCommentPage(
-                () -> fetchRootComments(post, cursor, size + CURSOR_OFFSET),
-                this::convertToRootCommentDTOs,
-                size
-        );
+        List<Comment> comments = fetchRootComments(post, cursor, size + CURSOR_OFFSET);
+        List<CommentResponseDTO> commentDTOs = convertToRootCommentDTOs(comments);
+
+        return createCommentPageDTO(commentDTOs, size);
     }
 
     public CommentPageDTO getReplies(Long postId, Long parentCommentId, Long cursor, int size) {
         Comment parentComment = findCommentById(parentCommentId);
 
-        return createCommentPage(
-                () -> fetchReplies(parentComment, cursor, size + CURSOR_OFFSET),
-                this::convertToReplyDTOs,
-                size
-        );
+        List<Comment> comments = fetchReplies(parentComment, cursor, size + CURSOR_OFFSET);
+        List<CommentResponseDTO> commentDTOs = convertToReplyDTOs(comments);
+
+        return createCommentPageDTO(commentDTOs, size);
     }
 
     @Transactional
@@ -79,7 +77,6 @@ public class CommentService {
 //        }
 
         comment.updateContent(requestDTO.content());
-        commentRepository.save(comment);
     }
 
     @Transactional
@@ -95,17 +92,13 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 
-    private CommentPageDTO createCommentPage(CommentSupplier commentSupplier, Function<List<Comment>, List<CommentResponseDTO>> converter, int size) {
-        List<Comment> comments = commentSupplier.get();
-
-        boolean hasMore = comments.size() > size;
+    private CommentPageDTO createCommentPageDTO(List<CommentResponseDTO> commentDTOs, int size) {
+        boolean hasMore = commentDTOs.size() > size;
         if (hasMore) {
-            comments = comments.subList(0, size);
+            commentDTOs = commentDTOs.subList(0, size);
         }
 
-        Long nextCursor = hasMore ? comments.get(comments.size() - 1).getId() : null;
-
-        List<CommentResponseDTO> commentDTOs = converter.apply(comments);
+        Long nextCursor = hasMore ? commentDTOs.get(commentDTOs.size() - 1).id() : null;
 
         return new CommentPageDTO(commentDTOs, nextCursor, hasMore);
     }
@@ -125,12 +118,12 @@ public class CommentService {
 
     private Post findPostById(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+                .orElseThrow(ErrorCode.NOT_FOUND);
     }
 
     private Comment findCommentById(Long commentId) {
         return commentRepository.findById(commentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+                .orElseThrow(ErrorCode.NOT_FOUND);
     }
 
     private List<Comment> fetchRootComments(Post post, Long cursor, int size) {
@@ -157,37 +150,31 @@ public class CommentService {
         Map<Long, Integer> replyCountMap = getReplyCountMap(comments);
 
         return comments.stream()
-                .map(comment -> {
-                    int replyCount = replyCountMap.getOrDefault(comment.getId(), 0);
-                    return CommentResponseDTO.from(comment, replyCount, false);
-                })
-                .collect(Collectors.toList());
+                .map(comment -> CommentResponseDTO.from(
+                        comment,
+                        replyCountMap.getOrDefault(comment.getId(), 0),
+                        false
+                ))
+                .toList();
     }
 
     private List<CommentResponseDTO> convertToReplyDTOs(List<Comment> comments) {
         return comments.stream()
                 .map(comment -> CommentResponseDTO.from(comment, 0, true))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private Map<Long, Integer> getReplyCountMap(List<Comment> comments) {
         List<Long> commentIds = comments.stream()
                 .map(Comment::getId)
-                .collect(Collectors.toList());
+                .toList();
 
         Map<Long, Integer> replyCountMap = new HashMap<>();
         commentRepository.countRepliesByParentIds(commentIds)
-                .forEach(row -> {
-                    Long parentId = (Long) row[0];
-                    Long count = (Long) row[1];
-                    replyCountMap.put(parentId, count.intValue());
+                .forEach(comment -> {
+                    replyCountMap.put(comment.getParentCommentId(), comment.getCount().intValue());
                 });
 
         return replyCountMap;
-    }
-
-    @FunctionalInterface
-    private interface CommentSupplier {
-        List<Comment> get();
     }
 }

@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.repository.comment;
 
+import kr.co.amateurs.server.domain.dto.comment.ReplyCount;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -51,7 +52,7 @@ public class CommentRepositoryTest {
     }
 
     @Test
-    void 부모_댓글을_가지지_않는_댓글만_반환_되어야_한다(){
+    void 게시글을_상세_조회하면_처음에는_루트_댓글만_pageSize만큼_반환_되어야_한다(){
         //Given
         Comment comment = Comment.builder()
                 .post(testPost)
@@ -229,16 +230,18 @@ public class CommentRepositoryTest {
                 parentComment2.getId(),
                 parentComment3.getId()
         );
-        List<Object[]> result = commentRepository.countRepliesByParentIds(parentIds);
+        List<ReplyCount> result = commentRepository.countRepliesByParentIds(parentIds);
 
         //Then
         assertThat(result).hasSize(2);
 
         Map<Long, Long> replyCountMap = result.stream()
+                .filter(rc -> rc.getParentCommentId()!=null && rc.getCount() != null)
                 .collect(Collectors.toMap(
-                        row -> (Long) row[0],
-                        row -> (Long) row[1]
+                        ReplyCount::getParentCommentId,
+                        ReplyCount::getCount
                 ));
+                ;
 
         assertThat(replyCountMap.get(parentComment1.getId())).isEqualTo(2L);
         assertThat(replyCountMap.get(parentComment2.getId())).isEqualTo(1L);

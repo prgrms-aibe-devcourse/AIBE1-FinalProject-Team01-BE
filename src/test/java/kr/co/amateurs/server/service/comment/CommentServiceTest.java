@@ -4,6 +4,7 @@ import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
+import kr.co.amateurs.server.domain.dto.comment.ReplyCount;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -95,8 +96,20 @@ class CommentServiceTest {
         int size = 5;
 
         List<Comment> comments = Arrays.asList(testRootComment);
-        List<Object[]> replyCountData = new ArrayList<>();
-        replyCountData.add(new Object[]{testRootComment.getId(), 3L});
+        List<ReplyCount> replyCountData = List.of(
+                new ReplyCount() {
+                    @Override
+                    public Long getParentCommentId() {
+                        return testRootComment.getId();
+                    }
+
+                    @Override
+                    public Long getCount() {
+                        return 3L;
+                    }
+                }
+        );
+
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
         given(commentRepository.findByPostAndParentCommentIsNullOrderByCreatedAtAsc(
@@ -254,7 +267,7 @@ class CommentServiceTest {
     }
 
     @Test
-    void 댓글_내용을_수정할수있다() {
+    void 유저가_본인의_댓글_내용을_수정할수있다() {
         // given
         Long postId = 1L;
         Long commentId = 1L;
@@ -287,7 +300,7 @@ class CommentServiceTest {
     }
 
     @Test
-    void 댓글을_삭제할수있다() {
+    void 유저가_본인의_댓글을_삭제할수있다() {
         // given
         Long postId = 1L;
         Long commentId = 1L;

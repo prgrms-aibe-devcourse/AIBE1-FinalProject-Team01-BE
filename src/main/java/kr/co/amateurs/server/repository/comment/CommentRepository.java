@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.repository.comment;
 
+import kr.co.amateurs.server.domain.dto.comment.ReplyCount;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import org.springframework.data.domain.PageRequest;
@@ -19,8 +20,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByParentCommentAndIdGreaterThanOrderByCreatedAtAsc(Comment parentComment, Long cursor, PageRequest pageRequest);
 
     // TODO QueryDSL or JOOQ 사용 시 변경
-    @Query("SELECT c.parentComment.id, COUNT(c) FROM Comment c " +
+    @Query("SELECT c.parentComment.id as parentCommentId, COUNT(c) as count FROM Comment c " +
             "WHERE c.parentComment.id IN :parentIds " +
             "GROUP BY c.parentComment.id")
-    List<Object[]> countRepliesByParentIds(@Param("parentIds") List<Long> parentIds);
+    List<ReplyCount> countRepliesByParentIds(@Param("parentIds") List<Long> parentIds);
 }
