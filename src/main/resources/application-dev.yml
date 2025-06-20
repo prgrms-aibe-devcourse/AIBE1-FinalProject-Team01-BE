@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    show-sql: true
+
+  springdoc:
+    swagger-ui:
+      path: /swagger-ui.html
+      operationsSorter: method
+      tagsSorter: alpha
+      docExpansion: none
+
+spring.output.ansi.enabled: always
