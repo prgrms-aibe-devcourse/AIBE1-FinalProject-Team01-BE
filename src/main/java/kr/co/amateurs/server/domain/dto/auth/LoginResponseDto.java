@@ -3,13 +3,13 @@ package kr.co.amateurs.server.domain.dto.auth;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 public record LoginResponseDto (
-        @Schema(description = "JWT 액세스 토크")
+        @Schema(description = "JWT 액세스 토큰")
         String accessToken,
 
         @Schema(description = "토큰 타입", example = "Bearer")
         String tokenType,
 
-        @Schema(description = "토큰 만료 시간(밀리초)", example = "360000")
+        @Schema(description = "토큰 만료 시간(밀리초)", example = "3600000")
         Long expiresIn
 ) {
 

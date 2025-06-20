@@ -34,7 +34,7 @@ public class AuthControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void 정산적인_로그인_요청_시_JWT_토큰이_반환되어야_한다() throws Exception {
+    void 정상적인_로그인_요청_시_JWT_토큰이_반환되어야_한다() throws Exception {
         //given
         LoginRequestDto request = LoginRequestDto.builder()
                 .email("test@test.com")
