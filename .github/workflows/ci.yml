@@ -11,6 +11,9 @@ jobs:
   check-changes:
     name: 변경 사항 확인
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       should-run: ${{ steps.changes.outputs.src }}
     steps:
