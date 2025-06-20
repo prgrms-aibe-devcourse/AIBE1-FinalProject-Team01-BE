@@ -96,4 +96,20 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.statusMessage").value("Bad Request"))
                 .andExpect(jsonPath("$.statusCode").value(400));
     }
+
+    @Test
+    void 잘못된_이메일_형식으로_로그인_시_400_에러가_발생해야_한다() throws Exception {
+        // given
+        LoginRequestDto request = LoginRequestDto.builder()
+                .email("invalid-email")
+                .password("password123")
+                .build();
+
+        // when & then
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.statusCode").value(400));
+    }
 }
