@@ -1,5 +1,9 @@
 package kr.co.amateurs.server.service.auth;
 
+import kr.co.amateurs.server.config.jwt.JwtProvider;
+import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
+import kr.co.amateurs.server.domain.dto.auth.LoginResponseDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -18,6 +22,7 @@ public class AuthService {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
     public SignupResponseDto signup(SignupRequestDto request){
         userService.validateEmailDuplicate(request.email());
@@ -36,7 +41,7 @@ public class AuthService {
 
         user.addUserTopics(request.topics());
 
-        User savedUser = userService.save(user);
+        User savedUser = userService.saveUser(user);
 
         return SignupResponseDto.fromEntity(savedUser, request.topics());
     }

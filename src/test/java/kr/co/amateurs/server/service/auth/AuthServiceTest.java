@@ -71,7 +71,7 @@ class AuthServiceTest {
                 .providerType(ProviderType.LOCAL)
                 .build();
 
-        when(userService.save(any(User.class))).thenReturn(savedUser);
+        when(userService.saveUser(any(User.class))).thenReturn(savedUser);
 
         // when
         SignupResponseDto response = authService.signup(request);
@@ -83,7 +83,7 @@ class AuthServiceTest {
         verify(userService).validateEmailDuplicate("test@test.com");
         verify(userService).validateNicknameDuplicate("testnick");
         verify(passwordEncoder).encode("password123");
-        verify(userService).save(any(User.class));
+        verify(userService).saveUser(any(User.class));
     }
 
     @Test
@@ -110,7 +110,7 @@ class AuthServiceTest {
         verify(userService).validateEmailDuplicate("duplicate@test.com");
         verify(userService, never()).validateNicknameDuplicate(any());
         verify(passwordEncoder, never()).encode(any());
-        verify(userService, never()).save(any());
+        verify(userService, never()).saveUser(any());
     }
 
     @Test
@@ -137,7 +137,7 @@ class AuthServiceTest {
         verify(userService).validateEmailDuplicate("test@test.com");
         verify(userService).validateNicknameDuplicate("duplicateNick");
         verify(passwordEncoder, never()).encode(any());
-        verify(userService, never()).save(any());
+        verify(userService, never()).saveUser(any());
     }
 
     @Test
@@ -157,7 +157,7 @@ class AuthServiceTest {
         doNothing().when(userService).validateEmailDuplicate("test@test.com");
         doNothing().when(userService).validateNicknameDuplicate("testnick");
 
-        when(userService.save(any(User.class))).thenAnswer(invocation -> {
+        when(userService.saveUser(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
 
             try {
@@ -184,7 +184,7 @@ class AuthServiceTest {
         assertThat(response.userId()).isEqualTo(1L);
 
         // 실제 암호화 검증!
-        verify(userService).save(argThat(user -> {
+        verify(userService).saveUser(argThat(user -> {
             String actualEncryptedPassword = user.getPassword();
 
             System.out.println("원본 비밀번호: rawPassword123");
@@ -225,7 +225,7 @@ class AuthServiceTest {
                 .providerType(ProviderType.LOCAL)
                 .build();
 
-        when(userService.save(any(User.class))).thenReturn(savedUser);
+        when(userService.saveUser(any(User.class))).thenReturn(savedUser);
 
         // when
         SignupResponseDto response = authService.signup(request);
@@ -236,7 +236,7 @@ class AuthServiceTest {
                 Topic.FRONTEND, Topic.BACKEND, Topic.AI
         );
 
-        verify(userService).save(argThat(user -> {
+        verify(userService).saveUser(argThat(user -> {
             return user.getEmail().equals("test@test.com") &&
                     user.getNickname().equals("testnick") &&
                     user.getRole() == Role.GUEST &&
@@ -290,14 +290,14 @@ class AuthServiceTest {
         doNothing().when(userService).validateEmailDuplicate("test@test.com");
         doNothing().when(userService).validateNicknameDuplicate("testnick");
 
-        when(userService.save(any(User.class))).thenThrow(new RuntimeException("DB 저장 실패"));
+        when(userService.saveUser(any(User.class))).thenThrow(new RuntimeException("DB 저장 실패"));
 
         // when & then
         assertThatThrownBy(() -> authService.signup(request))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("DB 저장 실패");
 
-        verify(userService).save(any(User.class));
+        verify(userService).saveUser(any(User.class));
     }
 
     @Test
@@ -326,7 +326,7 @@ class AuthServiceTest {
                 .providerType(ProviderType.LOCAL)
                 .build();
 
-        when(userService.save(any(User.class))).thenReturn(savedUser);
+        when(userService.saveUser(any(User.class))).thenReturn(savedUser);
 
         // when
         authService.signup(request);
@@ -337,7 +337,7 @@ class AuthServiceTest {
         inOrder.verify(userService).validateEmailDuplicate("test@test.com");
         inOrder.verify(userService).validateNicknameDuplicate("testnick");
         inOrder.verify(passwordEncoder).encode("password123");
-        inOrder.verify(userService).save(any(User.class));
+        inOrder.verify(userService).saveUser(any(User.class));
     }
 
     @Test
@@ -364,7 +364,7 @@ class AuthServiceTest {
 
         verify(userService, never()).validateNicknameDuplicate(any());
         verify(passwordEncoder, never()).encode(any());
-        verify(userService, never()).save(any());
+        verify(userService, never()).saveUser(any());
     }
 
     @Test
@@ -391,6 +391,6 @@ class AuthServiceTest {
         inOrder.verify(userService).validateNicknameDuplicate("duplicateNick");
 
         verify(passwordEncoder, never()).encode(any());
-        verify(userService, never()).save(any());
+        verify(userService, never()).saveUser(any());
     }
 }
