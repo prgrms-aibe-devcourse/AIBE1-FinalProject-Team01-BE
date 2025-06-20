@@ -431,4 +431,26 @@ class AuthServiceTest {
         verify(jwtProvider).generateAccessToken("test@test.com");
         verify(jwtProvider).getAccessTokenExpirationMs();
     }
+
+    @Test
+    void 존재하지_않는_이메일로_로그인_시_예외가_발생한다() {
+        // given
+        LoginRequestDto request = LoginRequestDto.builder()
+                .email("notfound@test.com")
+                .password("password123")
+                .build();
+
+        doThrow(ErrorCode.USER_NOT_FOUND.get())
+                .when(userService).findByEmail("notfound@test.com");
+
+        // when & then
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.USER_NOT_FOUND);
+
+        verify(userService).findByEmail("notfound@test.com");
+        verify(passwordEncoder, never()).matches(any(), any());
+        verify(jwtProvider, never()).generateAccessToken(any());
+    }
 }
