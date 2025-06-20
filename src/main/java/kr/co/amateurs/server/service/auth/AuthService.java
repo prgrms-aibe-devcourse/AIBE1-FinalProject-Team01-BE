@@ -45,4 +45,17 @@ public class AuthService {
 
         return SignupResponseDto.fromEntity(savedUser, request.topics());
     }
+
+    public LoginResponseDto login(LoginRequestDto request){
+        User user = userService.findByEmail(request.email());
+
+        if(!passwordEncoder.matches(request.password(), user.getPassword())){
+            throw ErrorCode.INVALID_PASSWORD.get();
+        }
+
+        String accessToken = jwtProvider.generateAccessToken(user.getEmail());
+        Long expiresIn = jwtProvider.getAccessTokenExpirationMs();
+
+        return LoginResponseDto.of(accessToken, expiresIn);
+    }
 }
