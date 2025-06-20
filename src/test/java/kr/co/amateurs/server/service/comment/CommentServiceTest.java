@@ -19,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,6 +86,9 @@ class CommentServiceTest {
                 .isDeleted(false)
                 .build();
 
+        ReflectionTestUtils.setField(testRootComment, "id", 1L);
+        ReflectionTestUtils.setField(testReplyComment, "id", 2L);
+
         testRequestDTO = new CommentRequestDTO(null, "새로운 댓글");
     }
 
@@ -148,7 +152,7 @@ class CommentServiceTest {
         // then
         assertThat(result.hasNext()).isTrue();
         assertThat(result.comments()).hasSize(2);
-        assertThat(result.nextCursor()).isNull(); // 테스트 시 ID를 설정 할 수 없어 NuLL 값 발생
+        assertThat(result.nextCursor()).isNotNull();
     }
 
     @Test
@@ -182,7 +186,7 @@ class CommentServiceTest {
         // then
         assertThat(result.comments()).hasSize(1);
         assertThat(result.comments().get(0).content()).isEqualTo("답글 댓글");
-        assertThat(result.comments().get(0).parentCommentId()).isEqualTo(testReplyComment.getId());
+        assertThat(result.comments().get(0).parentCommentId()).isEqualTo(testReplyComment.getParentComment().getId());
         assertThat(result.hasNext()).isFalse();
     }
 
@@ -225,6 +229,7 @@ class CommentServiceTest {
         CommentRequestDTO requestDTO = new CommentRequestDTO(testRootComment.getId(), "새로운 답글");
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
+        given(commentRepository.findById(testRootComment.getId())).willReturn(Optional.of(testRootComment));
         given(commentRepository.save(any(Comment.class))).willReturn(testReplyComment);
 
         // when
@@ -233,7 +238,7 @@ class CommentServiceTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.content()).isEqualTo("답글 댓글");
-        assertThat(result.parentCommentId()).isNull();
+        assertThat(result.parentCommentId()).isEqualTo(testReplyComment.getParentComment().getId());
         verify(commentRepository).save(any(Comment.class));
     }
 
@@ -280,7 +285,7 @@ class CommentServiceTest {
         commentService.updateComment(postId, commentId, requestDTO);
 
         // then
-        verify(commentRepository).save(testRootComment);
+        assertThat(testRootComment.getContent()).isEqualTo("수정된 댓글");
     }
 
     @Test
