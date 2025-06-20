@@ -4,6 +4,7 @@ import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
+import kr.co.amateurs.server.domain.dto.comment.ReplyCount;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -169,12 +170,11 @@ public class CommentService {
                 .map(Comment::getId)
                 .toList();
 
-        Map<Long, Integer> replyCountMap = new HashMap<>();
-        commentRepository.countRepliesByParentIds(commentIds)
-                .forEach(comment -> {
-                    replyCountMap.put(comment.getParentCommentId(), comment.getCount().intValue());
-                });
-
-        return replyCountMap;
+        return commentRepository.countRepliesByParentIds(commentIds).stream()
+                .filter(replyCount -> replyCount.getParentCommentId()!=null && replyCount.getCount() != null)
+                .collect(Collectors.toMap(
+                        replyCount -> replyCount.getParentCommentId(),
+                        replyCount -> replyCount.getCount().intValue()
+                ));
     }
 }
