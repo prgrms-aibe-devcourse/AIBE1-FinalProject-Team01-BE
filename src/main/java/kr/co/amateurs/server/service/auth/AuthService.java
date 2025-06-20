@@ -17,13 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class AuthService {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
+    @Transactional
     public SignupResponseDto signup(SignupRequestDto request){
         userService.validateEmailDuplicate(request.email());
         userService.validateNicknameDuplicate(request.nickname());
@@ -46,6 +46,7 @@ public class AuthService {
         return SignupResponseDto.fromEntity(savedUser, request.topics());
     }
 
+    @Transactional(readOnly = true)
     public LoginResponseDto login(LoginRequestDto request){
         User user = userService.findByEmail(request.email());
 
