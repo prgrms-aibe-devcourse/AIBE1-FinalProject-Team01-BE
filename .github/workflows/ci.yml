@@ -9,6 +9,7 @@ on:
 
 jobs:
   check-changes:
+    name: 변경 사항 확인
     runs-on: ubuntu-latest
     outputs:
       should-run: ${{ steps.changes.outputs.src }}
