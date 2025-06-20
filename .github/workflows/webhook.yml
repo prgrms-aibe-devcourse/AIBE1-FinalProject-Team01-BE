@@ -1,0 +1,154 @@
+on:
+  workflow_call:
+    inputs:
+      action:
+        description: '실행된 Actions'
+        required: true
+        type: string
+      workflow-name:
+        description: '실행된 워크플로우 이름'
+        required: true
+        type: string
+      workflow-status:
+        description: '워크플로우 전체 상태'
+        required: true
+        type: string
+      test-status:
+        description: '테스트 상태'
+        required: false
+        type: string
+        default: 'skipped'
+      build-status:
+        description: '빌드 상태'
+        required: false
+        type: string
+        default: 'skipped'
+      deploy-status:
+        description: '배포 상태'
+        required: false
+        type: string
+        default: 'skipped'
+      health-check-status:
+        description: '헬스체크 상태'
+        required: false
+        type: string
+        default: 'skipped'
+      image-tag:
+        description: '이미지 태그'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  send-webhook:
+    name: n8n 웹훅 전송
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: PR 정보 설정
+        id: pr-info
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "pr_number=${{ github.event.number }}" >> $GITHUB_OUTPUT
+            echo "trigger=pull_request" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "pr_number=null" >> $GITHUB_OUTPUT
+            echo "trigger=workflow_run" >> $GITHUB_OUTPUT
+          else
+            echo "pr_number=null" >> $GITHUB_OUTPUT
+            echo "trigger=push" >> $GITHUB_OUTPUT
+          fi
+
+      - name: CI용 JSON 생성
+        if: inputs.action == 'ci'
+        uses: jsdaniell/create-json@v1.2.3
+        with:
+          name: "webhook-payload.json"
+          json: |
+            {
+              "action": "ci",
+              "pipeline": {
+                "name": "${{ inputs.workflow-name }}",
+                "status": "${{ inputs.workflow-status }}"
+              },
+              "repository": {
+                "name": "${{ github.repository }}",
+                "branch": "${{ github.ref_name }}",
+                "actor": "${{ github.actor }}"
+              },
+              "stages": {
+                "test": "${{ inputs.test-status }}",
+                "build": "${{ inputs.build-status }}"
+              },
+              "context": {
+                "trigger": "${{ steps.pr-info.outputs.trigger }}",
+                "pr_number": ${{ steps.pr-info.outputs.pr_number }}
+              },
+              "metadata": {
+                "workflow_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                "timestamp": "${{ github.event.head_commit.timestamp || github.event.pull_request.updated_at || github.event.workflow_run.created_at || github.event.repository.updated_at }}"
+              }
+            }
+
+      - name: CD용 JSON 생성
+        if: inputs.action == 'cd'
+        uses: jsdaniell/create-json@v1.2.3
+        with:
+          name: "webhook-payload.json"
+          json: |
+            {
+              "action": "cd",
+              "pipeline": {
+                "name": "${{ inputs.workflow-name }}",
+                "status": "${{ inputs.workflow-status }}"
+              },
+              "repository": {
+                "name": "${{ github.repository }}",
+                "branch": "${{ github.ref_name }}",
+                "actor": "${{ github.actor }}"
+              },
+              "stages": {
+                "deploy": "${{ inputs.deploy-status }}",
+                "health_check": "${{ inputs.health-check-status }}"
+              },
+              "context": {
+                "trigger": "${{ steps.pr-info.outputs.trigger }}",
+                "image_tag": "${{ inputs.image-tag }}"
+              },
+              "metadata": {
+                "workflow_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                "timestamp": "${{ github.event.workflow_run.created_at }}"
+              }
+            }
+
+      - name: n8n 웹훅 전송
+        env:
+          WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
+        run: |
+          if [ -n "$WEBHOOK_URL" ]; then
+            echo "웹훅 전송 중..."
+            
+            RESPONSE=$(curl -X POST "$WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d @webhook-payload.json \
+              --max-time 15 \
+              --retry 2 \
+              -w "HTTP_CODE:%{http_code}")
+            
+            HTTP_CODE=$(echo "$RESPONSE" | grep -o "HTTP_CODE:[0-9]*" | cut -d: -f2)
+            
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
+              echo "웹훅 전송 성공 (HTTP $HTTP_CODE)"
+            else
+              echo "웹훅 전송 실패 (HTTP $HTTP_CODE)"
+              echo "응답: $RESPONSE"
+              exit 1
+            fi
+          else
+            echo "웹훅 URL이 설정되지 않았습니다"
+          fi
+
+      - name: JSON 파일 정리
+        if: always()
+        run: rm -f webhook-payload.json
