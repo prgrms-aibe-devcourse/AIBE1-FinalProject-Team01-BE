@@ -13,7 +13,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
-import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.*;
 class AuthServiceTest {
 
     @Mock
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -59,8 +59,8 @@ class AuthServiceTest {
         String encodedPassword = "encodedPassword123";
         when(passwordEncoder.encode("password123")).thenReturn(encodedPassword);
 
-        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
-        when(userRepository.existsByNickname("testnick")).thenReturn(false);
+        doNothing().when(userService).validateEmailDuplicate("test@test.com");
+        doNothing().when(userService).validateNicknameDuplicate("testnick");
 
         User savedUser = User.builder()
                 .email("test@test.com")
@@ -71,7 +71,7 @@ class AuthServiceTest {
                 .providerType(ProviderType.LOCAL)
                 .build();
 
-        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(userService.save(any(User.class))).thenReturn(savedUser);
 
         // when
         SignupResponseDto response = authService.signup(request);
@@ -80,10 +80,10 @@ class AuthServiceTest {
         assertThat(response.email()).isEqualTo("test@test.com");
         assertThat(response.nickname()).isEqualTo("testnick");
 
-        verify(userRepository).existsByEmail("test@test.com");
-        verify(userRepository).existsByNickname("testnick");
+        verify(userService).validateEmailDuplicate("test@test.com");
+        verify(userService).validateNicknameDuplicate("testnick");
         verify(passwordEncoder).encode("password123");
-        verify(userRepository).save(any(User.class));
+        verify(userService).save(any(User.class));
     }
 
     @Test
@@ -97,7 +97,9 @@ class AuthServiceTest {
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
 
-        when(userRepository.existsByEmail("duplicate@test.com")).thenReturn(true);
+        // 이메일 중복 시 예외 발생하도록 설정
+        doThrow(ErrorCode.DUPLICATE_EMAIL.get())
+                .when(userService).validateEmailDuplicate("duplicate@test.com");
 
         // when & then
         assertThatThrownBy(() -> authService.signup(request))
@@ -105,10 +107,10 @@ class AuthServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.DUPLICATE_EMAIL);
 
-        verify(userRepository).existsByEmail("duplicate@test.com");
-        verify(userRepository, never()).existsByNickname(any());
+        verify(userService).validateEmailDuplicate("duplicate@test.com");
+        verify(userService, never()).validateNicknameDuplicate(any());
         verify(passwordEncoder, never()).encode(any());
-        verify(userRepository, never()).save(any());
+        verify(userService, never()).save(any());
     }
 
     @Test
@@ -122,8 +124,9 @@ class AuthServiceTest {
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
 
-        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
-        when(userRepository.existsByNickname("duplicateNick")).thenReturn(true);
+        doNothing().when(userService).validateEmailDuplicate("test@test.com");
+        doThrow(ErrorCode.DUPLICATE_NICKNAME.get())
+                .when(userService).validateNicknameDuplicate("duplicateNick");
 
         // when & then
         assertThatThrownBy(() -> authService.signup(request))
@@ -131,10 +134,10 @@ class AuthServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.DUPLICATE_NICKNAME);
 
-        verify(userRepository).existsByEmail("test@test.com");
-        verify(userRepository).existsByNickname("duplicateNick");
+        verify(userService).validateEmailDuplicate("test@test.com");
+        verify(userService).validateNicknameDuplicate("duplicateNick");
         verify(passwordEncoder, never()).encode(any());
-        verify(userRepository, never()).save(any());
+        verify(userService, never()).save(any());
     }
 
     @Test
@@ -151,10 +154,10 @@ class AuthServiceTest {
         PasswordEncoder realEncoder = new BCryptPasswordEncoder();
         ReflectionTestUtils.setField(authService, "passwordEncoder", realEncoder);
 
-        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
-        when(userRepository.existsByNickname("testnick")).thenReturn(false);
+        doNothing().when(userService).validateEmailDuplicate("test@test.com");
+        doNothing().when(userService).validateNicknameDuplicate("testnick");
 
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+        when(userService.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
 
             try {
@@ -181,7 +184,7 @@ class AuthServiceTest {
         assertThat(response.userId()).isEqualTo(1L);
 
         // 실제 암호화 검증!
-        verify(userRepository).save(argThat(user -> {
+        verify(userService).save(argThat(user -> {
             String actualEncryptedPassword = user.getPassword();
 
             System.out.println("원본 비밀번호: rawPassword123");
@@ -210,8 +213,8 @@ class AuthServiceTest {
         String encodedPassword = "encodedPassword123";
         when(passwordEncoder.encode("password123")).thenReturn(encodedPassword);
 
-        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
-        when(userRepository.existsByNickname("testnick")).thenReturn(false);
+        doNothing().when(userService).validateEmailDuplicate("test@test.com");
+        doNothing().when(userService).validateNicknameDuplicate("testnick");
 
         User savedUser = User.builder()
                 .email("test@test.com")
@@ -222,7 +225,7 @@ class AuthServiceTest {
                 .providerType(ProviderType.LOCAL)
                 .build();
 
-        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(userService.save(any(User.class))).thenReturn(savedUser);
 
         // when
         SignupResponseDto response = authService.signup(request);
@@ -233,7 +236,7 @@ class AuthServiceTest {
                 Topic.FRONTEND, Topic.BACKEND, Topic.AI
         );
 
-        verify(userRepository).save(argThat(user -> {
+        verify(userService).save(argThat(user -> {
             return user.getEmail().equals("test@test.com") &&
                     user.getNickname().equals("testnick") &&
                     user.getRole() == Role.GUEST &&
@@ -284,17 +287,17 @@ class AuthServiceTest {
         String encodedPassword = "encodedPassword123";
         when(passwordEncoder.encode("password123")).thenReturn(encodedPassword);
 
-        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
-        when(userRepository.existsByNickname("testnick")).thenReturn(false);
+        doNothing().when(userService).validateEmailDuplicate("test@test.com");
+        doNothing().when(userService).validateNicknameDuplicate("testnick");
 
-        when(userRepository.save(any(User.class))).thenThrow(new RuntimeException("DB 저장 실패"));
+        when(userService.save(any(User.class))).thenThrow(new RuntimeException("DB 저장 실패"));
 
         // when & then
         assertThatThrownBy(() -> authService.signup(request))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("DB 저장 실패");
 
-        verify(userRepository).save(any(User.class));
+        verify(userService).save(any(User.class));
     }
 
     @Test
@@ -310,8 +313,8 @@ class AuthServiceTest {
 
         String encodedPassword = "encodedPassword123";
 
-        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
-        when(userRepository.existsByNickname("testnick")).thenReturn(false);
+        doNothing().when(userService).validateEmailDuplicate("test@test.com");
+        doNothing().when(userService).validateNicknameDuplicate("testnick");
         when(passwordEncoder.encode("password123")).thenReturn(encodedPassword);
 
         User savedUser = User.builder()
@@ -323,18 +326,18 @@ class AuthServiceTest {
                 .providerType(ProviderType.LOCAL)
                 .build();
 
-        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(userService.save(any(User.class))).thenReturn(savedUser);
 
         // when
         authService.signup(request);
 
         // then
-        InOrder inOrder = inOrder(userRepository, passwordEncoder);
+        InOrder inOrder = inOrder(userService, passwordEncoder);
 
-        inOrder.verify(userRepository).existsByEmail("test@test.com");
-        inOrder.verify(userRepository).existsByNickname("testnick");
+        inOrder.verify(userService).validateEmailDuplicate("test@test.com");
+        inOrder.verify(userService).validateNicknameDuplicate("testnick");
         inOrder.verify(passwordEncoder).encode("password123");
-        inOrder.verify(userRepository).save(any(User.class));
+        inOrder.verify(userService).save(any(User.class));
     }
 
     @Test
@@ -348,19 +351,20 @@ class AuthServiceTest {
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
 
-        when(userRepository.existsByEmail("duplicate@test.com")).thenReturn(true);
+        doThrow(ErrorCode.DUPLICATE_EMAIL.get())
+                .when(userService).validateEmailDuplicate("duplicate@test.com");
 
         // when & then
         assertThatThrownBy(() -> authService.signup(request))
                 .isInstanceOf(CustomException.class);
 
-        InOrder inOrder = inOrder(userRepository, passwordEncoder);
+        InOrder inOrder = inOrder(userService, passwordEncoder);
 
-        inOrder.verify(userRepository).existsByEmail("duplicate@test.com");
+        inOrder.verify(userService).validateEmailDuplicate("duplicate@test.com");
 
-        verify(userRepository, never()).existsByNickname(any());
+        verify(userService, never()).validateNicknameDuplicate(any());
         verify(passwordEncoder, never()).encode(any());
-        verify(userRepository, never()).save(any());
+        verify(userService, never()).save(any());
     }
 
     @Test
@@ -374,18 +378,19 @@ class AuthServiceTest {
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
                 .build();
 
-        when(userRepository.existsByEmail("test@test.com")).thenReturn(false);
-        when(userRepository.existsByNickname("duplicateNick")).thenReturn(true);
+        doNothing().when(userService).validateEmailDuplicate("test@test.com");
+        doThrow(ErrorCode.DUPLICATE_NICKNAME.get())
+                .when(userService).validateNicknameDuplicate("duplicateNick");
 
         // when & then
         assertThatThrownBy(() -> authService.signup(request))
                 .isInstanceOf(CustomException.class);
 
-        InOrder inOrder = inOrder(userRepository, passwordEncoder);
-        inOrder.verify(userRepository).existsByEmail("test@test.com");
-        inOrder.verify(userRepository).existsByNickname("duplicateNick");
+        InOrder inOrder = inOrder(userService, passwordEncoder);
+        inOrder.verify(userService).validateEmailDuplicate("test@test.com");
+        inOrder.verify(userService).validateNicknameDuplicate("duplicateNick");
 
         verify(passwordEncoder, never()).encode(any());
-        verify(userRepository, never()).save(any());
+        verify(userService, never()).save(any());
     }
 }
