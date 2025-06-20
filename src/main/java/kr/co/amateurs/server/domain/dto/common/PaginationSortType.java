@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum PaginationSortType {
     ID("id"),
-    //  POST_AUTHOR("user.id") 연관관계를 사용한 정렬 시 예시코드
+    DM_SENT_AT("sentAt"),
     EMPTY(null);
 
     public final String field;

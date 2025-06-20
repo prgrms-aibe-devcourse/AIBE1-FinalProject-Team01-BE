@@ -16,16 +16,35 @@ import java.util.List;
 public class DirectMessageRoom {
     @Id
     private String id;
-    private String roomName;
     private String lastMessage;
-
-    @Builder.Default
-    private List<Long> userIds = new ArrayList<>();
-
-    @Builder.Default
-    private List<UserReadStatus> readStatuses = new ArrayList<>();
+    private List<Participant> participants = new ArrayList<>();
 
     public void updateLastMessage(String message) {
         this.lastMessage = message;
+    }
+
+    public void userLeaveRoom(Long userId) {
+        participants.stream()
+                .filter(participant -> participant.getUserId().equals(userId))
+                .findFirst()
+                .ifPresent(Participant::exitRoom);
+    }
+
+    public Boolean allParticipantsLeft() {
+        return participants.stream()
+                .noneMatch(Participant::getIsActive);
+    }
+
+    public Boolean isParticipate(Long userId) {
+        return participants.stream()
+                .anyMatch(participant -> participant.getUserId().equals(userId));
+    }
+
+    public LocalDateTime getParticipantLeftAt(Long userId) {
+        return participants.stream()
+                .filter(participant -> participant.getUserId().equals(userId))
+                .findFirst()
+                .map(Participant::getLeftAt)
+                .orElse(null);
     }
 }

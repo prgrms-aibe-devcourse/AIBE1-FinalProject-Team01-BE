@@ -11,16 +11,25 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserReadStatus {
+public class Participant {
     private Long userId;
+    private String nickname;
     private LocalDateTime lastReadAt;
+    private LocalDateTime leftAt;
+
+    @Builder.Default
+    private Boolean isActive = true;
 
     public void updateLastReadAt(LocalDateTime lastReadAt) {
         this.lastReadAt = lastReadAt;
     }
 
-    public UserReadStatus(Long userId){
-        this.userId = userId;
-        this.lastReadAt = null;
+    public void exitRoom() {
+        this.isActive = false;
+        this.leftAt = LocalDateTime.now();
+    }
+
+    public void reEntry() {
+        this.isActive = true;
     }
 }

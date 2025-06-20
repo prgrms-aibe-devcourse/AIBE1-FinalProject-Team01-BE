@@ -7,7 +7,6 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Getter
 @Document(collection = "direct_messages")
@@ -20,8 +19,8 @@ public class DirectMessage {
 
     @Indexed
     private String roomId;
-
     private Long senderId;
+    private String senderNickname;
     private String content;
 
     @Builder.Default
