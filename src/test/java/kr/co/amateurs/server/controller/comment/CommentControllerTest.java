@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.controller.comment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.co.amateurs.server.config.SecurityConfig;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
@@ -8,6 +9,7 @@ import kr.co.amateurs.server.service.comment.CommentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
@@ -23,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CommentController.class)
+@Import(SecurityConfig.class)
 public class CommentControllerTest {
     @Autowired
     private MockMvc mockMvc;
