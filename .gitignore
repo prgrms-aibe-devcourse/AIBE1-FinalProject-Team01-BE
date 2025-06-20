@@ -36,7 +36,11 @@ out/
 ### VS Code ###
 .vscode/
 
-*.properties
+### Environment Variables ###
+.env
+
+### Properties Files ###
+application*.properties
 
 ### macOS ###
 .DS_Store
