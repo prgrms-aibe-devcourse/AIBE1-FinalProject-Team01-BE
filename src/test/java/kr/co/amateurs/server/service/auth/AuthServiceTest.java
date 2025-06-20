@@ -453,4 +453,31 @@ class AuthServiceTest {
         verify(passwordEncoder, never()).matches(any(), any());
         verify(jwtProvider, never()).generateAccessToken(any());
     }
+
+    @Test
+    void 잘못된_비밀번호로_로그인_시_예외가_발생한다() {
+        // given
+        LoginRequestDto request = LoginRequestDto.builder()
+                .email("test@test.com")
+                .password("wrongpassword")
+                .build();
+
+        User user = User.builder()
+                .email("test@test.com")
+                .password("encodedPassword123")
+                .build();
+
+        when(userService.findByEmail("test@test.com")).thenReturn(user);
+        when(passwordEncoder.matches("wrongpassword", "encodedPassword123")).thenReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_PASSWORD);
+
+        verify(userService).findByEmail("test@test.com");
+        verify(passwordEncoder).matches("wrongpassword", "encodedPassword123");
+        verify(jwtProvider, never()).generateAccessToken(any());
+    }
 }
