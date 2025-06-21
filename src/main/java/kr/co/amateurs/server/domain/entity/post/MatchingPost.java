@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
+import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
@@ -27,4 +28,10 @@ public class MatchingPost extends BaseEntity {
     private MatchingStatus status;
 
     private String expertiseAreas;
+
+    public void update(MatchPostRequestDTO dto){
+        this.matchingType = dto.matchingType();
+        this.status = dto.status();
+        this.expertiseAreas = dto.expertiseArea();
+    }
 }
