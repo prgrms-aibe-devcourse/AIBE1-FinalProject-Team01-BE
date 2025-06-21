@@ -1,0 +1,50 @@
+name: 헬스체크
+
+on:
+  workflow_call:
+    inputs:
+      app_port:
+        description: 'Application port'
+        required: true
+        type: string
+    outputs:
+      status:
+        description: "헬스체크 결과"
+        value: ${{ jobs.health_check.outputs.status }}
+
+jobs:
+  health_check:
+    name: 애플리케이션 헬스체크
+    runs-on: ubuntu-latest
+    
+    outputs:
+      status: ${{ steps.set-result.outputs.status }}
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 애플리케이션 헬스체크 실행
+        id: health-check
+        uses: appleboy/ssh-action@v1
+        env:
+          APP_PORT: ${{ inputs.app_port }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || 22 }}
+          envs: APP_PORT
+          script_path: scripts/health-check.sh
+
+      - name: 헬스체크 결과 설정
+        id: set-result
+        if: always()
+        run: |
+          if [[ "${{ steps.health-check.outcome }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "헬스체크가 성공적으로 완료되었습니다"
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "헬스체크 중 문제가 발생했습니다"
+          fi

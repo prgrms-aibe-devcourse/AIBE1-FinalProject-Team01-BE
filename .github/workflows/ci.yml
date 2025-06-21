@@ -1,0 +1,66 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  check-changes:
+    name: 변경 사항 확인
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      should-run: ${{ steps.changes.outputs.src }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            src:
+              - 'src/**'
+              - 'build.gradle'
+
+  test:
+    name: 테스트 워크플로우
+    needs: check-changes
+    if: needs.check-changes.outputs.should-run == 'true'
+    uses: test1.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+      actions: read
+
+  build:
+    name: 빌드 워크플로우
+    needs: test
+    if: needs.check-changes.outputs.should-run == 'true'
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+    with:
+      registry: ${{ vars.REGISTRY || 'ghcr.io' }}
+      image_name: ${{ vars.IMAGE_NAME || github.repository }}
+
+  notify:
+    name: CI 결과 알림
+    if: needs.check-changes.outputs.should-run == 'true'
+    needs: [test, build]
+    uses: ./.github/workflows/webhook.yml
+    secrets: inherit
+    permissions:
+      contents: read
+    with:
+      action: "ci"
+      workflow-name: "CI Pipeline"
+      workflow-status: ${{ (needs.test.result == 'success' && (github.event_name == 'pull_request' || needs.build.result == 'success')) && 'success' || 'failure' }}
+      test-status: ${{ needs.test.outputs.status || needs.test.result }}
+      build-status: ${{ needs.build.outputs.status || needs.build.result }}
