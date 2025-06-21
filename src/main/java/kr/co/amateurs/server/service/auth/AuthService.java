@@ -1,13 +1,15 @@
 package kr.co.amateurs.server.service.auth;
 
+import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
+import kr.co.amateurs.server.domain.dto.auth.LoginResponseDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
-import kr.co.amateurs.server.exception.CustomException;
-import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,19 +17,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class AuthService {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
+    @Transactional
     public SignupResponseDto signup(SignupRequestDto request){
-        if (userRepository.existsByEmail(request.email())) {
-            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
-        }
-        if (userRepository.existsByNickname(request.nickname())) {
-            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
-        }
+        userService.validateEmailDuplicate(request.email());
+        userService.validateNicknameDuplicate(request.nickname());
 
         String encodedPassword = passwordEncoder.encode(request.password());
 
@@ -42,8 +41,22 @@ public class AuthService {
 
         user.addUserTopics(request.topics());
 
-        User savedUser = userRepository.save(user);
+        User savedUser = userService.saveUser(user);
 
         return SignupResponseDto.fromEntity(savedUser, request.topics());
+    }
+
+    @Transactional(readOnly = true)
+    public LoginResponseDto login(LoginRequestDto request){
+        User user = userService.findByEmail(request.email());
+
+        if(!passwordEncoder.matches(request.password(), user.getPassword())){
+            throw ErrorCode.INVALID_PASSWORD.get();
+        }
+
+        String accessToken = jwtProvider.generateAccessToken(user.getEmail());
+        Long expiresIn = jwtProvider.getAccessTokenExpirationMs();
+
+        return LoginResponseDto.of(accessToken, expiresIn);
     }
 }
