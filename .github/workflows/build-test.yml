@@ -43,6 +43,8 @@ jobs:
       # 의존성 다운로드 및 테스트 실행
       - name: 테스트 실행
         run: ./gradlew clean test
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       # 테스트 리포트 업로드 (실패 시에도 결과 확인 가능)
       - name: 테스트 결과 업로드
@@ -55,6 +57,8 @@ jobs:
       # 빌드 실행
       - name: 프로젝트 빌드
         run: ./gradlew bootJar
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       # JAR 파일 실행 테스트
       - name: JAR 파일 검증
