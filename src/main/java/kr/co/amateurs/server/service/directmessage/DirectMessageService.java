@@ -21,6 +21,8 @@ public class DirectMessageService {
     private final DirectMessageRepository directMessageRepository;
     private final DirectMessageRoomRepository directMessageRoomRepository;
 
+    //todo: 현재 사용자 정보 얻는 방법들은 jwt 구현되면 변경하겠습니다.
+
     public DirectMessageResponse saveMessage(String roomId, DirectMessageRequest request) {
         DirectMessageRoom room = validateRoomAccess(roomId, request.senderId());
 
@@ -29,12 +31,14 @@ public class DirectMessageService {
         return DirectMessageResponse.fromCollection(message);
     }
 
-    public DirectMessageRoom createRoom(DirectMessageRoomCreateRequest request) {
+    public DirectMessageRoomResponse createRoom(DirectMessageRoomCreateRequest request) {
         List<Long> ids = request.participantMap().keySet().stream().sorted().toList();
 
-        return directMessageRoomRepository.findRoomByUserIds(ids.get(0), ids.get(1))
+        DirectMessageRoom room = directMessageRoomRepository.findRoomByUserIds(ids.get(0), ids.get(1))
                 .map(this::reEntryParticipants)
                 .orElseGet(() -> directMessageRoomRepository.save(request.toCollection()));
+        Long currentUserId = 1L;
+        return DirectMessageRoomResponse.fromCollection(room, currentUserId);
     }
 
     public List<DirectMessageRoomResponse> getRooms(Long userId) {
@@ -46,13 +50,8 @@ public class DirectMessageService {
 
     public DirectMessagePageResponse getMessages(DirectMessagePaginationParam param) {
         DirectMessageRoom room = validateRoomAccess(param.getRoomId(), param.getUserId());
-
         LocalDateTime userLeftAt = room.getParticipantLeftAt(param.getUserId());
-
-        Page<DirectMessage> page = userLeftAt != null
-                ? directMessageRepository.findByRoomIdAndSentAtAfterOrderBySentAtDesc(param.getRoomId(), userLeftAt, param.toPageable())
-                : directMessageRepository.findByRoomIdOrderBySentAtDesc(param.getRoomId(), param.toPageable());
-
+        Page<DirectMessage> page = getMessagesByRoomId(param, userLeftAt);
         return DirectMessagePageResponse.from(page);
     }
 
@@ -68,6 +67,7 @@ public class DirectMessageService {
         }
     }
 
+    // 개발용
     public void deleteAll() {
         directMessageRepository.deleteAll();
         directMessageRoomRepository.deleteAll();
@@ -87,19 +87,12 @@ public class DirectMessageService {
         return room;
     }
 
-    private Page<DirectMessage> getMessagesAfterLeftTime(DirectMessagePaginationParam pageParam, LocalDateTime leftAt) {
-        return directMessageRepository.findByRoomIdAndSentAtAfterOrderBySentAtDesc(
-                pageParam.getRoomId(),
-                leftAt,
-                pageParam.toPageable()
-        );
-    }
-
-    private Page<DirectMessage> getAllMessages(DirectMessagePaginationParam pageParam) {
-        return directMessageRepository.findByRoomIdOrderBySentAtDesc(
-                pageParam.getRoomId(),
-                pageParam.toPageable()
-        );
+    private Page<DirectMessage> getMessagesByRoomId(DirectMessagePaginationParam pageParam, LocalDateTime afterTime) {
+        return afterTime != null
+                ? directMessageRepository.findByRoomIdAndSentAtAfterOrderBySentAtDesc(
+                pageParam.getRoomId(), afterTime, pageParam.toPageable())
+                : directMessageRepository.findByRoomIdOrderBySentAtDesc(
+                pageParam.getRoomId(), pageParam.toPageable());
     }
 
     private DirectMessageRoom reEntryParticipants(DirectMessageRoom room) {

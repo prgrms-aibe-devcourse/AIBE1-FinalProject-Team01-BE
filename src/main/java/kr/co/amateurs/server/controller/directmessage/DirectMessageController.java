@@ -21,9 +21,9 @@ public class DirectMessageController {
     private final DirectMessageService directMessageService;
 
     @PostMapping
-    @Operation(summary = "채팅방 생성")
-    public ResponseEntity<DirectMessageRoom> createRoom(@RequestBody DirectMessageRoomCreateRequest request) {
-        DirectMessageRoom room = directMessageService.createRoom(request);
+    @Operation(summary = "채팅방 생성",description = "jwt 구현 완료 시 body 수정 예정")
+    public ResponseEntity<DirectMessageRoomResponse> createRoom(@RequestBody DirectMessageRoomCreateRequest request) {
+        DirectMessageRoomResponse room = directMessageService.createRoom(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(room);
     }
 
