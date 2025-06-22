@@ -5,6 +5,9 @@ import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.GrantedAuthority;
+
+import java.util.Collection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,5 +42,23 @@ public class CustomUserDetailsTest {
         assertThat(userDetails.isAccountNonExpired()).isTrue();
         assertThat(userDetails.isAccountNonLocked()).isTrue();
         assertThat(userDetails.isCredentialsNonExpired()).isTrue();
+    }
+
+    @Test
+    void Role값에_ROLE_접두사가_추가되어_권한이_생성된다() {
+        // given
+        User studentUser = User.builder()
+                .email("student@test.com")
+                .nickname("studentnick")
+                .role(Role.STUDENT)
+                .build();
+
+        // when
+        CustomUserDetails userDetails = new CustomUserDetails(studentUser);
+
+        // then
+        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+        assertThat(authorities).hasSize(1);
+        assertThat(authorities.iterator().next().getAuthority()).isEqualTo("ROLE_STUDENT");
     }
 }
