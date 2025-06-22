@@ -42,6 +42,8 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	// aws S3 이미지 업로드 관련 의존성
+	implementation 'software.amazon.awssdk:s3:2.31.68'
 }
 
 tasks.named('test') {

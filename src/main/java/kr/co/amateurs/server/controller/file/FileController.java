@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/upload")
@@ -21,7 +23,7 @@ public class FileController {
     private final FileService fileService;
 
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> uploadImage(
+    public ResponseEntity<Map<String, Object>> uploadImage(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "directory", defaultValue = "post-images") String directory
             ) {
@@ -30,19 +32,25 @@ public class FileController {
         System.out.println("파일 크기: " + file.getSize());
         System.out.println("Content Type: " + file.getContentType());
         System.out.println("디렉토리: " + directory);
-
-
+        Map<String, Object> result = new HashMap<>();
         try {
             System.out.println("파일 업로드 요청 받음: " + file.getOriginalFilename());
+
             if (file.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "파일이 비어있습니다.");
                 return ResponseEntity.badRequest()
-                        .body("파일이 비어있습니다.");
+                        .body(result);
             }
             String fileUrl = fileService.uploadFile(file, directory);
-            return ResponseEntity.ok(fileUrl);
+
+            result.put("success", true);
+            result.put("url", fileUrl);
+            return ResponseEntity.ok(result);
         } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("파일 업로드 실패: " + e.getMessage());
+            result.put("success", false);
+            result.put("message", "파일 업로드 실패: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
         }
 
 

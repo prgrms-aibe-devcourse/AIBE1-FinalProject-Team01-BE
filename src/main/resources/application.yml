@@ -24,3 +24,15 @@ jwt:
   secret: ${JWT_SECRET}
   access-token-expiration-ms: 3600000
   refresh-token-expiration-ms: 1209600000
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret_key: ${AWS_SECRET_KEY}
+    region:
+      static: ${S3_REGION}
+    s3:
+      bucket: ${S3_BUCKET_NAME}
+    cloudfront:
+      domain: ${CLOUD_FRONT_DOMAIN_NAME}
