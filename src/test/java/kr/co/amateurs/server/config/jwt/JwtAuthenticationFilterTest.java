@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 @ExtendWith(MockitoExtension.class)
 public class JwtAuthenticationFilterTest {
@@ -76,5 +77,20 @@ public class JwtAuthenticationFilterTest {
         assertThat(SecurityContextHolder.getContext().getAuthentication().getPrincipal())
                 .isEqualTo(testUserDetails);
         verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    void 토큰이_없으면_인증을_건너뛴다() throws Exception {
+        // given
+        given(request.getHeader("Authorization")).willReturn(null);
+
+        // when
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        // then
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        verify(filterChain).doFilter(request, response);
+        verifyNoInteractions(jwtProvider);
+        verifyNoInteractions(userDetailsService);
     }
 }
