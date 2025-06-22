@@ -1,8 +1,10 @@
 package kr.co.amateurs.server.config.jwt;
 
+import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,5 +56,15 @@ public class CustomUserDetailsServiceTest {
         assertThat(userDetails.getPassword()).isEqualTo("password123");
     }
 
+    @Test
+    void 존재하지_않는_이메일로_로드시_예외가_발생한다() {
+        // given
+        given(userService.findByEmail("notfound@test.com"))
+                .willThrow(ErrorCode.USER_NOT_FOUND.get());
 
+        // when & then
+        assertThatThrownBy(() -> customUserDetailsService.loadUserByUsername("notfound@test.com"))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+    }
 }
