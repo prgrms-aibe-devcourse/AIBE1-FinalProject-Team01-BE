@@ -40,7 +40,7 @@ jobs:
   build:
     name: 빌드 워크플로우
     needs: test
-    if: needs.check-changes.outputs.should-run == 'true'
+    if: needs.check-changes.outputs.should-run == 'true' && (github.event_name == 'push') # 빌드는 푸시 이벤트에서만 실행
     uses: ./.github/workflows/build.yml
     secrets: inherit
     permissions:
