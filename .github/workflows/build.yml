@@ -56,9 +56,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-        continue-on-error: true
 
       - name: 빌드 결과 설정
+        if: always()
         id: build-result
         run: |
           if [ "${{ steps.build.outcome }}" = "success" ]; then
