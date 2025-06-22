@@ -1,0 +1,42 @@
+name: CD Pipeline
+
+on:
+  # CI 파이프라인 완료 후 자동 실행
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types: [completed]
+    branches: [ main, develop ]
+
+jobs:
+  # 배포 실행 (CI 성공 시에만)
+  deploy:
+    name: 배포 워크플로우
+    if: github.event.workflow_run.conclusion == 'success'
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: read
+      actions: read
+    with:
+      registry: ${{ vars.REGISTRY || 'ghcr.io' }}
+      image_name: ${{ vars.IMAGE_NAME || github.repository }}
+      app_port: ${{ vars.APP_PORT || '8080' }}
+      image_tag: ${{ github.event.workflow_run.head_branch }}
+
+  # CD 결과 알림 전송
+  notify:
+    name: CD 결과 알림
+    if: always()
+    needs: [deploy]
+    uses: ./.github/workflows/webhook.yml
+    secrets: inherit
+    permissions:
+      contents: read
+    with:
+      action: "cd"
+      workflow-name: "CD Pipeline"
+      workflow-status: ${{ needs.deploy.outputs.status == 'success' && 'success' || 'failure' }}
+      image-tag: ${{ github.event.workflow_run.head_branch }}
+      deploy-status: ${{ needs.deploy.outputs.status || needs.deploy.result }}
+      health-check-status: ${{ needs.deploy.outputs.health_check_status || 'skipped' }}

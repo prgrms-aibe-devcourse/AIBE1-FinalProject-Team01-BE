@@ -1,0 +1,78 @@
+name: 배포 실행
+
+on:
+  workflow_call:
+    inputs:
+      registry:
+        description: 'Container registry URL'
+        required: true
+        type: string
+      image_name:
+        description: 'Docker image name'
+        required: true
+        type: string
+      app_port:
+        description: 'Application port'
+        required: true
+        type: string
+      image_tag:
+        description: '배포할 Docker 이미지 태그'
+        required: true
+        type: string
+    outputs:
+      status:
+        description: "배포 실행 결과"
+        value: ${{ jobs.deploy.outputs.status }}
+
+jobs:
+  deploy:
+    name: EC2 서버 배포
+    runs-on: ubuntu-latest
+
+    outputs:
+      status: ${{ steps.set-result.outputs.status }}
+
+    steps:
+      - name: EC2 연결 테스트
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || 22 }}
+          script: |
+            echo "EC2 서버 연결 테스트"
+            echo "연결 테스트 성공"
+
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 배포 스크립트 실행
+        id: deploy-script
+        uses: appleboy/ssh-action@v1
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+          REGISTRY: ${{ inputs.registry }}
+          IMAGE_NAME: ${{ inputs.image_name }}
+          APP_PORT: ${{ inputs.app_port }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || 22 }}
+          envs: IMAGE_TAG,REGISTRY,IMAGE_NAME,APP_PORT,GITHUB_TOKEN,GITHUB_ACTOR
+          script_path: scripts/deploy.sh
+
+      - name: 결과 설정
+        id: set-result
+        if: always()
+        run: |
+          if [[ "${{ steps.deploy-script.outcome }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "배포 스크립트가 성공적으로 실행되었습니다"
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "배포 스크립트 실행 중 오류가 발생했습니다"
+          fi

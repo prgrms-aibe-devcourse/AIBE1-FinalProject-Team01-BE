@@ -36,7 +36,9 @@ out/
 ### VS Code ###
 .vscode/
 
-*.properties
+### Environment ###
+application*.properties
+.env
 
 ### macOS ###
 .DS_Store
