@@ -61,4 +61,16 @@ public class CustomUserDetailsTest {
         assertThat(authorities).hasSize(1);
         assertThat(authorities.iterator().next().getAuthority()).isEqualTo("ROLE_STUDENT");
     }
+
+    @Test
+    void getUser로_원본_User_엔티티에_접근할_수_있다() {
+        // when
+        CustomUserDetails userDetails = new CustomUserDetails(testUser);
+
+        // then
+        assertThat(userDetails.getUser()).isEqualTo(testUser);
+        assertThat(userDetails.getUser().getNickname()).isEqualTo("testnick");
+        assertThat(userDetails.getUser().getEmail()).isEqualTo("test@test.com");
+        assertThat(userDetails.getUser().getName()).isEqualTo("김테스트");
+    }
 }
