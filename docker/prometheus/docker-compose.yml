@@ -17,7 +17,6 @@ services:
           memory: 120M # 메모리 예약을 120M으로 설정
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
       - prometheus-data:/prometheus
     restart: unless-stopped
     networks:
