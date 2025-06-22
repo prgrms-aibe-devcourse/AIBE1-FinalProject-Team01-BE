@@ -93,4 +93,21 @@ public class JwtAuthenticationFilterTest {
         verifyNoInteractions(jwtProvider);
         verifyNoInteractions(userDetailsService);
     }
+
+    @Test
+    void 유효하지_않은_토큰은_인증을_실패한다() throws Exception {
+        // given
+        String invalidToken = "invalid.jwt.token";
+        given(request.getHeader("Authorization")).willReturn("Bearer " + invalidToken);
+        given(jwtProvider.validateToken(invalidToken)).willReturn(false);
+
+        // when
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        // then
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        verify(filterChain).doFilter(request, response);
+        verify(jwtProvider).validateToken(invalidToken);
+        verifyNoInteractions(userDetailsService);
+    }
 }
