@@ -110,4 +110,19 @@ public class JwtAuthenticationFilterTest {
         verify(jwtProvider).validateToken(invalidToken);
         verifyNoInteractions(userDetailsService);
     }
+
+    @Test
+    void Bearer_접두사가_없는_토큰을_무시한다() throws Exception {
+        // given
+        given(request.getHeader("Authorization")).willReturn("invalid-format-token");
+
+        // when
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        // then
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        verify(filterChain).doFilter(request, response);
+        verifyNoInteractions(jwtProvider);
+        verifyNoInteractions(userDetailsService);
+    }
 }
