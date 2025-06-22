@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public enum ErrorCode implements Supplier<CustomException> {
     NOT_FOUND(HttpStatus.NOT_FOUND, "조회할 대상을 찾을 수 없습니다."),
-    ACCESS_DENIED(HttpStatus.BAD_REQUEST, "접근 할 수 없습니다."),
+    ACCESS_DENIED(HttpStatus.BAD_REQUEST, "해당 작업을 수행할 권한이 없습니다."),
 
     // 회원가입 관련 에러 추가
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "이미 사용 중인 이메일입니다."),
