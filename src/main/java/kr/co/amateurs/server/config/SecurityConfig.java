@@ -1,5 +1,7 @@
 package kr.co.amateurs.server.config;
 
+import kr.co.amateurs.server.config.jwt.JwtAccessDeniedHandler;
+import kr.co.amateurs.server.config.jwt.JwtAuthenticationEntryPoint;
 import kr.co.amateurs.server.config.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -17,12 +19,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/**").permitAll()

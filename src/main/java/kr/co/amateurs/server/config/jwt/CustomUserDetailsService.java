@@ -1,7 +1,6 @@
 package kr.co.amateurs.server.config.jwt;
 
 import kr.co.amateurs.server.domain.entity.user.User;
-import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
