@@ -67,4 +67,18 @@ public class CustomUserDetailsServiceTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
     }
+
+    @Test
+    void 로드된_UserDetails가_올바른_권한을_가진다() {
+        // given
+        given(userService.findByEmail("test@test.com")).willReturn(testUser);
+
+        // when
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername("test@test.com");
+
+        // then
+        assertThat(userDetails.getAuthorities()).hasSize(1);
+        assertThat(userDetails.getAuthorities().iterator().next().getAuthority())
+                .isEqualTo("ROLE_GUEST");
+    }
 }
