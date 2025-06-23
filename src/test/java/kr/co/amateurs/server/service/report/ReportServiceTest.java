@@ -14,6 +14,7 @@ import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,6 +48,9 @@ public class ReportServiceTest {
 
     @Mock
     private ReportRepository reportRepository;
+
+    @Mock
+    private UserService userService;
 
     @InjectMocks
     private ReportService reportService;

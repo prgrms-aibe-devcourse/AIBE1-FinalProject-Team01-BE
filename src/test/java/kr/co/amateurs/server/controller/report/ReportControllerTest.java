@@ -1,7 +1,7 @@
 package kr.co.amateurs.server.controller.report;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.amateurs.server.config.SecurityConfig;
+import kr.co.amateurs.server.config.TestSecurityConfig;
 import kr.co.amateurs.server.domain.dto.report.ReportRequestDTO;
 import kr.co.amateurs.server.domain.dto.report.ReportResponseDTO;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportStatus;
@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ReportController.class)
-@Import(SecurityConfig.class)
+@Import(TestSecurityConfig.class)
 public class ReportControllerTest {
     @Autowired
     private MockMvc mockMvc;
