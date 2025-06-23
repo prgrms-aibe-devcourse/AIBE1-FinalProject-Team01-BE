@@ -1,0 +1,29 @@
+name: 'Send Notification'
+description: 'Send notification to webhook with formatted message'
+inputs:
+  workflow-type:
+    description: 'Workflow type (ci/cd/sync/build/test/etc)'
+    required: true
+  status:
+    description: 'Overall status (success/failure/warning)'
+    required: true
+  details:
+    description: 'Additional details as JSON string'
+    required: false
+    default: '{}'
+  webhook-url:
+    description: 'Webhook URL'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Send notification
+      shell: bash
+      run: |
+        # Node.js 스크립트 실행
+        node .github/scripts/send-notification.js \
+          "${{ inputs.workflow-type }}" \
+          "${{ inputs.status }}" \
+          "${{ inputs.webhook-url }}" \
+          '${{ inputs.details }}'
