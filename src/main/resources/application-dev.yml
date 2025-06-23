@@ -54,3 +54,15 @@ management:
       export:
         enabled: true
         step: 30s
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret_key: ${AWS_SECRET_KEY}
+    region:
+      static: ${S3_REGION}
+    s3:
+      bucket: ${S3_BUCKET_NAME}
+    cloudfront:
+      domain: ${CLOUD_FRONT_DOMAIN_NAME}
