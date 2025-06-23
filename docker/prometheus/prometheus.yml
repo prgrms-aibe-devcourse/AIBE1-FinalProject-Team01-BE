@@ -20,6 +20,19 @@ scrape_configs:
         target_label: server_type
         replacement: 'monitoring'
 
+  - job_name: 'main-server-node'
+    static_configs:
+      - targets: ['your-domain.co.kr:9100']
+    scheme: https
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'main-server'
+      - source_labels: [__address__]
+        target_label: server_type
+        replacement: 'main'
+
   - job_name: 'spring-boot-app'
     static_configs:
       - targets: ['your-domain.co.kr:443']
