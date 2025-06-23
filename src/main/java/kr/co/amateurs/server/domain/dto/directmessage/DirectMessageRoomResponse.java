@@ -3,7 +3,9 @@ package kr.co.amateurs.server.domain.dto.directmessage;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessageRoom;
 import kr.co.amateurs.server.domain.entity.directmessage.Participant;
+import lombok.Builder;
 
+@Builder
 public record DirectMessageRoomResponse(
         String roomId,
         Long otherUserId,

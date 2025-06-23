@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.directmessage;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.directmessage.*;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessageRoom;
 import kr.co.amateurs.server.service.directmessage.DirectMessageService;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,7 +24,7 @@ public class DirectMessageController {
 
     @PostMapping
     @Operation(summary = "채팅방 생성",description = "jwt 구현 완료 시 body 수정 예정")
-    public ResponseEntity<DirectMessageRoomResponse> createRoom(@RequestBody DirectMessageRoomCreateRequest request) {
+    public ResponseEntity<DirectMessageRoomResponse> createRoom(@Valid @RequestBody DirectMessageRoomCreateRequest request) {
         DirectMessageRoomResponse room = directMessageService.createRoom(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(room);
     }
@@ -36,14 +38,14 @@ public class DirectMessageController {
 
     @GetMapping("messages")
     @Operation(summary = "채팅 기록 조회")
-    public ResponseEntity<DirectMessagePageResponse> getMessages(@ParameterObject DirectMessagePaginationParam param) {
+    public ResponseEntity<DirectMessagePageResponse> getMessages(@Valid @ParameterObject DirectMessagePaginationParam param) {
         DirectMessagePageResponse message = directMessageService.getMessages(param);
         return ResponseEntity.ok(message);
     }
 
     @DeleteMapping
     @Operation(summary = "방 나가기")
-    public ResponseEntity<Void> exitRoom(@RequestBody DirectMessageRoomExitRequest request) {
+    public ResponseEntity<Void> exitRoom(@Valid @RequestBody DirectMessageRoomExitRequest request) {
         directMessageService.exitRoom(request);
         return ResponseEntity.noContent().build();
     }

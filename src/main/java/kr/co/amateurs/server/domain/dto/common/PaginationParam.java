@@ -1,16 +1,14 @@
 package kr.co.amateurs.server.domain.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
 public class PaginationParam {
 
