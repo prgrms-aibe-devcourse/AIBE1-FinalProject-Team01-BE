@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.service.report;
 
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.report.ReportRequestDTO;
 import kr.co.amateurs.server.domain.dto.report.ReportResponseDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
@@ -9,6 +10,7 @@ import kr.co.amateurs.server.domain.entity.report.Report;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportStatus;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportType;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
@@ -25,6 +27,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
@@ -69,6 +74,9 @@ public class ReportServiceTest {
         testUser = User.builder()
                 .nickname("testUser")
                 .email("test@test.com")
+                .password("testPassword")
+                .role(Role.STUDENT)
+                .name("testName")
                 .build();
 
         testPost = Post.builder()
@@ -112,7 +120,6 @@ public class ReportServiceTest {
                 ReportType.COMMENT,
                 "댓글 신고 내용"
         );
-
 
     }
 
@@ -236,6 +243,7 @@ public class ReportServiceTest {
         // given
         given(postRepository.findById(1L)).willReturn(Optional.of(testPost));
         given(reportRepository.save(any(Report.class))).willReturn(testPostReport);
+        given(userService.getCurrentUser()).willReturn(Optional.of(testUser));
 
         // when
         ReportResponseDTO result = reportService.createReport(testPostRequestDTO);
@@ -254,6 +262,7 @@ public class ReportServiceTest {
         // given
         given(commentRepository.findById(1L)).willReturn(Optional.of(testComment));
         given(reportRepository.save(any(Report.class))).willReturn(testCommentReport);
+        given(userService.getCurrentUser()).willReturn(Optional.of(testUser));
 
         // when
         ReportResponseDTO result = reportService.createReport(testCommentRequestDTO);
@@ -277,6 +286,7 @@ public class ReportServiceTest {
                 ReportType.POST,
                 "신고 설명"
         );
+        given(userService.getCurrentUser()).willReturn(Optional.of(testUser));
 
         // when & then
         assertThatThrownBy(() -> reportService.createReport(invalidRequestDTO))
@@ -291,6 +301,7 @@ public class ReportServiceTest {
     void 존재하지않는_댓글로_신고를_생성하면_예외가_발생해야_한다() {
         // given
         given(commentRepository.findById(999L)).willReturn(Optional.empty());
+        given(userService.getCurrentUser()).willReturn(Optional.of(testUser));;
 
         ReportRequestDTO invalidRequestDTO = new ReportRequestDTO(
                 999L,
