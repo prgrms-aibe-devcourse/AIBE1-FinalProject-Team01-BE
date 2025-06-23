@@ -18,12 +18,12 @@ public class RefreshToken {
     private String token;
 
     @TimeToLive
-    private Long expiresIn;
+    private Long expiration;
 
     @Builder
-    public RefreshToken(String email, String token, Long expiresIn) {
+    public RefreshToken(String email, String token, Long expiration) {
         this.email = email;
         this.token = token;
-        this.expiresIn = expiresIn;
+        this.expiration = expiration;
     }
 }
