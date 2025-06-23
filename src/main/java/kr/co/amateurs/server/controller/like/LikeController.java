@@ -1,7 +1,6 @@
 package kr.co.amateurs.server.controller.like;
 
 
-import kr.co.amateurs.server.domain.dto.like.LikeRequestDTO;
 import kr.co.amateurs.server.domain.dto.like.LikeResponseDTO;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
@@ -17,19 +16,40 @@ public class LikeController {
 
     @PostMapping("/posts/{postId}/likes")
     public ResponseEntity<LikeResponseDTO> addLikeToPost(
-            @PathVariable Long postId,
-            @RequestBody LikeRequestDTO likeRequestDTO
+            @PathVariable Long postId
     ){
-        LikeResponseDTO result = likeService.addLikeToPost(postId, likeRequestDTO);
+        Long userId = 1L;
+        LikeResponseDTO result = likeService.addLikeToPost(postId, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
+
     @PostMapping("/comments/{commentId}/likes")
     public ResponseEntity<LikeResponseDTO> addLikeToComment(
-            @PathVariable Long commentId,
-            @RequestBody LikeRequestDTO likeRequestDTO
+            @PathVariable Long commentId
     ){
-        LikeResponseDTO result = likeService.addLikeToComment(commentId, likeRequestDTO);
+        Long userId = 1L;
+        LikeResponseDTO result = likeService.addLikeToComment(commentId, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
+
+
+    @DeleteMapping("/posts/{postId}/likes")
+    public ResponseEntity<Void> removeLikeToPost(
+            @PathVariable Long postId
+    ){
+        Long userId = 1L;
+        likeService.removeLikeFromPost(postId, userId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+
+    @DeleteMapping("/comments/{commentId}/likes")
+    public ResponseEntity<Void> removeLikeToComment(
+            @PathVariable Long commentId
+    ){
+        Long userId = 1L;
+        likeService.removeLikeFromComment(commentId, userId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
