@@ -4,15 +4,15 @@ import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.report.ReportRequestDTO;
 import kr.co.amateurs.server.domain.dto.report.ReportResponseDTO;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportStatus;
+import kr.co.amateurs.server.domain.entity.report.enums.ReportType;
 import kr.co.amateurs.server.service.report.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -23,17 +23,13 @@ public class ReportController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<ReportResponseDTO>> getAllReports() {
-        List<ReportResponseDTO> reports = reportService.getAllReports();
-        return ResponseEntity.ok(reports);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/{status}")
-    public ResponseEntity<List<ReportResponseDTO>> getReportsByStatus(
-            @PathVariable ReportStatus status
+    public ResponseEntity<Page<ReportResponseDTO>> getReports(
+            @RequestParam(required = false) ReportType reportType,
+            @RequestParam(required = false) ReportStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        List<ReportResponseDTO> reports = reportService.getReportsByStatus(status);
+        Page<ReportResponseDTO> reports = reportService.getReports(reportType, status, page, size);
         return ResponseEntity.ok(reports);
     }
 

@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -45,51 +48,24 @@ public class ReportControllerTest {
                 new ReportResponseDTO(null, null, "사용자1", "부적절한 내용", ReportStatus.PENDING),
                 new ReportResponseDTO(null, null, "사용자2", "스팸 댓글", ReportStatus.REVIEWED)
         );
+        Page<ReportResponseDTO> mockPage = new PageImpl<>(mockReports, PageRequest.of(0, 10), mockReports.size());
 
-        given(reportService.getAllReports()).willReturn(mockReports);
-
-        // when & then
-        mockMvc.perform(get("/api/v1/reports"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].username").value("사용자1"))
-                .andExpect(jsonPath("$[0].description").value("부적절한 내용"))
-                .andExpect(jsonPath("$[1].username").value("사용자2"))
-                .andExpect(jsonPath("$[1].description").value("스팸 댓글"));
-    }
-
-    @Test
-    void 특정_상태의_신고를_조회하면_해당_상태의_신고만_반환되어야_한다() throws Exception {
-        // given
-        ReportStatus status = ReportStatus.PENDING;
-        List<ReportResponseDTO> mockReports = List.of(
-                new ReportResponseDTO(null, null, "사용자1", "대기 중인 신고1", ReportStatus.PENDING),
-                new ReportResponseDTO(null, null, "사용자2", "대기 중인 신고2", ReportStatus.PENDING)
-        );
-
-        given(reportService.getReportsByStatus(eq(status))).willReturn(mockReports);
+        given(reportService.getReports(any(ReportType.class), any(ReportStatus.class), eq(0), eq(10)))
+                .willReturn(mockPage);
 
         // when & then
-        mockMvc.perform(get("/api/v1/reports/{status}", status))
+        mockMvc.perform(get("/api/v1/reports")
+                        .param("reportType", "POST")
+                        .param("status", "PENDING")
+                        .param("page", "0")
+                        .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].ReportType").value("PENDING"))
-                .andExpect(jsonPath("$[1].ReportType").value("PENDING"));
-    }
-
-    @Test
-    void 존재하지_않는_상태의_신고를_조회하면_빈_배열이_반환되어야_한다() throws Exception {
-        // given
-        ReportStatus status = ReportStatus.RESOLVED;
-        given(reportService.getReportsByStatus(eq(status))).willReturn(List.of());
-
-        // when & then
-        mockMvc.perform(get("/api/v1/reports/{status}", status))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].username").value("사용자1"))
+                .andExpect(jsonPath("$.content[0].description").value("부적절한 내용"))
+                .andExpect(jsonPath("$.content[1].username").value("사용자2"))
+                .andExpect(jsonPath("$.content[1].description").value("스팸 댓글"));
     }
 
     @Test
@@ -119,7 +95,7 @@ public class ReportControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.username").value("신고자"))
                 .andExpect(jsonPath("$.description").value("부적절한 게시글 내용입니다"))
-                .andExpect(jsonPath("$.ReportType").value("PENDING"));
+                .andExpect(jsonPath("$.reportStatus").value("PENDING"));
     }
 
     @Test
@@ -149,13 +125,6 @@ public class ReportControllerTest {
         // when & then
         mockMvc.perform(delete("/api/v1/reports/{reportId}", reportId))
                 .andExpect(status().isNoContent());
-    }
-
-    @Test
-    void 잘못된_신고_상태로_요청하면_400에러가_발생해야_한다() throws Exception {
-        // when & then
-        mockMvc.perform(get("/api/v1/reports/{status}", "INVALID_STATUS"))
-                .andExpect(status().isBadRequest());
     }
 
     @Test

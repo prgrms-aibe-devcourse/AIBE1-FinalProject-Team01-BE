@@ -12,7 +12,7 @@ public record ReportResponseDTO (
     Comment comment,
     String username,
     String description,
-    ReportStatus ReportType
+    ReportStatus reportStatus
 ){
     public static ReportResponseDTO from(Report report) {
         return new ReportResponseDTO(

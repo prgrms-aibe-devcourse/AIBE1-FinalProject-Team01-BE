@@ -20,6 +20,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -109,40 +113,118 @@ public class ReportServiceTest {
     }
 
     @Test
-    void 모든_신고목록을_조회하면_신고목록이_반환되어야_한다() {
+    void 신고_목록을_타입_상태_없이_조회하면_모든_신고_목록이_반환되어야_한다() {
         // given
         List<Report> reportList = List.of(testPostReport, testCommentReport);
-        given(reportRepository.findAll()).willReturn(reportList);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Report> reportPage = new PageImpl<>(reportList, pageable, reportList.size());
+
+        given(reportRepository.findByStatusAndType(
+                eq(null),
+                eq(null),
+                eq(pageable)
+        )).willReturn(reportPage);
 
         // when
-        List<ReportResponseDTO> result = reportService.getAllReports();
+        Page<ReportResponseDTO> result = reportService.getReports(null,null, 0, 10);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).description()).isEqualTo("신고 내용");
-        assertThat(result.get(0).username()).isEqualTo("testUser");
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).description()).isEqualTo("신고 내용");
+        assertThat(result.getContent().get(0).username()).isEqualTo("testUser");
 
-        verify(reportRepository, times(1)).findAll();
+
+        verify(reportRepository, times(1)).findByStatusAndType(
+                eq(null),
+                eq(null),
+                eq(pageable)
+        );
     }
 
     @Test
-    void 상태별_신고목록을_조회하면_해당_상태의_신고목록이_반환되어야_한다() {
+    void 특정_상태의_신고목록을_조회하면_해당_상태의_신고만_반환되어야_한다() {
         // given
-        ReportStatus status = ReportStatus.PENDING;
-        List<Report> reportList = List.of(testPostReport, testCommentReport);
-        given(reportRepository.findByStatus(status)).willReturn(reportList);
+        List<Report> pendingReports = List.of(testPostReport);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Report> reportPage = new PageImpl<>(pendingReports, pageable, pendingReports.size());
+
+        given(reportRepository.findByStatusAndType(
+                eq(ReportStatus.PENDING),
+                eq(null),
+                eq(pageable)
+        )).willReturn(reportPage);
 
         // when
-        List<ReportResponseDTO> result = reportService.getReportsByStatus(status);
+        Page<ReportResponseDTO> result = reportService.getReports(null, ReportStatus.PENDING, 0, 10);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).ReportType()).isEqualTo(ReportStatus.PENDING);
-        assertThat(result.get(1).ReportType()).isEqualTo(ReportStatus.PENDING);
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).reportStatus()).isEqualTo(ReportStatus.PENDING);
 
-        verify(reportRepository, times(1)).findByStatus(status);
+        verify(reportRepository, times(1)).findByStatusAndType(
+                eq(ReportStatus.PENDING),
+                eq(null),
+                eq(pageable)
+        );
+    }
+
+    @Test
+    void 특정_타입의_신고목록을_조회하면_해당_타입의_신고만_반환되어야_한다() {
+        // given
+        List<Report> postReports = List.of(testPostReport, testCommentReport);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Report> reportPage = new PageImpl<>(postReports, pageable, postReports.size());
+
+        given(reportRepository.findByStatusAndType(
+                eq(null),
+                eq(ReportType.POST.name()),
+                eq(pageable)
+        )).willReturn(reportPage);
+
+        // when
+        Page<ReportResponseDTO> result = reportService.getReports(ReportType.POST, null, 0, 10);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).post()).isEqualTo(testPost);
+
+        verify(reportRepository, times(1)).findByStatusAndType(
+                eq(null),
+                eq(ReportType.POST.name()),
+                eq(pageable)
+        );
+    }
+
+    @Test
+    void 상태와_타입_모두_지정하여_신고목록을_조회하면_조건에_맞는_신고만_반환되어야_한다() {
+        // given
+        List<Report> filteredReports = List.of(testPostReport);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Report> reportPage = new PageImpl<>(filteredReports, pageable, filteredReports.size());
+
+        given(reportRepository.findByStatusAndType(
+                eq(ReportStatus.PENDING),
+                eq(ReportType.POST.name()),
+                eq(pageable)
+        )).willReturn(reportPage);
+
+        // when
+        Page<ReportResponseDTO> result = reportService.getReports(ReportType.POST, ReportStatus.PENDING, 0, 10);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).reportStatus()).isEqualTo(ReportStatus.PENDING);
+        assertThat(result.getContent().get(0).post()).isEqualTo(testPost);
+
+        verify(reportRepository, times(1)).findByStatusAndType(
+                eq(ReportStatus.PENDING),
+                eq(ReportType.POST.name()),
+                eq(pageable)
+        );
     }
 
     @Test
@@ -285,33 +367,29 @@ public class ReportServiceTest {
     }
 
     @Test
-    void 전체_목록이_빈_목록이면_빈_리스트가_반환되어야_한다() {
+    void 조건에_맞는_신고가_없으면_빈_페이지가_반환되어야_한다() {
         // given
-        given(reportRepository.findAll()).willReturn(List.of());
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Report> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+        given(reportRepository.findByStatusAndType(
+                eq(ReportStatus.RESOLVED),
+                eq(ReportType.COMMENT.name()),
+                eq(pageable)
+        )).willReturn(emptyPage);
 
         // when
-        List<ReportResponseDTO> result = reportService.getAllReports();
+        Page<ReportResponseDTO> result = reportService.getReports(ReportType.COMMENT, ReportStatus.RESOLVED, 0, 10);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(0);
 
-        verify(reportRepository, times(1)).findAll();
-    }
-
-    @Test
-    void 특정_상태의_신고가_없으면_빈_리스트가_반환되어야_한다() {
-        // given
-        ReportStatus status = ReportStatus.RESOLVED;
-        given(reportRepository.findByStatus(status)).willReturn(List.of());
-
-        // when
-        List<ReportResponseDTO> result = reportService.getReportsByStatus(status);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
-
-        verify(reportRepository, times(1)).findByStatus(status);
+        verify(reportRepository, times(1)).findByStatusAndType(
+                eq(ReportStatus.RESOLVED),
+                eq(ReportType.COMMENT.name()),
+                eq(pageable)
+        );
     }
 }
