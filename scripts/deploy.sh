@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
 APP_PORT=${APP_PORT:-8080}
 CONTAINER_NAME="app"
 
@@ -9,7 +10,7 @@ if [ -z "$REGISTRY" ] || [ -z "$IMAGE_NAME" ] || [ -z "$IMAGE_TAG" ]; then
     exit 1
 fi
 
-TARGET_IMAGE="${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+TARGET_IMAGE=$(echo "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" | tr '[:upper:]' '[:lower:]')
 
 echo "배포 시작: $TARGET_IMAGE (포트: $APP_PORT)"
 

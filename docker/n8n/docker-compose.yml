@@ -35,12 +35,11 @@ services:
       - n8n_data:/home/node/.n8n
       - ./local-files:/home/node/local-files
     networks:
-      - n8n_network
+      - monitoring
 
 volumes:
   n8n_data:
     name: n8n_data
 
 networks:
-  n8n_network:
-    driver: bridge
+  monitoring:
