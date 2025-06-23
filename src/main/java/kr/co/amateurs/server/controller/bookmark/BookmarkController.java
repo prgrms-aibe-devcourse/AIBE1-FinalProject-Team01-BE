@@ -17,16 +17,16 @@ import org.springframework.web.bind.annotation.*;
 public class BookmarkController {
     private final BookmarkService bookmarkService;
 
-//    @GetMapping("/users/{userId}/bookmarks")
-//    public ResponseEntity<Page<BookmarkResponseDTO>> getBookmarkPostList(
-//            @PathVariable Long userId,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size,
-//            @RequestParam(defaultValue = "LATEST") SortType sortType
-//            ) {
-//        Page<BookmarkResponseDTO> bookmarkList = bookmarkService.getBookmarkPostList(userId, page, size, sortType);
-//        return ResponseEntity.ok(bookmarkList);
-//    }
+    @GetMapping("/users/{userId}/bookmarks")
+    public ResponseEntity<Page<BookmarkResponseDTO>> getBookmarkPostList(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "LATEST") SortType sortType
+            ) {
+        Page<BookmarkResponseDTO> bookmarkList = bookmarkService.getBookmarkPostList(userId, page, size, sortType);
+        return ResponseEntity.ok(bookmarkList);
+    }
 
     @PostMapping("/users/{userId}/bookmarks/{postId}")
     public ResponseEntity<BookmarkResponseDTO> addBookmarkPost(

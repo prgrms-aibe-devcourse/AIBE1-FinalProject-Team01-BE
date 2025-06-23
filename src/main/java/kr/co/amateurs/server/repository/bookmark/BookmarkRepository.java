@@ -14,11 +14,41 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
-//    Page<Bookmark> getBookmarkPostByUser(Long userId, Pageable pageable);
-//
-//    Page<Bookmark> getBookmarkPostByUserOrderByLikeCountDesc(Long userId, Pageable pageable);
-//
-//    Page<Bookmark> getBookmarkPostByUserOrderByViewCountDesc(Long userId, Pageable pageable);
+    @Query("""
+        select b
+        from Bookmark b
+        join fetch b.post p
+        where b.user.id = :userId
+        order by p.createdAt desc
+    """)
+    Page<Bookmark> getBookmarkPostByUser(
+            @Param("userId") Long userId,
+            Pageable pageable
+    );
+
+    @Query("""
+        select b
+        from Bookmark b
+        join fetch b.post p
+        where b.user.id = :userId
+        order by p.likeCount desc
+    """)
+    Page<Bookmark> getBookmarkPostByUserOrderByLikeCountDesc(
+            @Param("userId") Long userId,
+            Pageable pageable
+    );
+
+    @Query("""
+        select b
+        from Bookmark b
+        join fetch b.post p
+        where b.user.id = :userId
+        order by p.viewCount desc
+    """)
+    Page<Bookmark> getBookmarkPostByUserOrderByViewCountDesc(
+            @Param("userId") Long userId,
+            Pageable pageable
+    );
 
 
     @Transactional
