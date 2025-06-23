@@ -17,7 +17,7 @@ public class BoardAccessPolicyTest {
     @Test
     void COMMUNITY_카테고리_읽기_권한을_확인한다() {
         // given & when & then
-        assertThat(BoardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.COMMUNITY, "read")).isTrue();
+        assertThat(BoardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.COMMUNITY, "read")).isFalse();
         assertThat(BoardAccessPolicy.canAccess(Role.GUEST, BoardCategory.COMMUNITY, "read")).isTrue();
         assertThat(BoardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.COMMUNITY, "read")).isTrue();
         assertThat(BoardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.COMMUNITY, "read")).isTrue();

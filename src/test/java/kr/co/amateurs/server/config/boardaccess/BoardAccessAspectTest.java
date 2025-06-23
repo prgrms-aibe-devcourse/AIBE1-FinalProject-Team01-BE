@@ -255,7 +255,7 @@ public class BoardAccessAspectTest {
         when(userService.getCurrentUser()).thenReturn(Optional.empty());
         when(boardAccess.hasPostId()).thenReturn(false);
         when(boardAccess.hasBoardType()).thenReturn(false);
-        when(boardAccess.boardType()).thenReturn(BoardType.FREE);
+        when(boardAccess.boardType()).thenReturn(BoardType.REVIEW);
         when(boardAccess.operation()).thenReturn("read");
         when(boardAccess.needCategory()).thenReturn(false);
 
