@@ -12,7 +12,7 @@ import java.util.Set;
 @Component
 public class BoardAccessPolicy {
     private static final Map<BoardCategory, Set<Role>> READ_ACCESS_MAP = Map.of(
-            BoardCategory.COMMUNITY, Set.of(Role.ANONYMOUS,Role.GUEST, Role.STUDENT, Role.ADMIN),
+            BoardCategory.COMMUNITY, Set.of(Role.GUEST, Role.STUDENT, Role.ADMIN),
             BoardCategory.TOGETHER, Set.of(Role.STUDENT, Role.ADMIN),
             BoardCategory.IT, Set.of(Role.ANONYMOUS,Role.GUEST, Role.STUDENT, Role.ADMIN),
             BoardCategory.PROJECT, Set.of(Role.ANONYMOUS,Role.GUEST, Role.STUDENT, Role.ADMIN)
