@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     protected ResponseEntity<ErrorResponse> handleException(final Exception e, HttpServletRequest request) {
         logError(request, e, "UnhandledException");
         ErrorResponse error = ErrorResponse.from(e, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -36,7 +35,6 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(final MethodArgumentNotValidException e, HttpServletRequest request) {
         logError(request, e, "MethodArgumentNotValidException");
         ErrorResponse error = ErrorResponse.from(e, HttpStatus.BAD_REQUEST);
@@ -44,7 +42,6 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
             final MethodArgumentTypeMismatchException e,
             HttpServletRequest request) {
@@ -55,7 +52,6 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected ResponseEntity<ErrorResponse> handleMethodValidation(
             final HandlerMethodValidationException e,
             HttpServletRequest request) {
@@ -66,7 +62,6 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ErrorResponse> handleValidationException(
             final HttpMessageNotReadableException e,
             HttpServletRequest request) {
