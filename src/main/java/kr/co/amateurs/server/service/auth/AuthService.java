@@ -22,6 +22,7 @@ public class AuthService {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public SignupResponseDto signup(SignupRequestDto request){
@@ -57,6 +58,11 @@ public class AuthService {
         String accessToken = jwtProvider.generateAccessToken(user.getEmail());
         Long expiresIn = jwtProvider.getAccessTokenExpirationMs();
 
-        return LoginResponseDto.of(accessToken, expiresIn);
+        String refreshToken = jwtProvider.generateRefreshToken(user.getEmail());
+        Long refreshExpiresIn = jwtProvider.getRefreshTokenExpirationMs() / 1000;
+
+        refreshTokenService.saveRefreshToken(user.getEmail(), refreshToken, refreshExpiresIn);
+
+        return LoginResponseDto.of(accessToken, refreshToken, expiresIn);
     }
 }
