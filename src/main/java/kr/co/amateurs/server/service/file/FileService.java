@@ -20,7 +20,7 @@ public class FileService {
 
     //TODO - 환경변수 채우기
 
-    @Value("${cloud.aws.cloudfront-url}")
+    @Value("${cloud.aws.cloudfront.domain}")
     public String publicUrl;
 
     @Value("${cloud.aws.s3.bucket}")
@@ -46,7 +46,6 @@ public class FileService {
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
-                .acl("public-read")
                 .contentType(file.getContentType())
                 .build();
         s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
