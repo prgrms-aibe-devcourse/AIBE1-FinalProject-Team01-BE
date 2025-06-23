@@ -44,8 +44,6 @@ jobs:
           images: ${{ inputs.registry }}/${{ inputs.image_name }}
           tags: |
             type=ref,event=branch
-            type=ref,event=pr
-            type=sha,prefix={{branch}}-
 
       - name: Docker 이미지 빌드 & 푸시
         id: build

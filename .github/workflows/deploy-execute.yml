@@ -57,12 +57,13 @@ jobs:
           APP_PORT: ${{ inputs.app_port }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
+          SPRING_PROFILES_ACTIVE: ${{ vars.SPRING_PROFILES_ACTIVE || 'dev' }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT || 22 }}
-          envs: IMAGE_TAG,REGISTRY,IMAGE_NAME,APP_PORT,GITHUB_TOKEN,GITHUB_ACTOR
+          envs: IMAGE_TAG,REGISTRY,IMAGE_NAME,APP_PORT,GITHUB_TOKEN,GITHUB_ACTOR,SPRING_PROFILES_ACTIVE
           script_path: scripts/deploy.sh
 
       - name: 결과 설정

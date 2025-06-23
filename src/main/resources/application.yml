@@ -1,33 +1,5 @@
 spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/amatuers
-    username: admin
-    password: 1234
-  #    url: ${DB_URL}
-  #    username: ${DB_USERNAME}
-  #    password: ${DB_PASSWORD}
-  jpa:
-    hibernate:
-      ddl-auto: validate
-      naming:
-        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
-    show-sql: true
-
-  data:
-    mongodb:
-      uri: ${MONGODB_URL}
-
-  springdoc:
-    swagger-ui:
-      path: /swagger-ui.html
-      operationsSorter: method
-      tagsSorter: alpha
-      docExpansion: none
-
-spring.output.ansi.enabled: always
-
-jwt:
-  secret: ${JWT_SECRET}
-  access-token-expiration-ms: 3600000
-  refresh-token-expiration-ms: 1209600000
+  application:
+    name: amateurs-api-server
+  profiles:
+    active: local
