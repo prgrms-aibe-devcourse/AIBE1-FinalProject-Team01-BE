@@ -21,7 +21,6 @@ import java.util.List;
 public class ReportController {
     private final ReportService reportService;
 
-    // TODO 페이징 처리가 필요하면 추가 예정
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<ReportResponseDTO>> getAllReports() {
@@ -49,7 +48,7 @@ public class ReportController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{reportId}/{status}")
-    public ResponseEntity<ReportResponseDTO> updateStatusReport(
+    public ResponseEntity<Void> updateStatusReport(
             @PathVariable Long reportId,
             @PathVariable ReportStatus status
     ){
@@ -59,7 +58,7 @@ public class ReportController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{reportId}")
-    public ResponseEntity<ReportResponseDTO> deleteReport(@PathVariable Long reportId) {
+    public ResponseEntity<Void> deleteReport(@PathVariable Long reportId) {
         reportService.deleteReport(reportId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
