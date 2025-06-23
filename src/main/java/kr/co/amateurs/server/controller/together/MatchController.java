@@ -1,7 +1,9 @@
 package kr.co.amateurs.server.controller.together;
 
+import kr.co.amateurs.server.config.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.together.MatchService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ public class MatchController {
     
     private final MatchService matchService;
 
+    @BoardAccess(hasBoardType = false, boardType = BoardType.MATCH)
     @GetMapping
     public ResponseEntity<Page<MatchPostResponseDTO>> getMatchPostList(
             @RequestParam(required = false) String keyword,
@@ -29,28 +32,30 @@ public class MatchController {
         return ResponseEntity.ok(matchList);
     }
 
-    @GetMapping("/{matchId}")
-    public ResponseEntity<MatchPostResponseDTO> getMatchPost(@PathVariable("matchId") Long matchId){
-        MatchPostResponseDTO gatherPost = matchService.getMatchPost(matchId);
+    @BoardAccess(hasPostId = true)
+    @GetMapping("/{postId}")
+    public ResponseEntity<MatchPostResponseDTO> getMatchPost(@PathVariable("postId") Long postId){
+        MatchPostResponseDTO gatherPost = matchService.getMatchPost(postId);
         return ResponseEntity.ok(gatherPost);
     }
 
+    @BoardAccess(hasBoardType = false, boardType = BoardType.MATCH, operation = "write")
     @PostMapping
     public ResponseEntity<MatchPostResponseDTO> createMatchPost(@RequestBody MatchPostRequestDTO dto){
         MatchPostResponseDTO post = matchService.createMatchPost(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
-    @PutMapping("/{matchId}")
-    public ResponseEntity<Void> updateMatchPost(@PathVariable("matchId") Long matchId, @RequestBody MatchPostRequestDTO dto){
-        matchService.updateMatchPost(matchId, dto);
+    @PutMapping("/{postId}")
+    public ResponseEntity<Void> updateMatchPost(@PathVariable("postId") Long postId, @RequestBody MatchPostRequestDTO dto){
+        matchService.updateMatchPost(postId, dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
-    @DeleteMapping("/{matchId}")
-    public ResponseEntity<Void> deleteMatchPost(@PathVariable("matchId") Long matchId){
-        matchService.deleteMatchPost(matchId);
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void> deleteMatchPost(@PathVariable("postId") Long postId){
+        matchService.deleteMatchPost(postId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
