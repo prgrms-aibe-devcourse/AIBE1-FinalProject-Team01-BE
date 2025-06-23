@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,14 +22,14 @@ public class ReportController {
     private final ReportService reportService;
 
     // TODO 페이징 처리가 필요하면 추가 예정
-    // @PreAuthorize 어드민
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<ReportResponseDTO>> getAllReports() {
         List<ReportResponseDTO> reports = reportService.getAllReports();
         return ResponseEntity.ok(reports);
     }
 
-    // @PreAuthorize 어드민
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{status}")
     public ResponseEntity<List<ReportResponseDTO>> getReportsByStatus(
             @PathVariable ReportStatus status
@@ -37,7 +38,7 @@ public class ReportController {
         return ResponseEntity.ok(reports);
     }
 
-    // @PReAuthorize 일반 유저도 가능 ???
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @PostMapping
     public ResponseEntity<ReportResponseDTO> createReport(
             @Valid @RequestBody ReportRequestDTO requestDTO
@@ -46,7 +47,7 @@ public class ReportController {
         return ResponseEntity.status(HttpStatus.CREATED).body(report);
     }
 
-    // @PreAuthorize 어드민
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{reportId}/{status}")
     public ResponseEntity<ReportResponseDTO> updateStatusReport(
             @PathVariable Long reportId,
@@ -56,6 +57,7 @@ public class ReportController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{reportId}")
     public ResponseEntity<ReportResponseDTO> deleteReport(@PathVariable Long reportId) {
         reportService.deleteReport(reportId);
