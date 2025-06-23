@@ -40,7 +40,7 @@ public class AuthControllerTest {
                 .password("password123")
                 .build();
 
-        LoginResponseDto response = LoginResponseDto.of("accessToken123", 3600000L);
+        LoginResponseDto response = LoginResponseDto.of("accessToken123", "refreshToken123", 3600000L);
 
         given(authService.login(any(LoginRequestDto.class)))
                 .willReturn(response);
@@ -51,6 +51,7 @@ public class AuthControllerTest {
                     .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("accessToken123"))
+                .andExpect(jsonPath("$.refreshToken").value("refreshToken123"))
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andExpect(jsonPath("$.expiresIn").value(3600000L));
     }

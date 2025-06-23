@@ -24,6 +24,10 @@ spring:
       database: embedded_test
       embedded:
         version: 8.0.10
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
 
 jwt:
   secret: "dGVzdC1rZXktZG8tbm90LXVzZS1pbi1kZXYtb3ItcHJvZA==" # Base64 encoded "test-key-do-not-use-in-dev-or-prod"

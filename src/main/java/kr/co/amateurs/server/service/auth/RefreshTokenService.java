@@ -14,7 +14,7 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     public void saveRefreshToken(String email, String token, Long expiration) {
-        refreshTokenRepository.deleteByEmail(email);
+        refreshTokenRepository.deleteById(email);
 
         RefreshToken refreshToken = RefreshToken.builder()
                 .email(email)
@@ -29,10 +29,10 @@ public class RefreshTokenService {
     }
 
     public void deleteByEmail(String email) {
-        refreshTokenRepository.deleteByEmail(email);
+        refreshTokenRepository.deleteById(email);
     }
 
     public boolean existsByEmail(String email) {
-        return refreshTokenRepository.existsByEmail(email);
+        return refreshTokenRepository.existsById(email);
     }
 }
