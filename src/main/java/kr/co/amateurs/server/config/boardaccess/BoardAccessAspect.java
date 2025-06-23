@@ -6,14 +6,13 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -21,19 +20,19 @@ import java.lang.reflect.Parameter;
 
 
 import java.lang.reflect.Method;
-import java.util.Optional;
 
 @Slf4j
 @Aspect
 @Component
 @RequiredArgsConstructor
 public class BoardAccessAspect {
-
     private final PostRepository postRepository;
+
+    private final UserService userService;
 
     @Before("@annotation(boardAccess)")
     public void checkBoardAccess(JoinPoint joinPoint, BoardAccess boardAccess) {
-        User user = getUser().orElse(null);
+        User user = userService.getCurrentUser().orElse(null);
         Role userRole = user != null ? user.getRole() : Role.ANONYMOUS;
 
         if (userRole == Role.ADMIN) {
@@ -109,13 +108,5 @@ public class BoardAccessAspect {
             }
         }
         throw new CustomException(ErrorCode.NOT_FOUND);
-    }
-
-    private Optional<User> getUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return Optional.empty();
-        }
-        return Optional.of((User) auth.getPrincipal());
     }
 }
