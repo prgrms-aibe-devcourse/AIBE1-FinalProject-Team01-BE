@@ -36,6 +36,6 @@
 |[@klaus9267](https://github.com/klaus9267)|[@rbxo0128](https://github.com/rbxo0128)|[@dldudqlsdlqslek](https://github.com/dldudqlsdlqslek)|[@kjyy08](https://github.com/kjyy08)|[@s0ooo0k](https://github.com/s0ooo0k)|[@shienka07](https://github.com/shienka07)|
 |백엔드|백엔드|백엔드|백엔드|백엔드|백엔드|
 
-# 5. Database 설정 가이드 [Link](https://github.com/prgrms-aibe-devcourse/AIBE1-FinalProject-Team01-BE/wiki/Database-%EC%84%A4%EC%A0%95-%EA%B0%80%EC%9D%B4%EB%93%9C)
-
-# 5. 팀 컨벤션 [Link](https://github.com/prgrms-aibe-devcourse/AIBE1-FinalProject-Team01-BE/wiki/%EC%BB%A8%EB%B2%A4%EC%85%98)
+# 5. 팀 문서
+### 5.1 컨벤션 [Link](docs/convention.md)
+### 5.2 DB 설정 가이드 [Link](docs/db-guide.md)
