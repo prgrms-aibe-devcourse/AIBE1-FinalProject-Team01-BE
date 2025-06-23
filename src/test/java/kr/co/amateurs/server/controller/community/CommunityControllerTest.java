@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.community;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.amateurs.server.config.SecurityConfig;
+import kr.co.amateurs.server.config.TestSecurityConfig;
 import kr.co.amateurs.server.domain.dto.community.CommunityPageDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CommunityPostController.class)
-@Import(SecurityConfig.class)
+@Import(TestSecurityConfig.class)
 class CommunityControllerTest {
 
     @Autowired

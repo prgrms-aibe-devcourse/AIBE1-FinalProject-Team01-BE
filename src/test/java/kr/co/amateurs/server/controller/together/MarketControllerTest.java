@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.together;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.amateurs.server.config.SecurityConfig;
+import kr.co.amateurs.server.config.TestSecurityConfig;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = MarketController.class)
-@Import(SecurityConfig.class)
+@Import(TestSecurityConfig.class)
 public class MarketControllerTest {
 
     @MockitoBean

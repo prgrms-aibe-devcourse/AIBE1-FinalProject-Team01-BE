@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.together;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.amateurs.server.config.SecurityConfig;
+import kr.co.amateurs.server.config.TestSecurityConfig;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
@@ -34,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = MatchController.class)
-@Import(SecurityConfig.class)
+@Import(TestSecurityConfig.class)
 public class MatchControllerTest {
 
     @MockitoBean
