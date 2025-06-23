@@ -9,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -36,12 +38,12 @@ public class UserService {
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);
     }
 
-    public User getCurrentUser() {
+    public Optional<User> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails customUserDetails) {
-            return customUserDetails.getUser();
+            return Optional.ofNullable(customUserDetails.getUser());
         }
-        throw ErrorCode.ACCESS_DENIED.get();
+        return Optional.empty();
     }
 }

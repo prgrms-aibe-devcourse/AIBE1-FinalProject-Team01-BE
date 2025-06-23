@@ -25,6 +25,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -45,7 +47,7 @@ public class ReportService {
 
     @Transactional
     public ReportResponseDTO createReport(ReportRequestDTO requestDTO) {
-        User user = userService.getCurrentUser();
+        User user = userService.getCurrentUser().orElseThrow(ErrorCode.NOT_FOUND);
 
         Report report = createReportEntity(requestDTO, user);
         Report savedReport = reportRepository.save(report);
