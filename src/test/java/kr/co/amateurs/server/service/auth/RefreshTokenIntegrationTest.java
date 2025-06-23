@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.service.auth;
 
+import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.entity.auth.RefreshToken;
 import kr.co.amateurs.server.repository.auth.RefreshTokenRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +15,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataRedisTest
-@Import(RefreshTokenService.class)
+@Import({RefreshTokenService.class, JwtProvider.class})
 @ActiveProfiles("test")
 public class RefreshTokenIntegrationTest {
 
@@ -23,6 +24,9 @@ public class RefreshTokenIntegrationTest {
 
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
+    private JwtProvider jwtProvider;
 
     @BeforeEach
     void setUp() {
@@ -141,5 +145,28 @@ public class RefreshTokenIntegrationTest {
 
         assertThat(refreshTokenService.findByEmail(email1)).isEmpty();
         assertThat(refreshTokenService.findByEmail(email2)).isPresent();
+    }
+
+    @Test
+    void 로그인_시_실제_JWT_리프레시_토큰이_생성되고_Redis에_저장된다() {
+        // given
+        String email = "auth-test@test.com";
+        String token = jwtProvider.generateRefreshToken(email);
+        Long expiration = jwtProvider.getRefreshTokenExpirationMs() / 1000;
+
+        // when
+        refreshTokenService.saveRefreshToken(email, token, expiration);
+
+        // then
+        Optional<RefreshToken> savedToken = refreshTokenService.findByEmail(email);
+
+        assertThat(savedToken).isPresent();
+        assertThat(savedToken.get().getToken()).isEqualTo(token);
+        assertThat(savedToken.get().getEmail()).isEqualTo(email);
+        assertThat(savedToken.get().getExpiration()).isEqualTo(expiration);
+
+        assertThat(jwtProvider.validateToken(savedToken.get().getToken())).isTrue();
+        assertThat(jwtProvider.getEmailFromToken(savedToken.get().getToken())).isEqualTo(email);
+
     }
 }

@@ -47,7 +47,7 @@ public class AuthService {
         return SignupResponseDto.fromEntity(savedUser, request.topics());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public LoginResponseDto login(LoginRequestDto request){
         User user = userService.findByEmail(request.email());
 
