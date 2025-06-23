@@ -23,6 +23,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
+    // TODO: 리팩토링 계획
+    // - User 엔티티가 UserDetails 직접 구현
+    // - @AuthenticationPrincipal User user 직접 사용
+    // - CustomUserDetails 클래스 제거
+
     @Transactional
     public SignupResponseDto signup(SignupRequestDto request){
         userService.validateEmailDuplicate(request.email());
