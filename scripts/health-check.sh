@@ -9,7 +9,7 @@ if [ -z "$APP_PORT" ]; then
 fi
 
 echo "헬스체크 수행 중 (포트: $APP_PORT)..."
-sleep 5
+sleep 30 # 스프링이 시작될 시간을 주기 위해 30초 대기
 
 for i in {1..5}; do
   if curl -f -s "http://localhost:$APP_PORT/actuator/health" > /dev/null 2>&1; then
