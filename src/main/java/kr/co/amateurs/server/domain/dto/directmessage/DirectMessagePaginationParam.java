@@ -5,11 +5,12 @@ import jakarta.validation.constraints.NotNull;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.domain.Sort;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 public class DirectMessagePaginationParam extends PaginationParam {
     @Schema(description = "방 ID", example = "68550e24c95b3db2bc2deb36")
