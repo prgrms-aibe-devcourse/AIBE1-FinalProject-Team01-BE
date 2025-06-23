@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.controller.comment;
 
+import kr.co.amateurs.server.config.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class CommentController {
     private final CommentService commentService;
 
+    @BoardAccess(hasPostId = true)
     @GetMapping("/{postId}/comments")
     public ResponseEntity<CommentPageDTO> getComments(
             @PathVariable Long postId,
@@ -27,6 +29,7 @@ public class CommentController {
         return ResponseEntity.ok(comments);
     }
 
+    @BoardAccess(hasPostId = true)
     @GetMapping("/{postId}/comments/{commentId}/replies")
     public ResponseEntity<CommentPageDTO> getReplies(
             @PathVariable Long postId,
@@ -38,6 +41,7 @@ public class CommentController {
         return ResponseEntity.ok(replies);
     }
 
+    @BoardAccess(hasPostId = true, operation = "write")
     @PostMapping("/{postId}/comments")
     public ResponseEntity<CommentResponseDTO> createComment(
             @PathVariable Long postId,
