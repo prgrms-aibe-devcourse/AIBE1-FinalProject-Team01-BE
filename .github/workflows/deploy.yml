@@ -1,0 +1,62 @@
+name: EC2 배포
+
+on:
+  workflow_call:
+    inputs:
+      registry:
+        description: 'Container registry URL'
+        required: true
+        type: string
+      image_name:
+        description: 'Docker image name'
+        required: true
+        type: string
+      app_port:
+        description: 'App port'
+        required: true
+        type: string
+      image_tag:
+        description: '배포할 Docker 이미지 태그'
+        required: true
+        type: string
+    outputs:
+      status:
+        description: "배포 실행 결과"
+        value: ${{ jobs.summary.outputs.final_status }}
+      health_check_status:
+        description: "헬스체크 결과"
+        value: ${{ jobs.summary.outputs.health_check_status }}
+
+jobs:
+  # 1단계: 배포 실행
+  execute:
+    name: 배포 실행
+    uses: ./.github/workflows/deploy-execute.yml
+    secrets: inherit
+    with:
+      registry: ${{ inputs.registry }}
+      image_name: ${{ inputs.image_name }}
+      app_port: ${{ inputs.app_port }}
+      image_tag: ${{ inputs.image_tag }}
+
+  # 2단계: 헬스체크
+  health_check:
+    name: 애플리케이션 헬스체크
+    needs: execute
+    if: needs.execute.outputs.status == 'success'
+    uses: ./.github/workflows/deploy-check.yml
+    secrets: inherit
+    with:
+      app_port: ${{ inputs.app_port }}
+
+  # 3단계: 결과 요약
+  summary:
+    name: 배포 요약
+    needs: [execute, health_check]
+    if: always()
+    uses: ./.github/workflows/deploy-summary.yml
+    secrets: inherit
+    with:
+      image_tag: ${{ inputs.image_tag }}
+      execute_status: ${{ needs.execute.outputs.status }}
+      health_check_status: ${{ needs.health_check.outputs.status || 'skipped' }}

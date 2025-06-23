@@ -1,0 +1,70 @@
+name: 배포 요약
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        description: '배포된 Docker 이미지 태그'
+        required: true
+        type: string
+      execute_status:
+        description: '배포 실행 상태'
+        required: true
+        type: string
+        default: 'skipped'
+      health_check_status:
+        description: '헬스체크 상태'
+        required: true
+        type: string
+        default: 'skipped'
+    outputs:
+      final_status:
+        description: "최종 배포 상태"
+        value: ${{ jobs.summary.outputs.final_status }}
+      health_check_status:
+        description: "헬스체크 상태"
+        value: ${{ jobs.summary.outputs.health_check_status }}
+
+jobs:
+  summary:
+    name: 배포 결과 요약
+    runs-on: ubuntu-latest
+    
+    outputs:
+      final_status: ${{ steps.calculate-status.outputs.final_status }}
+      health_check_status: ${{ inputs.health_check_status }}
+
+    steps:
+      - name: 결과 계산
+        id: calculate-status
+        run: |
+          EXECUTE_STATUS="${{ inputs.execute_status }}"
+          HEALTH_CHECK_STATUS="${{ inputs.health_check_status }}"
+          
+          if [[ "$EXECUTE_STATUS" == "success" && "$HEALTH_CHECK_STATUS" == "success" ]]; then
+            echo "final_status=success" >> $GITHUB_OUTPUT
+            echo "FINAL_RESULT=배포가 성공적으로 완료되었습니다" >> $GITHUB_ENV
+          elif [[ "$EXECUTE_STATUS" == "success" && "$HEALTH_CHECK_STATUS" == "skipped" ]]; then
+            echo "final_status=partial" >> $GITHUB_OUTPUT
+            echo "FINAL_RESULT=배포는 완료되었으나 헬스체크가 수행되지 않았습니다" >> $GITHUB_ENV
+          else
+            echo "final_status=failure" >> $GITHUB_OUTPUT
+            echo "FINAL_RESULT=배포 과정에서 문제가 발생했습니다" >> $GITHUB_ENV
+          fi
+
+      - name: 요약 생성
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = `## 배포 결과
+
+            | 항목 | 값 |
+            |------|-----|
+            | 이미지 태그 | \`${{ inputs.image_tag }}\` |
+            | 배포 실행 | \`${{ inputs.execute_status }}\` |
+            | 헬스체크 | \`${{ inputs.health_check_status }}\` |
+            | 최종 상태 | \`${{ steps.calculate-status.outputs.final_status }}\` |
+
+            ${{ env.FINAL_RESULT }}`;
+
+            await core.summary.addRaw(summary).write();
