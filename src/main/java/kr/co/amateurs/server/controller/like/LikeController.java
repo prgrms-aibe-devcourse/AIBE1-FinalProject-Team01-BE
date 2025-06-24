@@ -18,6 +18,7 @@ public class LikeController {
     public ResponseEntity<LikeResponseDTO> addLikeToPost(
             @PathVariable Long postId
     ){
+        // 리팩토링으로 수정 예정 이슈#58
         Long userId = 1L;
         LikeResponseDTO result = likeService.addLikeToPost(postId, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
@@ -28,6 +29,7 @@ public class LikeController {
     public ResponseEntity<LikeResponseDTO> addLikeToComment(
             @PathVariable Long commentId
     ){
+        // 리팩토링으로 수정 예정 이슈#58
         Long userId = 1L;
         LikeResponseDTO result = likeService.addLikeToComment(commentId, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
@@ -38,6 +40,7 @@ public class LikeController {
     public ResponseEntity<Void> removeLikeToPost(
             @PathVariable Long postId
     ){
+        // 리팩토링으로 수정 예정 이슈#58
         Long userId = 1L;
         likeService.removeLikeFromPost(postId, userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -48,6 +51,7 @@ public class LikeController {
     public ResponseEntity<Void> removeLikeToComment(
             @PathVariable Long commentId
     ){
+        // 리팩토링으로 수정 예정 이슈#58
         Long userId = 1L;
         likeService.removeLikeFromComment(commentId, userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
