@@ -4,21 +4,27 @@ package kr.co.amateurs.server.controller.together;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.amateurs.server.config.SecurityConfig;
 import kr.co.amateurs.server.config.TestSecurityConfig;
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
+import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
+import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.service.together.GatheringService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -44,6 +50,12 @@ public class GatheringControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @BeforeEach
+    public void setup() {
+        User user = User.builder().build();
+        CustomUserDetails currentUser = new CustomUserDetails(user);
+    }
+
     @Test
     void 검색어없이_기본파라미터로_목록조회하면_200OK와_전체목록반환() throws Exception {
         // given
@@ -52,9 +64,8 @@ public class GatheringControllerTest {
                 createGatheringPostResponseDTO(2L, "두 번째 모집", "두 번째 내용")
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
-
-        given(gatheringService.getGatheringPostList(null, 0, 10, SortType.LATEST))
-                .willReturn(page);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.LATEST);
+        given(gatheringService.getGatheringPostList(null, paginationParam)).willReturn(page);
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings"))
@@ -70,9 +81,9 @@ public class GatheringControllerTest {
                 createGatheringPostResponseDTO(1L, "Java 스터디", "Java 스터디 모집합니다")
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(searchResults);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.LATEST);
 
-        given(gatheringService.getGatheringPostList(keyword, 0, 10, SortType.LATEST))
-                .willReturn(page);
+        given(gatheringService.getGatheringPostList(keyword, paginationParam)).willReturn(page);
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
@@ -88,9 +99,8 @@ public class GatheringControllerTest {
                 createGatheringPostResponseDTO(1L, "첫 번째 모집", "첫 번째 내용")
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
-
-        given(gatheringService.getGatheringPostList(null, 1, 5, SortType.LATEST))
-                .willReturn(page);
+        PaginationParam paginationParam = new PaginationParam(1, 5, Sort.Direction.DESC, PaginationSortType.LATEST);
+        given(gatheringService.getGatheringPostList(null, paginationParam)).willReturn(page);
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
@@ -107,9 +117,9 @@ public class GatheringControllerTest {
                 createGatheringPostResponseDTO(1L, "인기 모집", "인기 내용")
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.POPULAR);
 
-        given(gatheringService.getGatheringPostList(null, 0, 10, SortType.POPULAR))
-                .willReturn(page);
+        given(gatheringService.getGatheringPostList(null, paginationParam)).willReturn(page);
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
@@ -143,7 +153,7 @@ public class GatheringControllerTest {
                 1L, requestDTO.title(), requestDTO.content()
         );
 
-        given(gatheringService.createGatheringPost(any(GatheringPostRequestDTO.class)))
+        given(gatheringService.createGatheringPost(currentUser, any(GatheringPostRequestDTO.class)))
                 .willReturn(responseDTO);
 
         // when & then
@@ -161,7 +171,7 @@ public class GatheringControllerTest {
         Long gatheringId = 1L;
         GatheringPostRequestDTO requestDTO = createGatheringPostRequestDTO();
 
-        doNothing().when(gatheringService).updateGatheringPost(eq(gatheringId), any(GatheringPostRequestDTO.class));
+        doNothing().when(gatheringService).updateGatheringPost(currentUser, eq(gatheringId), any(GatheringPostRequestDTO.class));
 
         // when & then
         mockMvc.perform(put("/api/v1/gatherings/{gatheringId}", gatheringId)
@@ -174,7 +184,8 @@ public class GatheringControllerTest {
     void 존재하는_게시글삭제하면_204NOCONTENT반환() throws Exception {
         // given
         Long gatheringId = 1L;
-        doNothing().when(gatheringService).deleteGatheringPost(gatheringId);
+
+        doNothing().when(gatheringService).deleteGatheringPost(currentUser, gatheringId);
 
         // when & then
         mockMvc.perform(delete("/api/v1/gatherings/{gatheringId}", gatheringId))

@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.domain.dto.bookmark;
 
+
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;

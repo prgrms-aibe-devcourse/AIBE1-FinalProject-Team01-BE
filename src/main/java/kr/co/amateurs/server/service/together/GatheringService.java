@@ -2,6 +2,9 @@ package kr.co.amateurs.server.service.together;
 
 
 import jakarta.transaction.Transactional;
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
@@ -11,6 +14,8 @@ import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
@@ -29,14 +34,14 @@ public class GatheringService {
 
     private final GatheringRepository gatheringRepository;
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
 
-    public Page<GatheringPostResponseDTO> getGatheringPostList(String keyword, int page, int size, SortType sortType) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<GatheringPost> gpPage = switch (sortType) {
+    public Page<GatheringPostResponseDTO> getGatheringPostList(String keyword, PaginationParam paginationParam) {
+        Pageable pageable = paginationParam.toPageable();
+        Page<GatheringPost> gpPage = switch (paginationParam.getField()) {
             case LATEST -> gatheringRepository.findAllByKeyword(keyword, pageable);
             case POPULAR -> gatheringRepository.findAllByKeywordOrderByLikeCountDesc(keyword, pageable);
-            case VIEW_COUNT -> gatheringRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
+            case MOST_VIEW -> gatheringRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
+            default -> gatheringRepository.findAllByKeyword(keyword, pageable);
         };
         return convertToDTO(gpPage);
     }
@@ -49,17 +54,10 @@ public class GatheringService {
     }
 
 
-    //TODO - validation 추가 필요
     @Transactional
-    public GatheringPostResponseDTO createGatheringPost(GatheringPostRequestDTO dto) {
-
-        //TODO - 유저 인증 생기면 request dto에서 userId 제거하고 유저 인증 관련 로직으로 수정할 예정입니다.
-        User user = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + dto.userId()));
-
-
+    public GatheringPostResponseDTO createGatheringPost(CustomUserDetails currentUser, GatheringPostRequestDTO dto) {
         Post post = Post.builder()
-                .user(user)
+                .user(currentUser.getUser())
                 .boardType(BoardType.GATHER)
                 .title(dto.title())
                 .content(dto.content())
@@ -82,20 +80,32 @@ public class GatheringService {
     }
 
 
-    //TODO - validation 추가 필요
     @Transactional
-    public void updateGatheringPost(Long gatheringId, GatheringPostRequestDTO dto) {
-        GatheringPost gp = gatheringRepository.findById(gatheringId).orElseThrow(() -> new IllegalArgumentException("Gathering Post not found: " + gatheringId));
+    public void updateGatheringPost(CustomUserDetails currentUser, Long postId, GatheringPostRequestDTO dto) {
+        GatheringPost gp = gatheringRepository.findByPostId(postId);
         Post post = gp.getPost();
-        CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
+        if(currentUser.getUser().getId().equals(post.getUser().getId()) || currentUser.getUser().getRole().equals(Role.ADMIN)) {
+            CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
+            post.update(updatePostDTO);
+            gp.update(dto);
+        }
+        else{
+            throw new CustomException(ErrorCode.ACCESS_DENIED, "You don't have permission to update this post");
+        }
 
-        post.update(updatePostDTO);
-        gp.update(dto);
     }
 
     @Transactional
-    public void deleteGatheringPost(Long gatheringId) {
-        gatheringRepository.deleteById(gatheringId);
+    public void deleteGatheringPost(CustomUserDetails currentUser, Long postId) {
+        GatheringPost gp = gatheringRepository.findByPostId(postId);
+        Post post = gp.getPost();
+        if(currentUser.getUser().getId().equals(gp.getPost().getUser().getId()) || currentUser.getUser().getRole().equals(Role.ADMIN)) {
+            gatheringRepository.deleteById(gp.getId());
+            postRepository.deleteById(post.getId());
+        }
+        else{
+            throw new CustomException(ErrorCode.ACCESS_DENIED, "You don't have permission to delete this post");
+        }
     }
 
 }
