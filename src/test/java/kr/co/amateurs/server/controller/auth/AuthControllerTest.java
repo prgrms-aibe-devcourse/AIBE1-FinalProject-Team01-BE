@@ -149,4 +149,137 @@ public class AuthControllerTest {
                 .statusCode(400)
                 .body("message", equalTo("비밀번호는 필수입니다"));
     }
+
+    @Test
+    void 정상적인_회원가입_요청_시_성공해야_한다() {
+        // given
+        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/api/auth/signup")
+                .then()
+                .statusCode(201)
+                .body("userId", notNullValue())
+                .body("email", equalTo(signupRequest.email()))
+                .body("nickname", equalTo(signupRequest.nickname()))
+                .body("name", equalTo(signupRequest.name()));
+    }
+
+    @Test
+    void 이메일_중복_시_400_에러가_발생해야_한다() {
+        // given
+        SignupRequestDto firstSignupRequest = UserTestFixture.createUniqueSignupRequest();
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(firstSignupRequest)
+                .when()
+                .post("/api/auth/signup")
+                .then()
+                .statusCode(201);
+
+        SignupRequestDto duplicateEmailRequest = UserTestFixture.defaultSignupRequest()
+                .email(firstSignupRequest.email())
+                .nickname(UserTestFixture.generateUniqueNickname())
+                .build();
+
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(duplicateEmailRequest)
+                .when()
+                .post("/api/auth/signup")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("이미 사용 중인 이메일입니다."));
+    }
+
+    @Test
+    void 닉네임_중복_시_400_에러가_발생해야_한다() {
+        // given
+        SignupRequestDto firstSignupRequest = UserTestFixture.createUniqueSignupRequest();
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(firstSignupRequest)
+                .when()
+                .post("/api/auth/signup")
+                .then()
+                .statusCode(201);
+
+        SignupRequestDto duplicateNicknameRequest = UserTestFixture.defaultSignupRequest()
+                .email(UserTestFixture.generateUniqueEmail())
+                .nickname(firstSignupRequest.nickname())
+                .build();
+
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(duplicateNicknameRequest)
+                .when()
+                .post("/api/auth/signup")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("이미 사용 중인 닉네임입니다."));
+    }
+
+    @Test
+    void 잘못된_이메일_형식으로_회원가입_시_400_에러가_발생해야_한다() {
+        // given
+        SignupRequestDto invalidEmailRequest = UserTestFixture.defaultSignupRequest()
+                .email("invalid-email")
+                .nickname(UserTestFixture.generateUniqueNickname())
+                .build();
+
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(invalidEmailRequest)
+                .when()
+                .post("/api/auth/signup")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("올바른 이메일 형식이 아닙니다"));
+    }
+
+    @Test
+    void 빈_이메일로_회원가입_시_400_에러가_발생해야_한다() {
+        // given
+        SignupRequestDto emptyEmailRequest = UserTestFixture.defaultSignupRequest()
+                .email("")
+                .nickname(UserTestFixture.generateUniqueNickname())
+                .build();
+
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(emptyEmailRequest)
+                .when()
+                .post("/api/auth/signup")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("이메일은 필수입니다"));
+    }
+
+    @Test
+    void 짧은_비밀번호로_회원가입_시_400_에러가_발생해야_한다() {
+        // given
+        SignupRequestDto shortPasswordRequest = UserTestFixture.defaultSignupRequest()
+                .email(UserTestFixture.generateUniqueEmail())
+                .nickname(UserTestFixture.generateUniqueNickname())
+                .password("1234567")
+                .build();
+
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(shortPasswordRequest)
+                .when()
+                .post("/api/auth/signup")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("비밀번호는 최소 8자 이상이어야 합니다"));
+    }
 }
