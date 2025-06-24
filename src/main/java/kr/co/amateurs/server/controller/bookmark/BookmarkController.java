@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -26,14 +27,14 @@ public class BookmarkController {
     private final BookmarkService bookmarkService;
 
     @GetMapping("/users/{userId}/bookmarks")
-    public ResponseEntity<Page<BookmarkResponseDTO>> getBookmarkPostList(
+    public ResponseEntity<PageResponseDTO<BookmarkResponseDTO>> getBookmarkPostList(
             @AuthenticationPrincipal CustomUserDetails currentUser,
             @PathVariable @NotNull Long userId,
             @ModelAttribute @Valid PaginationParam paginationParam
             ) {
         // 본인 북마크 리스트만 조회 가능하게 함
         if(currentUser.getUser().getRole().equals(Role.ADMIN) || currentUser.getUser().getId().equals(userId)) {
-            Page<BookmarkResponseDTO> bookmarkList = bookmarkService.getBookmarkPostList(userId, paginationParam);
+            PageResponseDTO<BookmarkResponseDTO> bookmarkList = bookmarkService.getBookmarkPostList(userId, paginationParam);
             return ResponseEntity.ok(bookmarkList);
         }
         else{

@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.service.bookmark;
 
 import kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import static kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO.*;
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +38,7 @@ public class BookmarkService {
     private final MarketRepository marketRepository;
     private final MatchRepository matchRepository;
 
-    public Page<BookmarkResponseDTO> getBookmarkPostList(Long userId, PaginationParam paginationParam) {
+    public PageResponseDTO<BookmarkResponseDTO> getBookmarkPostList(Long userId, PaginationParam paginationParam) {
         Pageable pageable = paginationParam.toPageable();
         Page<Bookmark> bookmarkList = switch(paginationParam.getField()){
             case LATEST -> bookmarkRepository.getBookmarkPostByUser(userId, pageable);
@@ -44,7 +46,7 @@ public class BookmarkService {
             case MOST_VIEW -> bookmarkRepository.getBookmarkPostByUserOrderByViewCountDesc(userId, pageable);
             default -> bookmarkRepository.getBookmarkPostByUser(userId, pageable);
         };
-        return bookmarkList.map(this::convertToDTO);
+        return convertPageToDTO(bookmarkList.map(this::convertToDTO));
     }
 
     public BookmarkResponseDTO addBookmarkPost(Long userId, Long postId) {

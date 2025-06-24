@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
+// PageImpl 직렬화 문제로 JSON 생성이 안되어 PageDTO 새로 생성
 public record PageResponseDTO<T>(
         List<T> content,
         int page,
