@@ -33,11 +33,11 @@ jwt:
 cloud:
   aws:
     credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret_key: ${AWS_SECRET_KEY}
+      access-key: testAccessKey
+      secret_key: testSecretKey
     region:
-      static: ${S3_REGION}
+      static: test-region
     s3:
-      bucket: ${S3_BUCKET_NAME}
+      bucket: test-bucket-name
     cloudfront:
-      domain: ${CLOUD_FRONT_DOMAIN_NAME}
+      domain: testdomain.net
