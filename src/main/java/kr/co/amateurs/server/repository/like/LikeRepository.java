@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 public interface LikeRepository extends JpaRepository<Like, Long> {
 
     @Transactional
@@ -19,4 +21,6 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     @Modifying
     @Query("DELETE FROM Like l WHERE l.post.id = :postId AND l.user.id = :userId")
     int deleteByPostAndUser(@Param("postId") Long postId, @Param("userId") Long userId);
+
+    Optional<Like> findByPost_IdAndUser_Id(Long postId, Long id);
 }
