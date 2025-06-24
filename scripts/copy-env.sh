@@ -5,7 +5,7 @@ set -e
 SERVICE_NAME=${SERVICE_NAME:-spring-prod}
 TARGET_DIR="/home/ubuntu/docker/${SERVICE_NAME}"
 
-echo "=== ${SERVICE_NAME} 환경변수 파일 생성 시작 ==="
+echo "=== 환경변수 파일 생성 시작 ==="
 
 if [[ -z "$SECRETS_JSON" ]]; then
     echo "SECRETS_JSON 환경변수가 설정되지 않았습니다."
@@ -24,5 +24,5 @@ echo "$SECRETS_JSON" | jq -r '
     "\(.key)=\(.value)"
 ' > .env
 
-echo "환경변수 파일 생성 완료: ${TARGET_DIR}/.env"
+echo "환경변수 파일 생성 완료"
 ls -la .env

@@ -5,7 +5,7 @@ set -e
 SERVICE_NAME=${SERVICE_NAME:-spring-prod}
 TARGET_DIR="/home/ubuntu/docker/${SERVICE_NAME}"
 
-echo "=== 배포 시작: ${SERVICE_NAME} ==="
+echo "=== 배포 시작 ==="
 
 # 디렉토리 존재 확인
 if [ ! -d "$TARGET_DIR" ]; then
@@ -27,4 +27,4 @@ docker-compose up -d --pull always
 echo "사용하지 않는 Docker 이미지 정리 중..."
 docker image prune -f
 
-echo "배포 완료: ${SERVICE_NAME}"
+echo "배포 완료"
