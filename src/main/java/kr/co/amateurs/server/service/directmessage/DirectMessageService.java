@@ -21,8 +21,6 @@ public class DirectMessageService {
     private final DirectMessageRepository directMessageRepository;
     private final DirectMessageRoomRepository directMessageRoomRepository;
 
-    //todo: 현재 사용자 정보 얻는 방법들은 jwt 구현되면 변경하겠습니다.
-
     public DirectMessageResponse saveMessage(String roomId, DirectMessageRequest request) {
         DirectMessageRoom room = validateRoomAccess(roomId, request.senderId());
 
@@ -67,12 +65,6 @@ public class DirectMessageService {
         }
     }
 
-    // 개발용
-    public void deleteAll() {
-        directMessageRepository.deleteAll();
-        directMessageRoomRepository.deleteAll();
-    }
-
     /*
      * private method
      */
@@ -80,7 +72,7 @@ public class DirectMessageService {
         DirectMessageRoom room = directMessageRoomRepository.findById(roomId)
                 .orElseThrow(ErrorCode.NOT_FOUND_ROOM);
 
-        if (!room.isParticipate(userId)) {
+        if (room == null || !room.isParticipate(userId)) {
             throw new CustomException(ErrorCode.USER_NOT_IN_ROOM);
         }
 

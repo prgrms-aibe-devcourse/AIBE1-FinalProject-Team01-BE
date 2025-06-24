@@ -30,7 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(DirectMessageController.class)
 @Import(SecurityConfig.class)
-@DisplayName("DirectMessage Controller 테스트")
 public class DirectMessageControllerTest {
 
     @Autowired
@@ -197,24 +196,26 @@ public class DirectMessageControllerTest {
             @Test
             void 정상적인_채팅_기록_조회_시_200_응답과_메시지_목록이_반환() throws Exception {
                 // given
-                List<DirectMessageResponse> messages = List.of(
-                        new DirectMessageResponse(
-                                "msg1",
-                                "첫 번째 메시지",
-                                1L,
-                                "user1",
-                                MessageType.TEXT,
-                                LocalDateTime.now()
-                        ),
-                        new DirectMessageResponse(
-                                "msg2",
-                                "두 번째 메시지",
-                                2L,
-                                "user2",
-                                MessageType.TEXT,
-                                LocalDateTime.now()
-                        )
-                );
+                String roomId = "room123";
+                DirectMessageResponse message1 = DirectMessageResponse.builder()
+                        .id("msg1")
+                        .roomId(roomId)
+                        .content("첫 번째 메시지")
+                        .senderId(1L)
+                        .senderNickname("user1")
+                        .messageType(MessageType.TEXT)
+                        .sentAt(LocalDateTime.now())
+                        .build();
+                DirectMessageResponse message2 = DirectMessageResponse.builder()
+                        .id("msg2")
+                        .roomId(roomId)
+                        .content("두 번째 메시지")
+                        .senderId(2L)
+                        .senderNickname("user2")
+                        .messageType(MessageType.TEXT)
+                        .sentAt(LocalDateTime.now())
+                        .build();
+                List<DirectMessageResponse> messages = List.of(message1, message2);
 
                 DirectMessagePageResponse pageResponse = new DirectMessagePageResponse(
                         messages,
@@ -230,12 +231,12 @@ public class DirectMessageControllerTest {
                                 .param("userId", "1"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$.messages.length()").value(2))
-                        .andExpect(jsonPath("$.messages[0].id").value("msg1"))
-                        .andExpect(jsonPath("$.messages[0].content").value("첫 번째 메시지"))
-                        .andExpect(jsonPath("$.messages[0].senderId").value(1))
-                        .andExpect(jsonPath("$.messages[0].senderName").value("user1"))
-                        .andExpect(jsonPath("$.messages[1].id").value("msg2"))
-                        .andExpect(jsonPath("$.messages[1].content").value("두 번째 메시지"))
+                        .andExpect(jsonPath("$.messages[0].id").value(message1.id()))
+                        .andExpect(jsonPath("$.messages[0].content").value(message1.content()))
+                        .andExpect(jsonPath("$.messages[0].senderId").value(message1.senderId()))
+                        .andExpect(jsonPath("$.messages[0].senderNickname").value(message1.senderNickname()))
+                        .andExpect(jsonPath("$.messages[1].id").value(message2.id()))
+                        .andExpect(jsonPath("$.messages[1].content").value(message2.content()))
                         .andExpect(jsonPath("$.pageInfo.pageNumber").value(pageResponse.pageInfo().getPageNumber()))
                         .andExpect(jsonPath("$.pageInfo.totalElements").value(pageResponse.pageInfo()
                                 .getTotalElements()))

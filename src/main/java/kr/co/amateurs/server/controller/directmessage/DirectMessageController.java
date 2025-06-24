@@ -47,10 +47,4 @@ public class DirectMessageController {
         directMessageService.exitRoom(request);
         return ResponseEntity.noContent().build();
     }
-
-    @DeleteMapping("all")
-    @Operation(summary = "채팅 데이터 전체 삭제(개발용)")
-    public void deleteAll() {
-        directMessageService.deleteAll();
-    }
 }
