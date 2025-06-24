@@ -67,4 +67,30 @@ public class UserTestFixture {
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.AI, Topic.MOBILE))
                 .build();
     }
+
+    /**
+     * 테스트 격리를 위해 고유한 이메일을 생성합니다
+     */
+    public static String generateUniqueEmail() {
+        return "test" + System.currentTimeMillis() + "@test.com";
+    }
+
+    /**
+     * 테스트 격리를 위해 고유한 닉네임을 생성합니다
+     */
+    public static String generateUniqueNickname() {
+        long timestamp = System.currentTimeMillis();
+        String suffix = String.valueOf(timestamp).substring(7);
+        return "test" + suffix;
+    }
+
+    /**
+     * 고유한 이메일로 회원가입 요청 DTO를 생성합니다
+     */
+    public static SignupRequestDto createUniqueSignupRequest() {
+        return defaultSignupRequest()
+                .email(generateUniqueEmail())
+                .nickname(generateUniqueNickname())
+                .build();
+    }
 }

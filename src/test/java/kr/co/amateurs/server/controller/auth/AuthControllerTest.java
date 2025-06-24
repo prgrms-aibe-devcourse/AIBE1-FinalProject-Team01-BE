@@ -32,7 +32,7 @@ public class AuthControllerTest {
     @Test
     void 정상적인_로그인_요청_시_JWT_토큰이_반환되어야_한다() {
         // given
-        SignupRequestDto signupRequest = UserTestFixture.createSignupRequest();
+        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
@@ -41,7 +41,9 @@ public class AuthControllerTest {
                 .then()
                 .statusCode(201);
 
-        LoginRequestDto loginRequest = AuthTestFixture.createValidLoginRequest();
+        LoginRequestDto loginRequest = AuthTestFixture.defaultLoginRequest()
+                .email(signupRequest.email())
+                .build();
 
         // when & then
         RestAssured.given()
@@ -75,7 +77,7 @@ public class AuthControllerTest {
     @Test
     void 잘못된_비밀번호로_로그인_시_400_에러가_발생해야_한다() {
         // given
-        SignupRequestDto signupRequest = UserTestFixture.createSignupRequest();
+        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
