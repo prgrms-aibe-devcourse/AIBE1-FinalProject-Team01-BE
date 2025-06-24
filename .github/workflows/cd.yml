@@ -1,17 +1,20 @@
 name: CD Pipeline
 
 on:
-  # CI 파이프라인 완료 후 자동 실행
-  workflow_run:
-    workflows: ["CI Pipeline"]
-    types: [completed]
-    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '배포 환경'
+        required: true
+        type: choice
+        options:
+          - 'spring-dev'
+          - 'spring-prod'
+        default: 'spring-dev'
 
 jobs:
-  # 배포 실행 (CI 성공 시에만)
   deploy:
     name: 배포 워크플로우
-    if: github.event.workflow_run.conclusion == 'success'
     uses: ./.github/workflows/deploy.yml
     secrets: inherit
     permissions:
@@ -19,24 +22,27 @@ jobs:
       packages: read
       actions: read
     with:
-      registry: ${{ vars.REGISTRY || 'ghcr.io' }}
-      image_name: ${{ vars.IMAGE_NAME || github.repository }}
-      app_port: ${{ vars.APP_PORT || '8080' }}
-      image_tag: ${{ github.event.workflow_run.head_branch }}
+      environment: ${{ github.event.inputs.environment }}
 
   # CD 결과 알림 전송
   notify:
     name: CD 결과 알림
     if: always()
     needs: [deploy]
-    uses: ./.github/workflows/webhook.yml
-    secrets: inherit
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-    with:
-      action: "cd"
-      workflow-name: "CD Pipeline"
-      workflow-status: ${{ needs.deploy.outputs.status == 'success' && 'success' || 'failure' }}
-      image-tag: ${{ github.event.workflow_run.head_branch }}
-      deploy-status: ${{ needs.deploy.outputs.status || needs.deploy.result }}
-      health-check-status: ${{ needs.deploy.outputs.health_check_status || 'skipped' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 알림 전송
+        uses: ./.github/actions/send-notification
+        with:
+          workflow-type: 'cd'
+          status: ${{ (needs.deploy.outputs.status == 'success' || needs.deploy.result == 'success') && 'success' || 'failure' }}
+          details: |
+            {
+              "environment": "${{ github.event.inputs.environment }}",
+              "deploy_status": "${{ needs.deploy.outputs.status || needs.deploy.result || 'unknown' }}",
+              "health_check_status": "${{ needs.deploy.outputs.health_check_status || 'skipped' }}"
+            }
+          webhook-url: ${{ secrets.ACTIONS_WEBHOOK_URL }}

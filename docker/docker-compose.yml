@@ -1,4 +1,20 @@
 services:
+  amateurs:
+    image: ghcr.io/prgrms-aibe-devcourse/aibe1-finalproject-team01-be:develop
+    container_name: amateurs
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - amateurs-network
+
   mysql:
     image: mysql:latest
     container_name: mysql-container
@@ -15,10 +31,15 @@ services:
 
   redis:
     image: redis:latest
-    container_name: redis-container
+    container_name: redis
     ports:
       - "6379:6379"
     restart: unless-stopped
+    networks:
+      - amateurs-network
+
+networks:
+  amateurs-network:
 
 volumes:
   mysql_data:
