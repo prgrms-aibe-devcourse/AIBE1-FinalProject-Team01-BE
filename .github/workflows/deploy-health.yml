@@ -1,0 +1,51 @@
+name: 헬스체크
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: '배포 환경'
+        required: true
+        type: string
+    outputs:
+      status:
+        description: "헬스체크 결과"
+        value: ${{ jobs.health_check.outputs.status }}
+
+jobs:
+  health_check:
+    name: 애플리케이션 헬스체크
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}  # Environment 보호 규칙 적용
+    
+    outputs:
+      status: ${{ steps.set-result.outputs.status }}
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 애플리케이션 헬스체크 실행
+        id: health-check
+        uses: appleboy/ssh-action@v1
+        env:
+          SERVICE_NAME: ${{ inputs.environment }}
+        with:
+          host: ${{ secrets.ACTIONS_EC2_HOST }}
+          username: ${{ secrets.ACTIONS_EC2_USER }}
+          key: ${{ secrets.ACTIONS_EC2_SSH_KEY }}
+          port: ${{ secrets.ACTIONS_EC2_PORT || 22 }}
+          script_path: scripts/health-check.sh
+          envs: SERVICE_NAME
+
+      - name: 헬스체크 결과 설정
+        id: set-result
+        if: always()
+        run: |
+          if [[ "${{ steps.health-check.outcome }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "${{ inputs.environment }} 헬스체크가 성공적으로 완료되었습니다"
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "${{ inputs.environment }} 헬스체크 중 문제가 발생했습니다"
+          fi

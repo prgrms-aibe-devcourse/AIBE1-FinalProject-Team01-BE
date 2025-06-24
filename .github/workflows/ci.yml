@@ -54,13 +54,20 @@ jobs:
     name: CI 결과 알림
     if: needs.check-changes.outputs.should-run == 'true'
     needs: [test, build]
-    uses: ./.github/workflows/webhook.yml
-    secrets: inherit
+    runs-on: ubuntu-latest
     permissions:
       contents: read
-    with:
-      action: "ci"
-      workflow-name: "CI Pipeline"
-      workflow-status: ${{ (needs.test.result == 'success' && (github.event_name == 'pull_request' || needs.build.result == 'success')) && 'success' || 'failure' }}
-      test-status: ${{ needs.test.outputs.status || needs.test.result }}
-      build-status: ${{ needs.build.outputs.status || needs.build.result }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: 알림 전송
+        uses: ./.github/actions/send-notification
+        with:
+          workflow-type: 'ci'
+          status: ${{ (needs.test.result == 'success' && (github.event_name == 'pull_request' || needs.build.result == 'success')) && 'success' || 'failure' }}
+          details: |
+            {
+              "test_result": "${{ needs.test.result || 'skipped' }}",
+              "build_result": "${{ needs.build.result || 'skipped' }}",
+              "trigger_type": "${{ github.event_name }}"
+            }
+          webhook-url: ${{ secrets.ACTIONS_WEBHOOK_URL }}
