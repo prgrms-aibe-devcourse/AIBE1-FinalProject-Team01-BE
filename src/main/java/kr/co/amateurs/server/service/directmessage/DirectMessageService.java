@@ -21,8 +21,6 @@ public class DirectMessageService {
     private final DirectMessageRepository directMessageRepository;
     private final DirectMessageRoomRepository directMessageRoomRepository;
 
-    //todo: 현재 사용자 정보 얻는 방법들은 jwt 구현되면 변경하겠습니다.
-
     public DirectMessageResponse saveMessage(String roomId, DirectMessageRequest request) {
         DirectMessageRoom room = validateRoomAccess(roomId, request.senderId());
 
@@ -65,12 +63,6 @@ public class DirectMessageService {
         } else {
             directMessageRoomRepository.save(room);
         }
-    }
-
-    // 개발용
-    public void deleteAll() {
-        directMessageRepository.deleteAll();
-        directMessageRoomRepository.deleteAll();
     }
 
     /*
