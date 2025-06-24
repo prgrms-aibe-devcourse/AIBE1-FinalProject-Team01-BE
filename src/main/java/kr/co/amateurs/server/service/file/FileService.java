@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.service.file;
 
+import kr.co.amateurs.server.domain.dto.file.FileResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +29,7 @@ public class FileService {
 
     private final S3Client s3Client;
 
-    public String uploadFile(MultipartFile file, String directoryPath) throws IOException {
+    public FileResponseDTO uploadFile(MultipartFile file, String directoryPath) throws IOException {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("빈 파일은 업로드할 수 없습니다.");
         }
@@ -49,9 +50,14 @@ public class FileService {
                 .contentType(file.getContentType())
                 .build();
         s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
-        return publicUrl + "/" + key;
+        return new FileResponseDTO(
+                true,
+                "File uploaded",
+                publicUrl + "/" + key
+        );
     }
 
+    //TODO - 파일 삭제는 필요 시 컨트롤러에 API 추가
     public boolean deleteFile(String fileUrl) {
         if (fileUrl == null || !fileUrl.startsWith(publicUrl)) {
             return false;
