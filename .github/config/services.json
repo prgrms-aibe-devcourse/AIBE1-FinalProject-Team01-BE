@@ -1,0 +1,26 @@
+{
+  "spring-dev": {
+    "source": "docker/spring-dev/*"
+  },
+  "spring-prod": {
+    "source": "docker/spring-prod/*"
+  },
+  "mysql": {
+    "source": "docker/mysql/*"
+  },
+  "redis": {
+    "source": "docker/redis/*"
+  },
+  "prometheus": {
+    "source": "docker/prometheus/*"
+  },
+  "grafana": {
+    "source": "docker/grafana/*"
+  },
+  "node-exporter": {
+    "source": "docker/node-exporter/*"
+  },
+  "n8n": {
+    "source": "docker/n8n/*"
+  }
+}
