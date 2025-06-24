@@ -15,19 +15,15 @@ import org.springframework.data.domain.Sort;
 public class PaginationParam {
 
     @Schema(description = "페이지 번호 (기본값 0)", implementation = Integer.class, example = "0")
-    @NotNull
     @Min(0)
     protected Integer page = 0;
 
     @Schema(description = "페이지당 크기 (기본값 = 10)", implementation = Integer.class, example = "10")
-    @NotNull
     @Min(1)
     protected Integer size = 10;
 
     @Schema(description = "정렬 방법", implementation = Sort.Direction.class)
-    @NotNull
     protected Sort.Direction sortDirection = Sort.Direction.ASC;
-    @NotNull
     protected PaginationSortType field = PaginationSortType.EMPTY;
 
     public Pageable toPageable() {

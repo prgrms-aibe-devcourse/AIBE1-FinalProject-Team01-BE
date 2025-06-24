@@ -1,5 +1,9 @@
 package kr.co.amateurs.server.service.together;
 
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
+import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
@@ -20,6 +24,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,7 +32,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -47,6 +52,7 @@ public class MarketServiceTest {
     private MarketService marketService;
 
     private User user;
+    private CustomUserDetails currentUser;
     @BeforeEach
     void setUp() {
         user = User.builder()
@@ -56,27 +62,30 @@ public class MarketServiceTest {
                 .name("이름")
                 .role(Role.STUDENT)
                 .build();
+        ReflectionTestUtils.setField(user, "id", 1L);
+        currentUser = new CustomUserDetails(user);
     }
 
     @Test
     void 검색어없이_전체목록조회하면_모든게시글페이지반환() {
         // given
         List<MarketItem> marketPosts = Arrays.asList(
-                createMarketPost(1L, "첫 번째 물건"),
-                createMarketPost(2L, "두 번째 물건")
+                createMarketPost("첫 번째 물건"),
+                createMarketPost("두 번째 물건")
         );
         Page<MarketItem> page = new PageImpl<>(marketPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.LATEST);
+        Pageable expectedPageable = paginationParam.toPageable();
 
-        given(marketRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
+        given(marketRepository.findAllByKeyword(isNull(), any(Pageable.class))).willReturn(page);
 
         // when
-        Page<MarketPostResponseDTO> result = marketService.getMarketPostList(null, 0, 10, SortType.LATEST);
+        PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(null, paginationParam);
 
         // then
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).title()).isEqualTo("첫 번째 물건");
-        assertThat(result.getContent().get(1).title()).isEqualTo("두 번째 물건");
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.content().get(0).title()).isEqualTo("첫 번째 물건");
+        assertThat(result.content().get(1).title()).isEqualTo("두 번째 물건");
         verify(marketRepository).findAllByKeyword(null, expectedPageable);
     }
 
@@ -84,18 +93,19 @@ public class MarketServiceTest {
     void 빈검색어로_전체목록조회하면_모든게시글페이지반환() {
         // given
         List<MarketItem> marketPosts = Arrays.asList(
-                createMarketPost(1L, "테스트 물건")
+                createMarketPost("테스트 물건")
         );
         Page<MarketItem> page = new PageImpl<>(marketPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.LATEST);
+        Pageable expectedPageable = paginationParam.toPageable();
 
-        given(marketRepository.findAllByKeyword("", expectedPageable)).willReturn(page);
+        given(marketRepository.findAllByKeyword(eq(""), any(Pageable.class))).willReturn(page);
 
         // when
-        Page<MarketPostResponseDTO> result = marketService.getMarketPostList("", 0, 10, SortType.LATEST);
+        PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList("", paginationParam);
 
         // then
-        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         verify(marketRepository).findAllByKeyword("", expectedPageable);
     }
 
@@ -104,53 +114,57 @@ public class MarketServiceTest {
         // given
         String keyword = "책";
         List<MarketItem> searchResults = Arrays.asList(
-                createMarketPost(1L, "Java 책")
+                createMarketPost("Java 책")
         );
         Page<MarketItem> page = new PageImpl<>(searchResults);
-        Pageable expectedPageable = PageRequest.of(0, 10);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.LATEST);
+        Pageable expectedPageable = paginationParam.toPageable();
 
-        given(marketRepository.findAllByKeyword(keyword, expectedPageable)).willReturn(page);
+        given(marketRepository.findAllByKeyword(eq(keyword), any(Pageable.class))).willReturn(page);
 
         // when
-        Page<MarketPostResponseDTO> result = marketService.getMarketPostList(keyword, 0, 10, SortType.LATEST);
+        PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(keyword, paginationParam);
 
         // then
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).title()).isEqualTo("Java 책");
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.content().get(0).title()).isEqualTo("Java 책");
         verify(marketRepository).findAllByKeyword(keyword, expectedPageable);
     }
 
     @Test
     void 인기순정렬로_목록조회하면_좋아요수기준내림차순정렬() {
         // given
-        List<MarketItem> marketPosts = Arrays.asList(createMarketPost(1L, "인기 물건"));
+        List<MarketItem> marketPosts = Arrays.asList(createMarketPost("인기 물건"));
         Page<MarketItem> page = new PageImpl<>(marketPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.POPULAR);
+        Pageable expectedPageable = paginationParam.toPageable();
 
-        given(marketRepository.findAllByKeywordOrderByLikeCountDesc(null, expectedPageable)).willReturn(page);
+        given(marketRepository.findAllByKeywordOrderByLikeCountDesc(isNull(), any(Pageable.class))).willReturn(page);
+
 
         // when
-        Page<MarketPostResponseDTO> result = marketService.getMarketPostList(null, 0, 10, SortType.POPULAR);
+        PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(null, paginationParam);
 
         // then
-        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         verify(marketRepository).findAllByKeywordOrderByLikeCountDesc(null, expectedPageable);
     }
 
     @Test
     void 조회수순정렬로_목록조회하면_조회수기준내림차순정렬() {
         // given
-        List<MarketItem> marketPosts = Arrays.asList(createMarketPost(1L, "조회 많은 물건"));
+        List<MarketItem> marketPosts = Arrays.asList(createMarketPost("조회 많은 물건"));
         Page<MarketItem> page = new PageImpl<>(marketPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.MOST_VIEW);
+        Pageable expectedPageable = paginationParam.toPageable();
 
-        given(marketRepository.findAllByKeywordOrderByViewCountDesc(null, expectedPageable)).willReturn(page);
+        given(marketRepository.findAllByKeywordOrderByViewCountDesc(isNull(), any(Pageable.class))).willReturn(page);
 
         // when
-        Page<MarketPostResponseDTO> result = marketService.getMarketPostList(null, 0, 10, SortType.VIEW_COUNT);
+        PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(null, paginationParam);
 
         // then
-        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         verify(marketRepository).findAllByKeywordOrderByViewCountDesc(null, expectedPageable);
     }
 
@@ -159,7 +173,7 @@ public class MarketServiceTest {
         // given
         
         Post post = createPost(user, "테스트 물건");
-        MarketItem marketPost = createMarketPost(post.getId(), "테스트 물건");
+        MarketItem marketPost = createMarketPost( "테스트 물건");
         Long marketId = marketPost.getId();
 
         given(marketRepository.findById(marketId)).willReturn(Optional.of(marketPost));
@@ -191,14 +205,13 @@ public class MarketServiceTest {
         MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
         
         Post savedPost = createPost(user, "테스트 물건");
-        MarketItem savedMarketItem = createMarketPost(1L, "테스트 물건");
+        MarketItem savedMarketItem = createMarketPost("테스트 물건");
 
-        given(userRepository.findById(requestDTO.userId())).willReturn(Optional.of(user));
         given(postRepository.save(any(Post.class))).willReturn(savedPost);
         given(marketRepository.save(any(MarketItem.class))).willReturn(savedMarketItem);
 
         // when
-        MarketPostResponseDTO result = marketService.createMarketPost(requestDTO);
+        MarketPostResponseDTO result = marketService.createMarketPost(currentUser, requestDTO);
 
         // then
         assertThat(result.title()).isEqualTo(requestDTO.title());
@@ -220,33 +233,20 @@ public class MarketServiceTest {
     }
 
     @Test
-    void 존재하지않는유저로_게시글생성하면_예외발생() {
-        // given
-        MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
-        given(userRepository.findById(requestDTO.userId())).willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> marketService.createMarketPost(requestDTO))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("User not found: " + requestDTO.userId());
-    }
-
-    @Test
     void 존재하는게시글_수정하면_게시글과물건정보모두업데이트() {
         // given
-        Long marketId = 1L;
         MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
         
         Post post = createPost(user, "기존 제목");
-        MarketItem marketPost = createMarketPostWithPost(marketId, post);
+        MarketItem marketPost = createMarketPostWithPost(post);
 
-        given(marketRepository.findById(marketId)).willReturn(Optional.of(marketPost));
+        given(marketRepository.findByPostId(post.getId())).willReturn(marketPost);
 
         // when
-        marketService.updateMarketPost(marketId, requestDTO);
+        marketService.updateMarketPost(currentUser, post.getId(), requestDTO);
 
         // then
-        verify(marketRepository).findById(marketId);
+        verify(marketRepository).findByPostId(post.getId());
     }
 
     @Test
@@ -254,10 +254,10 @@ public class MarketServiceTest {
         // given
         Long nonExistentId = 999L;
         MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
-        given(marketRepository.findById(nonExistentId)).willReturn(Optional.empty());
+        given(marketRepository.findByPostId(nonExistentId)).willReturn(null);
 
         // when & then
-        assertThatThrownBy(() -> marketService.updateMarketPost(nonExistentId, requestDTO))
+        assertThatThrownBy(() -> marketService.updateMarketPost(currentUser, nonExistentId, requestDTO))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Market Post not found: " + nonExistentId);
     }
@@ -265,10 +265,16 @@ public class MarketServiceTest {
     @Test
     void 존재하는게시글_삭제하면_repository에서삭제호출() {
         // given
+        Long postId = 1L;
         Long marketId = 1L;
+        Post post = createPost(user, "기존 제목");
+        ReflectionTestUtils.setField(post, "id", postId);
+        MarketItem marketItem = createMarketPostWithPost(post);
+        ReflectionTestUtils.setField(marketItem, "id", marketId);
+        given(marketRepository.findByPostId(postId)).willReturn(marketItem);
 
         // when
-        marketService.deleteMarketPost(marketId);
+        marketService.deleteMarketPost(currentUser, postId);
 
         // then
         verify(marketRepository).deleteById(marketId);
@@ -279,7 +285,7 @@ public class MarketServiceTest {
         // given
         
         Post post = createPost(user, "테스트 제목");
-        MarketItem marketPost = createMarketPostWithPost(1L, post);
+        MarketItem marketPost = createMarketPostWithPost(post);
 
         given(marketRepository.findById(1L)).willReturn(Optional.of(marketPost));
 
@@ -316,13 +322,13 @@ public class MarketServiceTest {
 
     }
 
-    private MarketItem createMarketPost(Long id, String title) {
+    private MarketItem createMarketPost(String title) {
         
         Post post = createPost(user, title);
-        return createMarketPostWithPost(id, post);
+        return createMarketPostWithPost(post);
     }
 
-    private MarketItem createMarketPostWithPost(Long id, Post post) {
+    private MarketItem createMarketPostWithPost(Post post) {
         return MarketItem.builder()
                 .post(post)
                 .status(MarketStatus.SELLING)
@@ -333,7 +339,7 @@ public class MarketServiceTest {
 
     private MarketPostRequestDTO createMarketPostRequestDTO() {
         return new MarketPostRequestDTO(
-                1L, "테스트 물건", "테스트 내용", "태그1,태그2",
+                "테스트 물건", "테스트 내용", "태그1,태그2",
                 MarketStatus.SELLING,
                 1000, "서울"
         );

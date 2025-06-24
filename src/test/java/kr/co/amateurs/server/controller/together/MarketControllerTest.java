@@ -3,11 +3,17 @@ package kr.co.amateurs.server.controller.together;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.amateurs.server.config.SecurityConfig;
 import kr.co.amateurs.server.config.TestSecurityConfig;
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
+import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
+import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.service.together.MarketService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,19 +21,27 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -40,9 +54,36 @@ public class MarketControllerTest {
     @MockitoBean
     private MarketService marketService;
     @Autowired
+    private WebApplicationContext wac;
+    @Autowired
     private ObjectMapper objectMapper;
     @Autowired
     private MockMvc mockMvc;
+
+    private CustomUserDetails currentUser;
+
+    @BeforeEach
+    public void setup() {
+        User user = User.builder()
+                .email("test@email.com")
+                .password("password")
+                .nickname("testUser")
+                .name("이름")
+                .role(Role.STUDENT)
+                .build();
+        currentUser = new CustomUserDetails(user);
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                currentUser,
+                null,
+                currentUser.getAuthorities()
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        this.mockMvc = MockMvcBuilders
+                .webAppContextSetup(wac)
+                .apply(SecurityMockMvcConfigurers.springSecurity())
+                .build();
+    }
 
     @Test
     void 검색어없이_기본파라미터로_목록조회하면_200OK와_전체목록반환() throws Exception {
@@ -53,8 +94,7 @@ public class MarketControllerTest {
         );
         Page<MarketPostResponseDTO> page = new PageImpl<>(marketPosts);
 
-        given(marketService.getMarketPostList(null, 0, 10, SortType.LATEST))
-                .willReturn(page);
+        given(marketService.getMarketPostList(nullable(String.class), any(PaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/market"))
@@ -71,11 +111,12 @@ public class MarketControllerTest {
         );
         Page<MarketPostResponseDTO> page = new PageImpl<>(searchResults);
 
-        given(marketService.getMarketPostList(keyword, 0, 10, SortType.LATEST))
-                .willReturn(page);
+        given(marketService.getMarketPostList(eq(keyword), any(PaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/market")
+                        .with(user(currentUser))
+                        .accept(MediaType.APPLICATION_JSON)
                         .param("keyword", keyword))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
@@ -89,11 +130,12 @@ public class MarketControllerTest {
         );
         Page<MarketPostResponseDTO> page = new PageImpl<>(marketPosts);
 
-        given(marketService.getMarketPostList(null, 1, 5, SortType.LATEST))
-                .willReturn(page);
+        given(marketService.getMarketPostList(nullable(String.class), any(PaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/market")
+                        .with(user(currentUser))
+                        .accept(MediaType.APPLICATION_JSON)
                         .param("page", "1")
                         .param("size", "5"))
                 .andExpect(status().isOk())
@@ -108,12 +150,14 @@ public class MarketControllerTest {
         );
         Page<MarketPostResponseDTO> page = new PageImpl<>(marketPosts);
 
-        given(marketService.getMarketPostList(null, 0, 10, SortType.POPULAR))
-                .willReturn(page);
+        given(marketService.getMarketPostList(nullable(String.class), any(PaginationParam.class)))
+                .willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/market")
-                        .param("sortType", "POPULAR"))
+                        .with(user(currentUser))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .param("field", "POPULAR"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
     }
@@ -143,7 +187,7 @@ public class MarketControllerTest {
                 1L, requestDTO.title(), requestDTO.content()
         );
 
-        given(marketService.createMarketPost(any(MarketPostRequestDTO.class)))
+        given(marketService.createMarketPost(any(CustomUserDetails.class), any(MarketPostRequestDTO.class)))
                 .willReturn(responseDTO);
 
         // when & then
@@ -161,7 +205,7 @@ public class MarketControllerTest {
         Long marketId = 1L;
         MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
 
-        doNothing().when(marketService).updateMarketPost(eq(marketId), any(MarketPostRequestDTO.class));
+        doNothing().when(marketService).updateMarketPost(any(CustomUserDetails.class), eq(marketId), any(MarketPostRequestDTO.class));
 
         // when & then
         mockMvc.perform(put("/api/v1/market/{marketId}", marketId)
@@ -174,7 +218,7 @@ public class MarketControllerTest {
     void 존재하는_게시글삭제하면_204NOCONTENT반환() throws Exception {
         // given
         Long marketId = 1L;
-        doNothing().when(marketService).deleteMarketPost(marketId);
+        doNothing().when(marketService).deleteMarketPost(currentUser, marketId);
 
         // when & then
         mockMvc.perform(delete("/api/v1/market/{marketId}", marketId))
@@ -183,12 +227,12 @@ public class MarketControllerTest {
 
 
     //TODO - 밸리데이션 적용 시 아래 테스트들 정상 작동 예정 현재는 비정상 테스트
-    /*
+
     @Test
     void 잘못된_정렬타입으로_목록조회하면_400에러반환() throws Exception {
         // when & then
         mockMvc.perform(get("/api/v1/market")
-                        .param("sortType", "INVALID_SORT"))
+                        .param("field", "INVALID_SORT"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -265,7 +309,7 @@ public class MarketControllerTest {
         MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
 
         doThrow(new IllegalArgumentException("Market Post not found: " + nonExistentId))
-                .when(marketService).updateMarketPost(eq(nonExistentId), any(MarketPostRequestDTO.class));
+                .when(marketService).updateMarketPost(any(CustomUserDetails.class), eq(nonExistentId), any(MarketPostRequestDTO.class));
 
         // when & then
         mockMvc.perform(put("/api/v1/market/{marketId}", nonExistentId)
@@ -279,14 +323,14 @@ public class MarketControllerTest {
         // given
         Long nonExistentId = 999L;
         doThrow(new RuntimeException("Post not found"))
-                .when(marketService).deleteMarketPost(nonExistentId);
+                .when(marketService).deleteMarketPost(currentUser, nonExistentId);
 
         // when & then
         mockMvc.perform(delete("/api/v1/market/{marketId}", nonExistentId))
                 .andExpect(status().isInternalServerError());
     }
 
-     */
+
 
 
     private MarketPostResponseDTO createMarketPostResponseDTO(Long postId, String title, String content) {
@@ -308,7 +352,7 @@ public class MarketControllerTest {
 
     private MarketPostRequestDTO createMarketPostRequestDTO() {
         return new MarketPostRequestDTO(
-                1L, "테스트 물건", "테스트 내용", "태그", MarketStatus.SELLING, 1000, "서울"
+                "테스트 물건", "테스트 내용", "태그", MarketStatus.SELLING, 1000, "서울"
         );
     }
 

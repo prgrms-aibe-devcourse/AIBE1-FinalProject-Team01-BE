@@ -4,6 +4,7 @@ package kr.co.amateurs.server.service.together;
 import jakarta.transaction.Transactional;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
@@ -28,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO.convertToDTO;
 
 
@@ -39,7 +41,7 @@ public class MatchService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    public Page<MatchPostResponseDTO> getMatchPostList(String keyword, PaginationParam paginationParam) {
+    public PageResponseDTO<MatchPostResponseDTO> getMatchPostList(String keyword, PaginationParam paginationParam) {
         Pageable pageable = paginationParam.toPageable();
         Page<MatchingPost> mpPage = switch (paginationParam.getField()) {
             case LATEST -> matchRepository.findAllByKeyword(keyword, pageable);
@@ -47,7 +49,7 @@ public class MatchService {
             case MOST_VIEW -> matchRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
             default -> matchRepository.findAllByKeyword(keyword, pageable);
         };
-        return convertToDTO(mpPage);
+        return convertPageToDTO(convertToDTO(mpPage));
     }
 
 
@@ -83,6 +85,9 @@ public class MatchService {
     @Transactional
     public void updateMatchPost(CustomUserDetails currentUser, Long postId, MatchPostRequestDTO dto) {
         MatchingPost mp = matchRepository.findByPostId(postId);
+        if(mp == null) {
+            throw new IllegalArgumentException("Match Post not found: " + postId);
+        }
         Post post = mp.getPost();
 
         if(currentUser.getUser().getId().equals(post.getUser().getId()) || currentUser.getUser().getRole().equals(Role.ADMIN)) {

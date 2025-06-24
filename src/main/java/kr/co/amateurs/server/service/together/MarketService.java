@@ -3,6 +3,7 @@ package kr.co.amateurs.server.service.together;
 import jakarta.transaction.Transactional;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
@@ -27,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO.convertToDTO;
 
 
@@ -37,7 +39,7 @@ public class MarketService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    public Page<MarketPostResponseDTO> getMarketPostList(String keyword, PaginationParam paginationParam) {
+    public PageResponseDTO<MarketPostResponseDTO> getMarketPostList(String keyword, PaginationParam paginationParam) {
         Pageable pageable = paginationParam.toPageable();
         Page<MarketItem> miPage = switch (paginationParam.getField()) {
             case LATEST -> marketRepository.findAllByKeyword(keyword, pageable);
@@ -45,7 +47,7 @@ public class MarketService {
             case MOST_VIEW -> marketRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
             default -> marketRepository.findAllByKeyword(keyword, pageable);
         };
-        return convertToDTO(miPage);
+        return convertPageToDTO(convertToDTO(miPage));
     }
 
 
@@ -82,6 +84,9 @@ public class MarketService {
     @Transactional
     public void updateMarketPost(CustomUserDetails currentUser, Long postId, MarketPostRequestDTO dto) {
         MarketItem mi = marketRepository.findByPostId(postId);
+        if (mi == null) {
+            throw new IllegalArgumentException("Market Post not found: " + postId);
+        }
         Post post = mi.getPost();
         if(currentUser.getUser().getId().equals(post.getUser().getId()) || currentUser.getUser().getRole().equals(Role.ADMIN)) {
             CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());

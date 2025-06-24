@@ -4,6 +4,7 @@ package kr.co.amateurs.server.service.together;
 import jakarta.transaction.Transactional;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO.convertToDTO;
 
 @Service
@@ -35,7 +37,7 @@ public class GatheringService {
     private final GatheringRepository gatheringRepository;
     private final PostRepository postRepository;
 
-    public Page<GatheringPostResponseDTO> getGatheringPostList(String keyword, PaginationParam paginationParam) {
+    public PageResponseDTO<GatheringPostResponseDTO> getGatheringPostList(String keyword, PaginationParam paginationParam) {
         Pageable pageable = paginationParam.toPageable();
         Page<GatheringPost> gpPage = switch (paginationParam.getField()) {
             case LATEST -> gatheringRepository.findAllByKeyword(keyword, pageable);
@@ -43,7 +45,7 @@ public class GatheringService {
             case MOST_VIEW -> gatheringRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
             default -> gatheringRepository.findAllByKeyword(keyword, pageable);
         };
-        return convertToDTO(gpPage);
+        return convertPageToDTO(convertToDTO(gpPage));
     }
 
 
@@ -83,6 +85,9 @@ public class GatheringService {
     @Transactional
     public void updateGatheringPost(CustomUserDetails currentUser, Long postId, GatheringPostRequestDTO dto) {
         GatheringPost gp = gatheringRepository.findByPostId(postId);
+        if(gp == null) {
+            throw new IllegalArgumentException("Gathering Post not found: " + postId);
+        }
         Post post = gp.getPost();
         if(currentUser.getUser().getId().equals(post.getUser().getId()) || currentUser.getUser().getRole().equals(Role.ADMIN)) {
             CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());

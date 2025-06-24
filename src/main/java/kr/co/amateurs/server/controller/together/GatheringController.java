@@ -4,6 +4,8 @@ package kr.co.amateurs.server.controller.together;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.domain.dto.common.PageInfo;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
@@ -27,11 +29,11 @@ public class GatheringController {
     private final GatheringService gatheringService;
 
     @GetMapping
-    public ResponseEntity<Page<GatheringPostResponseDTO>> getGatheringPostList(
+    public ResponseEntity<PageResponseDTO<GatheringPostResponseDTO>> getGatheringPostList(
             @RequestParam(required = false) String keyword,
             @ModelAttribute @Valid PaginationParam paginationParam
             ){
-        Page<GatheringPostResponseDTO> gatheringList = gatheringService.getGatheringPostList(keyword, paginationParam);
+        PageResponseDTO<GatheringPostResponseDTO> gatheringList = gatheringService.getGatheringPostList(keyword, paginationParam);
         return ResponseEntity.ok(gatheringList);
     }
 

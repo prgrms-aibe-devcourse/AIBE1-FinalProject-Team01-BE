@@ -4,6 +4,7 @@ package kr.co.amateurs.server.controller.together;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
@@ -24,11 +25,11 @@ public class MarketController {
     private final MarketService marketService;
     
     @GetMapping
-    public ResponseEntity<Page<MarketPostResponseDTO>> getMarketPostList(
+    public ResponseEntity<PageResponseDTO<MarketPostResponseDTO>> getMarketPostList(
             @RequestParam(required = false) String keyword,
             @ModelAttribute @Valid PaginationParam paginationParam
             ){
-        Page<MarketPostResponseDTO> marketList = marketService.getMarketPostList(keyword, paginationParam);
+        PageResponseDTO<MarketPostResponseDTO> marketList = marketService.getMarketPostList(keyword, paginationParam);
         return ResponseEntity.ok(marketList);
     }
 

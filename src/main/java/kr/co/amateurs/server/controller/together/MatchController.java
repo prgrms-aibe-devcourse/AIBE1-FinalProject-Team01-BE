@@ -3,6 +3,7 @@ package kr.co.amateurs.server.controller.together;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
@@ -24,11 +25,11 @@ public class MatchController {
     private final MatchService matchService;
 
     @GetMapping
-    public ResponseEntity<Page<MatchPostResponseDTO>> getMatchPostList(
+    public ResponseEntity<PageResponseDTO<MatchPostResponseDTO>> getMatchPostList(
             @RequestParam(required = false) String keyword,
             @ModelAttribute @Valid PaginationParam paginationParam
             ){
-        Page<MatchPostResponseDTO> matchList = matchService.getMatchPostList(keyword, paginationParam);
+        PageResponseDTO<MatchPostResponseDTO> matchList = matchService.getMatchPostList(keyword, paginationParam);
         return ResponseEntity.ok(matchList);
     }
 

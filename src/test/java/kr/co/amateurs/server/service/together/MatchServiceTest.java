@@ -1,5 +1,9 @@
 package kr.co.amateurs.server.service.together;
 
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
+import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
@@ -22,6 +26,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +34,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -49,6 +54,7 @@ public class MatchServiceTest {
     private MatchService matchService;
 
     private User user;
+    private CustomUserDetails currentUser;
     @BeforeEach
     void setUp() {
         user = User.builder()
@@ -58,27 +64,30 @@ public class MatchServiceTest {
                 .name("이름")
                 .role(Role.STUDENT)
                 .build();
+        ReflectionTestUtils.setField(user, "id", 1L);
+        currentUser = new CustomUserDetails(user);
     }
 
     @Test
     void 검색어없이_전체목록조회하면_모든게시글페이지반환() {
         // given
         List<MatchingPost> matchPosts = Arrays.asList(
-                createMatchPost(1L, "첫 번째 모집"),
-                createMatchPost(2L, "두 번째 모집")
+                createMatchPost("첫 번째 모집"),
+                createMatchPost("두 번째 모집")
         );
         Page<MatchingPost> page = new PageImpl<>(matchPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.LATEST);
+        Pageable expectedPageable = paginationParam.toPageable();
 
-        given(matchRepository.findAllByKeyword(null, expectedPageable)).willReturn(page);
+        given(matchRepository.findAllByKeyword(isNull(), any(Pageable.class))).willReturn(page);
 
         // when
-        Page<MatchPostResponseDTO> result = matchService.getMatchPostList(null, 0, 10, SortType.LATEST);
+        PageResponseDTO<MatchPostResponseDTO> result = matchService.getMatchPostList(null, paginationParam);
 
         // then
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).title()).isEqualTo("첫 번째 모집");
-        assertThat(result.getContent().get(1).title()).isEqualTo("두 번째 모집");
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.content().get(0).title()).isEqualTo("첫 번째 모집");
+        assertThat(result.content().get(1).title()).isEqualTo("두 번째 모집");
         verify(matchRepository).findAllByKeyword(null, expectedPageable);
     }
 
@@ -86,18 +95,19 @@ public class MatchServiceTest {
     void 빈검색어로_전체목록조회하면_모든게시글페이지반환() {
         // given
         List<MatchingPost> matchPosts = Arrays.asList(
-                createMatchPost(1L, "테스트 모집")
+                createMatchPost("테스트 모집")
         );
         Page<MatchingPost> page = new PageImpl<>(matchPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.LATEST);
+        Pageable expectedPageable = paginationParam.toPageable();
 
-        given(matchRepository.findAllByKeyword("", expectedPageable)).willReturn(page);
+        given(matchRepository.findAllByKeyword(eq(""), any(Pageable.class))).willReturn(page);
 
         // when
-        Page<MatchPostResponseDTO> result = matchService.getMatchPostList("", 0, 10, SortType.LATEST);
+        PageResponseDTO<MatchPostResponseDTO> result = matchService.getMatchPostList("", paginationParam);
 
         // then
-        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         verify(matchRepository).findAllByKeyword("", expectedPageable);
     }
 
@@ -106,53 +116,58 @@ public class MatchServiceTest {
         // given
         String keyword = "커피챗";
         List<MatchingPost> searchResults = Arrays.asList(
-                createMatchPost(1L, "Java 커피챗")
+                createMatchPost("Java 커피챗")
         );
         Page<MatchingPost> page = new PageImpl<>(searchResults);
-        Pageable expectedPageable = PageRequest.of(0, 10);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.LATEST);
+        Pageable expectedPageable = paginationParam.toPageable();
 
-        given(matchRepository.findAllByKeyword(keyword, expectedPageable)).willReturn(page);
+        given(matchRepository.findAllByKeyword(eq(keyword), any(Pageable.class))).willReturn(page);
 
         // when
-        Page<MatchPostResponseDTO> result = matchService.getMatchPostList(keyword, 0, 10, SortType.LATEST);
+        PageResponseDTO<MatchPostResponseDTO> result = matchService.getMatchPostList(keyword, paginationParam);
 
         // then
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).title()).isEqualTo("Java 커피챗");
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.content().get(0).title()).isEqualTo("Java 커피챗");
         verify(matchRepository).findAllByKeyword(keyword, expectedPageable);
     }
 
     @Test
     void 인기순정렬로_목록조회하면_좋아요수기준내림차순정렬() {
         // given
-        List<MatchingPost> matchPosts = Arrays.asList(createMatchPost(1L, "인기 모집"));
+        List<MatchingPost> matchPosts = Arrays.asList(createMatchPost("인기 모집"));
         Page<MatchingPost> page = new PageImpl<>(matchPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10);
 
-        given(matchRepository.findAllByKeywordOrderByLikeCountDesc(null, expectedPageable)).willReturn(page);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.POPULAR);
+        Pageable expectedPageable = paginationParam.toPageable();
+
+        given(matchRepository.findAllByKeywordOrderByLikeCountDesc(isNull(), any(Pageable.class))).willReturn(page);
 
         // when
-        Page<MatchPostResponseDTO> result = matchService.getMatchPostList(null, 0, 10, SortType.POPULAR);
+        PageResponseDTO<MatchPostResponseDTO> result = matchService.getMatchPostList(null, paginationParam);
 
         // then
-        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         verify(matchRepository).findAllByKeywordOrderByLikeCountDesc(null, expectedPageable);
     }
 
     @Test
     void 조회수순정렬로_목록조회하면_조회수기준내림차순정렬() {
         // given
-        List<MatchingPost> matchPosts = Arrays.asList(createMatchPost(1L, "조회 많은 모집"));
+        List<MatchingPost> matchPosts = Arrays.asList(createMatchPost("조회 많은 모집"));
         Page<MatchingPost> page = new PageImpl<>(matchPosts);
-        Pageable expectedPageable = PageRequest.of(0, 10);
 
-        given(matchRepository.findAllByKeywordOrderByViewCountDesc(null, expectedPageable)).willReturn(page);
+        PaginationParam paginationParam = new PaginationParam(0, 10, Sort.Direction.DESC, PaginationSortType.MOST_VIEW);
+        Pageable expectedPageable = paginationParam.toPageable();
+
+        given(matchRepository.findAllByKeywordOrderByViewCountDesc(isNull(), any(Pageable.class))).willReturn(page);
 
         // when
-        Page<MatchPostResponseDTO> result = matchService.getMatchPostList(null, 0, 10, SortType.VIEW_COUNT);
+        PageResponseDTO<MatchPostResponseDTO> result = matchService.getMatchPostList(null, paginationParam);
 
         // then
-        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.content()).hasSize(1);
         verify(matchRepository).findAllByKeywordOrderByViewCountDesc(null, expectedPageable);
     }
 
@@ -161,7 +176,7 @@ public class MatchServiceTest {
         // given
         
         Post post = createPost(user, "테스트 모집");
-        MatchingPost matchPost = createMatchPost(post.getId(), "테스트 모집");
+        MatchingPost matchPost = createMatchPost("테스트 모집");
         Long matchId = matchPost.getId();
 
         given(matchRepository.findById(matchId)).willReturn(Optional.of(matchPost));
@@ -193,14 +208,13 @@ public class MatchServiceTest {
         MatchPostRequestDTO requestDTO = createMatchPostRequestDTO();
         
         Post savedPost = createPost(user, "테스트 모집");
-        MatchingPost savedMatchingPost = createMatchPost(1L, "테스트 모집");
+        MatchingPost savedMatchingPost = createMatchPost("테스트 모집");
 
-        given(userRepository.findById(requestDTO.userId())).willReturn(Optional.of(user));
         given(postRepository.save(any(Post.class))).willReturn(savedPost);
         given(matchRepository.save(any(MatchingPost.class))).willReturn(savedMatchingPost);
 
         // when
-        MatchPostResponseDTO result = matchService.createMatchPost(requestDTO);
+        MatchPostResponseDTO result = matchService.createMatchPost(currentUser, requestDTO);
 
         // then
         assertThat(result.title()).isEqualTo(requestDTO.title());
@@ -223,34 +237,22 @@ public class MatchServiceTest {
         assertThat(capturedMatch.getStatus()).isEqualTo(MatchingStatus.OPEN);
     }
 
-    @Test
-    void 존재하지않는유저로_게시글생성하면_예외발생() {
-        // given
-        MatchPostRequestDTO requestDTO = createMatchPostRequestDTO();
-        given(userRepository.findById(requestDTO.userId())).willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> matchService.createMatchPost(requestDTO))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("User not found: " + requestDTO.userId());
-    }
 
     @Test
     void 존재하는게시글_수정하면_게시글과모집정보모두업데이트() {
         // given
-        Long matchId = 1L;
         MatchPostRequestDTO requestDTO = createMatchPostRequestDTO();
         
         Post post = createPost(user, "기존 제목");
-        MatchingPost matchPost = createMatchPostWithPost(matchId, post);
+        MatchingPost matchPost = createMatchPostWithPost(post);
 
-        given(matchRepository.findById(matchId)).willReturn(Optional.of(matchPost));
+        given(matchRepository.findByPostId(post.getId())).willReturn(matchPost);
 
         // when
-        matchService.updateMatchPost(matchId, requestDTO);
+        matchService.updateMatchPost(currentUser, post.getId(), requestDTO);
 
         // then
-        verify(matchRepository).findById(matchId);
+        verify(matchRepository).findByPostId(post.getId());
     }
 
     @Test
@@ -258,10 +260,10 @@ public class MatchServiceTest {
         // given
         Long nonExistentId = 999L;
         MatchPostRequestDTO requestDTO = createMatchPostRequestDTO();
-        given(matchRepository.findById(nonExistentId)).willReturn(Optional.empty());
+        given(matchRepository.findByPostId(nonExistentId)).willReturn(null);
 
         // when & then
-        assertThatThrownBy(() -> matchService.updateMatchPost(nonExistentId, requestDTO))
+        assertThatThrownBy(() -> matchService.updateMatchPost(currentUser, nonExistentId, requestDTO))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Match Post not found: " + nonExistentId);
     }
@@ -269,10 +271,16 @@ public class MatchServiceTest {
     @Test
     void 존재하는게시글_삭제하면_repository에서삭제호출() {
         // given
+        Long postId = 1L;
         Long matchId = 1L;
+        Post post = createPost(user, "기존 제목");
+        ReflectionTestUtils.setField(post, "id", postId);
+        MatchingPost matchPost = createMatchPostWithPost(post);
+        ReflectionTestUtils.setField(matchPost, "id", matchId);
+        given(matchRepository.findByPostId(postId)).willReturn(matchPost);
 
         // when
-        matchService.deleteMatchPost(matchId);
+        matchService.deleteMatchPost(currentUser, postId);
 
         // then
         verify(matchRepository).deleteById(matchId);
@@ -283,7 +291,7 @@ public class MatchServiceTest {
         // given
         
         Post post = createPost(user, "테스트 제목");
-        MatchingPost matchPost = createMatchPostWithPost(1L, post);
+        MatchingPost matchPost = createMatchPostWithPost(post);
 
         given(matchRepository.findById(1L)).willReturn(Optional.of(matchPost));
 
@@ -319,13 +327,13 @@ public class MatchServiceTest {
                 .build();
     }
 
-    private MatchingPost createMatchPost(Long id, String title) {
+    private MatchingPost createMatchPost(String title) {
         
         Post post = createPost(user, title);
-        return createMatchPostWithPost(id, post);
+        return createMatchPostWithPost(post);
     }
 
-    private MatchingPost createMatchPostWithPost(Long id, Post post) {
+    private MatchingPost createMatchPostWithPost(Post post) {
         return MatchingPost.builder()
                 .post(post)
                 .matchingType(MatchingType.COFFEE_CHAT)
@@ -336,7 +344,7 @@ public class MatchServiceTest {
 
     private MatchPostRequestDTO createMatchPostRequestDTO() {
         return new MatchPostRequestDTO(
-                1L, "테스트 모집", "테스트 내용", "태그1,태그2",
+                "테스트 모집", "테스트 내용", "태그1,태그2",
                 MatchingType.COFFEE_CHAT, MatchingStatus.OPEN, "서울"
         );
     }
