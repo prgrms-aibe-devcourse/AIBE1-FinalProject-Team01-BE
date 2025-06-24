@@ -30,7 +30,10 @@ public enum ErrorCode implements Supplier<CustomException> {
     // 토큰 관련 에러
     EMPTY_EMAIL(HttpStatus.BAD_REQUEST, "이메일은 필수입니다."),
     EMPTY_TOKEN(HttpStatus.BAD_REQUEST, "토큰은 필수입니다."),
-    INVALID_EXPIRATION_TIME(HttpStatus.BAD_REQUEST, "만료시간은 양수여야 합니다.");
+    INVALID_EXPIRATION_TIME(HttpStatus.BAD_REQUEST, "만료시간은 양수여야 합니다."),
+
+    // 시스템 에러
+    HASH_ALGORITHM_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "해시 알고리즘을 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

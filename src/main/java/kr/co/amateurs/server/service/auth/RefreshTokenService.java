@@ -6,6 +6,8 @@ import kr.co.amateurs.server.repository.auth.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 @Service
@@ -17,9 +19,11 @@ public class RefreshTokenService {
     public void saveRefreshToken(String email, String token, Long expiration) {
         validateInput(email, token, expiration);
 
+        String hashedToken = hashToken(token);
+
         RefreshToken refreshToken = RefreshToken.builder()
                 .email(email)
-                .token(token)
+                .token(hashedToken)
                 .expiration(expiration)
                 .build();
 
@@ -39,6 +43,26 @@ public class RefreshTokenService {
     public boolean existsByEmail(String email) {
         validateEmail(email);
         return refreshTokenRepository.existsById(email);
+    }
+
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes());
+            StringBuilder hexString = new StringBuilder();
+
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw ErrorCode.HASH_ALGORITHM_NOT_FOUND.get();
+        }
     }
 
     private void validateInput(String email, String token, Long expiration) {
