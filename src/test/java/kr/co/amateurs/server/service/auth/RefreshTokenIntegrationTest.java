@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.service.auth;
 
+import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.entity.auth.RefreshToken;
 import kr.co.amateurs.server.repository.auth.RefreshTokenRepository;
@@ -15,7 +16,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataRedisTest
-@Import({RefreshTokenService.class, JwtProvider.class})
+@Import({RefreshTokenService.class, JwtProvider.class, EmbeddedRedisConfig.class})
 @ActiveProfiles("test")
 public class RefreshTokenIntegrationTest {
 
@@ -140,7 +141,6 @@ public class RefreshTokenIntegrationTest {
         assertThat(foundToken2).isPresent();
         assertThat(foundToken2.get().getToken()).isEqualTo(token2);
 
-        // 한 사용자 삭제가 다른 사용자에게 영향 없음
         refreshTokenService.deleteByEmail(email1);
 
         assertThat(refreshTokenService.findByEmail(email1)).isEmpty();
