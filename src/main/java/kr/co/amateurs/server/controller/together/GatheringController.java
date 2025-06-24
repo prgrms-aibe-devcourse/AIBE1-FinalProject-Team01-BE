@@ -42,12 +42,9 @@ public class GatheringController {
 
     @BoardAccess(hasPostId = true)
     @GetMapping("/{postId}")
-    public ResponseEntity<GatheringPostResponseDTO> getGatheringPost(@PathVariable("postId") Long postId){
-        GatheringPostResponseDTO gatherPost = gatheringService.getGatheringPost(postId);
-    @GetMapping("/{gatheringId}")
     public ResponseEntity<GatheringPostResponseDTO> getGatheringPost(
-            @PathVariable("gatheringId") @NotNull Long gatheringId){
-        GatheringPostResponseDTO gatherPost = gatheringService.getGatheringPost(gatheringId);
+            @PathVariable("postId") @NotNull Long postId){
+        GatheringPostResponseDTO gatherPost = gatheringService.getGatheringPost(postId);
         return ResponseEntity.ok(gatherPost);
     }
 
@@ -61,26 +58,20 @@ public class GatheringController {
     }
 
     @PutMapping("/{postId}")
-    public ResponseEntity<Void> updateGatheringPost(@PathVariable("postId") Long postId, @RequestBody GatheringPostRequestDTO dto){
-        gatheringService.updateGatheringPost(postId, dto);
-    @PutMapping("/{gatheringId}")
     public ResponseEntity<Void> updateGatheringPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,
-            @PathVariable("gatheringId") Long gatheringId,
+            @PathVariable("postId") Long postId,
             @RequestBody GatheringPostRequestDTO dto){
-        gatheringService.updateGatheringPost(currentUser, gatheringId, dto);
+        gatheringService.updateGatheringPost(currentUser, postId, dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
     @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> deleteGatheringPost(@PathVariable("postId") Long postId){
-        gatheringService.deleteGatheringPost(postId);
-    @DeleteMapping("/{gatheringId}")
     public ResponseEntity<Void> deleteGatheringPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,
-            @PathVariable("gatheringId") Long gatheringId){
-        gatheringService.deleteGatheringPost(currentUser, gatheringId);
+            @PathVariable("postId") Long postId){
+        gatheringService.deleteGatheringPost(currentUser, postId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 

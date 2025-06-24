@@ -39,12 +39,9 @@ public class MatchController {
 
     @BoardAccess(hasPostId = true)
     @GetMapping("/{postId}")
-    public ResponseEntity<MatchPostResponseDTO> getMatchPost(@PathVariable("postId") Long postId){
-        MatchPostResponseDTO gatherPost = matchService.getMatchPost(postId);
-    @GetMapping("/{matchId}")
     public ResponseEntity<MatchPostResponseDTO> getMatchPost(
-            @PathVariable("matchId") @NotNull Long matchId){
-        MatchPostResponseDTO gatherPost = matchService.getMatchPost(matchId);
+            @PathVariable("postId") @NotNull Long postId){
+        MatchPostResponseDTO gatherPost = matchService.getMatchPost(postId);
         return ResponseEntity.ok(gatherPost);
     }
 
@@ -57,27 +54,22 @@ public class MatchController {
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
+
     @PutMapping("/{postId}")
-    public ResponseEntity<Void> updateMatchPost(@PathVariable("postId") Long postId, @RequestBody MatchPostRequestDTO dto){
-        matchService.updateMatchPost(postId, dto);
-    @PutMapping("/{matchId}")
     public ResponseEntity<Void> updateMatchPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,
-            @PathVariable("matchId") @NotNull Long matchId,
+            @PathVariable("postId") @NotNull Long postId,
             @RequestBody @Valid MatchPostRequestDTO dto){
-        matchService.updateMatchPost(currentUser, matchId, dto);
+        matchService.updateMatchPost(currentUser, postId, dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
-    @DeleteMapping("/{matchId}")
+    @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deleteMatchPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,
-            @PathVariable("matchId") @NotNull Long matchId){
-        matchService.deleteMatchPost(currentUser, matchId);
-    @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> deleteMatchPost(@PathVariable("postId") Long postId){
-        matchService.deleteMatchPost(postId);
+            @PathVariable("postId") @NotNull Long postId){
+        matchService.deleteMatchPost(currentUser, postId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
