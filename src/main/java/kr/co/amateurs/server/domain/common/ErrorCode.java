@@ -25,7 +25,12 @@ public enum ErrorCode implements Supplier<CustomException> {
 
     // 로그인 관련 에러
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 사용자입니다."),
-    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다.");
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
+
+    // 토큰 관련 에러
+    EMPTY_EMAIL(HttpStatus.BAD_REQUEST, "이메일은 필수입니다."),
+    EMPTY_TOKEN(HttpStatus.BAD_REQUEST, "토큰은 필수입니다."),
+    INVALID_EXPIRATION_TIME(HttpStatus.BAD_REQUEST, "만료시간은 양수여야 합니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
