@@ -1,10 +1,11 @@
 package kr.co.amateurs.server.controller.together;
 
 
-import kr.co.amateurs.server.config.boardaccess.BoardAccess;
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.Operation;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.together.MarketService;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class MarketController {
         return ResponseEntity.ok(gatherPost);
     }
 
-    @BoardAccess(hasBoardType = false, boardType = BoardType.MARKET, operation = "write")
+    @BoardAccess(hasBoardType = false, boardType = BoardType.MARKET, operation = Operation.WRITE)
     @PostMapping
     public ResponseEntity<MarketPostResponseDTO> createMarketPost(@RequestBody MarketPostRequestDTO dto){
         MarketPostResponseDTO post = marketService.createMarketPost(dto);

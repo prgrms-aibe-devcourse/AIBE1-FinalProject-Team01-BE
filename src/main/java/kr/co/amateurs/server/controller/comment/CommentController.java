@@ -1,9 +1,10 @@
 package kr.co.amateurs.server.controller.comment;
 
-import kr.co.amateurs.server.config.boardaccess.BoardAccess;
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.enums.Operation;
 import kr.co.amateurs.server.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +42,7 @@ public class CommentController {
         return ResponseEntity.ok(replies);
     }
 
-    @BoardAccess(hasPostId = true, operation = "write")
+    @BoardAccess(hasPostId = true, operation = Operation.WRITE)
     @PostMapping("/{postId}/comments")
     public ResponseEntity<CommentResponseDTO> createComment(
             @PathVariable Long postId,

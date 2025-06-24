@@ -1,9 +1,10 @@
 package kr.co.amateurs.server.controller.together;
 
-import kr.co.amateurs.server.config.boardaccess.BoardAccess;
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.Operation;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.together.MatchService;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +40,7 @@ public class MatchController {
         return ResponseEntity.ok(gatherPost);
     }
 
-    @BoardAccess(hasBoardType = false, boardType = BoardType.MATCH, operation = "write")
+    @BoardAccess(hasBoardType = false, boardType = BoardType.MATCH, operation = Operation.WRITE)
     @PostMapping
     public ResponseEntity<MatchPostResponseDTO> createMatchPost(@RequestBody MatchPostRequestDTO dto){
         MatchPostResponseDTO post = matchService.createMatchPost(dto);

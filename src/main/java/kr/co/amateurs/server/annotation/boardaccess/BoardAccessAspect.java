@@ -1,4 +1,4 @@
-package kr.co.amateurs.server.config.boardaccess;
+package kr.co.amateurs.server.annotation.boardaccess;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -30,6 +30,11 @@ public class BoardAccessAspect {
 
     private final UserService userService;
 
+    private final BoardAccessPolicy boardAccessPolicy;
+
+    private static final String POST_ID = "postId";
+    private static final String BOARD_TYPE = "boardType";
+
     @Before("@annotation(boardAccess)")
     public void checkBoardAccess(JoinPoint joinPoint, BoardAccess boardAccess) {
         User user = userService.getCurrentUser().orElse(null);
@@ -52,10 +57,10 @@ public class BoardAccessAspect {
         }
 
         if (boardAccess.needCategory()){
-            BoardAccessPolicy.boardTypeInCategory(targetBoardType, boardAccess.category());
+            boardAccessPolicy.boardTypeInCategory(targetBoardType, boardAccess.category());
         }
 
-        BoardAccessPolicy.validateAccess(userRole, targetBoardType, boardAccess.operation());
+        boardAccessPolicy.validateAccess(userRole, targetBoardType, boardAccess.operation());
     }
 
     private BoardType getBoardTypeFromPostId(JoinPoint joinPoint) {
@@ -81,7 +86,7 @@ public class BoardAccessAspect {
             if (pathVariable != null) {
                 String paramName = pathVariable.value().isEmpty() ? parameter.getName() : pathVariable.value();
 
-                if ("boardType".equals(paramName) && parameter.getType() == BoardType.class) {
+                if (BOARD_TYPE.equals(paramName) && parameter.getType() == BoardType.class) {
                     return (BoardType) args[i];
                 }
             }
@@ -102,7 +107,7 @@ public class BoardAccessAspect {
             if (pathVariable != null) {
                 String paramName = pathVariable.value().isEmpty() ? parameter.getName() : pathVariable.value();
 
-                if ("postId".equals(paramName) && (parameter.getType() == Long.class || parameter.getType() == long.class)) {
+                if (POST_ID.equals(paramName) && (parameter.getType() == Long.class || parameter.getType() == long.class)) {
                     return (Long) args[i];
                 }
             }

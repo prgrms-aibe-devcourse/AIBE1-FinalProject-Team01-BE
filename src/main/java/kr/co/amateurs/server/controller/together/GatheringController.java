@@ -1,10 +1,11 @@
 package kr.co.amateurs.server.controller.together;
 
 
-import kr.co.amateurs.server.config.boardaccess.BoardAccess;
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.Operation;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.together.GatheringService;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class GatheringController {
         return ResponseEntity.ok(gatherPost);
     }
 
-    @BoardAccess(hasBoardType = false, boardType = BoardType.GATHER, operation = "write")
+    @BoardAccess(hasBoardType = false, boardType = BoardType.GATHER, operation = Operation.WRITE)
     @PostMapping
     public ResponseEntity<GatheringPostResponseDTO> createGatheringPost(@RequestBody GatheringPostRequestDTO dto){
         GatheringPostResponseDTO post = gatheringService.createGatheringPost(dto);

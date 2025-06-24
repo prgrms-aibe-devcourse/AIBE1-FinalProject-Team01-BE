@@ -1,11 +1,12 @@
 package kr.co.amateurs.server.controller.community;
 
 import jakarta.validation.constraints.Min;
-import kr.co.amateurs.server.config.boardaccess.BoardAccess;
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.Operation;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.dto.community.CommunityPageDTO;
 import kr.co.amateurs.server.service.community.CommunityPostService;
@@ -14,8 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Set;
 
 @Slf4j
 @RestController
@@ -48,7 +47,7 @@ public class CommunityPostController {
         return ResponseEntity.ok(post);
     }
 
-    @BoardAccess(needCategory = true,category = BoardCategory.COMMUNITY, operation = "write")
+    @BoardAccess(needCategory = true,category = BoardCategory.COMMUNITY, operation = Operation.WRITE)
     @PostMapping("/{boardType}")
     public ResponseEntity<CommunityResponseDTO> createPost(
             @PathVariable BoardType boardType,
