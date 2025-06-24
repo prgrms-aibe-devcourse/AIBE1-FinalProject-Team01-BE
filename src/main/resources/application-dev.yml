@@ -15,6 +15,10 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
 
+  data:
+    mongodb:
+      uri: ${MONGODB_URL}
+
   springdoc:
     swagger-ui:
       path: /swagger-ui.html
@@ -32,6 +36,10 @@ jwt:
   refresh-token-expiration-ms: 1209600000
 
 management:
+  health:
+    mongo:
+      enabled: false # TODO: MongoDB Health Check 비활성화, 추후 활성화 필요
+
   endpoints:
     web:
       exposure:
@@ -45,6 +53,7 @@ management:
       access: read_only
     metrics:
       access: read_only
+
   metrics:
     tags:
       application: ${spring.application.name}

@@ -12,38 +12,19 @@ services:
     deploy:
       resources:
         limits:
-          memory: 200M # 메모리 제한을 200M으로 설정
+          memory: 200M
         reservations:
-          memory: 120M # 메모리 예약을 120M으로 설정
+          memory: 120M
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
-    restart: unless-stopped
-    networks:
-      - monitoring
-
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    ports:
-      - "9100:9100"
-    command:
-      - '--path.rootfs=/host'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-      - '--collector.systemd'
-      - '--collector.processes'
-    volumes:
-      - '/:/host:ro,rslave'
-    deploy:
-      resources:
-        limits:
-          memory: 40M
     restart: unless-stopped
     networks:
       - monitoring
 
 networks:
   monitoring:
+    external: true
 
 volumes:
   prometheus-data:

@@ -1,0 +1,120 @@
+name: Docker Compose Sync Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: '동기화할 서비스 선택'
+        required: true
+        type: choice
+        options:
+          - 'spring-dev'
+          - 'spring-prod'
+          - 'mysql'
+          - 'redis'
+          - 'prometheus'
+          - 'grafana'
+          - 'node-exporter'
+          - 'n8n'
+        default: 'spring-dev'
+
+  workflow_call:
+    inputs:
+      service:
+        description: '동기화할 서비스'
+        required: true
+        type: string
+        default: 'spring'
+
+jobs:
+  sync:
+    name: ${{ inputs.service }} 동기화
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.service }}
+    outputs:
+      status: ${{ steps.set-result.outputs.status }}
+    
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Docker Compose 경로 설정
+        id: config
+        run: |
+          SERVICE="${{ inputs.service }}"
+          SOURCE=$(cat .github/config/services.json | jq -r ".\"$SERVICE\".source")
+          
+          if [ "$SOURCE" = "null" ]; then
+            echo "서비스 '$SERVICE'에 대한 설정을 찾을 수 없습니다."
+            exit 1
+          fi
+          
+          echo "source=$SOURCE" >> $GITHUB_OUTPUT
+
+      - name: Docker Compose 파일 복사
+        id: copy-files
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.ACTIONS_EC2_HOST }}
+          username: ${{ secrets.ACTIONS_EC2_USER }}
+          key: ${{ secrets.ACTIONS_EC2_SSH_KEY }}
+          port: ${{ secrets.ACTIONS_EC2_PORT || 22 }}
+          source: ${{ steps.config.outputs.source }}
+          target: "/home/ubuntu/docker/"
+          strip_components: 1
+
+      - name: 환경변수 복사
+        id: copy-env
+        uses: appleboy/ssh-action@v1
+        env:
+          SECRETS_JSON: ${{ toJson(secrets) }}
+          SERVICE_NAME: ${{ inputs.service }}
+        with:
+          host: ${{ secrets.ACTIONS_EC2_HOST }}
+          username: ${{ secrets.ACTIONS_EC2_USER }}
+          key: ${{ secrets.ACTIONS_EC2_SSH_KEY }}
+          port: ${{ secrets.ACTIONS_EC2_PORT || 22 }}
+          script_path: scripts/copy-env.sh
+          envs: SECRETS_JSON,SERVICE_NAME
+
+      - name: 결과 설정
+        id: set-result
+        if: always()
+        run: |
+          if [[ "${{ steps.copy-files.outcome }}" == "success" && "${{ steps.copy-env.outcome }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "${{ inputs.service }} 설정 동기화 완료"
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "${{ inputs.service }} 설정 동기화 실패"
+            
+            # 실패 원인 분석
+            if [[ "${{ steps.copy-files.outcome }}" != "success" ]]; then
+              echo "- 파일 복사 실패"
+            fi
+            if [[ "${{ steps.copy-env.outcome }}" != "success" ]]; then
+              echo "- 환경변수 복사 실패"
+            fi
+          fi
+
+  notify:
+    name: 설정 동기화 알림
+    if: always()
+    needs: [sync]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: 알림 전송
+        uses: ./.github/actions/send-notification
+        with:
+          workflow-type: 'sync'
+          status: ${{ (needs.sync.outputs.status == 'success' || needs.sync.result == 'success') && 'success' || 'failure' }}
+          details: |
+            {
+              "service": "${{ inputs.service }}",
+              "sync_status": "${{ needs.sync.outputs.status || needs.sync.result || 'unknown' }}",
+              "service_type": "docker-compose"
+            }
+          webhook-url: ${{ secrets.ACTIONS_WEBHOOK_URL }}
