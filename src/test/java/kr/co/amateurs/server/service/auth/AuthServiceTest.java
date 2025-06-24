@@ -211,4 +211,25 @@ public class AuthServiceTest {
         assertThatThrownBy(() -> authService.login(wrongPasswordRequest))
                 .isInstanceOf(CustomException.class);
     }
+
+    @Test
+    void 정상적인_로그인_시_리프레시_토큰도_함께_반환한다() {
+        // given
+        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        authService.signup(signupRequest);
+
+        LoginRequestDto loginRequest = LoginRequestDto.builder()
+                .email(signupRequest.email())
+                .password(signupRequest.password())
+                .build();
+
+        // when
+        LoginResponseDto response = authService.login(loginRequest);
+
+        // then
+        assertThat(response.accessToken()).isNotNull();
+        assertThat(response.refreshToken()).isNotNull();
+        assertThat(response.tokenType()).isEqualTo("Bearer");
+        assertThat(response.expiresIn()).isEqualTo(3600000L);
+    }
 }
