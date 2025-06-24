@@ -1,7 +1,7 @@
 package kr.co.amateurs.server.controller.directmessage;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.amateurs.server.config.SecurityConfig;
+import kr.co.amateurs.server.config.TestSecurityConfig;
 import kr.co.amateurs.server.domain.dto.common.PageInfo;
 import kr.co.amateurs.server.domain.dto.directmessage.*;
 import kr.co.amateurs.server.domain.entity.directmessage.enums.MessageType;
@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(DirectMessageController.class)
-@Import(SecurityConfig.class)
+@Import(TestSecurityConfig.class)
 public class DirectMessageControllerTest {
 
     @Autowired
