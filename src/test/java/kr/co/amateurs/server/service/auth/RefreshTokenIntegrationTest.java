@@ -49,8 +49,10 @@ public class RefreshTokenIntegrationTest {
 
         assertThat(foundToken).isPresent();
         assertThat(foundToken.get().getEmail()).isEqualTo(email);
-        assertThat(foundToken.get().getToken()).isEqualTo(token);
         assertThat(foundToken.get().getExpiration()).isEqualTo(expiration);
+
+        assertThat(foundToken.get().getToken()).isNotEqualTo(token);
+        assertThat(foundToken.get().getToken()).hasSize(64);
     }
 
     @Test
@@ -63,14 +65,16 @@ public class RefreshTokenIntegrationTest {
 
         // when
         refreshTokenService.saveRefreshToken(email, oldToken, expiration);
+        String oldHashedToken = refreshTokenService.findByEmail(email).get().getToken();
+
         refreshTokenService.saveRefreshToken(email, newToken, expiration);
 
         // then
         Optional<RefreshToken> foundToken = refreshTokenService.findByEmail(email);
 
         assertThat(foundToken).isPresent();
-        assertThat(foundToken.get().getToken()).isEqualTo(newToken);
-        assertThat(foundToken.get().getToken()).isNotEqualTo(oldToken);
+        assertThat(foundToken.get().getToken()).isNotEqualTo(oldHashedToken);
+        assertThat(foundToken.get().getToken()).hasSize(64);
     }
 
     @Test
@@ -136,10 +140,14 @@ public class RefreshTokenIntegrationTest {
         Optional<RefreshToken> foundToken2 = refreshTokenService.findByEmail(email2);
 
         assertThat(foundToken1).isPresent();
-        assertThat(foundToken1.get().getToken()).isEqualTo(token1);
+        assertThat(foundToken1.get().getToken()).hasSize(64);
+        assertThat(foundToken1.get().getEmail()).isEqualTo(email1);
 
         assertThat(foundToken2).isPresent();
-        assertThat(foundToken2.get().getToken()).isEqualTo(token2);
+        assertThat(foundToken2.get().getToken()).hasSize(64);
+        assertThat(foundToken2.get().getEmail()).isEqualTo(email2);
+
+        assertThat(foundToken1.get().getToken()).isNotEqualTo(foundToken2.get().getToken());
 
         refreshTokenService.deleteByEmail(email1);
 
@@ -161,12 +169,13 @@ public class RefreshTokenIntegrationTest {
         Optional<RefreshToken> savedToken = refreshTokenService.findByEmail(email);
 
         assertThat(savedToken).isPresent();
-        assertThat(savedToken.get().getToken()).isEqualTo(token);
         assertThat(savedToken.get().getEmail()).isEqualTo(email);
         assertThat(savedToken.get().getExpiration()).isEqualTo(expiration);
 
-        assertThat(jwtProvider.validateToken(savedToken.get().getToken())).isTrue();
-        assertThat(jwtProvider.getEmailFromToken(savedToken.get().getToken())).isEqualTo(email);
+        assertThat(savedToken.get().getToken()).isNotEqualTo(token);
+        assertThat(savedToken.get().getToken()).hasSize(64);
 
+        assertThat(jwtProvider.validateToken(token)).isTrue();
+        assertThat(jwtProvider.getEmailFromToken(token)).isEqualTo(email);
     }
 }
