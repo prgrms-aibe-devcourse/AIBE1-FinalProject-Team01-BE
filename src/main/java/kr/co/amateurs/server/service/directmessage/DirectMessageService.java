@@ -72,7 +72,7 @@ public class DirectMessageService {
         DirectMessageRoom room = directMessageRoomRepository.findById(roomId)
                 .orElseThrow(ErrorCode.NOT_FOUND_ROOM);
 
-        if (room == null || !room.isParticipate(userId)) {
+        if (!room.isParticipate(userId)) {
             throw new CustomException(ErrorCode.USER_NOT_IN_ROOM);
         }
 
