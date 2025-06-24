@@ -6,7 +6,6 @@ import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.*;
-import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +15,7 @@ public record BookmarkResponseDTO(
         String title,
         String content,
         Integer likeCount,
-        Integer ViewCount,
+        Integer viewCount,
         String tag,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
