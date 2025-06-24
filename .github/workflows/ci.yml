@@ -1,0 +1,73 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  check-changes:
+    name: 변경 사항 확인
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      should-run: ${{ steps.changes.outputs.src }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            src:
+              - 'src/**'
+              - 'build.gradle'
+
+  test:
+    name: 테스트 워크플로우
+    needs: check-changes
+    if: needs.check-changes.outputs.should-run == 'true'
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+      actions: read
+
+  build:
+    name: 빌드 워크플로우
+    needs: test
+    if: needs.check-changes.outputs.should-run == 'true' && (github.event_name == 'push') # 빌드는 푸시 이벤트에서만 실행
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+    with:
+      registry: ${{ vars.REGISTRY || 'ghcr.io' }}
+      image_name: ${{ vars.IMAGE_NAME || github.repository }}
+
+  notify:
+    name: CI 결과 알림
+    if: needs.check-changes.outputs.should-run == 'true'
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: 알림 전송
+        uses: ./.github/actions/send-notification
+        with:
+          workflow-type: 'ci'
+          status: ${{ (needs.test.result == 'success' && (github.event_name == 'pull_request' || needs.build.result == 'success')) && 'success' || 'failure' }}
+          details: |
+            {
+              "test_result": "${{ needs.test.result || 'skipped' }}",
+              "build_result": "${{ needs.build.result || 'skipped' }}",
+              "trigger_type": "${{ github.event_name }}"
+            }
+          webhook-url: ${{ secrets.ACTIONS_WEBHOOK_URL }}

@@ -1,0 +1,67 @@
+on:
+  workflow_call:
+    inputs:
+      registry:
+        description: 'Container registry URL'
+        required: true
+        type: string
+      image_name:
+        description: 'Docker image name'
+        required: true
+        type: string
+    outputs:
+      image-tag:
+        description: "Built Docker image tag"
+        value: ${{ jobs.build.outputs.image-tag }}
+      status:
+        description: "빌드 실행 결과"
+        value: ${{ jobs.build.outputs.status }}
+
+jobs:
+  build:
+    name: Docker 이미지 빌드
+    runs-on: ubuntu-latest
+
+    outputs:
+      image-tag: ${{ steps.meta.outputs.version }}
+      status: ${{ steps.build-result.outputs.status }}
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: GHCR 로그인
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker 메타데이터 추출
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ inputs.registry }}/${{ inputs.image_name }}
+          tags: |
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Docker 이미지 빌드 & 푸시
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: 빌드 결과 설정
+        if: always()
+        id: build-result
+        run: |
+          if [ "${{ steps.build.outcome }}" = "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+          fi

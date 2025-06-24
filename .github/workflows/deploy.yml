@@ -1,0 +1,33 @@
+name: EC2 배포
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: '배포 환경'
+        required: true
+        type: string
+    outputs:
+      status:
+        description: "배포 실행 결과"
+        value: ${{ jobs.summary.outputs.final_status }}
+      health_check_status:
+        description: "헬스체크 결과"
+        value: ${{ jobs.summary.outputs.health_check_status }}
+
+jobs:
+  execute:
+    name: 배포 실행
+    uses: ./.github/workflows/deploy-run.yml
+    secrets: inherit
+    with:
+      environment: ${{ inputs.environment }}
+
+  health_check:
+    name: 애플리케이션 헬스체크
+    needs: execute
+    if: needs.execute.outputs.status == 'success'
+    uses: ./.github/workflows/deploy-health.yml
+    secrets: inherit
+    with:
+      environment: ${{ inputs.environment }}
