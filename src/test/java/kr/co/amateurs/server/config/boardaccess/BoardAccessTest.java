@@ -1,7 +1,9 @@
 package kr.co.amateurs.server.config.boardaccess;
 
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.Operation;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +27,7 @@ public class BoardAccessTest {
         assertThat(annotation.boardType()).isEqualTo(BoardType.GATHER);
         assertThat(annotation.hasBoardType()).isTrue();
         assertThat(annotation.hasPostId()).isFalse();
-        assertThat(annotation.operation()).isEqualTo("read");
+        assertThat(annotation.operation()).isEqualTo(Operation.READ);
     }
 
     @Test
@@ -38,7 +40,7 @@ public class BoardAccessTest {
                     boardType = BoardType.INFO,
                     hasBoardType = false,
                     hasPostId = true,
-                    operation = "write"
+                    operation = Operation.WRITE
             )
             public void customTestMethod() {}
         }
@@ -52,7 +54,7 @@ public class BoardAccessTest {
         assertThat(annotation.boardType()).isEqualTo(BoardType.INFO);
         assertThat(annotation.hasBoardType()).isFalse();
         assertThat(annotation.hasPostId()).isTrue();
-        assertThat(annotation.operation()).isEqualTo("write");
+        assertThat(annotation.operation()).isEqualTo(Operation.WRITE);
     }
 
     @Test
@@ -62,7 +64,7 @@ public class BoardAccessTest {
             @BoardAccess(
                     category = BoardCategory.TOGETHER,
                     boardType = BoardType.MARKET,
-                    operation = "write"
+                    operation = Operation.WRITE
             )
             public void togetherMethod() {}
         }
@@ -73,7 +75,7 @@ public class BoardAccessTest {
         // then
         assertThat(annotation.category()).isEqualTo(BoardCategory.TOGETHER);
         assertThat(annotation.boardType()).isEqualTo(BoardType.MARKET);
-        assertThat(annotation.operation()).isEqualTo("write");
+        assertThat(annotation.operation()).isEqualTo(Operation.WRITE);
     }
 
     @Test
@@ -133,18 +135,18 @@ public class BoardAccessTest {
     void 읽기와_쓰기_작업을_확인한다() throws NoSuchMethodException {
         // given
         class TestClass {
-            @BoardAccess(operation = "read")
+            @BoardAccess(operation = Operation.READ)
             public void readMethod() {}
 
-            @BoardAccess(operation = "write")
+            @BoardAccess(operation = Operation.WRITE)
             public void writeMethod() {}
         }
 
         // when & then
         assertThat(TestClass.class.getMethod("readMethod").getAnnotation(BoardAccess.class).operation())
-                .isEqualTo("read");
+                .isEqualTo(Operation.READ);
         assertThat(TestClass.class.getMethod("writeMethod").getAnnotation(BoardAccess.class).operation())
-                .isEqualTo("write");
+                .isEqualTo(Operation.WRITE);
     }
 
     @Test

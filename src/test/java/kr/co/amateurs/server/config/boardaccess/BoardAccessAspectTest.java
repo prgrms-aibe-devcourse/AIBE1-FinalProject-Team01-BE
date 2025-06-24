@@ -1,10 +1,13 @@
 package kr.co.amateurs.server.config.boardaccess;
 
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccessAspect;
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccessPolicy;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.Operation;
 import kr.co.amateurs.server.domain.entity.user.User;
-import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
@@ -16,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.lang.reflect.Method;
@@ -53,6 +57,8 @@ public class BoardAccessAspectTest {
     @Mock
     private BoardAccess boardAccess;
 
+    private BoardAccessPolicy boardAccessPolicy;
+
     @InjectMocks
     private BoardAccessAspect boardAccessAspect;
 
@@ -63,24 +69,13 @@ public class BoardAccessAspectTest {
 
     @BeforeEach
     void setUp() {
-        adminUser = User.builder()
-                .email("admin@test.com")
-                .role(Role.ADMIN)
-                .build();
+        boardAccessPolicy = new BoardAccessPolicy();
+        ReflectionTestUtils.setField(boardAccessAspect, "boardAccessPolicy", boardAccessPolicy);
 
-        studentUser = User.builder()
-                .email("student@test.com")
-                .role(Role.STUDENT)
-                .build();
-
-        guestUser = User.builder()
-                .email("guest@test.com")
-                .role(Role.GUEST)
-                .build();
-
-        testPost = Post.builder()
-                .boardType(BoardType.FREE)
-                .build();
+        adminUser = BoardAccessTestFixture.createAdminUser();
+        studentUser = BoardAccessTestFixture.createStudentUser();
+        guestUser = BoardAccessTestFixture.createGuestUser();
+        testPost = BoardAccessTestFixture.createTestPost(BoardType.FREE);
     }
 
     @Test
@@ -102,7 +97,7 @@ public class BoardAccessAspectTest {
         Long postId = 1L;
         when(userService.getCurrentUser()).thenReturn(Optional.of(studentUser));
         when(boardAccess.hasPostId()).thenReturn(true);
-        when(boardAccess.operation()).thenReturn("read");
+        when(boardAccess.operation()).thenReturn(Operation.READ);
         when(boardAccess.needCategory()).thenReturn(false);
 
         when(joinPoint.getSignature()).thenReturn(methodSignature);
@@ -156,7 +151,7 @@ public class BoardAccessAspectTest {
         when(userService.getCurrentUser()).thenReturn(Optional.of(studentUser));
         when(boardAccess.hasPostId()).thenReturn(false);
         when(boardAccess.hasBoardType()).thenReturn(true);
-        when(boardAccess.operation()).thenReturn("read");
+        when(boardAccess.operation()).thenReturn(Operation.READ);
         when(boardAccess.needCategory()).thenReturn(false);
 
         when(joinPoint.getSignature()).thenReturn(methodSignature);
@@ -181,7 +176,7 @@ public class BoardAccessAspectTest {
         when(boardAccess.hasPostId()).thenReturn(false);
         when(boardAccess.hasBoardType()).thenReturn(false);
         when(boardAccess.boardType()).thenReturn(BoardType.FREE);
-        when(boardAccess.operation()).thenReturn("read");
+        when(boardAccess.operation()).thenReturn(Operation.READ);
         when(boardAccess.needCategory()).thenReturn(false);
 
         // when & then
@@ -199,7 +194,7 @@ public class BoardAccessAspectTest {
         when(boardAccess.hasPostId()).thenReturn(false);
         when(boardAccess.hasBoardType()).thenReturn(false);
         when(boardAccess.boardType()).thenReturn(BoardType.FREE);
-        when(boardAccess.operation()).thenReturn("read");
+        when(boardAccess.operation()).thenReturn(Operation.READ);
         when(boardAccess.needCategory()).thenReturn(true);
         when(boardAccess.category()).thenReturn(BoardCategory.COMMUNITY);
 
@@ -237,7 +232,7 @@ public class BoardAccessAspectTest {
         when(boardAccess.hasPostId()).thenReturn(false);
         when(boardAccess.hasBoardType()).thenReturn(false);
         when(boardAccess.boardType()).thenReturn(BoardType.INFO);
-        when(boardAccess.operation()).thenReturn("write");
+        when(boardAccess.operation()).thenReturn(Operation.WRITE);
         when(boardAccess.needCategory()).thenReturn(false);
 
         // when & then
@@ -256,7 +251,7 @@ public class BoardAccessAspectTest {
         when(boardAccess.hasPostId()).thenReturn(false);
         when(boardAccess.hasBoardType()).thenReturn(false);
         when(boardAccess.boardType()).thenReturn(BoardType.REVIEW);
-        when(boardAccess.operation()).thenReturn("read");
+        when(boardAccess.operation()).thenReturn(Operation.READ);
         when(boardAccess.needCategory()).thenReturn(false);
 
         // when & then

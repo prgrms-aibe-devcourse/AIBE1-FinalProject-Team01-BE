@@ -1,9 +1,12 @@
 package kr.co.amateurs.server.config.boardaccess;
 
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccessPolicy;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.Operation;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -14,76 +17,83 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ExtendWith(MockitoExtension.class)
 public class BoardAccessPolicyTest {
 
+    private BoardAccessPolicy boardAccessPolicy;
+
+    @BeforeEach
+    public void setUp() {
+        boardAccessPolicy = new BoardAccessPolicy();
+    }
+
     @Test
     void COMMUNITY_카테고리_읽기_권한을_확인한다() {
         // given & when & then
-        assertThat(BoardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.COMMUNITY, "read")).isFalse();
-        assertThat(BoardAccessPolicy.canAccess(Role.GUEST, BoardCategory.COMMUNITY, "read")).isTrue();
-        assertThat(BoardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.COMMUNITY, "read")).isTrue();
-        assertThat(BoardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.COMMUNITY, "read")).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.COMMUNITY, Operation.READ)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.GUEST, BoardCategory.COMMUNITY, Operation.READ)).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.COMMUNITY, Operation.READ)).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.COMMUNITY, Operation.READ)).isTrue();
     }
 
     @Test
     void COMMUNITY_카테고리_쓰기_권한을_확인한다() {
         // given & when & then
-        assertThat(BoardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.COMMUNITY, "write")).isFalse();
-        assertThat(BoardAccessPolicy.canAccess(Role.GUEST, BoardCategory.COMMUNITY, "write")).isFalse();
-        assertThat(BoardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.COMMUNITY, "write")).isTrue();
-        assertThat(BoardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.COMMUNITY, "write")).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.COMMUNITY, Operation.WRITE)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.GUEST, BoardCategory.COMMUNITY, Operation.WRITE)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.COMMUNITY, Operation.WRITE)).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.COMMUNITY, Operation.WRITE)).isTrue();
     }
 
     @Test
     void TOGETHER_카테고리_읽기_권한을_확인한다() {
         // given & when & then
-        assertThat(BoardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.TOGETHER, "read")).isFalse();
-        assertThat(BoardAccessPolicy.canAccess(Role.GUEST, BoardCategory.TOGETHER, "read")).isFalse();
-        assertThat(BoardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.TOGETHER, "read")).isTrue();
-        assertThat(BoardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.TOGETHER, "read")).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.TOGETHER, Operation.READ)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.GUEST, BoardCategory.TOGETHER, Operation.READ)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.TOGETHER, Operation.READ)).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.TOGETHER, Operation.READ)).isTrue();
     }
 
     @Test
     void TOGETHER_카테고리_쓰기_권한을_확인한다() {
         // given & when & then
-        assertThat(BoardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.TOGETHER, "write")).isFalse();
-        assertThat(BoardAccessPolicy.canAccess(Role.GUEST, BoardCategory.TOGETHER, "write")).isFalse();
-        assertThat(BoardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.TOGETHER, "write")).isTrue();
-        assertThat(BoardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.TOGETHER, "write")).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.TOGETHER, Operation.WRITE)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.GUEST, BoardCategory.TOGETHER, Operation.WRITE)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.TOGETHER, Operation.WRITE)).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.TOGETHER, Operation.WRITE)).isTrue();
     }
 
     @Test
     void IT_카테고리_읽기_권한을_확인한다() {
         // given & when & then
-        assertThat(BoardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.IT, "read")).isTrue();
-        assertThat(BoardAccessPolicy.canAccess(Role.GUEST, BoardCategory.IT, "read")).isTrue();
-        assertThat(BoardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.IT, "read")).isTrue();
-        assertThat(BoardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.IT, "read")).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.IT, Operation.READ)).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.GUEST, BoardCategory.IT, Operation.READ)).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.IT, Operation.READ)).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.IT, Operation.READ)).isTrue();
     }
 
     @Test
     void IT_카테고리_쓰기_권한을_확인한다() {
         // given & when & then
-        assertThat(BoardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.IT, "write")).isFalse();
-        assertThat(BoardAccessPolicy.canAccess(Role.GUEST, BoardCategory.IT, "write")).isFalse();
-        assertThat(BoardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.IT, "write")).isFalse();
-        assertThat(BoardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.IT, "write")).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.IT, Operation.WRITE)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.GUEST, BoardCategory.IT, Operation.WRITE)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.IT, Operation.WRITE)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.IT, Operation.WRITE)).isTrue();
     }
 
     @Test
     void PROJECT_카테고리_읽기_권한을_확인한다() {
         // given & when & then
-        assertThat(BoardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.PROJECT, "read")).isTrue();
-        assertThat(BoardAccessPolicy.canAccess(Role.GUEST, BoardCategory.PROJECT, "read")).isTrue();
-        assertThat(BoardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.PROJECT, "read")).isTrue();
-        assertThat(BoardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.PROJECT, "read")).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.PROJECT, Operation.READ)).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.GUEST, BoardCategory.PROJECT, Operation.READ)).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.PROJECT, Operation.READ)).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.PROJECT, Operation.READ)).isTrue();
     }
 
     @Test
     void PROJECT_카테고리_쓰기_권한을_확인한다() {
         // given & when & then
-        assertThat(BoardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.PROJECT, "write")).isFalse();
-        assertThat(BoardAccessPolicy.canAccess(Role.GUEST, BoardCategory.PROJECT, "write")).isFalse();
-        assertThat(BoardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.PROJECT, "write")).isTrue();
-        assertThat(BoardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.PROJECT, "write")).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.PROJECT, Operation.WRITE)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.GUEST, BoardCategory.PROJECT, Operation.WRITE)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.PROJECT, Operation.WRITE)).isTrue();
+        assertThat(boardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.PROJECT, Operation.WRITE)).isTrue();
     }
 
     @Test
@@ -91,10 +101,10 @@ public class BoardAccessPolicyTest {
         // given
         Role userRole = Role.STUDENT;
         BoardType boardType = BoardType.FREE;
-        String operation = "read";
+        Operation operation = Operation.READ;
 
         // when & then - 예외가 발생하지 않아야 함
-        BoardAccessPolicy.validateAccess(userRole, boardType, operation);
+        boardAccessPolicy.validateAccess(userRole, boardType, operation);
     }
 
     @Test
@@ -102,10 +112,10 @@ public class BoardAccessPolicyTest {
         // given
         Role userRole = Role.ANONYMOUS;
         BoardType boardType = BoardType.GATHER;
-        String operation = "read";
+        Operation operation = Operation.READ;
 
         // when & then
-        assertThatThrownBy(() -> BoardAccessPolicy.validateAccess(userRole, boardType, operation))
+        assertThatThrownBy(() -> boardAccessPolicy.validateAccess(userRole, boardType, operation))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -114,10 +124,10 @@ public class BoardAccessPolicyTest {
         // given
         Role userRole = Role.GUEST;
         BoardType boardType = BoardType.INFO;
-        String operation = "write";
+        Operation operation = Operation.WRITE;
 
         // when & then
-        assertThatThrownBy(() -> BoardAccessPolicy.validateAccess(userRole, boardType, operation))
+        assertThatThrownBy(() -> boardAccessPolicy.validateAccess(userRole, boardType, operation))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -125,15 +135,15 @@ public class BoardAccessPolicyTest {
     void ADMIN_권한은_모든_게시판에_접근할_수_있다() {
         // given
         Role userRole = Role.ADMIN;
-        String operation = "write";
+        Operation operation = Operation.WRITE;
 
         // when & then
-        BoardAccessPolicy.validateAccess(userRole, BoardType.FREE, operation);
-        BoardAccessPolicy.validateAccess(userRole, BoardType.QNA, operation);
-        BoardAccessPolicy.validateAccess(userRole, BoardType.MARKET, operation);
-        BoardAccessPolicy.validateAccess(userRole, BoardType.GATHER, operation);
-        BoardAccessPolicy.validateAccess(userRole, BoardType.INFO, operation);
-        BoardAccessPolicy.validateAccess(userRole, BoardType.REVIEW, operation);
+        boardAccessPolicy.validateAccess(userRole, BoardType.FREE, operation);
+        boardAccessPolicy.validateAccess(userRole, BoardType.QNA, operation);
+        boardAccessPolicy.validateAccess(userRole, BoardType.MARKET, operation);
+        boardAccessPolicy.validateAccess(userRole, BoardType.GATHER, operation);
+        boardAccessPolicy.validateAccess(userRole, BoardType.INFO, operation);
+        boardAccessPolicy.validateAccess(userRole, BoardType.REVIEW, operation);
     }
 
     @Test
@@ -143,7 +153,7 @@ public class BoardAccessPolicyTest {
         BoardCategory wrongCategory = BoardCategory.TOGETHER;
 
         // when & then
-        assertThatThrownBy(() -> BoardAccessPolicy.boardTypeInCategory(boardType, wrongCategory))
+        assertThatThrownBy(() -> boardAccessPolicy.boardTypeInCategory(boardType, wrongCategory))
                 .isInstanceOf(CustomException.class);
     }
 }
