@@ -4,12 +4,14 @@ import fixture.auth.AuthTestFixture;
 import fixture.common.UserTestFixture;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ import static org.hamcrest.Matchers.notNullValue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Transactional
+@Import(EmbeddedRedisConfig.class)
 public class AuthControllerTest {
 
     @LocalServerPort

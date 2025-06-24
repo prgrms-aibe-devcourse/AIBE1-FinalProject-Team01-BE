@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
+import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.LoginResponseDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Import(EmbeddedRedisConfig.class)
 public class AuthServiceTest {
 
     @Autowired
