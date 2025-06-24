@@ -31,7 +31,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(CommunityPostController.class)
 @Import(TestSecurityConfig.class)
 class CommunityControllerTest {
-
     @Autowired
     private MockMvc mockMvc;
 
