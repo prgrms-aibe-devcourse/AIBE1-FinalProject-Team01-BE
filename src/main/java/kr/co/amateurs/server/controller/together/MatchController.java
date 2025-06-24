@@ -5,8 +5,11 @@ import jakarta.validation.constraints.NotNull;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.Operation;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.together.MatchService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,7 @@ public class MatchController {
     
     private final MatchService matchService;
 
+    @BoardAccess(hasBoardType = false, boardType = BoardType.MATCH)
     @GetMapping
     public ResponseEntity<PageResponseDTO<MatchPostResponseDTO>> getMatchPostList(
             @RequestParam(required = false) String keyword,
@@ -33,6 +37,10 @@ public class MatchController {
         return ResponseEntity.ok(matchList);
     }
 
+    @BoardAccess(hasPostId = true)
+    @GetMapping("/{postId}")
+    public ResponseEntity<MatchPostResponseDTO> getMatchPost(@PathVariable("postId") Long postId){
+        MatchPostResponseDTO gatherPost = matchService.getMatchPost(postId);
     @GetMapping("/{matchId}")
     public ResponseEntity<MatchPostResponseDTO> getMatchPost(
             @PathVariable("matchId") @NotNull Long matchId){
@@ -40,6 +48,7 @@ public class MatchController {
         return ResponseEntity.ok(gatherPost);
     }
 
+    @BoardAccess(hasBoardType = false, boardType = BoardType.MATCH, operation = Operation.WRITE)
     @PostMapping
     public ResponseEntity<MatchPostResponseDTO> createMatchPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,
@@ -48,6 +57,9 @@ public class MatchController {
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
+    @PutMapping("/{postId}")
+    public ResponseEntity<Void> updateMatchPost(@PathVariable("postId") Long postId, @RequestBody MatchPostRequestDTO dto){
+        matchService.updateMatchPost(postId, dto);
     @PutMapping("/{matchId}")
     public ResponseEntity<Void> updateMatchPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,
@@ -63,6 +75,9 @@ public class MatchController {
             @AuthenticationPrincipal CustomUserDetails currentUser,
             @PathVariable("matchId") @NotNull Long matchId){
         matchService.deleteMatchPost(currentUser, matchId);
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void> deleteMatchPost(@PathVariable("postId") Long postId){
+        matchService.deleteMatchPost(postId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

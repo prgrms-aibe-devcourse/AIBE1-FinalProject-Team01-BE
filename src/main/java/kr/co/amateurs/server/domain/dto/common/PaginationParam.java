@@ -1,6 +1,8 @@
 package kr.co.amateurs.server.domain.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -10,7 +12,8 @@ import org.springframework.data.domain.Sort;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder
+@NoArgsConstructor
 @AllArgsConstructor
 public class PaginationParam {
 

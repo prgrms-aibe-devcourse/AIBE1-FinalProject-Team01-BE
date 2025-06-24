@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.controller.together;
 
 
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
@@ -9,6 +10,8 @@ import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.Operation;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.together.GatheringService;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import static kr.co.amateurs.server.domain.entity.post.enums.SortType.LATEST;
 
 
 @RestController
@@ -28,6 +30,7 @@ public class GatheringController {
 
     private final GatheringService gatheringService;
 
+    @BoardAccess(hasBoardType = false, boardType = BoardType.GATHER)
     @GetMapping
     public ResponseEntity<PageResponseDTO<GatheringPostResponseDTO>> getGatheringPostList(
             @RequestParam(required = false) String keyword,
@@ -37,6 +40,10 @@ public class GatheringController {
         return ResponseEntity.ok(gatheringList);
     }
 
+    @BoardAccess(hasPostId = true)
+    @GetMapping("/{postId}")
+    public ResponseEntity<GatheringPostResponseDTO> getGatheringPost(@PathVariable("postId") Long postId){
+        GatheringPostResponseDTO gatherPost = gatheringService.getGatheringPost(postId);
     @GetMapping("/{gatheringId}")
     public ResponseEntity<GatheringPostResponseDTO> getGatheringPost(
             @PathVariable("gatheringId") @NotNull Long gatheringId){
@@ -44,6 +51,7 @@ public class GatheringController {
         return ResponseEntity.ok(gatherPost);
     }
 
+    @BoardAccess(hasBoardType = false, boardType = BoardType.GATHER, operation = Operation.WRITE)
     @PostMapping
     public ResponseEntity<GatheringPostResponseDTO> createGatheringPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,
@@ -52,6 +60,9 @@ public class GatheringController {
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
+    @PutMapping("/{postId}")
+    public ResponseEntity<Void> updateGatheringPost(@PathVariable("postId") Long postId, @RequestBody GatheringPostRequestDTO dto){
+        gatheringService.updateGatheringPost(postId, dto);
     @PutMapping("/{gatheringId}")
     public ResponseEntity<Void> updateGatheringPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,
@@ -62,6 +73,9 @@ public class GatheringController {
     }
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void> deleteGatheringPost(@PathVariable("postId") Long postId){
+        gatheringService.deleteGatheringPost(postId);
     @DeleteMapping("/{gatheringId}")
     public ResponseEntity<Void> deleteGatheringPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,

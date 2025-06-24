@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 public enum Role {
     STUDENT("ROLE_STUDENT", "수강생"),
     ADMIN("ROLE_ADMIN", "관리자"),
-    GUEST("ROLE_GUEST", "게스트");
+    GUEST("ROLE_GUEST", "게스트"),
+    ANONYMOUS("ROLE_ANONYMOUS", "비로그인");
 
     private final String key;
     private final String title;
