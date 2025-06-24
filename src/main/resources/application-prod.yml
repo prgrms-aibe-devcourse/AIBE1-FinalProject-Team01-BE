@@ -26,6 +26,10 @@ spring:
         format_sql: false
         dialect: org.hibernate.dialect.MySQL8Dialect
 
+  data:
+    mongodb:
+      uri: ${MONGODB_URL}
+
   springdoc:
     swagger-ui:
       enabled: false

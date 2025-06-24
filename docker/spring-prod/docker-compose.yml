@@ -1,0 +1,17 @@
+services:
+  app:
+    image: ghcr.io/prgrms-aibe-devcourse/aibe1-finalproject-team01-be:latest
+    container_name: amateurs-prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - amateurs-network
+
+networks:
+  amateurs-network:

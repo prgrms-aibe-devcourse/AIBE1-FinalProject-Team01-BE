@@ -1,9 +1,12 @@
 package kr.co.amateurs.server.controller.community;
 
 import jakarta.validation.constraints.Min;
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.Operation;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.dto.community.CommunityPageDTO;
 import kr.co.amateurs.server.service.community.CommunityPostService;
@@ -20,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class CommunityPostController {
     private final CommunityPostService communityPostService;
 
-    //@PreAuthorize("hasAnyAuthority('USER', 'STUDENT','ADMIN')")
+    @BoardAccess(needCategory = true, category = BoardCategory.COMMUNITY)
     @GetMapping("/{boardType}")
     public ResponseEntity<CommunityPageDTO> getCommunity(
             @PathVariable BoardType boardType,
@@ -29,24 +32,22 @@ public class CommunityPostController {
             @RequestParam(defaultValue = "LATEST") SortType sortType,
             @RequestParam(defaultValue = "8") @Min(1) int pageSize
             ) {
-
         CommunityPageDTO postsPage = communityPostService.searchPosts(keyword, page, boardType, sortType, pageSize);
 
         return ResponseEntity.ok(postsPage);
     }
 
-    //@PreAuthorize("hasAnyAuthority('USER', 'STUDENT','ADMIN')")
+    @BoardAccess(needCategory = true, category = BoardCategory.COMMUNITY, hasPostId = true)
     @GetMapping("/{boardType}/{postId}")
     public ResponseEntity<CommunityResponseDTO> getCommunityPost(
             @PathVariable BoardType boardType,
             @PathVariable Long postId) {
-
         CommunityResponseDTO post = communityPostService.getPost(boardType, postId);
 
         return ResponseEntity.ok(post);
     }
 
-    //@PreAuthorize("hasAnyAuthority('STUDENT','ADMIN')")
+    @BoardAccess(needCategory = true,category = BoardCategory.COMMUNITY, operation = Operation.WRITE)
     @PostMapping("/{boardType}")
     public ResponseEntity<CommunityResponseDTO> createPost(
             @PathVariable BoardType boardType,
@@ -57,7 +58,6 @@ public class CommunityPostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
-    //@PreAuthorize("hasAnyAuthority('STUDENT','ADMIN')")
     @PutMapping("/{boardType}/{postId}")
     public ResponseEntity<Void> updatePost(
             @PathVariable BoardType boardType,
@@ -69,7 +69,6 @@ public class CommunityPostController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    //@PreAuthorize("hasAnyAuthority('STUDENT','ADMIN')")
     @DeleteMapping("/{boardType}/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable BoardType boardType,
