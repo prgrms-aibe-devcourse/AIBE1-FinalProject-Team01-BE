@@ -21,9 +21,9 @@ spring:
       database: embedded_test
       auto-index-creation: true
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
+      host: localhost
+      port: ${embedded.redis.port:6379}
+      password:
 
 jwt:
   secret: "dGVzdC1rZXktZG8tbm90LXVzZS1pbi1kZXYtb3ItcHJvZA==" # Base64 encoded "test-key-do-not-use-in-dev-or-prod"
