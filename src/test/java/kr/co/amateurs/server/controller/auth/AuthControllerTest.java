@@ -282,4 +282,34 @@ public class AuthControllerTest {
                 .statusCode(400)
                 .body("message", equalTo("비밀번호는 최소 8자 이상이어야 합니다"));
     }
+
+    @Test
+    void 정상적인_로그인_시_리프레시_토큰도_함께_반환되어야_한다() {
+        // given
+        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/api/auth/signup")
+                .then()
+                .statusCode(201);
+
+        LoginRequestDto loginRequest = AuthTestFixture.defaultLoginRequest()
+                .email(signupRequest.email())
+                .build();
+
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(loginRequest)
+                .when()
+                .post("/api/auth/login")
+                .then()
+                .statusCode(200)
+                .body("accessToken", notNullValue())
+                .body("refreshToken", notNullValue())
+                .body("tokenType", equalTo("Bearer"))
+                .body("expiresIn", equalTo(3600000));
+    }
 }
