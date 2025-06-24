@@ -23,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO.*;
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
@@ -60,6 +61,7 @@ public class BookmarkService {
         return convertToDTO(savedBookmark);
     }
 
+    @Transactional
     public void removeBookmarkPost(Long userId, Long postId) {
         bookmarkRepository.deleteByUserAndPost(userId, postId);
     }
