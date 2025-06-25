@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.controller.auth;
 
 import kr.co.amateurs.server.fixture.auth.AuthTestFixture;
+import kr.co.amateurs.server.fixture.auth.TokenTestFixture;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -57,8 +58,8 @@ public class AuthControllerTest {
                 .then()
                 .statusCode(200)
                 .body("accessToken", notNullValue())
-                .body("tokenType", equalTo("Bearer"))
-                .body("expiresIn", equalTo(3600000));
+                .body("tokenType", equalTo(TokenTestFixture.TOKEN_TYPE))
+                .body("expiresIn", equalTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION.intValue()));
     }
 
     @Test
@@ -91,7 +92,7 @@ public class AuthControllerTest {
 
         LoginRequestDto wrongPasswordRequest = AuthTestFixture.defaultLoginRequest()
                 .email(signupRequest.email())
-                .password("wrongpassword")
+                .password(TokenTestFixture.getWrongPassword())
                 .build();
 
         // when & then
@@ -312,7 +313,7 @@ public class AuthControllerTest {
                 .statusCode(200)
                 .body("accessToken", notNullValue())
                 .body("refreshToken", notNullValue())
-                .body("tokenType", equalTo("Bearer"))
-                .body("expiresIn", equalTo(3600000));
+                .body("tokenType", equalTo(TokenTestFixture.TOKEN_TYPE))
+                .body("expiresIn", equalTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION.intValue()));
     }
 }
