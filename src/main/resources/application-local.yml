@@ -19,16 +19,16 @@ spring:
     mongodb:
       uri: ${MONGODB_URL}
 
-  springdoc:
-    swagger-ui:
-      path: /swagger-ui.html
-      operationsSorter: method
-      tagsSorter: alpha
-      docExpansion: none
-
   output:
     ansi:
       enabled: always
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    docExpansion: none
 
 jwt:
   secret: ${JWT_SECRET}
