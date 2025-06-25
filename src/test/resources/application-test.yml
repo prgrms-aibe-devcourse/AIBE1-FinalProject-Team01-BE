@@ -18,12 +18,8 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb://localhost:27017/amateurs_test
-      host: localhost
-      port: 0
       database: embedded_test
-      embedded:
-        version: 8.0.10
+      auto-index-creation: true
 
 jwt:
   secret: "dGVzdC1rZXktZG8tbm90LXVzZS1pbi1kZXYtb3ItcHJvZA==" # Base64 encoded "test-key-do-not-use-in-dev-or-prod"
@@ -41,3 +37,9 @@ cloud:
       bucket: test-bucket-name
     cloudfront:
       domain: testdomain.net
+
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 7.0.2
