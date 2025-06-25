@@ -1,6 +1,6 @@
 package kr.co.amateurs.server.service.auth;
 
-import fixture.common.UserTestFixture;
+import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

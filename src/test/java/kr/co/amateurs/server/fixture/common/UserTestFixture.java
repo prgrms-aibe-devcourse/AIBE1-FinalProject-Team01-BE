@@ -1,4 +1,4 @@
-package fixture.common;
+package kr.co.amateurs.server.fixture.common;
 
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
 import kr.co.amateurs.server.domain.entity.user.User;

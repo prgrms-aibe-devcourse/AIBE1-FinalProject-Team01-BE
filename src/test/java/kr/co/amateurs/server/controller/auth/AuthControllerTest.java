@@ -1,7 +1,7 @@
 package kr.co.amateurs.server.controller.auth;
 
-import fixture.auth.AuthTestFixture;
-import fixture.common.UserTestFixture;
+import kr.co.amateurs.server.fixture.auth.AuthTestFixture;
+import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;

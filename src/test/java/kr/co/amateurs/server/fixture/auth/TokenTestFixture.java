@@ -1,6 +1,6 @@
-package fixture.auth;
+package kr.co.amateurs.server.fixture.auth;
 
-import fixture.common.UserTestFixture;
+import kr.co.amateurs.server.fixture.common.UserTestFixture;
 
 public class TokenTestFixture {
 
