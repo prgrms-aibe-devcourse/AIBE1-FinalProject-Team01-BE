@@ -30,6 +30,18 @@ spring:
     ansi:
       enabled: always
 
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${OPENA_CHAT_MODEL}
+    vectorstore:
+      qdrant:
+        url: ${QDRANT_URL}
+        api-key: ${QDRANT_API_KEY}
+        collection-name: ${QDRANT_COLLECTION_NAME}
+
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration-ms: 3600000
@@ -63,3 +75,15 @@ management:
       export:
         enabled: true
         step: 30s
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret_key: ${AWS_SECRET_KEY}
+    region:
+      static: ${S3_REGION}
+    s3:
+      bucket: ${S3_BUCKET_NAME}
+    cloudfront:
+      domain: ${CLOUD_FRONT_DOMAIN_NAME}

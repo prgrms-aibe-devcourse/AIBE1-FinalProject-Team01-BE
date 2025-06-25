@@ -53,7 +53,7 @@ public class MarketController {
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
-
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
     @PutMapping("/{postId}")
     public ResponseEntity<Void> updateMarketPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,
@@ -64,6 +64,7 @@ public class MarketController {
     }
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deleteMarketPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,

@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     @Query("""
@@ -55,4 +56,6 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     @Modifying
     @Query("DELETE FROM Bookmark b WHERE b.post.id = :postId AND b.user.id = :userId")
     int deleteByUserAndPost(@Param("userId") Long userId, @Param("postId") Long postId);
+
+    Optional<Bookmark> findByPost_IdAndUser_Id(Long postId, Long id);
 }
