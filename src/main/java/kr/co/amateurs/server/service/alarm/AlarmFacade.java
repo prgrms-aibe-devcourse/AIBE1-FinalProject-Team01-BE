@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.service.alarm;
 
-import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.alarm.AlarmPageResponse;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.comment.CommentService;
@@ -16,10 +17,13 @@ public class AlarmFacade {
     private final CommunityPostService postService;
     private final CommentService commentService;
 
-    public void readAll() {
-        User user = userService.getCurrentUser()
-                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+    public AlarmPageResponse readAlarms(PaginationParam param) {
+        User user = userService.getCurrentLoginUser();
+        return alarmService.readAlarms(user.getId(), param);
+    }
 
-        alarmService.readAll(user.getId());
+    public void markAllAsRead() {
+        User user = userService.getCurrentLoginUser();
+        alarmService.markAllAsRead(user.getId());
     }
 }

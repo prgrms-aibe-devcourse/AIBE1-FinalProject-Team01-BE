@@ -2,9 +2,13 @@ package kr.co.amateurs.server.controller.alarm;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.co.amateurs.server.domain.dto.alarm.AlarmPageResponse;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.service.alarm.AlarmFacade;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,10 +21,16 @@ public class AlarmController {
 
     private final AlarmFacade alarmFacade;
 
+    @GetMapping
+    @Operation(summary = "알람 목록 조회")
+    public ResponseEntity<AlarmPageResponse> readAlarms(@ParameterObject PaginationParam param) {
+        return ResponseEntity.ok(alarmFacade.readAlarms(param));
+    }
+
     @PatchMapping
-    @Operation(summary = "알람 전체 읽기")
-    public ResponseEntity<Void> readAll() {
-        alarmFacade.readAll();
+    @Operation(summary = "알람 전체 읽기 처리")
+    public ResponseEntity<Void> markAllAsRead() {
+        alarmFacade.markAllAsRead();
         return ResponseEntity.noContent().build();
     }
 }
