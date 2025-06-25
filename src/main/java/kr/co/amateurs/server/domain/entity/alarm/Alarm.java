@@ -42,4 +42,8 @@ public class Alarm {
         private Long roomId;
         private Long messageId;
     }
+
+    public void markAsRead() {
+        this.isRead = true;
+    }
 }

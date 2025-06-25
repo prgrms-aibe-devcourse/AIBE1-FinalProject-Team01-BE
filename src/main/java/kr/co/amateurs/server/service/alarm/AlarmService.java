@@ -22,4 +22,8 @@ public class AlarmService {
     public void markAllAsRead(long userId) {
         alarmRepository.markAllAsReadByUserId(userId);
     }
+
+    public void markAsRead(long userId, String alarmId) {
+        alarmRepository.markAsReadByUserIdAndId(userId, alarmId);
+    }
 }

@@ -14,5 +14,10 @@ public interface AlarmRepository extends MongoRepository<Alarm, String> {
     @Update("{ '$set': { 'isRead': true } }")
     void markAllAsReadByUserId(long userId);
 
+    @Modifying
+    @Query("{ 'userId': ?0, 'alarmId': ?1 }")
+    @Update("{ '$set': { 'isRead': true } }")
+    void markAsReadByUserIdAndId(long userId, String alarmId);
+
     Page<Alarm> findByUserId(long userId, Pageable pageable);
 }

@@ -26,4 +26,9 @@ public class AlarmFacade {
         User user = userService.getCurrentLoginUser();
         alarmService.markAllAsRead(user.getId());
     }
+
+    public void markAsRead(String alarmId) {
+        User user = userService.getCurrentLoginUser();
+        alarmService.markAsRead(user.getId(), alarmId);
+    }
 }

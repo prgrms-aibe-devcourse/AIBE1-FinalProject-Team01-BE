@@ -8,10 +8,7 @@ import kr.co.amateurs.server.service.alarm.AlarmFacade;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "ALARM API")
 @RestController
@@ -31,6 +28,13 @@ public class AlarmController {
     @Operation(summary = "알람 전체 읽기 처리")
     public ResponseEntity<Void> markAllAsRead() {
         alarmFacade.markAllAsRead();
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("{alarmId}")
+    @Operation(summary = "알람 단 건 읽음 처리 ")
+    public ResponseEntity<Void> markAsRead(@PathVariable String alarmId) {
+        alarmFacade.markAsRead(alarmId);
         return ResponseEntity.noContent().build();
     }
 }
