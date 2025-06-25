@@ -19,14 +19,14 @@ configurations {
 	}
 }
 
+repositories {
+	mavenCentral()
+}
+
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework.ai:spring-ai-bom:1.0.0"
 	}
-}
-
-repositories {
-	mavenCentral()
 }
 
 dependencies {
@@ -46,8 +46,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
 	// AI 관련 의존성
-	implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
-	implementation 'org.springframework.ai:spring-ai-qdrant-store-spring-boot-starter'
+	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+	implementation 'org.springframework.ai:spring-ai-starter-vector-store-qdrant'
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
