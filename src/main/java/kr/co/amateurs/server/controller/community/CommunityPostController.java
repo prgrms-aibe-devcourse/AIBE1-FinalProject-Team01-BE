@@ -1,5 +1,7 @@
 package kr.co.amateurs.server.controller.community;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
@@ -8,10 +10,10 @@ import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.Operation;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
-import kr.co.amateurs.server.domain.dto.community.CommunityPageDTO;
 import kr.co.amateurs.server.service.community.CommunityPostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,14 +27,15 @@ public class CommunityPostController {
 
     @BoardAccess(needCategory = true, category = BoardCategory.COMMUNITY)
     @GetMapping("/{boardType}")
-    public ResponseEntity<CommunityPageDTO> getCommunity(
+    public ResponseEntity<Page<CommunityResponseDTO>> getCommunity(
             @PathVariable BoardType boardType,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "LATEST") SortType sortType,
-            @RequestParam(defaultValue = "8") @Min(1) int pageSize
+            @RequestParam(defaultValue = "8") @Min(1) @Max(100) int pageSize
             ) {
-        CommunityPageDTO postsPage = communityPostService.searchPosts(keyword, page, boardType, sortType, pageSize);
+
+        Page<CommunityResponseDTO> postsPage = communityPostService.searchPosts(keyword, page, boardType, sortType, pageSize);
 
         return ResponseEntity.ok(postsPage);
     }
@@ -42,7 +45,8 @@ public class CommunityPostController {
     public ResponseEntity<CommunityResponseDTO> getCommunityPost(
             @PathVariable BoardType boardType,
             @PathVariable Long postId) {
-        CommunityResponseDTO post = communityPostService.getPost(boardType, postId);
+
+        CommunityResponseDTO post = communityPostService.getPost(postId);
 
         return ResponseEntity.ok(post);
     }
@@ -51,24 +55,26 @@ public class CommunityPostController {
     @PostMapping("/{boardType}")
     public ResponseEntity<CommunityResponseDTO> createPost(
             @PathVariable BoardType boardType,
-            @RequestBody CommunityRequestDTO requestDTO
+            @RequestBody @Valid CommunityRequestDTO requestDTO
     ){
         CommunityResponseDTO post = communityPostService.createPost(requestDTO, boardType);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
     @PutMapping("/{boardType}/{postId}")
     public ResponseEntity<Void> updatePost(
             @PathVariable BoardType boardType,
             @PathVariable Long postId,
-            @RequestBody CommunityRequestDTO requestDTO
+            @RequestBody @Valid CommunityRequestDTO requestDTO
     ){
         communityPostService.updatePost(requestDTO, postId);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
     @DeleteMapping("/{boardType}/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable BoardType boardType,
