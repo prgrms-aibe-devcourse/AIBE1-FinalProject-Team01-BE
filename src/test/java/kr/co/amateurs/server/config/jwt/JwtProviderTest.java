@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.config.jwt;
 
+import kr.co.amateurs.server.fixture.auth.TokenTestFixture;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,7 +18,7 @@ public class JwtProviderTest {
     @Test
     void 액세스_토큰을_생성하고_검증할_수_있다() {
         // given
-        String email = "test@test.com";
+        String email = TokenTestFixture.getTestEmail();
 
         // when
         String accessToken = jwtProvider.generateAccessToken(email);
@@ -32,7 +33,7 @@ public class JwtProviderTest {
     @Test
     void 잘못된_형식의_토큰은_검증에_실패한다() {
         // given
-        String invalidToken = "invalid.token.format";
+        String invalidToken = TokenTestFixture.INVALID_TOKEN;
 
         // when
         boolean result = jwtProvider.validateToken(invalidToken);
@@ -44,7 +45,7 @@ public class JwtProviderTest {
     @Test
     void 빈_토큰은_검증에_실패한다() {
         // given
-        String emptyToken = "";
+        String emptyToken = TokenTestFixture.EMPTY_TOKEN;
 
         // when
         boolean result = jwtProvider.validateToken(emptyToken);
@@ -56,7 +57,7 @@ public class JwtProviderTest {
     @Test
     void null_토큰은_검증에_실패한다() {
         // given
-        String nullToken = null;
+        String nullToken = TokenTestFixture.NULL_TOKEN;
 
         // when
         boolean result = jwtProvider.validateToken(nullToken);
@@ -71,13 +72,13 @@ public class JwtProviderTest {
         Long expirationMs = jwtProvider.getAccessTokenExpirationMs();
 
         // then
-        assertThat(expirationMs).isEqualTo(3600000L);
+        assertThat(expirationMs).isEqualTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION);
     }
 
     @Test
     void 리프레시_토큰을_생성하고_검증할_수_있다() {
         // given
-        String email = "test@test.com";
+        String email = TokenTestFixture.getTestEmail();
 
         // when
         String refreshToken = jwtProvider.generateRefreshToken(email);
@@ -92,7 +93,7 @@ public class JwtProviderTest {
     @Test
     void 액세스_토큰과_리프레시_토큰은_서로_다른_토큰이다() {
         // given
-        String email = "test@test.com";
+        String email = TokenTestFixture.getTestEmail();
 
         // when
         String accessToken = jwtProvider.generateAccessToken(email);
@@ -112,6 +113,6 @@ public class JwtProviderTest {
 
         // then
         assertThat(accessExpirationMs).isLessThan(refreshExpirationMs);
-        assertThat(refreshExpirationMs).isEqualTo(1209600000L);
+        assertThat(refreshExpirationMs).isEqualTo(TokenTestFixture.REFRESH_TOKEN_EXPIRATION);
     }
 }

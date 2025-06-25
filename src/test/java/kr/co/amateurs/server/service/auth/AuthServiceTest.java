@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.service.auth;
 
-import fixture.common.UserTestFixture;
+import kr.co.amateurs.server.fixture.auth.TokenTestFixture;
+import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -150,7 +151,7 @@ public class AuthServiceTest {
                 .email(UserTestFixture.generateUniqueEmail())
                 .nickname(UserTestFixture.generateUniqueNickname())
                 .name("김테스트")
-                .password("password123")
+                .password(TokenTestFixture.getTestPassword())
                 .topics(tooManyTopics)
                 .build();
 
@@ -182,16 +183,16 @@ public class AuthServiceTest {
 
         // then
         assertThat(response.accessToken()).isNotNull();
-        assertThat(response.tokenType()).isEqualTo("Bearer");
-        assertThat(response.expiresIn()).isEqualTo(3600000L);
+        assertThat(response.tokenType()).isEqualTo(TokenTestFixture.TOKEN_TYPE);
+        assertThat(response.expiresIn()).isEqualTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION);
     }
 
     @Test
     void 존재하지_않는_이메일로_로그인_시_예외가_발생한다() {
         // given
         LoginRequestDto request = LoginRequestDto.builder()
-                .email("notfound@test.com")
-                .password("password123")
+                .email(TokenTestFixture.getNonExistentEmail())
+                .password(TokenTestFixture.getTestPassword())
                 .build();
 
         // when & then
@@ -207,7 +208,7 @@ public class AuthServiceTest {
 
         LoginRequestDto wrongPasswordRequest = LoginRequestDto.builder()
                 .email(signupRequest.email())
-                .password("wrongpassword")
+                .password(TokenTestFixture.getWrongPassword())
                 .build();
 
         // when & then
@@ -232,7 +233,7 @@ public class AuthServiceTest {
         // then
         assertThat(response.accessToken()).isNotNull();
         assertThat(response.refreshToken()).isNotNull();
-        assertThat(response.tokenType()).isEqualTo("Bearer");
-        assertThat(response.expiresIn()).isEqualTo(3600000L);
+        assertThat(response.tokenType()).isEqualTo(TokenTestFixture.TOKEN_TYPE);
+        assertThat(response.expiresIn()).isEqualTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION);
     }
 }

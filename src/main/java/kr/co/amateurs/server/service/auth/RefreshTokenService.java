@@ -5,9 +5,10 @@ import kr.co.amateurs.server.domain.entity.auth.RefreshToken;
 import kr.co.amateurs.server.repository.auth.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Optional;
 
 @Service
@@ -32,7 +33,7 @@ public class RefreshTokenService {
 
     public Optional<RefreshToken> findByEmail(String email) {
         validateEmail(email);
-        return refreshTokenRepository.findByEmail(email);
+        return refreshTokenRepository.findById(email);
     }
 
     public void deleteByEmail(String email) {
@@ -48,18 +49,8 @@ public class RefreshTokenService {
     private String hashToken(String token) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(token.getBytes());
-            StringBuilder hexString = new StringBuilder();
-
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
-            }
-
-            return hexString.toString();
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
         } catch (NoSuchAlgorithmException e) {
             throw ErrorCode.HASH_ALGORITHM_NOT_FOUND.get();
         }
