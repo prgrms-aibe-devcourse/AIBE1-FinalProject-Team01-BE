@@ -1,7 +1,10 @@
 package kr.co.amateurs.server.service.directmessage;
 
+import kr.co.amateurs.server.annotation.alarmtrigger.AlarmTrigger;
+import kr.co.amateurs.server.annotation.alarmtrigger.extractors.AlarmReceiver;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.directmessage.*;
+import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessage;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessageRoom;
 import kr.co.amateurs.server.domain.entity.directmessage.Participant;
@@ -21,6 +24,7 @@ public class DirectMessageService {
     private final DirectMessageRepository directMessageRepository;
     private final DirectMessageRoomRepository directMessageRoomRepository;
 
+    @AlarmTrigger(type = AlarmType.DIRECT_MESSAGE,receiver = AlarmReceiver.DM_RECEIVER)
     public DirectMessageResponse saveMessage(String roomId, DirectMessageRequest request) {
         DirectMessageRoom room = validateRoomAccess(roomId, request.senderId());
 
