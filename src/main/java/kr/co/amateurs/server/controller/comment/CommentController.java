@@ -52,6 +52,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
     }
 
+    @BoardAccess(isComment = true, checkAuthor = true, hasPostId = true, operation = Operation.WRITE)
     @PutMapping("/{postId}/comments/{commentId}")
     public ResponseEntity<Void> updateComment(
             @PathVariable Long postId,
@@ -62,6 +63,7 @@ public class CommentController {
         return ResponseEntity.noContent().build();
     }
 
+    @BoardAccess(isComment = true, checkAuthor = true, hasPostId = true, operation = Operation.WRITE)
     @DeleteMapping("/{postId}/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
         @PathVariable Long postId,

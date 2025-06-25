@@ -9,7 +9,8 @@ public record CommunityResponseDTO(
         Long postId,
         String title,
         String content,
-        String authorName,
+        String nickname,
+        String profileImageUrl,
         BoardType boardType,
         Integer viewCount,
         Integer likeCount,
@@ -17,26 +18,27 @@ public record CommunityResponseDTO(
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         String tags,
-        String thumbnailImage,
         boolean hasImages,
-        boolean hasLiked
+        boolean hasLiked,
+        boolean hasBookmarked
 ) {
-    public static CommunityResponseDTO from(Post post, int commentCount, String thumbnailImage, boolean hasImages, boolean hasLiked) {
+    public static CommunityResponseDTO from(Post post, boolean hasLiked, boolean hasBookmarked) {
         return new CommunityResponseDTO(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getUser().getNickname(),
+                post.getUser().getImageUrl(),
                 post.getBoardType(),
                 post.getViewCount(),
                 post.getLikeCount(),
-                commentCount,
+                post.getComments().size(),
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
                 post.getTags(),
-                thumbnailImage,
-                hasImages,
-                hasLiked
+                post.getPostImages() != null && !post.getPostImages().isEmpty(),
+                hasLiked,
+                hasBookmarked
         );
     }
 }
