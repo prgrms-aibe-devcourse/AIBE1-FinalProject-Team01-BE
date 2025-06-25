@@ -42,7 +42,7 @@ public class CommunityPostService {
             communityPage = postRepository.findByBoardType(boardType, pageable);
         }
 
-        return communityPage.map(post -> convertToResponseDTO(post, false, false));
+        return communityPage.map(post -> CommunityResponseDTO.from(post, false, false));
     }
 
     public CommunityResponseDTO getPost(Long postId) {
@@ -57,7 +57,7 @@ public class CommunityPostService {
             hasLiked = checkHasLiked(postId, user);
         }
 
-        return convertToResponseDTO(post, hasLiked, hasBookmarked);
+        return CommunityResponseDTO.from(post, hasLiked, hasBookmarked);
     }
 
     @Transactional
@@ -68,7 +68,7 @@ public class CommunityPostService {
 
         postRepository.save(post);
 
-        return convertToResponseDTO(post, false, false);
+        return CommunityResponseDTO.from(post, false, false);
     }
 
     @Transactional
@@ -121,10 +121,4 @@ public class CommunityPostService {
 
         return PageRequest.of(page, pageSize, sort);
     }
-
-    private CommunityResponseDTO convertToResponseDTO(Post post, boolean hasLiked, boolean hasBookmarked) {
-        return CommunityResponseDTO.from(post, hasLiked, hasBookmarked);
-    }
-
-
 }
