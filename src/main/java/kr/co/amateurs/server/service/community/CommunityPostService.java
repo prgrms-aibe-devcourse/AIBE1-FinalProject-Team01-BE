@@ -124,6 +124,4 @@ public class CommunityPostService {
 
         return CommunityResponseDTO.from(post, commentCount, thumbnailImage, hasImages, hasLiked);
     }
-
-
 }
