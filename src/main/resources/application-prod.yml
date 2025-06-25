@@ -47,9 +47,9 @@ spring:
         url: ${QDRANT_URL}
         api-key: ${QDRANT_API_KEY}
         collection-name: ${QDRANT_COLLECTION_NAME}
-  gemini:
-    key: ${GEMINI_API_KEY}
-    model: ${GEMINI_MODEL}
+gemini:
+  key: ${GEMINI_API_KEY}
+  model: ${GEMINI_MODEL}
 
 jwt:
   secret: ${JWT_SECRET}
