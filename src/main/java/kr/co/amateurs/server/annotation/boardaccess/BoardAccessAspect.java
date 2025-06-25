@@ -23,7 +23,6 @@ import java.lang.reflect.Parameter;
 
 
 import java.lang.reflect.Method;
-import java.util.Objects;
 
 @Slf4j
 @Aspect
@@ -93,14 +92,14 @@ public class BoardAccessAspect {
 
     private void validateCommentAuthor(JoinPoint joinPoint, User user) {
         Comment comment = findCommentById(joinPoint);
-        if (!Objects.equals(comment.getUser().getId(), user.getId())) {
+        if (!comment.getUser().getId().equals(user.getId())) {
             throw ErrorCode.ACCESS_DENIED.get();
         }
     }
 
     private void validatePostAuthor(JoinPoint joinPoint, User user) {
         Post post = findPostById(joinPoint);
-        if (!Objects.equals(post.getUser().getId(), user.getId())) {
+        if (!post.getUser().getId().equals(user.getId())) {
             throw ErrorCode.ACCESS_DENIED.get();
         }
     }
