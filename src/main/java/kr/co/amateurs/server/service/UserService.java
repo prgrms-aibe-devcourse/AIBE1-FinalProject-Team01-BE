@@ -2,6 +2,7 @@ package kr.co.amateurs.server.service;
 
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.user.UserProfileResponseDto;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -75,5 +76,12 @@ public class UserService {
         if (nickname.length() < 2 || nickname.length() > 20) {
             throw ErrorCode.INVALID_NICKNAME_LENGTH.get();
         }
+    }
+
+    public UserProfileResponseDto getCurrentUserProfile() {
+        User currentUser = getCurrentUser()
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        return UserProfileResponseDto.from(currentUser);
     }
 }
