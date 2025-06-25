@@ -315,4 +315,83 @@ public class AuthControllerTest {
                 .body("tokenType", equalTo("Bearer"))
                 .body("expiresIn", equalTo(3600000));
     }
+
+    @Test
+    void 사용_가능한_이메일_확인_시_true를_반환한다() {
+        // given
+        String availableEmail = UserTestFixture.generateUniqueEmail();
+
+        // when & then
+        RestAssured.given()
+                .param("email", availableEmail)
+                .when()
+                .get("/api/v1/auth/check/email")
+                .then()
+                .statusCode(200)
+                .body("available", equalTo(true))
+                .body("message", equalTo("사용 가능한 이메일입니다"));
+    }
+
+    @Test
+    void 이미_사용중인_이메일_확인_시_false를_반환한다() {
+        // given
+        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/api/v1/auth/signup")
+                .then()
+                .statusCode(201);
+
+        // when & then
+        RestAssured.given()
+                .param("email", signupRequest.email())
+                .when()
+                .get("/api/v1/auth/check/email")
+                .then()
+                .statusCode(200)
+                .body("available", equalTo(false))
+                .body("message", equalTo("이미 사용중인 이메일입니다"));
+    }
+
+    @Test
+    void 사용_가능한_닉네임_확인_시_true를_반환한다() {
+        // given
+        String availableNickname = UserTestFixture.generateUniqueNickname();
+
+        // when & then
+        RestAssured.given()
+                .param("nickname", availableNickname)
+                .when()
+                .get("/api/v1/auth/check/nickname")
+                .then()
+                .statusCode(200)
+                .body("available", equalTo(true))
+                .body("message", equalTo("사용 가능한 닉네임입니다"));
+    }
+
+    @Test
+    void 이미_사용중인_닉네임_확인_시_false를_반환한다() {
+        // given
+        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/api/v1/auth/signup")
+                .then()
+                .statusCode(201);
+
+        // when & then
+        RestAssured.given()
+                .param("nickname", signupRequest.nickname())
+                .when()
+                .get("/api/v1/auth/check/nickname")
+                .then()
+                .statusCode(200)
+                .body("available", equalTo(false))
+                .body("message", equalTo("이미 사용중인 닉네임입니다"));
+
+    }
 }
