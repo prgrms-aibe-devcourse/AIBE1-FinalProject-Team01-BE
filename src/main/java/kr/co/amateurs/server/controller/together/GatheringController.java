@@ -1,26 +1,25 @@
 package kr.co.amateurs.server.controller.together;
 
 
-import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
-import kr.co.amateurs.server.domain.dto.common.PageInfo;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
-import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
+import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.Operation;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.together.GatheringService;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 
 
 @RestController
@@ -33,17 +32,25 @@ public class GatheringController {
     @BoardAccess(hasBoardType = false, boardType = BoardType.GATHER)
     @GetMapping
     public ResponseEntity<PageResponseDTO<GatheringPostResponseDTO>> getGatheringPostList(
-            @RequestParam(required = false) String keyword,
-            @ModelAttribute @Valid PaginationParam paginationParam
-            ){
-        PageResponseDTO<GatheringPostResponseDTO> gatheringList = gatheringService.getGatheringPostList(keyword, paginationParam);
+            @ParameterObject @Valid TogetherPaginationParam paginationParam
+    ) {
+        PageResponseDTO<GatheringPostResponseDTO> gatheringList = gatheringService.getGatheringPostList(paginationParam);
         return ResponseEntity.ok(gatheringList);
+    }
+
+    @BoardAccess(hasBoardType = false, boardType = BoardType.GATHER)
+    @GetMapping("test")
+    public ResponseEntity<Page<Post>> getPostList(
+            @ParameterObject @Valid TogetherPaginationParam paginationParam
+    ) {
+        Page<Post> posts = gatheringService.getPosts(paginationParam);
+        return ResponseEntity.ok(posts);
     }
 
     @BoardAccess(hasPostId = true)
     @GetMapping("/{postId}")
     public ResponseEntity<GatheringPostResponseDTO> getGatheringPost(
-            @PathVariable("postId") @NotNull Long postId){
+            @PathVariable("postId") @NotNull Long postId) {
         GatheringPostResponseDTO gatherPost = gatheringService.getGatheringPost(postId);
         return ResponseEntity.ok(gatherPost);
     }
@@ -52,7 +59,7 @@ public class GatheringController {
     @PostMapping
     public ResponseEntity<GatheringPostResponseDTO> createGatheringPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,
-            @RequestBody @Valid GatheringPostRequestDTO dto){
+            @RequestBody @Valid GatheringPostRequestDTO dto) {
         GatheringPostResponseDTO post = gatheringService.createGatheringPost(currentUser, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
@@ -62,7 +69,7 @@ public class GatheringController {
     public ResponseEntity<Void> updateGatheringPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,
             @PathVariable("postId") Long postId,
-            @RequestBody GatheringPostRequestDTO dto){
+            @RequestBody GatheringPostRequestDTO dto) {
         gatheringService.updateGatheringPost(currentUser, postId, dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
@@ -72,7 +79,7 @@ public class GatheringController {
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deleteGatheringPost(
             @AuthenticationPrincipal CustomUserDetails currentUser,
-            @PathVariable("postId") Long postId){
+            @PathVariable("postId") Long postId) {
         gatheringService.deleteGatheringPost(currentUser, postId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

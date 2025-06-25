@@ -11,6 +11,22 @@ import org.springframework.data.repository.query.Param;
 public interface GatheringRepository extends JpaRepository<GatheringPost, Long> {
     // TODO - 쿼리에 아래 코드 추가 시 검색어가 태그에도 포함되는 지 확인 가능
     // or p.tags    like concat('%', :keyword, '%')
+
+    @Query("""
+        select g
+        from GatheringPost g
+        join fetch g.post p
+        where (:keyword is null
+               or :keyword = ''
+               or p.title   like concat('%', :keyword, '%')
+               or p.content like concat('%', :keyword, '%')
+             )
+    """)
+    Page<GatheringPost> findByKeyword(
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
     @Query("""
         select g
         from GatheringPost g

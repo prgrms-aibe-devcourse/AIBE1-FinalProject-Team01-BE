@@ -5,26 +5,20 @@ import jakarta.transaction.Transactional;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
-import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
-import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
-import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
@@ -37,17 +31,17 @@ public class GatheringService {
     private final GatheringRepository gatheringRepository;
     private final PostRepository postRepository;
 
-    public PageResponseDTO<GatheringPostResponseDTO> getGatheringPostList(String keyword, PaginationParam paginationParam) {
-        Pageable pageable = paginationParam.toPageable();
-        Page<GatheringPost> gpPage = switch (paginationParam.getField()) {
-            case LATEST -> gatheringRepository.findAllByKeyword(keyword, pageable);
-            case POPULAR -> gatheringRepository.findAllByKeywordOrderByLikeCountDesc(keyword, pageable);
-            case MOST_VIEW -> gatheringRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
-            default -> gatheringRepository.findAllByKeyword(keyword, pageable);
-        };
+    public PageResponseDTO<GatheringPostResponseDTO> getGatheringPostList(TogetherPaginationParam paginationParam) {
+//        Pageable pageable = paginationParam.toPageable();
+        Page<GatheringPost> gpPage = gatheringRepository.findByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
+//                switch (paginationParam.getField()) {
+//            case LATEST -> gatheringRepository.findAllByKeyword(keyword, pageable);
+//            case POPULAR -> gatheringRepository.findAllByKeywordOrderByLikeCountDesc(keyword, pageable);
+//            case MOST_VIEW -> gatheringRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
+//            default -> gatheringRepository.findAllByKeyword(keyword, pageable);
+//        };
         return convertPageToDTO(convertToDTO(gpPage));
     }
-
 
     public GatheringPostResponseDTO getGatheringPost(Long id) {
         GatheringPost gp = gatheringRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Post not found: " + id));
