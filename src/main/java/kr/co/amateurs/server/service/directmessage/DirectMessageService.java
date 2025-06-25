@@ -39,6 +39,11 @@ public class DirectMessageService {
         return DirectMessageRoomResponse.fromCollection(room, currentUserId);
     }
 
+    public DirectMessageRoom findRoomById(String roomId) {
+        return directMessageRoomRepository.findById(roomId)
+                .orElseThrow(ErrorCode.NOT_FOUND_ROOM);
+    }
+
     public List<DirectMessageRoomResponse> getRooms(Long userId) {
         List<DirectMessageRoom> rooms = directMessageRoomRepository.findActiveRoomsByUserId(userId);
         return rooms.stream()
