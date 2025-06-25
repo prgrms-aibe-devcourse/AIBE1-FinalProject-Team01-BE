@@ -395,4 +395,64 @@ public class AuthControllerTest {
                 .body("message", equalTo("이미 사용중인 닉네임입니다"));
 
     }
+
+    @Test
+    void 빈_이메일로_중복_확인_시_400_에러가_발생해야_한다() {
+        // given
+        String emptyEmail = "";
+
+        // when & then
+        RestAssured.given()
+                .param("email", emptyEmail)
+                .when()
+                .get("/api/v1/auth/check/email")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("이메일은 필수입니다."));
+    }
+
+    @Test
+    void 잘못된_이메일_형식으로_중복_확인_시_400_에러가_발생해야_한다() {
+        // given
+        String invalidEmail = "invalid-email";
+
+        // when & then
+        RestAssured.given()
+                .param("email", invalidEmail)
+                .when()
+                .get("/api/v1/auth/check/email")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("올바른 이메일 형식이 아닙니다."));
+    }
+
+    @Test
+    void 빈_닉네임으로_중복_확인_시_400_에러가_발생해야_한다() {
+        // given
+        String emptyNickname = "";
+
+        // when & then
+        RestAssured.given()
+                .param("nickname", emptyNickname)
+                .when()
+                .get("/api/v1/auth/check/nickname")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("닉네임은 필수입니다."));
+    }
+
+    @Test
+    void 긴_닉네임으로_중복_확인_시_400_에러가_발생해야_한다() {
+        // given
+        String longNickname = "a".repeat(21);
+
+        // when & then
+        RestAssured.given()
+                .param("nickname", longNickname)
+                .when()
+                .get("/api/v1/auth/check/nickname")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("닉네임은 2자 이상 20자 이하여야 합니다."));
+    }
 }
