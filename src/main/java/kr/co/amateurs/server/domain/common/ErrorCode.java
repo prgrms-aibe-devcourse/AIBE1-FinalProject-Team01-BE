@@ -42,7 +42,14 @@ public enum ErrorCode implements Supplier<CustomException> {
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "이미지 파일 크기 제한을 초과하였습니다."),
 
     // POST
-    POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시글을 찾을 수 없습니다.");
+    POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시글을 찾을 수 없습니다."),
+
+    // AI 관련 에러
+    NOT_FOUND_AI_PROFILE(HttpStatus.NOT_FOUND, "AI 프로필을 찾을 수 없습니다."),
+    NOT_FOUND_USER_ACTIVITY(HttpStatus.NOT_FOUND, "사용자 활동을 찾을 수 없습니다."),
+    NOT_FOUND_USER_TOPICS(HttpStatus.NOT_FOUND, "사용자 토픽을 찾을 수 없습니다."),
+    ERROR_AI_PROFILE(HttpStatus.INTERNAL_SERVER_ERROR, "AI 프로필 생성 중 오류가 발생했습니다.");
+
 
 
     private final HttpStatus httpStatus;

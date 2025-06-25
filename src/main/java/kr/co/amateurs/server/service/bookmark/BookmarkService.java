@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.service.bookmark;
 
+import kr.co.amateurs.server.domain.dto.ai.PostContentData;
 import kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
@@ -20,6 +21,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
 
 import static kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO.*;
 
@@ -78,6 +82,16 @@ public class BookmarkService {
             }
             default -> convertToPostDTO(bookmark);
         };
+    }
+
+    public List<PostContentData> getBookmarkedPosts(Long userId) {
+        try {
+            List<Bookmark> bookmarks = bookmarkRepository.findTop3ByUserIdOrderByCreatedAtDesc(userId);
+            return bookmarks.stream().map(bookmark
+                    -> new PostContentData(bookmark.getPost().getId(), bookmark.getPost().getTitle(), bookmark.getPost().getContent(), "bookmark")).toList();
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 
 }

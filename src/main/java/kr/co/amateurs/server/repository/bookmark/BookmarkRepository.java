@@ -61,4 +61,6 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     Optional<Bookmark> findByPost_IdAndUser_Id(Long postId, Long id);
 
     boolean existsByUserIdAndUpdatedAtAfter(Long userId, LocalDateTime since);
+
+    List<Bookmark> findTop3ByUserIdOrderByCreatedAtDesc(Long userId);
 }
