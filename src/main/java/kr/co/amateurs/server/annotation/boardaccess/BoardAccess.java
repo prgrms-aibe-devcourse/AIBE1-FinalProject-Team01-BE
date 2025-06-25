@@ -55,6 +55,23 @@ public @interface BoardAccess {
     boolean hasPostId() default false;
 
     /**
+     * 댓글 인지 여부를 설정합니다.
+     * checkAuthor가 true일 때만 이 값이 필요합니다.
+     *
+     * @return 댓글 여부 (기본값: false)
+     */
+     boolean isComment() default false;
+
+    /**
+     * 작성자 본인인지 검증할지 여부를 설정합니다.
+     * true로 설정하면 현재 로그인한 사용자가 해당 게시글/댓글의 작성자인지 확인합니다.
+     * Update와 Delete 에서 사용하시면 됩니다.
+     *
+     * * @return 작성자 검증 필요 여부 (기본값: false)
+     */
+     boolean checkAuthor() default false;
+
+    /**
      * 수행하려는 작업 타입을 지정합니다.
      * READ, WRITE 등의 작업에 따라 다른 권한 정책이 적용됩니다.
      *

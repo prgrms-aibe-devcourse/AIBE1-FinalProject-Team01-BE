@@ -58,6 +58,7 @@ public class CommunityPostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
     @PutMapping("/{boardType}/{postId}")
     public ResponseEntity<Void> updatePost(
             @PathVariable BoardType boardType,
@@ -69,6 +70,7 @@ public class CommunityPostController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
     @DeleteMapping("/{boardType}/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable BoardType boardType,
