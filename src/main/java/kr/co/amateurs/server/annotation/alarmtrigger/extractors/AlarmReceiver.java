@@ -12,8 +12,7 @@ public enum AlarmReceiver {
      * 다이렉트 메시지의 수신자
      * DM을 받은 사용자에게 알람을 보낼 때 사용됩니다.
      */
-    DIRECT_MESSAGE_RECEIVER, 
-    
+    DM_RECEIVER,
     /**
      * 게시글의 작성자
      * 본인 게시글에 댓글이 달렸을 때 게시글 작성자에게 알람을 보낼 때 사용됩니다.

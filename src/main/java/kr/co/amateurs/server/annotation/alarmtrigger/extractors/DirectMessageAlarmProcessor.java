@@ -61,7 +61,7 @@ public class DirectMessageAlarmProcessor implements AlarmProcessor {
      */
     @Override
     public AlarmReceiver getReceiver() {
-        return AlarmReceiver.DIRECT_MESSAGE_RECEIVER;
+        return AlarmReceiver.DM_RECEIVER;
     }
 
     /**
