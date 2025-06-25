@@ -34,6 +34,18 @@ jwt:
   access-token-expiration-ms: 3600000
   refresh-token-expiration-ms: 1209600000
 
+cloud:
+  aws:
+    credentials:
+      access-key: testAccessKey
+      secret_key: testSecretKey
+    region:
+      static: test-region
+    s3:
+      bucket: test-bucket-name
+    cloudfront:
+      domain: testdomain.net
+
 de:
   flapdoodle:
     mongodb:

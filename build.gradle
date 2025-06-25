@@ -63,6 +63,9 @@ dependencies {
 	testImplementation 'io.rest-assured:rest-assured:5.5.5'
 	testImplementation 'io.rest-assured:json-path:5.3.2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	// aws S3 이미지 업로드 관련 의존성
+	implementation 'software.amazon.awssdk:s3:2.31.68'
+	implementation 'software.amazon.awssdk:auth:2.31.68'
 }
 
 tasks.named('test') {
