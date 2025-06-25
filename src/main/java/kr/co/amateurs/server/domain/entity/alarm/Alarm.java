@@ -31,8 +31,4 @@ public class Alarm {
 
     @Builder.Default
     private LocalDateTime sentAt = LocalDateTime.now();
-
-    public void markAsRead() {
-        this.isRead = true;
-    }
 }
