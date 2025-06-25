@@ -1,6 +1,6 @@
 package kr.co.amateurs.server.annotation.alarmtrigger;
 
-import kr.co.amateurs.server.annotation.alarmtrigger.extractors.AlarmProcesser;
+import kr.co.amateurs.server.annotation.alarmtrigger.extractors.AlarmProcessor;
 import kr.co.amateurs.server.annotation.alarmtrigger.extractors.AlarmProcessorRegistry;
 import kr.co.amateurs.server.domain.entity.alarm.Alarm;
 import kr.co.amateurs.server.repository.alarm.AlarmRepository;
@@ -23,16 +23,16 @@ public class AlarmAspect {
     @AfterReturning(pointcut = "@annotation(alarmTrigger)", returning = "result")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleAlarm(JoinPoint joinPoint, AlarmTrigger alarmTrigger, Object result) {
-        AlarmProcesser processer = alarmProcessorRegistry.getExtractor(alarmTrigger.receiver());
-        long userId = processer.extractTargetUserId(joinPoint, result);
-        String content = processer.buildContent(result);
+        AlarmProcessor processor = alarmProcessorRegistry.getProcessor(alarmTrigger.receiver());
+        long userId = processor.extractTargetUserId(joinPoint, result);
+        String content = processor.buildContent(result);
 
         Alarm alarm = Alarm.builder()
                 .userId(userId)
                 .type(alarmTrigger.type())
                 .title(alarmTrigger.type().getTitle())
                 .content(content)
-                .metaData(processer.buildMetaData(result))
+                .metaData(processor.buildMetaData(result))
                 .build();
 
         alarmRepository.save(alarm);

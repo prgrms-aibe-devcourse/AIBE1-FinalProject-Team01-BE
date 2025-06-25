@@ -6,6 +6,7 @@ import kr.co.amateurs.server.domain.entity.alarm.metadata.AlarmMetaData;
 import kr.co.amateurs.server.domain.entity.alarm.metadata.DirectMessageMetaData;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessageRoom;
 import kr.co.amateurs.server.domain.entity.directmessage.Participant;
+import kr.co.amateurs.server.domain.entity.directmessage.enums.MessageType;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.service.directmessage.DirectMessageService;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class DirectMessageAlarmProcessor implements AlarmProcesser {
+public class DirectMessageAlarmProcessor implements AlarmProcessor {
 
     private final DirectMessageService directMessageService;
 

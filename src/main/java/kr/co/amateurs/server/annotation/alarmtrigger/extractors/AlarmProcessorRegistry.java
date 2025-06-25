@@ -12,18 +12,18 @@ import java.util.stream.Collectors;
 @Component
 public class AlarmProcessorRegistry {
 
-    private final Map<AlarmReceiver, AlarmProcesser> extractorMap;
+    private final Map<AlarmReceiver, AlarmProcessor> processorMap;
 
-    public AlarmProcessorRegistry(List<AlarmProcesser> extractors) {
-        this.extractorMap = extractors.stream()
+    public AlarmProcessorRegistry(List<AlarmProcessor> processors) {
+        this.processorMap = processors.stream()
                 .collect(Collectors.toUnmodifiableMap(
-                        AlarmProcesser::getReceiver,
+                        AlarmProcessor::getReceiver,
                         Function.identity()
                 ));
     }
 
-    public AlarmProcesser getExtractor(AlarmReceiver receiver) {
-        return Optional.ofNullable(extractorMap.get(receiver))
+    public AlarmProcessor getProcessor(AlarmReceiver receiver) {
+        return Optional.ofNullable(processorMap.get(receiver))
                 .orElseThrow(ErrorCode.ILLEGAL_ALARM_EXTRACTOR);
     }
 }

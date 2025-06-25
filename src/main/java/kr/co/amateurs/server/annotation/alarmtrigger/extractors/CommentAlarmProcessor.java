@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class CommentAlarmProcessor implements AlarmProcesser {
+public class CommentAlarmProcessor implements AlarmProcessor {
 
     private final CommunityPostService postService;
 
