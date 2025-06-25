@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
@@ -55,4 +56,6 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     @Modifying
     @Query("DELETE FROM Bookmark b WHERE b.post.id = :postId AND b.user.id = :userId")
     int deleteByUserAndPost(@Param("userId") Long userId, @Param("postId") Long postId);
+
+    boolean existsByUserIdAndUpdatedAtAfter(Long userId, LocalDateTime since);
 }
