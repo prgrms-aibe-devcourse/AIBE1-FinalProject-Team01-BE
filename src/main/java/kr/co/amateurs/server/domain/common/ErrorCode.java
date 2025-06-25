@@ -30,6 +30,7 @@ public enum ErrorCode implements Supplier<CustomException> {
     // POST
     POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시글을 찾을 수 없습니다.");
 
+
     private final HttpStatus httpStatus;
     private final String message;
 

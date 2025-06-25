@@ -16,6 +16,14 @@ spring:
     console:
       enabled: true
 
+  ai:
+    openai:
+      api-key: sk-test-dummy12345678901234567890123456789012345678 # dummy key for testing
+    vectorstore:
+      qdrant:
+        url: http://localhost:6333
+        collection-name: test-collection
+
   data:
     mongodb:
       database: embedded_test

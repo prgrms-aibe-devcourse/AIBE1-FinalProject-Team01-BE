@@ -5,12 +5,12 @@ import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
-import kr.co.amateurs.server.domain.dto.community.CommunityPageDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
-import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
+import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
-import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -20,20 +20,19 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CommunityPostService {
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final BookmarkRepository bookmarkRepository;
+    private final LikeRepository likeRepository;
 
-    // TODO CustomException 변경
+    private final UserService userService;
 
-    public CommunityPageDTO searchPosts(String keyword, int page, BoardType boardType, SortType sortType, int pageSize) {
+    public Page<CommunityResponseDTO> searchPosts(String keyword, int page, BoardType boardType, SortType sortType, int pageSize) {
         Pageable pageable = createPageable(page, sortType, pageSize);
 
         Page<Post> communityPage;
@@ -43,48 +42,40 @@ public class CommunityPostService {
             communityPage = postRepository.findByBoardType(boardType, pageable);
         }
 
-        List<CommunityResponseDTO> communityList = communityPage.getContent().stream()
-                .map((Post post) -> convertToResponseDTO(post, false))
-                .collect(Collectors.toList());
-
-        return new CommunityPageDTO(
-                communityList,
-                page,
-                pageSize,
-                communityPage.getTotalPages()
-        );
+        return communityPage.map(post -> CommunityResponseDTO.from(post, false, false));
     }
 
-    public CommunityResponseDTO getPost(BoardType boardType, Long postId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+    public CommunityResponseDTO getPost(Long postId) {
+        User user = userService.getCurrentUser().orElse(null);
 
-        // TODO 좋아요 확인 로직 필요 << 로그인 기능 이후 구현 예정
+        Post post = postRepository.findById(postId).orElseThrow(ErrorCode.POST_NOT_FOUND);
+
+        boolean hasBookmarked = false;
         boolean hasLiked = false;
+        if (user != null) {
+            hasBookmarked = checkHasBookmarked(postId, user);
+            hasLiked = checkHasLiked(postId, user);
+        }
 
-        return convertToResponseDTO(post, hasLiked);
+        return CommunityResponseDTO.from(post, hasLiked, hasBookmarked);
     }
 
     @Transactional
     public CommunityResponseDTO createPost(CommunityRequestDTO requestDTO, BoardType boardType) {
-        // TODO 유저 불러오기
-        Optional<User> user = Optional.ofNullable(userRepository.findByNickname("testUser").orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND)));
+        User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
 
-        Post post = Post.from(requestDTO, user.get(), boardType);
+        Post post = Post.from(requestDTO, user, boardType);
 
         postRepository.save(post);
 
-        return convertToResponseDTO(post, false);
+        return CommunityResponseDTO.from(post, false, false);
     }
 
     @Transactional
     public void updatePost(CommunityRequestDTO requestDTO, Long postId) {
-        Post post = postRepository.findById(postId).orElseThrow(()-> new CustomException(ErrorCode.NOT_FOUND));
+        Post post = postRepository.findById(postId).orElseThrow(ErrorCode.POST_NOT_FOUND);
 
-        // TODO 유저 검증 로직
-        User user = null;
-        if (post.getUser().getId() != user.getId()) {
-            throw new CustomException(ErrorCode.NOT_FOUND);
-        }
+        validatePost(post);
 
         post.update(requestDTO);
 
@@ -93,14 +84,32 @@ public class CommunityPostService {
 
     @Transactional
     public void deletePost(Long postId) {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        Post post = postRepository.findById(postId).orElseThrow(ErrorCode.POST_NOT_FOUND);
 
-        // TODO 유저 검증 로직
-        User user = null;
-
+        validatePost(post);
 
         // TODO soft delete 구현 시 변경 >> deletedAT??
         postRepository.delete(post);
+    }
+
+    private boolean checkHasLiked(Long postId, User user) {
+        return likeRepository
+                .findByPost_IdAndUser_Id(postId, user.getId())
+                .isPresent();
+    }
+
+    private boolean checkHasBookmarked(Long postId, User user) {
+        return bookmarkRepository
+                .findByPost_IdAndUser_Id(postId, user.getId())
+                .isPresent();
+    }
+
+    private void validatePost(Post post) {
+        User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        if (!Objects.equals(post.getUser().getId(), user.getId())) {
+            throw ErrorCode.ACCESS_DENIED.get();
+        }
     }
 
     private Pageable createPageable(int page, SortType sortType, int pageSize) {
@@ -111,17 +120,5 @@ public class CommunityPostService {
         };
 
         return PageRequest.of(page, pageSize, sort);
-    }
-
-    private CommunityResponseDTO convertToResponseDTO(Post post, boolean hasLiked) {
-        String thumbnailImage = null;
-        boolean hasImages = post.getPostImages() != null && !post.getPostImages().isEmpty();
-        if (hasImages) {
-            thumbnailImage = post.getPostImages().get(0).getImageUrl();
-        }
-
-        int commentCount = post.getComments().size();
-
-        return CommunityResponseDTO.from(post, commentCount, thumbnailImage, hasImages, hasLiked);
     }
 }
