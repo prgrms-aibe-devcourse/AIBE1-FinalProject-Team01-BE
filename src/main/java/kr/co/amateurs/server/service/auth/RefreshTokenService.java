@@ -33,7 +33,7 @@ public class RefreshTokenService {
 
     public Optional<RefreshToken> findByEmail(String email) {
         validateEmail(email);
-        return refreshTokenRepository.findByEmail(email);
+        return refreshTokenRepository.findById(email);
     }
 
     public void deleteByEmail(String email) {
