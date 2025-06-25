@@ -34,10 +34,12 @@ public class Alarm {
     }
 
     static class CommentMeta implements AlarmMeta {
+        private Long postId;
         private Long commentId;
     }
 
     static class DirectMessageMeta implements AlarmMeta {
+        private Long roomId;
         private Long messageId;
     }
 }
