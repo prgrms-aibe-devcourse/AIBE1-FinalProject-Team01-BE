@@ -5,6 +5,9 @@ import kr.co.amateurs.server.domain.dto.ai.AiProfileRequest;
 import kr.co.amateurs.server.domain.dto.ai.AiProfileResponse;
 import kr.co.amateurs.server.domain.dto.ai.PostContentData;
 import kr.co.amateurs.server.domain.dto.ai.PostSummaryData;
+import kr.co.amateurs.server.domain.entity.ai.AiProfile;
+import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.repository.ai.AiProfileRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import kr.co.amateurs.server.service.like.LikeService;
@@ -12,20 +15,21 @@ import kr.co.amateurs.server.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class UserDataCollectService {
+public class AiProfileService {
 
     private final BookmarkService bookmarkService;
     private final PostService postService;
     private final LikeService likeService;
     private final UserService userService;
     private final AiLlmService aiLlmService;
-
+    private final AiProfileRepository aiProfileRepository;
 
     private String collectUserTopics(Long userId) {
         return userService.getUserTopics(userId);
@@ -35,7 +39,8 @@ public class UserDataCollectService {
         return userService.getDevcourseName(userId);
     }
 
-    public AiProfileResponse generateCompleteUserProfile(Long userId) {
+    @Transactional
+    public AiProfile generateCompleteUserProfile(Long userId) {
         try {
             log.info("사용자 AI 프로필 생성 시작: userId={}", userId);
 
@@ -50,8 +55,19 @@ public class UserDataCollectService {
             AiProfileRequest request = new AiProfileRequest(userTopics, devcourseName, summaries);
             AiProfileResponse profile = aiLlmService.generateFinalProfile(request);
 
+            User user = userService.findById(userId);
+            aiProfileRepository.findByUserId(userId).ifPresent(aiProfileRepository::delete);
+
+            AiProfile savedProfile = AiProfile.builder()
+                    .user(user)
+                    .personaDescription(profile.personaDescription())
+                    .interestKeywords(profile.interestKeywords())
+                    .build();
+
+            AiProfile result = aiProfileRepository.save(savedProfile);
+
             log.info("사용자 AI 프로필 생성 완료: userId={}", userId);
-            return profile;
+            return result;
 
         } catch (Exception e) {
             log.error("사용자 AI 프로필 생성 실패: userId={}", userId, e);
