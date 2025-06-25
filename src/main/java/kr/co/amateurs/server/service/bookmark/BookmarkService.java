@@ -88,7 +88,7 @@ public class BookmarkService {
         try {
             List<Bookmark> bookmarks = bookmarkRepository.findTop3ByUserIdOrderByCreatedAtDesc(userId);
             return bookmarks.stream().map(bookmark
-                    -> new PostContentData(bookmark.getPost().getId(), bookmark.getPost().getTitle(), bookmark.getPost().getContent(), "bookmark")).toList();
+                    -> new PostContentData(bookmark.getPost().getId(), bookmark.getPost().getTitle(), bookmark.getPost().getContent(), "북마크")).toList();
         } catch (Exception e) {
             return Collections.emptyList();
         }

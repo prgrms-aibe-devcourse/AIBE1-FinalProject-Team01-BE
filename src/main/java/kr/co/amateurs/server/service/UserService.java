@@ -3,6 +3,7 @@ package kr.co.amateurs.server.service;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -53,7 +55,9 @@ public class UserService {
     }
 
     public String getUserTopics(Long userId) {
-        List<String> topics = userRepository.findTopicDisplayNamesByUserId(userId);
-        return String.join(", ", topics);
+        List<Topic> topics = userRepository.findTopicDisplayNamesByUserId(userId);
+        return topics.stream()
+                .map(Topic::getDisplayName)
+                .collect(Collectors.joining(", "));
     }
 }

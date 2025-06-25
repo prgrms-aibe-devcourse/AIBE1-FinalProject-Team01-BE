@@ -51,6 +51,7 @@ dependencies {
 	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
 	implementation 'org.springframework.ai:spring-ai-starter-vector-store-qdrant'
 	implementation 'org.springframework.ai:spring-ai-starter-model-vertex-ai-gemini'
+	implementation 'com.google.genai:google-genai:1.5.0'
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'

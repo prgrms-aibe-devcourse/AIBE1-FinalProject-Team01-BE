@@ -62,7 +62,7 @@ public class LikeService {
         try {
             List<Like> likes = likeRepository.findTop3ByUserIdAndPostIsNotNullOrderByCreatedAtDesc(userId);
             return likes.stream().map(like ->
-                    new PostContentData(like.getPost().getId(), like.getPost().getTitle(), like.getPost().getContent(), "like")).toList();
+                    new PostContentData(like.getPost().getId(), like.getPost().getTitle(), like.getPost().getContent(), "좋아요")).toList();
         } catch (Exception e) {
             return Collections.emptyList();
         }

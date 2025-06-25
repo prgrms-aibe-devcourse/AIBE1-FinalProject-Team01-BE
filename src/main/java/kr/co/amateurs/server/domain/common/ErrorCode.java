@@ -48,7 +48,9 @@ public enum ErrorCode implements Supplier<CustomException> {
     NOT_FOUND_AI_PROFILE(HttpStatus.NOT_FOUND, "AI 프로필을 찾을 수 없습니다."),
     NOT_FOUND_USER_ACTIVITY(HttpStatus.NOT_FOUND, "사용자 활동을 찾을 수 없습니다."),
     NOT_FOUND_USER_TOPICS(HttpStatus.NOT_FOUND, "사용자 토픽을 찾을 수 없습니다."),
-    ERROR_AI_PROFILE(HttpStatus.INTERNAL_SERVER_ERROR, "AI 프로필 생성 중 오류가 발생했습니다.");
+    ERROR_AI_PROFILE(HttpStatus.INTERNAL_SERVER_ERROR, "AI 프로필 생성 중 오류가 발생했습니다."),
+    ERROR_GEMINI_API(HttpStatus.INTERNAL_SERVER_ERROR, "Gemini API 호출 중 오류가 발생했습니다."),
+    EROOR_AI_PARSING(HttpStatus.INTERNAL_SERVER_ERROR, "AI 프로필 파싱 중 오류가 발생했습니다.");
 
 
 

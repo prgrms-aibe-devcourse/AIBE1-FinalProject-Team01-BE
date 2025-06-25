@@ -22,7 +22,7 @@ public class PostService {
             List<Post> posts = postRepository.findTop3ByUserIdOrderByCreatedAtDesc(userId);
 
             List<PostContentData> postContentDataList = posts.stream()
-                    .map(post -> new PostContentData(post.getId(), post.getTitle(), post.getContent(), "write"))
+                    .map(post -> new PostContentData(post.getId(), post.getTitle(), post.getContent(), "작성글"))
                     .toList();
             return postContentDataList;
         } catch (Exception e) {

@@ -23,6 +23,9 @@ spring:
       qdrant:
         url: http://localhost:6333
         collection-name: test-collection
+  gemini:
+    key: ${GEMINI_API_KEY}
+    model: ${GEMINI_MODEL}
 
   data:
     mongodb:

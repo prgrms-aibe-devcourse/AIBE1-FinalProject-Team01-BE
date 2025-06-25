@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.repository.user;
 
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,5 +21,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<String> findDevcoursNameByUserId(@Param("userId") Long userId);
 
     @Query("SELECT ut.topic FROM UserTopic ut WHERE ut.user.id = :userId")
-    List<String> findTopicDisplayNamesByUserId(@Param("userId") Long userId);
+    List<Topic> findTopicDisplayNamesByUserId(@Param("userId") Long userId);
 }
