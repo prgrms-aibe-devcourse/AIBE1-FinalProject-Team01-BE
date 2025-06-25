@@ -1,11 +1,14 @@
 package kr.co.amateurs.server.controller.like;
 
 
+import jakarta.validation.constraints.NotNull;
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.like.LikeResponseDTO;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,10 +19,10 @@ public class LikeController {
 
     @PostMapping("/posts/{postId}/likes")
     public ResponseEntity<LikeResponseDTO> addLikeToPost(
-            @PathVariable Long postId
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            @PathVariable @NotNull Long postId
     ){
-        // 리팩토링으로 수정 예정 이슈#58
-        Long userId = 1L;
+        Long userId = currentUser.getUser().getId();
         LikeResponseDTO result = likeService.addLikeToPost(postId, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
@@ -27,10 +30,10 @@ public class LikeController {
 
     @PostMapping("/comments/{commentId}/likes")
     public ResponseEntity<LikeResponseDTO> addLikeToComment(
-            @PathVariable Long commentId
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            @PathVariable @NotNull Long commentId
     ){
-        // 리팩토링으로 수정 예정 이슈#58
-        Long userId = 1L;
+        Long userId = currentUser.getUser().getId();
         LikeResponseDTO result = likeService.addLikeToComment(commentId, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
@@ -38,10 +41,10 @@ public class LikeController {
 
     @DeleteMapping("/posts/{postId}/likes")
     public ResponseEntity<Void> removeLikeToPost(
-            @PathVariable Long postId
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            @PathVariable @NotNull Long postId
     ){
-        // 리팩토링으로 수정 예정 이슈#58
-        Long userId = 1L;
+        Long userId = currentUser.getUser().getId();
         likeService.removeLikeFromPost(postId, userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
@@ -49,10 +52,10 @@ public class LikeController {
 
     @DeleteMapping("/comments/{commentId}/likes")
     public ResponseEntity<Void> removeLikeToComment(
-            @PathVariable Long commentId
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            @PathVariable @NotNull Long commentId
     ){
-        // 리팩토링으로 수정 예정 이슈#58
-        Long userId = 1L;
+        Long userId = currentUser.getUser().getId();
         likeService.removeLikeFromComment(commentId, userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

@@ -1,6 +1,10 @@
 package kr.co.amateurs.server.service.together;
 
 import jakarta.transaction.Transactional;
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
@@ -12,6 +16,8 @@ import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
@@ -22,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO.convertToDTO;
 
 
@@ -32,14 +39,15 @@ public class MarketService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    public Page<MarketPostResponseDTO> getMarketPostList(String keyword, int page, int size, SortType sortType) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<MarketItem> miPage = switch (sortType) {
+    public PageResponseDTO<MarketPostResponseDTO> getMarketPostList(String keyword, PaginationParam paginationParam) {
+        Pageable pageable = paginationParam.toPageable();
+        Page<MarketItem> miPage = switch (paginationParam.getField()) {
             case LATEST -> marketRepository.findAllByKeyword(keyword, pageable);
             case POPULAR -> marketRepository.findAllByKeywordOrderByLikeCountDesc(keyword, pageable);
-            case VIEW_COUNT -> marketRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
+            case MOST_VIEW -> marketRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
+            default -> marketRepository.findAllByKeyword(keyword, pageable);
         };
-        return convertToDTO(miPage);
+        return convertPageToDTO(convertToDTO(miPage));
     }
 
 
@@ -50,16 +58,11 @@ public class MarketService {
     }
 
 
-    //TODO - validation 추가 필요
     @Transactional
-    public MarketPostResponseDTO createMarketPost(MarketPostRequestDTO dto) {
-
-        //TODO - 유저 인증 생기면 request dto에서 userId 제거하고 유저 인증 관련 로직으로 수정할 예정입니다.
-        User user = userRepository.findById(dto.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + dto.userId()));
+    public MarketPostResponseDTO createMarketPost(CustomUserDetails currentUser, MarketPostRequestDTO dto) {
 
         Post post = Post.builder()
-                .user(user)
+                .user(currentUser.getUser())
                 .boardType(BoardType.MARKET)
                 .title(dto.title())
                 .content(dto.content())
@@ -78,21 +81,36 @@ public class MarketService {
         return convertToDTO(savedMp, savedPost);
     }
 
-    //TODO - validation 추가 필요
     @Transactional
-    public void updateMarketPost(Long marketId, MarketPostRequestDTO dto) {
-        MarketItem mi = marketRepository.findById(marketId).orElseThrow(() -> new IllegalArgumentException("Market Post not found: " + marketId));
+    public void updateMarketPost(CustomUserDetails currentUser, Long postId, MarketPostRequestDTO dto) {
+        MarketItem mi = marketRepository.findByPostId(postId);
+        if (mi == null) {
+            throw new IllegalArgumentException("Market Post not found: " + postId);
+        }
         Post post = mi.getPost();
-        CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
+        if(currentUser.getUser().getId().equals(post.getUser().getId()) || currentUser.getUser().getRole().equals(Role.ADMIN)) {
+            CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
+            post.update(updatePostDTO);
+            mi.update(dto);
+        }
+        else{
+            throw new CustomException(ErrorCode.ACCESS_DENIED, "You don't have permission to update this post");
+        }
 
-        post.update(updatePostDTO);
-        mi.update(dto);
 
     }
 
     @Transactional
-    public void deleteMarketPost(Long marketId) {
-        marketRepository.deleteById(marketId);
+    public void deleteMarketPost(CustomUserDetails currentUser, Long marketId) {
+        MarketItem mi = marketRepository.findByPostId(marketId);
+        Post post = mi.getPost();
+        if(currentUser.getUser().getId().equals(post.getUser().getId()) || currentUser.getUser().getRole().equals(Role.ADMIN)) {
+            marketRepository.deleteById(mi.getId());
+            postRepository.deleteById(post.getId());
+        }
+        else{
+            throw new CustomException(ErrorCode.ACCESS_DENIED, "You don't have permission to delete this post");
+        }
     }
 
 
