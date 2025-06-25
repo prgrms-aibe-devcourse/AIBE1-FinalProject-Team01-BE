@@ -6,6 +6,9 @@ public record LoginResponseDto (
         @Schema(description = "JWT 액세스 토큰")
         String accessToken,
 
+        @Schema(description = "JWT 리프레시 토큰")
+        String refreshToken,
+
         @Schema(description = "토큰 타입", example = "Bearer")
         String tokenType,
 
@@ -13,7 +16,7 @@ public record LoginResponseDto (
         Long expiresIn
 ) {
 
-    public static LoginResponseDto of(String accessToken, Long expiresIn) {
-        return new LoginResponseDto(accessToken, "Bearer", expiresIn);
+    public static LoginResponseDto of(String accessToken, String refreshToken, Long expiresIn) {
+        return new LoginResponseDto(accessToken, refreshToken, "Bearer", expiresIn);
     }
 }

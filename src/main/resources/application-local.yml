@@ -18,6 +18,10 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_URL}
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
   output:
     ansi:
@@ -29,6 +33,18 @@ springdoc:
     operationsSorter: method
     tagsSorter: alpha
     docExpansion: none
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${OPENA_CHAT_MODEL}
+    vectorstore:
+      qdrant:
+        url: ${QDRANT_URL}
+        api-key: ${QDRANT_API_KEY}
+        collection-name: ${QDRANT_COLLECTION_NAME}
 
 jwt:
   secret: ${JWT_SECRET}

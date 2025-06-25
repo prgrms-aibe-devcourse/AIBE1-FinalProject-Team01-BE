@@ -9,5 +9,7 @@ FROM eclipse-temurin:17-jdk
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 
+ENV SPRING_PROFILES_ACTIVE=dev
+
 # 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]

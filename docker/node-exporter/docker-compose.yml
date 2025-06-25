@@ -16,9 +16,3 @@ services:
         limits:
           memory: 40M
     restart: unless-stopped
-    networks:
-      - monitoring
-
-networks:
-  monitoring:
-    external: true
