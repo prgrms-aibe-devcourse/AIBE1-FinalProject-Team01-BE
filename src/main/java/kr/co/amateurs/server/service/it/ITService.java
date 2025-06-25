@@ -1,8 +1,7 @@
 package kr.co.amateurs.server.service.it;
 
-import jakarta.validation.constraints.Min;
 import kr.co.amateurs.server.domain.common.ErrorCode;
-import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
+import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -45,10 +44,10 @@ public class ITService {
             itPage = postRepository.findByBoardType(boardType, pageable);
         }
 
-        return itPage.map(post -> convertToResponseDTO(post, false, false));
+        return itPage.map(post -> ITResponseDTO.from(post, false, false));
     }
 
-    public ITResponseDTO getPost(Long postId, BoardType boardType) {
+    public ITResponseDTO getPost(Long postId) {
         User user = userService.getCurrentUser().orElse(null);
 
         Post post = postRepository.findById(postId).orElseThrow(ErrorCode.POST_NOT_FOUND);
@@ -60,22 +59,22 @@ public class ITService {
             hasLiked = checkHasLiked(postId, user);
         }
 
-        return convertToResponseDTO(post, hasLiked, hasBookmarked);
+        return ITResponseDTO.from(post, hasLiked, hasBookmarked);
     }
 
     @Transactional
-    public ITResponseDTO createPost(CommunityRequestDTO requestDTO, BoardType boardType) {
+    public ITResponseDTO createPost(ITRequestDTO requestDTO, BoardType boardType) {
         User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
 
         Post post = Post.from(requestDTO, user, boardType);
 
         postRepository.save(post);
 
-        return convertToResponseDTO(post, false, false);
+        return ITResponseDTO.from(post, false, false);
     }
 
     @Transactional
-    public void updatePost(CommunityRequestDTO requestDTO, Long postId) {
+    public void updatePost(ITRequestDTO requestDTO, Long postId) {
         Post post = postRepository.findById(postId).orElseThrow(ErrorCode.POST_NOT_FOUND);
 
         validatePost(post);
@@ -123,9 +122,5 @@ public class ITService {
         };
 
         return PageRequest.of(page, pageSize, sort);
-    }
-
-    private ITResponseDTO convertToResponseDTO(Post post, boolean hasLiked, boolean hasBookmarked) {
-        return ITResponseDTO.from(post, hasLiked, hasBookmarked);
     }
 }

@@ -3,7 +3,7 @@ package kr.co.amateurs.server.controller.it;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
-import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
+import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -39,12 +39,12 @@ public class ITController {
         return ResponseEntity.ok(postsPage);
     }
 
-    @BoardAccess(needCategory = true, category = BoardCategory.IT,hasPostId = true)
+    @BoardAccess(needCategory = true, category = BoardCategory.IT, hasPostId = true)
     @GetMapping("/{boardType}/{postId}")
     public ResponseEntity<ITResponseDTO> getPost(
             @PathVariable BoardType boardType,
             @PathVariable Long postId) {
-        ITResponseDTO post = itService.getPost(postId, boardType);
+        ITResponseDTO post = itService.getPost(postId);
 
         return ResponseEntity.ok(post);
     }
@@ -53,7 +53,7 @@ public class ITController {
     @PostMapping("/{boardType}")
     public ResponseEntity<ITResponseDTO> createPost(
             @PathVariable BoardType boardType,
-            @RequestBody CommunityRequestDTO requestDTO
+            @RequestBody ITRequestDTO requestDTO
     ){
         ITResponseDTO post = itService.createPost(requestDTO, boardType);
 
@@ -64,7 +64,7 @@ public class ITController {
     public ResponseEntity<Void> updatePost(
             @PathVariable BoardType boardType,
             @PathVariable Long postId,
-            @RequestBody CommunityRequestDTO requestDTO
+            @RequestBody ITRequestDTO requestDTO
     ){
         itService.updatePost(requestDTO, postId);
 
