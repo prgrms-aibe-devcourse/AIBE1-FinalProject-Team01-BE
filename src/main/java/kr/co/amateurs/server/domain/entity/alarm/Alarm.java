@@ -2,6 +2,7 @@ package kr.co.amateurs.server.domain.entity.alarm;
 
 import jakarta.persistence.Id;
 import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
+import kr.co.amateurs.server.domain.entity.alarm.metadata.AlarmMetaData;
 import lombok.*;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -21,27 +22,15 @@ public class Alarm {
     private long userId;
 
     private AlarmType type;
-    private AlarmMeta metaData;
+    private String title;
     private String content;
+    private AlarmMetaData metaData;
 
     @Builder.Default
     private boolean isRead = false;
 
     @Builder.Default
     private LocalDateTime sentAt = LocalDateTime.now();
-
-    public interface AlarmMeta {
-    }
-
-    static class CommentMeta implements AlarmMeta {
-        private Long postId;
-        private Long commentId;
-    }
-
-    static class DirectMessageMeta implements AlarmMeta {
-        private Long roomId;
-        private Long messageId;
-    }
 
     public void markAsRead() {
         this.isRead = true;

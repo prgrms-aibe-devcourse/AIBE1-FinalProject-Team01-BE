@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 public record AlarmResponse(
         String id,
         AlarmType type,
+        String title,
         String content,
         boolean isRead,
         LocalDateTime sentAt
@@ -16,6 +17,7 @@ public record AlarmResponse(
         return new AlarmResponse(
                 alarm.getId(),
                 alarm.getType(),
+                alarm.getTitle(),
                 alarm.getContent(),
                 alarm.isRead(),
                 alarm.getSentAt()
