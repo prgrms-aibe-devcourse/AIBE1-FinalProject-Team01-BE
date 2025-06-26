@@ -3,6 +3,7 @@ package kr.co.amateurs.server.domain.dto.together;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 public record MatchPostResponseDTO(
         Long postId,
         String nickname,
-        String devcourseName,
+        DevCourseTrack devcourseName,
         String devcourseBatch,
         String userProfileImg,
         String title,
