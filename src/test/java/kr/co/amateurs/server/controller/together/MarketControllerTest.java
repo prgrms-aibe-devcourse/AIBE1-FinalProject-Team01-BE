@@ -9,6 +9,7 @@ import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -338,7 +339,7 @@ public class MarketControllerTest {
         return MarketPostResponseDTO.builder()
                 .postId(postId)
                 .nickname("nickname")
-                .devcourseName("AIBE")
+                .devcourseName(DevCourseTrack.AI_BACKEND)
                 .devcourseBatch("1기")
                 .userProfileImg(null)
                 .title(title)

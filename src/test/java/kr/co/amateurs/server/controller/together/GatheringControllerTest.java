@@ -11,6 +11,7 @@ import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
@@ -345,7 +346,7 @@ public class GatheringControllerTest {
         return GatheringPostResponseDTO.builder()
                 .postId(postId)
                 .nickname("nickname")
-                .devcourseName("AIBE")
+                .devcourseName(DevCourseTrack.AI_BACKEND)
                 .devcourseBatch("1기")
                 .userProfileImg(null)
                 .title(title)

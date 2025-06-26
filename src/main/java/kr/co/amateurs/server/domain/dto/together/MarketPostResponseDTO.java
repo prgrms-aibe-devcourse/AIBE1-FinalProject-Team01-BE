@@ -3,6 +3,7 @@ package kr.co.amateurs.server.domain.dto.together;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import lombok.Builder;
 import org.springframework.data.domain.Page;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 public record MarketPostResponseDTO(
         Long postId,
         String nickname,
-        String devcourseName,
+        DevCourseTrack devcourseName,
         String devcourseBatch,
         String userProfileImg,
         String title,
