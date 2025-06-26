@@ -78,7 +78,7 @@ public class AiProfileService {
 
         } catch (Exception e) {
             log.error("사용자 AI 프로필 생성 실패: userId={}", userId, e);
-            throw ErrorCode.ERROR_AI_PROFILE.get();
+            throw ErrorCode.ERROR_AI_PROFILE_GENERATION.get();
         }
     }
 
@@ -90,7 +90,7 @@ public class AiProfileService {
 
         } catch (Exception e) {
             log.error("북마크 수집+분석 실패: userId={}", userId, e);
-            throw ErrorCode.ERROR_AI_PROFILE.get();
+            throw ErrorCode.ERROR_USER_ACTIVITY_INSUFFICIENT.get();
         }
     }
 
@@ -102,7 +102,7 @@ public class AiProfileService {
 
         } catch (Exception e) {
             log.error("좋아요 수집+분석 실패: userId={}", userId, e);
-            throw ErrorCode.ERROR_AI_PROFILE.get();
+            throw ErrorCode.ERROR_USER_ACTIVITY_INSUFFICIENT.get();
         }
     }
 
@@ -114,7 +114,7 @@ public class AiProfileService {
 
         } catch (Exception e) {
             log.error("작성글 수집+분석 실패: userId={}", userId, e);
-            throw ErrorCode.ERROR_AI_PROFILE.get();
+            throw ErrorCode.ERROR_USER_ACTIVITY_INSUFFICIENT.get();
         }
     }
 

@@ -33,7 +33,7 @@ public class AiLlmService {
 
         } catch (Exception e) {
             log.error("북마크 게시물 요약 생성 실패", e);
-            throw ErrorCode.ERROR_AI_PROFILE.get();
+            throw ErrorCode.ERROR_SUMMARIZE.get();
         }
     }
 
@@ -51,7 +51,7 @@ public class AiLlmService {
 
         } catch (Exception e) {
             log.error("좋아요 게시물 요약 생성 실패", e);
-            throw ErrorCode.ERROR_AI_PROFILE.get();
+            throw ErrorCode.ERROR_SUMMARIZE.get();
         }
     }
 
@@ -69,7 +69,7 @@ public class AiLlmService {
 
         } catch (Exception e) {
             log.error("작성 게시물 요약 생성 실패", e);
-            throw ErrorCode.ERROR_AI_PROFILE.get();
+            throw ErrorCode.ERROR_SUMMARIZE.get();
         }
     }
 
@@ -90,7 +90,7 @@ public class AiLlmService {
 
         } catch (Exception e) {
             log.error("최종 AI 프로필 생성 실패", e);
-            throw ErrorCode.ERROR_AI_PROFILE.get();
+            throw ErrorCode.ERROR_AI_PROFILE_GENERATION.get();
         }
     }
 

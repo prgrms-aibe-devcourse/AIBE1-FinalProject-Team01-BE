@@ -2,6 +2,7 @@ package kr.co.amateurs.server.service.ai;
 
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
+import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.ai.AiProfile;
 import kr.co.amateurs.server.domain.entity.ai.RecommendedPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -46,7 +47,7 @@ public class PostRecommendService {
 
             if(aiProfile.isEmpty()) {
                 log.info("AI 프로필 없음 - 인기글 추천: userId={}", userId);
-                return postService.findPopularPosts(limit);
+                return getGuestPost(userId, limit);
             }
 
             // AI 프로필 기반 추천 로직
@@ -68,7 +69,7 @@ public class PostRecommendService {
 
         } catch (Exception e) {
             log.error("AI 추천 실패 - 인기글 fallback: userId={}, error={}", userId, e.getMessage());
-            return postService.findPopularPosts(limit);
+            return getGuestPost(userId, limit);
         }
     }
 
@@ -97,7 +98,7 @@ public class PostRecommendService {
             log.info("추천 게시글 저장 완료: userId={}, 개수={}", userId, recommendedPosts.size());
         } catch (Exception e) {
             log.error("추천 게시글 저장 실패: userId={}, error={}", userId, e.getMessage());
-            throw new RuntimeException("추천 게시글 저장에 실패했습니다", e);
+            throw ErrorCode.ERROR_AI_RECOMMENDATION_SAVE.get();
         }
     }
 

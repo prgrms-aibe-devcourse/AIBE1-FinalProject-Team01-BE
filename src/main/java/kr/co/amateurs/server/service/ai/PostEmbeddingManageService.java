@@ -41,7 +41,7 @@ public class PostEmbeddingManageService {
 
         } catch (Exception e) {
             log.error("임베딩 초기화 실패", e);
-            throw ErrorCode.ERROR_INITIALIZE_AI.get();
+            throw ErrorCode.ERROR_AI_EMBEDDING_GENERATION.get();
         }
     }
 }
