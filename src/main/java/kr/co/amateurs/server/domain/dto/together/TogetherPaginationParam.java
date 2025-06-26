@@ -4,6 +4,7 @@ package kr.co.amateurs.server.domain.dto.together;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -14,5 +15,6 @@ import org.hibernate.query.SortDirection;
 @SuperBuilder
 @AllArgsConstructor
 public class TogetherPaginationParam extends PaginationParam {
+    @Builder.Default
     private String keyword = "";
 }
