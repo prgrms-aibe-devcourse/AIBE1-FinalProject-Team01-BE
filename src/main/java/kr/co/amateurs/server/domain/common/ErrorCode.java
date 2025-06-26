@@ -21,7 +21,7 @@ public enum ErrorCode implements Supplier<CustomException> {
 
     // 알람 관련 에러
     ALARM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 알림입니다."),
-    ILLEGAL_ALARM_EXTRACTOR(HttpStatus.INTERNAL_SERVER_ERROR, "지원하지 않는 알림 수신자 타입입니다."),
+    ILLEGAL_ALARM_CREATOR(HttpStatus.INTERNAL_SERVER_ERROR, "지원하지 않는 알림 생성자 타입입니다."),
     UNSUPPORTED_RESULT_TYPE(HttpStatus.INTERNAL_SERVER_ERROR, "지원하지 않는 결과 타입입니다."),
 
     // 회원가입 관련 에러
