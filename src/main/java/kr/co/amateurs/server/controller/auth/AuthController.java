@@ -3,26 +3,22 @@ package kr.co.amateurs.server.controller.auth;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.LoginResponseDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
+import kr.co.amateurs.server.domain.dto.auth.*;
+import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Tag(name = "Auth", description = "인증 관련 API")
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다")
@@ -36,5 +32,23 @@ public class AuthController {
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
         LoginResponseDto response = authService.login(request);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/check/email")
+    @Operation(summary = "이메일 중복 확인", description = "이메일 중복 여부를 확인합니다")
+    public ResponseEntity<CheckResponseDto> checkEmailDuplicate(@RequestParam String email) {
+        boolean available = userService.isEmailAvailable(email);
+        return ResponseEntity.ok(available ?
+                CheckResponseDto.available("이메일") :
+                CheckResponseDto.unavailable("이메일"));
+    }
+
+    @GetMapping("/check/nickname")
+    @Operation(summary = "닉네임 중복 확인", description = "닉네임 중복 여부를 확인합니다")
+    public ResponseEntity<CheckResponseDto> checkNicknameDuplicate(@RequestParam String nickname) {
+        boolean available = userService.isNicknameAvailable(nickname);
+        return ResponseEntity.ok(available ?
+                CheckResponseDto.available("닉네임") :
+                CheckResponseDto.unavailable("닉네임"));
     }
 }
