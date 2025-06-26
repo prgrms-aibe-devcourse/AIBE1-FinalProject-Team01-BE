@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.service.ai;
 
 import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.V;
 import kr.co.amateurs.server.domain.dto.ai.AiProfileResponse;
 
 public interface AiPostAnalysis {
@@ -18,7 +19,7 @@ public interface AiPostAnalysis {
         - 3-4문장으로 간결하게 요약
         - 구체적인 키워드나 기술 스택 언급
         """)
-    String analyzeBookmarks(String posts);
+    String analyzeBookmarks(@V("posts") String posts);
 
     @UserMessage("""
         다음은 사용자가 좋아요를 누른 게시물들입니다.
@@ -33,7 +34,7 @@ public interface AiPostAnalysis {
         - 3-4문장으로 간결하게 요약
         - 구체적인 관심 분야나 기술 언급
         """)
-    String analyzeLikes(String posts);
+    String analyzeLikes(@V("posts") String posts);
 
     @UserMessage("""
         다음은 사용자가 직접 작성한 게시물들입니다.
@@ -48,7 +49,7 @@ public interface AiPostAnalysis {
         - 질문하는 분야 및 작성자의 수준 파악
         - 3-4문장으로 간결하게 요약
         """)
-    String analyzeWritten(String posts);
+    String analyzeWritten(@V("posts") String posts);
 
     @UserMessage("""
         사용자의 활동 데이터를 분석하여 개인화된 프로필을 생성해주세요.
@@ -61,5 +62,5 @@ public interface AiPostAnalysis {
         
         사용자의 특성을 분석하고 관심 기술 키워드를 추출해주세요.
         """)
-    AiProfileResponse generateFinalProfile(String userTopics, String devcourseName, String summaries);
+    AiProfileResponse generateFinalProfile(@V("userTopics") String userTopics, @V("devcourseName") String devcourseName, @V("summaries") String summaries);
 }

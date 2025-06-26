@@ -2,6 +2,7 @@ package kr.co.amateurs.server.service;
 
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
@@ -94,7 +95,10 @@ public class UserService {
     }
 
     public String getDevcourseName(Long userId) {
-        return userRepository.findDevcoursNameByUserId(userId).orElse("");
+        return userRepository.findById(userId)
+                .map(User::getDevcourseName)
+                .map(DevCourseTrack::getDescription)
+                .orElse("정보 없음");
     }
 
     public String getUserTopics(Long userId) {

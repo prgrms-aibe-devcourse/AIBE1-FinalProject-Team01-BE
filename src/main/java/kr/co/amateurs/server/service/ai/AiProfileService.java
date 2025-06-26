@@ -47,13 +47,18 @@ public class AiProfileService {
             PostSummaryData bookmarkSummary = collectAndAnalyzeBookmarks(userId);
             PostSummaryData likeSummary = collectAndAnalyzeLikes(userId);
             PostSummaryData writtenSummary = collectAndAnalyzeWritten(userId);
+            log.info("사용자 AI 프로필 데이터 수집 완료: userId={}", userId);
 
             String userTopics = collectUserTopics(userId);
+            log.info("사용자 관심사 수집 완료: userId={}, topics={}", userId, userTopics);
             String devcourseName = collectDevcourseName(userId);
+            log.info("데브코스 이름 수집 완료: userId={}, devcourseName={}", userId, devcourseName);
+
 
             List<PostSummaryData> summaries = List.of(bookmarkSummary, likeSummary, writtenSummary);
             AiProfileRequest request = new AiProfileRequest(userTopics, devcourseName, summaries);
             AiProfileResponse profile = aiLlmService.generateFinalProfile(request);
+            log.info("AI 프로필 생성 1단계 완료: userId={}, profile={}", userId, profile);
 
             User user = userService.findById(userId);
             AiProfile aiProfile = aiProfileRepository.findByUserId(userId)

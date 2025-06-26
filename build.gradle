@@ -40,8 +40,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+	//AI
 	implementation 'dev.langchain4j:langchain4j:1.0.0-alpha1'
 	implementation 'dev.langchain4j:langchain4j-google-ai-gemini:1.0.0-alpha1'
+	implementation 'dev.langchain4j:langchain4j-spring-boot-starter:1.0.0-alpha1'
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
