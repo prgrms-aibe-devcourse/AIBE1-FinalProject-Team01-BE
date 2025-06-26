@@ -30,6 +30,9 @@ public enum ErrorCode implements Supplier<CustomException> {
 
     // 토큰 관련 에러
     EMPTY_EMAIL(HttpStatus.BAD_REQUEST, "이메일은 필수입니다."),
+    INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "올바른 이메일 형식이 아닙니다."),
+    EMPTY_NICKNAME(HttpStatus.BAD_REQUEST, "닉네임은 필수입니다."),
+    INVALID_NICKNAME_LENGTH(HttpStatus.BAD_REQUEST, "닉네임은 2자 이상 20자 이하여야 합니다."),
     EMPTY_TOKEN(HttpStatus.BAD_REQUEST, "토큰은 필수입니다."),
     INVALID_EXPIRATION_TIME(HttpStatus.BAD_REQUEST, "만료시간은 양수여야 합니다."),
 
@@ -42,6 +45,9 @@ public enum ErrorCode implements Supplier<CustomException> {
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "이미지 파일 크기 제한을 초과하였습니다."),
 
     // POST
+    POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시글을 찾을 수 없습니다."),
+
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 정보입니다."),
     POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시글을 찾을 수 없습니다."),
 
     // AI 관련 에러

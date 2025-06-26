@@ -12,7 +12,10 @@ import java.time.LocalDateTime;
 @Builder
 public record MarketPostResponseDTO(
         Long postId,
-        Long userId,
+        String nickname,
+        String devcourseName,
+        String devcourseBatch,
+        String userProfileImg,
         String title,
         String content,
         String tags,
@@ -22,12 +25,18 @@ public record MarketPostResponseDTO(
         Integer price,
         String place,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        boolean hasImages,
+        boolean hasLiked,
+        boolean hasBookmarked
 ) {
-    public static MarketPostResponseDTO convertToDTO(MarketItem mi, Post post){
+    public static MarketPostResponseDTO convertToDTO(MarketItem mi, Post post, boolean hasLiked, boolean hasBookmarked){
         return new MarketPostResponseDTO(
                 post.getId(),
-                post.getUser().getId(),
+                post.getUser().getNickname(),
+                post.getUser().getDevcourseName(),
+                post.getUser().getDevcourseBatch(),
+                post.getUser().getImageUrl(),
                 post.getTitle(),
                 post.getContent(),
                 post.getTags(),
@@ -37,14 +46,10 @@ public record MarketPostResponseDTO(
                 mi.getPrice(),
                 mi.getPlace(),
                 post.getCreatedAt(),
-                post.getUpdatedAt()
+                post.getUpdatedAt(),
+                post.getPostImages() != null && !post.getPostImages().isEmpty(),
+                hasLiked,
+                hasBookmarked
         );
-    }
-
-    public static Page<MarketPostResponseDTO> convertToDTO(Page<MarketItem> miPage) {
-        return miPage.map(mi -> {
-            Post post = mi.getPost();
-            return convertToDTO(mi, post);
-        });
     }
 }

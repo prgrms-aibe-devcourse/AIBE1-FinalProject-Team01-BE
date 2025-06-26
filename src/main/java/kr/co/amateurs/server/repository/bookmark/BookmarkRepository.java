@@ -53,7 +53,7 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     );
 
 
-    @Transactional
+    // TODO - 메서드 이름으로 가능하면 변경
     @Modifying
     @Query("DELETE FROM Bookmark b WHERE b.post.id = :postId AND b.user.id = :userId")
     int deleteByUserAndPost(@Param("userId") Long userId, @Param("postId") Long postId);

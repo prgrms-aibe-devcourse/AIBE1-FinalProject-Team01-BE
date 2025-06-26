@@ -1,7 +1,12 @@
 package kr.co.amateurs.server.service.bookmark;
 
 import kr.co.amateurs.server.domain.dto.ai.PostContentData;
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.config.jwt.CustomUserDetailsService;
+import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
@@ -10,22 +15,32 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import java.util.Collections;
 import java.util.List;
 
 import static kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO.*;
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -38,17 +53,22 @@ public class BookmarkService {
     private final MarketRepository marketRepository;
     private final MatchRepository matchRepository;
 
-    public Page<BookmarkResponseDTO> getBookmarkPostList(Long userId, int page, int size, SortType sortType) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Bookmark> bookmarkList = switch(sortType){
+    private final UserService userService;
+
+    public PageResponseDTO<BookmarkResponseDTO> getBookmarkPostList(Long userId, PaginationParam paginationParam) {
+        validateUser(userId);
+        Pageable pageable = paginationParam.toPageable();
+        Page<Bookmark> bookmarkList = switch(paginationParam.getField()){
             case LATEST -> bookmarkRepository.getBookmarkPostByUser(userId, pageable);
             case POPULAR -> bookmarkRepository.getBookmarkPostByUserOrderByLikeCountDesc(userId, pageable);
-            case VIEW_COUNT -> bookmarkRepository.getBookmarkPostByUserOrderByViewCountDesc(userId, pageable);
+            case MOST_VIEW -> bookmarkRepository.getBookmarkPostByUserOrderByViewCountDesc(userId, pageable);
+            default -> bookmarkRepository.getBookmarkPostByUser(userId, pageable);
         };
-        return bookmarkList.map(this::convertToDTO);
+        return convertPageToDTO(bookmarkList.map(this::convertToDTO));
     }
 
     public BookmarkResponseDTO addBookmarkPost(Long userId, Long postId) {
+        validateUser(userId);
         User currentUser = userRepository.findById(userId).orElseThrow();
         Post post = postRepository.findById(postId).orElseThrow();
         Bookmark newBookmark = Bookmark.builder()
@@ -59,7 +79,9 @@ public class BookmarkService {
         return convertToDTO(savedBookmark);
     }
 
+    @Transactional
     public void removeBookmarkPost(Long userId, Long postId) {
+        validateUser(userId);
         bookmarkRepository.deleteByUserAndPost(userId, postId);
     }
 
@@ -83,7 +105,25 @@ public class BookmarkService {
             default -> convertToPostDTO(bookmark);
         };
     }
+    public boolean checkHasBookmarked(Long postId) {
+        User user = userService.getCurrentUser().get();
+        return bookmarkRepository
+                .findByPost_IdAndUser_Id(postId, user.getId())
+                .isPresent();
+    }
 
+    private void validateUser(Long userId) {
+        Optional<User> user = userService.getCurrentUser();
+        if (user.isEmpty()) {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+        Long currentId = user.get().getId();
+        Role currentRole = user.get().getRole();
+
+        if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
+            throw new CustomException(ErrorCode.ACCESS_DENIED, "본인의 북마크에만 접근할 수 있습니다.");
+        }
+    }
     public List<PostContentData> getBookmarkedPosts(Long userId) {
         try {
             List<Bookmark> bookmarks = bookmarkRepository.findTop3ByUserIdOrderByCreatedAtDesc(userId);

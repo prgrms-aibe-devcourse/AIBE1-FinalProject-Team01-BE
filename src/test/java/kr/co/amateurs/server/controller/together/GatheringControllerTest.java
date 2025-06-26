@@ -3,46 +3,94 @@ package kr.co.amateurs.server.controller.together;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.amateurs.server.config.SecurityConfig;
+import kr.co.amateurs.server.config.TestConfig;
 import kr.co.amateurs.server.config.TestSecurityConfig;
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
+import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
+import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.service.together.GatheringService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.springframework.data.web.config.SpringDataJacksonModules;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = GatheringController.class)
-@Import(TestSecurityConfig.class)
+@Import({TestSecurityConfig.class, TestConfig.class})
 public class GatheringControllerTest {
 
     @MockitoBean
     private GatheringService gatheringService;
     @Autowired
+    private WebApplicationContext wac;
+    @Autowired
     private ObjectMapper objectMapper;
     @Autowired
     private MockMvc mockMvc;
+
+    private CustomUserDetails currentUser;
+
+    @BeforeEach
+    public void setup() {
+        User user = User.builder()
+                .email("test@email.com")
+                .password("password")
+                .nickname("testUser")
+                .name("이름")
+                .role(Role.STUDENT)
+                .build();
+        currentUser = new CustomUserDetails(user);
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                currentUser,
+                null,
+                currentUser.getAuthorities()
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        this.mockMvc = MockMvcBuilders
+                .webAppContextSetup(wac)
+                .apply(SecurityMockMvcConfigurers.springSecurity())
+                .build();
+    }
 
     @Test
     void 검색어없이_기본파라미터로_목록조회하면_200OK와_전체목록반환() throws Exception {
@@ -52,9 +100,7 @@ public class GatheringControllerTest {
                 createGatheringPostResponseDTO(2L, "두 번째 모집", "두 번째 내용")
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
-
-        given(gatheringService.getGatheringPostList(null, 0, 10, SortType.LATEST))
-                .willReturn(page);
+        given(gatheringService.getGatheringPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings"))
@@ -71,11 +117,12 @@ public class GatheringControllerTest {
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(searchResults);
 
-        given(gatheringService.getGatheringPostList(keyword, 0, 10, SortType.LATEST))
-                .willReturn(page);
+        given(gatheringService.getGatheringPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
+                        .with(user(currentUser))
+                        .accept(MediaType.APPLICATION_JSON)
                         .param("keyword", keyword))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
@@ -89,11 +136,12 @@ public class GatheringControllerTest {
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
 
-        given(gatheringService.getGatheringPostList(null, 1, 5, SortType.LATEST))
-                .willReturn(page);
+        given(gatheringService.getGatheringPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
+                        .with(user(currentUser))
+                        .accept(MediaType.APPLICATION_JSON)
                         .param("page", "1")
                         .param("size", "5"))
                 .andExpect(status().isOk())
@@ -108,12 +156,13 @@ public class GatheringControllerTest {
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
 
-        given(gatheringService.getGatheringPostList(null, 0, 10, SortType.POPULAR))
-                .willReturn(page);
+        given(gatheringService.getGatheringPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
-                        .param("sortType", "POPULAR"))
+                        .with(user(currentUser))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .param("field", "POPULAR"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
     }
@@ -174,6 +223,7 @@ public class GatheringControllerTest {
     void 존재하는_게시글삭제하면_204NOCONTENT반환() throws Exception {
         // given
         Long gatheringId = 1L;
+
         doNothing().when(gatheringService).deleteGatheringPost(gatheringId);
 
         // when & then
@@ -183,12 +233,12 @@ public class GatheringControllerTest {
 
     
     //TODO - 밸리데이션 적용 시 아래 테스트들 정상 작동 예정 현재는 비정상 테스트
-    /*
+
     @Test
     void 잘못된_정렬타입으로_목록조회하면_400에러반환() throws Exception {
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
-                        .param("sortType", "INVALID_SORT"))
+                        .param("field", "INVALID_SORT"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -288,13 +338,16 @@ public class GatheringControllerTest {
         mockMvc.perform(delete("/api/v1/gatherings/{gatheringId}", nonExistentId))
                 .andExpect(status().isInternalServerError());
     }
-    */
+
 
 
     private GatheringPostResponseDTO createGatheringPostResponseDTO(Long postId, String title, String content) {
         return GatheringPostResponseDTO.builder()
                 .postId(postId)
-                .userId(1L)
+                .nickname("nickname")
+                .devcourseName("AIBE")
+                .devcourseBatch("1기")
+                .userProfileImg(null)
                 .title(title)
                 .content(content)
                 .tags("태그")
@@ -308,12 +361,13 @@ public class GatheringControllerTest {
                 .schedule("주 2회")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .hasLiked(false).hasBookmarked(false).hasImages(false)
                 .build();
     }
 
     private GatheringPostRequestDTO createGatheringPostRequestDTO() {
         return new GatheringPostRequestDTO(
-                1L, "테스트 모집", "테스트 내용", "태그",
+                 "테스트 모집", "테스트 내용", "태그",
                 GatheringType.STUDY, GatheringStatus.RECRUITING,
                 5, "서울", "1개월", "주 2회"
         );
