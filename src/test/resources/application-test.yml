@@ -21,6 +21,15 @@ langchain4j:
     api-key: dummy-api-key # Replace with a dummy or test API key
     model-name: gemini-1.5-flash
 
+openai:
+  api-key: sk-test-key-do-not-use-in-dev-or-prod # Replace with a dummy or test API key
+  embedding-model: text-embedding-3-small
+
+qdrant:
+  url: http://dummy-qdrant-url # Replace with a dummy or test Qdrant URL
+  api-key: dummy-api-key
+  collection-name: amateurs
+
   data:
     mongodb:
       database: embedded_test

@@ -41,6 +41,14 @@ langchain4j:
     api-key: ${GEMINI_API_KEY}
     model-name: ${GEMINI_MODEL}
 
+openai:
+  api-key: ${OPENAI_API_KEY}
+  embedding-model: ${OPENAI_MODEL}
+
+qdrant:
+  url: ${QDRANT_URL}
+  api-key: ${QDRANT_API_KEY}
+  collection-name: amateurs
 
 jwt:
   secret: ${JWT_SECRET}
