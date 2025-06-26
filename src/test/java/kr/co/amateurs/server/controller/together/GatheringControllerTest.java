@@ -10,6 +10,7 @@ import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
@@ -99,7 +100,7 @@ public class GatheringControllerTest {
                 createGatheringPostResponseDTO(2L, "두 번째 모집", "두 번째 내용")
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
-        given(gatheringService.getGatheringPostList(nullable(String.class), any(PaginationParam.class))).willReturn(convertPageToDTO(page));
+        given(gatheringService.getGatheringPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings"))
@@ -116,7 +117,7 @@ public class GatheringControllerTest {
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(searchResults);
 
-        given(gatheringService.getGatheringPostList(eq(keyword), any(PaginationParam.class))).willReturn(convertPageToDTO(page));
+        given(gatheringService.getGatheringPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
@@ -135,7 +136,7 @@ public class GatheringControllerTest {
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
 
-        given(gatheringService.getGatheringPostList(nullable(String.class), any(PaginationParam.class))).willReturn(convertPageToDTO(page));
+        given(gatheringService.getGatheringPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
@@ -155,7 +156,7 @@ public class GatheringControllerTest {
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
 
-        given(gatheringService.getGatheringPostList(nullable(String.class), any(PaginationParam.class))).willReturn(convertPageToDTO(page));
+        given(gatheringService.getGatheringPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
@@ -191,7 +192,7 @@ public class GatheringControllerTest {
                 1L, requestDTO.title(), requestDTO.content()
         );
 
-        given(gatheringService.createGatheringPost(any(CustomUserDetails.class), any(GatheringPostRequestDTO.class)))
+        given(gatheringService.createGatheringPost(any(GatheringPostRequestDTO.class)))
                 .willReturn(responseDTO);
 
         // when & then
@@ -209,7 +210,7 @@ public class GatheringControllerTest {
         Long gatheringId = 1L;
         GatheringPostRequestDTO requestDTO = createGatheringPostRequestDTO();
 
-        doNothing().when(gatheringService).updateGatheringPost(any(CustomUserDetails.class), eq(gatheringId), any(GatheringPostRequestDTO.class));
+        doNothing().when(gatheringService).updateGatheringPost(eq(gatheringId), any(GatheringPostRequestDTO.class));
 
         // when & then
         mockMvc.perform(put("/api/v1/gatherings/{gatheringId}", gatheringId)
@@ -223,7 +224,7 @@ public class GatheringControllerTest {
         // given
         Long gatheringId = 1L;
 
-        doNothing().when(gatheringService).deleteGatheringPost(currentUser, gatheringId);
+        doNothing().when(gatheringService).deleteGatheringPost(gatheringId);
 
         // when & then
         mockMvc.perform(delete("/api/v1/gatherings/{gatheringId}", gatheringId))
@@ -317,7 +318,7 @@ public class GatheringControllerTest {
         GatheringPostRequestDTO requestDTO = createGatheringPostRequestDTO();
 
         doThrow(new IllegalArgumentException("Gathering Post not found: " + nonExistentId))
-                .when(gatheringService).updateGatheringPost(any(CustomUserDetails.class), eq(nonExistentId), any(GatheringPostRequestDTO.class));
+                .when(gatheringService).updateGatheringPost(eq(nonExistentId), any(GatheringPostRequestDTO.class));
 
         // when & then
         mockMvc.perform(put("/api/v1/gatherings/{gatheringId}", nonExistentId)
@@ -331,7 +332,7 @@ public class GatheringControllerTest {
         // given
         Long nonExistentId = 999L;
         doThrow(new RuntimeException("Post not found"))
-                .when(gatheringService).deleteGatheringPost(currentUser, nonExistentId);
+                .when(gatheringService).deleteGatheringPost(nonExistentId);
 
         // when & then
         mockMvc.perform(delete("/api/v1/gatherings/{gatheringId}", nonExistentId))
@@ -343,7 +344,10 @@ public class GatheringControllerTest {
     private GatheringPostResponseDTO createGatheringPostResponseDTO(Long postId, String title, String content) {
         return GatheringPostResponseDTO.builder()
                 .postId(postId)
-                .userId(1L)
+                .nickname("nickname")
+                .devcourseName("AIBE")
+                .devcourseBatch("1기")
+                .userProfileImg(null)
                 .title(title)
                 .content(content)
                 .tags("태그")
@@ -357,6 +361,7 @@ public class GatheringControllerTest {
                 .schedule("주 2회")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .hasLiked(false).hasBookmarked(false).hasImages(false)
                 .build();
     }
 

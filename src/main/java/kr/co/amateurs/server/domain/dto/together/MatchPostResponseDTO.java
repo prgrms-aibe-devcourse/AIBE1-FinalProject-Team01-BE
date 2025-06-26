@@ -13,7 +13,10 @@ import java.time.LocalDateTime;
 @Builder
 public record MatchPostResponseDTO(
         Long postId,
-        Long userId,
+        String nickname,
+        String devcourseName,
+        String devcourseBatch,
+        String userProfileImg,
         String title,
         String content,
         String tags,
@@ -23,12 +26,18 @@ public record MatchPostResponseDTO(
         MatchingStatus status,
         String expertiseArea,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        boolean hasImages,
+        boolean hasLiked,
+        boolean hasBookmarked
 ) {
-    public static MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post) {
+    public static MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post, boolean hasLiked, boolean hasBookmarked) {
         return new MatchPostResponseDTO(
                 post.getId(),
-                post.getUser().getId(),
+                post.getUser().getNickname(),
+                post.getUser().getDevcourseName(),
+                post.getUser().getDevcourseBatch(),
+                post.getUser().getImageUrl(),
                 post.getTitle(),
                 post.getContent(),
                 post.getTags(),
@@ -38,14 +47,10 @@ public record MatchPostResponseDTO(
                 mp.getStatus(),
                 mp.getExpertiseAreas(),
                 post.getCreatedAt(),
-                post.getUpdatedAt()
+                post.getUpdatedAt(),
+                post.getPostImages() != null && !post.getPostImages().isEmpty(),
+                hasLiked,
+                hasBookmarked
         );
-    }
-
-    public static Page<MatchPostResponseDTO> convertToDTO(Page<MatchingPost> mpPage) {
-        return mpPage.map(mp -> {
-            Post post = mp.getPost();
-            return convertToDTO(mp, post);
-        });
     }
 }

@@ -8,6 +8,7 @@ import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
@@ -95,7 +96,7 @@ public class MatchControllerTest {
         );
         Page<MatchPostResponseDTO> page = new PageImpl<>(matchPosts);
 
-        given(matchService.getMatchPostList(nullable(String.class), any(PaginationParam.class)))
+        given(matchService.getMatchPostList(any(TogetherPaginationParam.class)))
                 .willReturn(convertPageToDTO(page));
 
         // when & then
@@ -113,7 +114,7 @@ public class MatchControllerTest {
         );
         Page<MatchPostResponseDTO> page = new PageImpl<>(searchResults);
 
-        given(matchService.getMatchPostList(eq(keyword), any(PaginationParam.class)))
+        given(matchService.getMatchPostList(any(TogetherPaginationParam.class)))
                 .willReturn(convertPageToDTO(page));
 
         // when & then
@@ -133,7 +134,7 @@ public class MatchControllerTest {
         );
         Page<MatchPostResponseDTO> page = new PageImpl<>(matchPosts);
 
-        given(matchService.getMatchPostList(nullable(String.class), any(PaginationParam.class)))
+        given(matchService.getMatchPostList(any(TogetherPaginationParam.class)))
                 .willReturn(convertPageToDTO(page));
 
         // when & then
@@ -155,7 +156,7 @@ public class MatchControllerTest {
         Page<MatchPostResponseDTO> page = new PageImpl<>(matchPosts);
 
 
-        given(matchService.getMatchPostList(nullable(String.class), any(PaginationParam.class)))
+        given(matchService.getMatchPostList(any(TogetherPaginationParam.class)))
                 .willReturn(convertPageToDTO(page));
 
         // when & then
@@ -192,7 +193,7 @@ public class MatchControllerTest {
                 1L, requestDTO.title(), requestDTO.content()
         );
 
-        given(matchService.createMatchPost(any(CustomUserDetails.class), any(MatchPostRequestDTO.class)))
+        given(matchService.createMatchPost(any(MatchPostRequestDTO.class)))
                 .willReturn(responseDTO);
 
         // when & then
@@ -210,7 +211,7 @@ public class MatchControllerTest {
         Long matchId = 1L;
         MatchPostRequestDTO requestDTO = createMatchPostRequestDTO();
 
-        doNothing().when(matchService).updateMatchPost(any(CustomUserDetails.class), eq(matchId), any(MatchPostRequestDTO.class));
+        doNothing().when(matchService).updateMatchPost(eq(matchId), any(MatchPostRequestDTO.class));
 
         // when & then
         mockMvc.perform(put("/api/v1/matches/{matchId}", matchId)
@@ -223,7 +224,7 @@ public class MatchControllerTest {
     void 존재하는_게시글삭제하면_204NOCONTENT반환() throws Exception {
         // given
         Long matchId = 1L;
-        doNothing().when(matchService).deleteMatchPost(currentUser, matchId);
+        doNothing().when(matchService).deleteMatchPost(matchId);
 
         // when & then
         mockMvc.perform(delete("/api/v1/matches/{matchId}", matchId))
@@ -314,7 +315,7 @@ public class MatchControllerTest {
         MatchPostRequestDTO requestDTO = createMatchPostRequestDTO();
 
         doThrow(new IllegalArgumentException("Match Post not found: " + nonExistentId))
-                .when(matchService).updateMatchPost(any(CustomUserDetails.class), eq(nonExistentId), any(MatchPostRequestDTO.class));
+                .when(matchService).updateMatchPost(eq(nonExistentId), any(MatchPostRequestDTO.class));
 
         // when & then
         mockMvc.perform(put("/api/v1/matches/{matchId}", nonExistentId)
@@ -328,7 +329,7 @@ public class MatchControllerTest {
         // given
         Long nonExistentId = 999L;
         doThrow(new RuntimeException("Post not found"))
-                .when(matchService).deleteMatchPost(currentUser, nonExistentId);
+                .when(matchService).deleteMatchPost(nonExistentId);
 
         // when & then
         mockMvc.perform(delete("/api/v1/matches/{matchId}", nonExistentId))
@@ -341,7 +342,10 @@ public class MatchControllerTest {
     private MatchPostResponseDTO createMatchPostResponseDTO(Long postId, String title, String content) {
         return MatchPostResponseDTO.builder()
                 .postId(postId)
-                .userId(1L)
+                .nickname("nickname")
+                .devcourseName("AIBE")
+                .devcourseBatch("1기")
+                .userProfileImg(null)
                 .title(title)
                 .content(content)
                 .tags("태그")
@@ -352,6 +356,7 @@ public class MatchControllerTest {
                 .expertiseArea("서울")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .hasLiked(false).hasBookmarked(false).hasImages(false)
                 .build();
     }
 

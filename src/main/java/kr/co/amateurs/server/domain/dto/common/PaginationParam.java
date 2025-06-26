@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.domain.dto.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import jakarta.validation.constraints.Min;
@@ -23,10 +24,11 @@ public class PaginationParam {
 
     @Schema(description = "페이지당 크기 (기본값 = 10)", implementation = Integer.class, example = "10")
     @Min(1)
+    @Max(100)
     protected Integer size = 10;
 
     @Schema(description = "정렬 방법", implementation = Sort.Direction.class)
-    protected Sort.Direction sortDirection = Sort.Direction.ASC;
+    protected Sort.Direction sortDirection = Sort.Direction.DESC;
     protected PaginationSortType field = PaginationSortType.EMPTY;
 
     public Pageable toPageable() {

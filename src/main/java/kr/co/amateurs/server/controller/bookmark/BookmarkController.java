@@ -13,9 +13,11 @@ import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,53 +28,35 @@ import org.springframework.web.bind.annotation.*;
 public class BookmarkController {
     private final BookmarkService bookmarkService;
 
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
     @GetMapping("/users/{userId}/bookmarks")
     public ResponseEntity<PageResponseDTO<BookmarkResponseDTO>> getBookmarkPostList(
-            @AuthenticationPrincipal CustomUserDetails currentUser,
-            @PathVariable @NotNull Long userId,
-            @ModelAttribute @Valid PaginationParam paginationParam
+            @PathVariable Long userId,
+            @ParameterObject @Valid PaginationParam paginationParam
             ) {
-        // 본인 북마크 리스트만 조회 가능하게 함
-        if(currentUser.getUser().getRole().equals(Role.ADMIN) || currentUser.getUser().getId().equals(userId)) {
-            PageResponseDTO<BookmarkResponseDTO> bookmarkList = bookmarkService.getBookmarkPostList(userId, paginationParam);
-            return ResponseEntity.ok(bookmarkList);
-        }
-        else{
-            throw new CustomException(ErrorCode.ACCESS_DENIED);
-        }
+        PageResponseDTO<BookmarkResponseDTO> bookmarkList = bookmarkService.getBookmarkPostList(userId, paginationParam);
+        return ResponseEntity.ok(bookmarkList);
 
     }
 
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
     @PostMapping("/users/{userId}/bookmarks/{postId}")
     public ResponseEntity<BookmarkResponseDTO> addBookmarkPost(
-            @AuthenticationPrincipal CustomUserDetails currentUser,
             @PathVariable Long userId,
             @PathVariable Long postId
     ){
-        // 본인 북마크 리스트에만 추가 가능하게 함
-        if(currentUser.getUser().getRole().equals(Role.ADMIN) || currentUser.getUser().getId().equals(userId)) {
-            BookmarkResponseDTO bookmarkPost = bookmarkService.addBookmarkPost(userId, postId);
-            return ResponseEntity.status(HttpStatus.CREATED).body(bookmarkPost);
-        }
-        else{
-            throw new CustomException(ErrorCode.ACCESS_DENIED);
-        }
+         BookmarkResponseDTO bookmarkPost = bookmarkService.addBookmarkPost(userId, postId);
+         return ResponseEntity.status(HttpStatus.CREATED).body(bookmarkPost);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
     @DeleteMapping("/users/{userId}/bookmarks/{postId}")
     public ResponseEntity<Void> removeBookmarkPost(
-            @AuthenticationPrincipal CustomUserDetails currentUser,
             @PathVariable Long userId,
             @PathVariable Long postId
     ){
-        //본인 북마크 항목만 제거 가능하도록 함
-        if(currentUser.getUser().getRole().equals(Role.ADMIN) || currentUser.getUser().getId().equals(userId)) {
-            bookmarkService.removeBookmarkPost(userId, postId);
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
-        else{
-            throw new CustomException(ErrorCode.ACCESS_DENIED);
-        }
+        bookmarkService.removeBookmarkPost(userId, postId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
     }
 }

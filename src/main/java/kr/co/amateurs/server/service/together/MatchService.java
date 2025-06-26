@@ -10,6 +10,7 @@ import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -19,15 +20,23 @@ import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
+import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.bookmark.BookmarkService;
+import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
+import java.util.Optional;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO.convertToDTO;
@@ -39,9 +48,12 @@ public class MatchService {
 
     private final MatchRepository matchRepository;
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final LikeService likeService;
+    private final BookmarkService bookmarkService;
 
-    public PageResponseDTO<MatchPostResponseDTO> getMatchPostList(String keyword, PaginationParam paginationParam) {
+    public PageResponseDTO<MatchPostResponseDTO> getMatchPostList(TogetherPaginationParam paginationParam) {
+        String keyword = paginationParam.getKeyword();
         Pageable pageable = paginationParam.toPageable();
         Page<MatchingPost> mpPage = switch (paginationParam.getField()) {
             case LATEST -> matchRepository.findAllByKeyword(keyword, pageable);
@@ -49,21 +61,26 @@ public class MatchService {
             case MOST_VIEW -> matchRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
             default -> matchRepository.findAllByKeyword(keyword, pageable);
         };
-        return convertPageToDTO(convertToDTO(mpPage));
+        Page<MatchPostResponseDTO> response = mpPage.map(mp-> convertToDTO(mp, mp.getPost(), likeService.checkHasLiked(mp.getPost().getId()), bookmarkService.checkHasBookmarked(mp.getPost().getId())));
+        return convertPageToDTO(response);
     }
 
 
     public MatchPostResponseDTO getMatchPost(Long id) {
-        MatchingPost mp = matchRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Post not found: " + id));
+        MatchingPost mp = matchRepository.findByPostId(id);
+        if(mp == null) {
+            throw new CustomException(ErrorCode.POST_NOT_FOUND);
+        }
         Post post = mp.getPost();
-        return convertToDTO(mp, post);
+        return convertToDTO(mp, post, likeService.checkHasLiked(post.getId()), bookmarkService.checkHasBookmarked(post.getId()));
     }
 
 
     @Transactional
-    public MatchPostResponseDTO createMatchPost(CustomUserDetails currentUser, MatchPostRequestDTO dto) {
+    public MatchPostResponseDTO createMatchPost(MatchPostRequestDTO dto) {
+        User currentUser = getCurrentUser();
         Post post = Post.builder()
-                .user(currentUser.getUser())
+                .user(currentUser)
                 .boardType(BoardType.MATCH)
                 .title(dto.title())
                 .content(dto.content())
@@ -79,39 +96,47 @@ public class MatchService {
                 .build();
         MatchingPost savedMp = matchRepository.save(mp);
 
-        return convertToDTO(savedMp, savedPost);
+        return convertToDTO(savedMp, savedPost, likeService.checkHasLiked(savedPost.getId()), bookmarkService.checkHasBookmarked(savedPost.getId()));
     }
 
     @Transactional
-    public void updateMatchPost(CustomUserDetails currentUser, Long postId, MatchPostRequestDTO dto) {
+    public void updateMatchPost(Long postId, MatchPostRequestDTO dto) {
         MatchingPost mp = matchRepository.findByPostId(postId);
         if(mp == null) {
-            throw new IllegalArgumentException("Match Post not found: " + postId);
+            throw new CustomException(ErrorCode.POST_NOT_FOUND);
         }
         Post post = mp.getPost();
-
-        if(currentUser.getUser().getId().equals(post.getUser().getId()) || currentUser.getUser().getRole().equals(Role.ADMIN)) {
-            CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
-            mp.update(dto);
-            post.update(updatePostDTO);
-        }
-        else{
-            throw new CustomException(ErrorCode.ACCESS_DENIED, "You do not have permission to update this post");
-        }
-
-
+        validateUser(post.getUser().getId());
+        CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
+        mp.update(dto);
+        post.update(updatePostDTO);
     }
 
     @Transactional
-    public void deleteMatchPost(CustomUserDetails currentUser, Long postId) {
+    public void deleteMatchPost(Long postId) {
         MatchingPost mp = matchRepository.findByPostId(postId);
-        Post post = mp.getPost();
-        if(currentUser.getUser().getId().equals(post.getUser().getId()) || currentUser.getUser().getRole().equals(Role.ADMIN)) {
-            matchRepository.deleteById(mp.getId());
-            postRepository.deleteById(post.getId());
+        if(mp == null) {
+            throw new CustomException(ErrorCode.POST_NOT_FOUND);
         }
-        else{
-            throw new CustomException(ErrorCode.ACCESS_DENIED, "You do not have permission to delete this post");
+        Post post = mp.getPost();
+        validateUser(post.getUser().getId());
+        matchRepository.deleteById(mp.getId());
+        postRepository.deleteById(post.getId());
+    }
+
+    private User getCurrentUser() {
+        Optional<User> user = Objects.requireNonNull(userService).getCurrentUser();
+        if (user.isEmpty()) {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+        return user.get();
+    }
+    private void validateUser(Long userId) {
+        User currentUser = getCurrentUser();
+        Long currentId = currentUser.getId();
+        Role currentRole = currentUser.getRole();
+        if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
+            throw new CustomException(ErrorCode.ACCESS_DENIED, "해당 게시글에 접근할 수 없습니다.");
         }
     }
 }

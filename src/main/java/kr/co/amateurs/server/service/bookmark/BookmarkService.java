@@ -1,5 +1,8 @@
 package kr.co.amateurs.server.service.bookmark;
 
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.config.jwt.CustomUserDetailsService;
+import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
@@ -11,19 +14,26 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import static kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO.*;
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
@@ -39,7 +49,10 @@ public class BookmarkService {
     private final MarketRepository marketRepository;
     private final MatchRepository matchRepository;
 
+    private final UserService userService;
+
     public PageResponseDTO<BookmarkResponseDTO> getBookmarkPostList(Long userId, PaginationParam paginationParam) {
+        validateUser(userId);
         Pageable pageable = paginationParam.toPageable();
         Page<Bookmark> bookmarkList = switch(paginationParam.getField()){
             case LATEST -> bookmarkRepository.getBookmarkPostByUser(userId, pageable);
@@ -51,6 +64,7 @@ public class BookmarkService {
     }
 
     public BookmarkResponseDTO addBookmarkPost(Long userId, Long postId) {
+        validateUser(userId);
         User currentUser = userRepository.findById(userId).orElseThrow();
         Post post = postRepository.findById(postId).orElseThrow();
         Bookmark newBookmark = Bookmark.builder()
@@ -63,6 +77,7 @@ public class BookmarkService {
 
     @Transactional
     public void removeBookmarkPost(Long userId, Long postId) {
+        validateUser(userId);
         bookmarkRepository.deleteByUserAndPost(userId, postId);
     }
 
@@ -86,5 +101,23 @@ public class BookmarkService {
             default -> convertToPostDTO(bookmark);
         };
     }
+    public boolean checkHasBookmarked(Long postId) {
+        User user = userService.getCurrentUser().get();
+        return bookmarkRepository
+                .findByPost_IdAndUser_Id(postId, user.getId())
+                .isPresent();
+    }
 
+    private void validateUser(Long userId) {
+        Optional<User> user = userService.getCurrentUser();
+        if (user.isEmpty()) {
+            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+        }
+        Long currentId = user.get().getId();
+        Role currentRole = user.get().getRole();
+
+        if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
+            throw new CustomException(ErrorCode.ACCESS_DENIED, "본인의 북마크에만 접근할 수 있습니다.");
+        }
+    }
 }

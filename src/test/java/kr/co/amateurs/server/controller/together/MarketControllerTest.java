@@ -8,6 +8,7 @@ import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -94,7 +95,7 @@ public class MarketControllerTest {
         );
         Page<MarketPostResponseDTO> page = new PageImpl<>(marketPosts);
 
-        given(marketService.getMarketPostList(nullable(String.class), any(PaginationParam.class))).willReturn(convertPageToDTO(page));
+        given(marketService.getMarketPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/market"))
@@ -111,7 +112,7 @@ public class MarketControllerTest {
         );
         Page<MarketPostResponseDTO> page = new PageImpl<>(searchResults);
 
-        given(marketService.getMarketPostList(eq(keyword), any(PaginationParam.class))).willReturn(convertPageToDTO(page));
+        given(marketService.getMarketPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/market")
@@ -130,7 +131,7 @@ public class MarketControllerTest {
         );
         Page<MarketPostResponseDTO> page = new PageImpl<>(marketPosts);
 
-        given(marketService.getMarketPostList(nullable(String.class), any(PaginationParam.class))).willReturn(convertPageToDTO(page));
+        given(marketService.getMarketPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/market")
@@ -150,7 +151,7 @@ public class MarketControllerTest {
         );
         Page<MarketPostResponseDTO> page = new PageImpl<>(marketPosts);
 
-        given(marketService.getMarketPostList(nullable(String.class), any(PaginationParam.class)))
+        given(marketService.getMarketPostList(any(TogetherPaginationParam.class)))
                 .willReturn(convertPageToDTO(page));
 
         // when & then
@@ -187,7 +188,7 @@ public class MarketControllerTest {
                 1L, requestDTO.title(), requestDTO.content()
         );
 
-        given(marketService.createMarketPost(any(CustomUserDetails.class), any(MarketPostRequestDTO.class)))
+        given(marketService.createMarketPost(any(MarketPostRequestDTO.class)))
                 .willReturn(responseDTO);
 
         // when & then
@@ -205,7 +206,7 @@ public class MarketControllerTest {
         Long marketId = 1L;
         MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
 
-        doNothing().when(marketService).updateMarketPost(any(CustomUserDetails.class), eq(marketId), any(MarketPostRequestDTO.class));
+        doNothing().when(marketService).updateMarketPost(eq(marketId), any(MarketPostRequestDTO.class));
 
         // when & then
         mockMvc.perform(put("/api/v1/market/{marketId}", marketId)
@@ -218,7 +219,7 @@ public class MarketControllerTest {
     void 존재하는_게시글삭제하면_204NOCONTENT반환() throws Exception {
         // given
         Long marketId = 1L;
-        doNothing().when(marketService).deleteMarketPost(currentUser, marketId);
+        doNothing().when(marketService).deleteMarketPost(marketId);
 
         // when & then
         mockMvc.perform(delete("/api/v1/market/{marketId}", marketId))
@@ -309,7 +310,7 @@ public class MarketControllerTest {
         MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
 
         doThrow(new IllegalArgumentException("Market Post not found: " + nonExistentId))
-                .when(marketService).updateMarketPost(any(CustomUserDetails.class), eq(nonExistentId), any(MarketPostRequestDTO.class));
+                .when(marketService).updateMarketPost(eq(nonExistentId), any(MarketPostRequestDTO.class));
 
         // when & then
         mockMvc.perform(put("/api/v1/market/{marketId}", nonExistentId)
@@ -323,7 +324,7 @@ public class MarketControllerTest {
         // given
         Long nonExistentId = 999L;
         doThrow(new RuntimeException("Post not found"))
-                .when(marketService).deleteMarketPost(currentUser, nonExistentId);
+                .when(marketService).deleteMarketPost(nonExistentId);
 
         // when & then
         mockMvc.perform(delete("/api/v1/market/{marketId}", nonExistentId))
@@ -336,7 +337,10 @@ public class MarketControllerTest {
     private MarketPostResponseDTO createMarketPostResponseDTO(Long postId, String title, String content) {
         return MarketPostResponseDTO.builder()
                 .postId(postId)
-                .userId(1L)
+                .nickname("nickname")
+                .devcourseName("AIBE")
+                .devcourseBatch("1기")
+                .userProfileImg(null)
                 .title(title)
                 .content(content)
                 .tags("태그")
@@ -347,6 +351,7 @@ public class MarketControllerTest {
                 .place("서울")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .hasLiked(false).hasBookmarked(false).hasImages(false)
                 .build();
     }
 

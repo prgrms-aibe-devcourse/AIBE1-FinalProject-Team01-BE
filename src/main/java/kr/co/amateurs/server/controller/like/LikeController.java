@@ -8,6 +8,7 @@ import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,46 +18,39 @@ import org.springframework.web.bind.annotation.*;
 public class LikeController {
     private final LikeService likeService;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
     @PostMapping("/posts/{postId}/likes")
     public ResponseEntity<LikeResponseDTO> addLikeToPost(
-            @AuthenticationPrincipal CustomUserDetails currentUser,
-            @PathVariable @NotNull Long postId
+            @PathVariable Long postId
     ){
-        Long userId = currentUser.getUser().getId();
-        LikeResponseDTO result = likeService.addLikeToPost(postId, userId);
+        LikeResponseDTO result = likeService.addLikeToPost(postId);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
     @PostMapping("/comments/{commentId}/likes")
     public ResponseEntity<LikeResponseDTO> addLikeToComment(
-            @AuthenticationPrincipal CustomUserDetails currentUser,
-            @PathVariable @NotNull Long commentId
+            @PathVariable Long commentId
     ){
-        Long userId = currentUser.getUser().getId();
-        LikeResponseDTO result = likeService.addLikeToComment(commentId, userId);
+        LikeResponseDTO result = likeService.addLikeToComment(commentId);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
     @DeleteMapping("/posts/{postId}/likes")
     public ResponseEntity<Void> removeLikeToPost(
-            @AuthenticationPrincipal CustomUserDetails currentUser,
-            @PathVariable @NotNull Long postId
+            @PathVariable Long postId
     ){
-        Long userId = currentUser.getUser().getId();
-        likeService.removeLikeFromPost(postId, userId);
+        likeService.removeLikeFromPost(postId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
     @DeleteMapping("/comments/{commentId}/likes")
     public ResponseEntity<Void> removeLikeToComment(
-            @AuthenticationPrincipal CustomUserDetails currentUser,
-            @PathVariable @NotNull Long commentId
+            @PathVariable Long commentId
     ){
-        Long userId = currentUser.getUser().getId();
-        likeService.removeLikeFromComment(commentId, userId);
+        likeService.removeLikeFromComment(commentId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
