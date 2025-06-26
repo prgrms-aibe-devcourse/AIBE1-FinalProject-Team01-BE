@@ -41,7 +41,7 @@ public class QdrantConfig {
     public EmbeddingStore<TextSegment> embeddingStore() {
         return QdrantEmbeddingStore.builder()
                 .host(qdrantUrl)
-                .apiKey(qdrantPort)
+                .port(Integer.parseInt(qdrantPort))
                 .apiKey(qdrantApiKey)
                 .collectionName(collectionName)
                 .useTls(true)

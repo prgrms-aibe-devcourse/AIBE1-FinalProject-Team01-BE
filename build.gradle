@@ -45,7 +45,7 @@ dependencies {
 	implementation 'dev.langchain4j:langchain4j-google-ai-gemini:1.0.0-alpha1'
 	implementation 'dev.langchain4j:langchain4j-spring-boot-starter:1.0.0-alpha1'
 	implementation 'dev.langchain4j:langchain4j-open-ai:1.0.0-alpha1'
-	implementation 'dev.langchain4j:langchain4j-qdrant:1.1.0-beta7'
+	implementation 'dev.langchain4j:langchain4j-qdrant:1.0.0-alpha1'
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'

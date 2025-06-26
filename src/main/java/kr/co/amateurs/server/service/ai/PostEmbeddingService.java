@@ -65,7 +65,7 @@ public class PostEmbeddingService {
             return "게시글 임베딩이 생성되었습니다: " + postId;
         } catch (Exception e) {
             log.error("게시글 임베딩 생성 실패: postId={}", postId, e);
-            throw ErrorCode.ERROR_AI_PROFILE.get();
+            throw ErrorCode.ERROR_AI_EMBEDDING_GENERATION.get();
         }
     }
 
