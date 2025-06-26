@@ -1,7 +1,5 @@
 package kr.co.amateurs.server.service.bookmark;
 
-import kr.co.amateurs.server.config.jwt.CustomUserDetails;
-import kr.co.amateurs.server.config.jwt.CustomUserDetailsService;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
@@ -12,7 +10,6 @@ import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
@@ -25,11 +22,7 @@ import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,7 +71,7 @@ public class BookmarkService {
     @Transactional
     public void removeBookmarkPost(Long userId, Long postId) {
         validateUser(userId);
-        bookmarkRepository.deleteByUser_IdAndPost_Id(userId, postId);
+        bookmarkRepository.deleteByUserIdAndPostId(userId, postId);
     }
 
     private BookmarkResponseDTO convertToDTO(Bookmark bookmark) {
@@ -104,7 +97,7 @@ public class BookmarkService {
     public boolean checkHasBookmarked(Long postId) {
         User user = userService.getCurrentUser().get();
         return bookmarkRepository
-                .findByPost_IdAndUser_Id(postId, user.getId())
+                .findByPostIdAndUserId(postId, user.getId())
                 .isPresent();
     }
 

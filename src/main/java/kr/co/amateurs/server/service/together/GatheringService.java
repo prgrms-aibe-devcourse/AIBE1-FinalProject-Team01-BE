@@ -136,13 +136,13 @@ public class GatheringService {
     private boolean checkHasLiked(Long postId) {
         User user = getCurrentUser();
         return likeRepository
-                .findByPost_IdAndUser_Id(postId, user.getId())
+                .findByPostIdAndUserId(postId, user.getId())
                 .isPresent();
     }
     private boolean checkHasBookmarked(Long postId) {
         User user = getCurrentUser();
         return bookmarkRepository
-                .findByPost_IdAndUser_Id(postId, user.getId())
+                .findByPostIdAndUserId(postId, user.getId())
                 .isPresent();
     }
 }

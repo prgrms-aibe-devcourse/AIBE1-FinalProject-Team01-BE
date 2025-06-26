@@ -50,13 +50,9 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
             Pageable pageable
     );
 
-//
-//    // TODO - 메서드 이름으로 가능하면 변경
-//    @Modifying
-//    @Query("DELETE FROM Bookmark b WHERE b.post.id = :postId AND b.user.id = :userId")
-//    int deleteByUserAndPost(@Param("userId") Long userId, @Param("postId") Long postId);
+    void deleteByUserIdAndPostId(Long userId, Long postId);
 
-    Optional<Bookmark> findByPost_IdAndUser_Id(Long postId, Long id);
+    Optional<Bookmark> findByPostIdAndUserId(Long postId, Long id);
 
     int countByPostId(@Param("postId") Long postId);
 
@@ -68,6 +64,5 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     """)
     List<BookmarkCount> countByPostIds(@Param("postIds") List<Long> postIds);
 
-    @Modifying
-    void deleteByUser_IdAndPost_Id(Long userId, Long postId);
+
 }

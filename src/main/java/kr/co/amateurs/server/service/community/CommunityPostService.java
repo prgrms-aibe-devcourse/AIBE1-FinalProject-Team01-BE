@@ -92,13 +92,13 @@ public class CommunityPostService {
 
     private boolean checkHasLiked(Long postId, User user) {
         return likeRepository
-                .findByPost_IdAndUser_Id(postId, user.getId())
+                .findByPostIdAndUserId(postId, user.getId())
                 .isPresent();
     }
 
     private boolean checkHasBookmarked(Long postId, User user) {
         return bookmarkRepository
-                .findByPost_IdAndUser_Id(postId, user.getId())
+                .findByPostIdAndUserId(postId, user.getId())
                 .isPresent();
     }
 

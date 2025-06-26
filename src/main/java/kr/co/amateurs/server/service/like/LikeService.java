@@ -59,18 +59,18 @@ public class LikeService {
     public void removeLikeFromPost(Long postId) {
         User currentUser = getCurrentUser();
         validateUser(currentUser.getId());
-        likeRepository.deleteByPost_IdAndUser_Id(postId, currentUser.getId());
+        likeRepository.deleteByPostIdAndUserId(postId, currentUser.getId());
     }
 
     public void removeLikeFromComment(Long commentId) {
         User currentUser = getCurrentUser();
         validateUser(currentUser.getId());
-        likeRepository.deleteByCommentAndUser(commentId, currentUser.getId());
+        likeRepository.deleteByCommentIdAndUserId(commentId, currentUser.getId());
     }
     public boolean checkHasLiked(Long postId) {
         User user = getCurrentUser();
         return likeRepository
-                .findByPost_IdAndUser_Id(postId, user.getId())
+                .findByPostIdAndUserId(postId, user.getId())
                 .isPresent();
     }
     private User getCurrentUser() {
