@@ -2,6 +2,7 @@ package kr.co.amateurs.server.domain.dto.together;
 
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import lombok.Builder;
@@ -13,7 +14,10 @@ import java.time.LocalDateTime;
 @Builder
 public record GatheringPostResponseDTO(
         Long postId,
-        Long userId,
+        String nickname,
+        DevCourseTrack devcourseName,
+        String devcourseBatch,
+        String userProfileImg,
         String title,
         String content,
         String tags,
@@ -26,12 +30,18 @@ public record GatheringPostResponseDTO(
         String period,
         String schedule,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        boolean hasImages,
+        boolean hasLiked,
+        boolean hasBookmarked
 ) {
-    public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post) {
+    public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post, boolean hasLiked, boolean hasBookmarked) {
         return new GatheringPostResponseDTO(
                 post.getId(),
-                post.getUser().getId(),
+                post.getUser().getNickname(),
+                post.getUser().getDevcourseName(),
+                post.getUser().getDevcourseBatch(),
+                post.getUser().getImageUrl(),
                 post.getTitle(),
                 post.getContent(),
                 post.getTags(),
@@ -44,14 +54,10 @@ public record GatheringPostResponseDTO(
                 gp.getPeriod(),
                 gp.getSchedule(),
                 post.getCreatedAt(),
-                post.getUpdatedAt()
+                post.getUpdatedAt(),
+                post.getPostImages() != null && !post.getPostImages().isEmpty(),
+                hasLiked,
+                hasBookmarked
         );
-    }
-
-    public static Page<GatheringPostResponseDTO> convertToDTO(Page<GatheringPost> gpPage) {
-        return gpPage.map(gp -> {
-            Post post = gp.getPost();
-            return convertToDTO(gp, post);
-        });
     }
 }

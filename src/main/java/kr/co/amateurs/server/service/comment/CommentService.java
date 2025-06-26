@@ -52,6 +52,7 @@ public class CommentService {
     }
 
     @Transactional
+    @AlarmTrigger(type = AlarmType.COMMENT)
     public CommentResponseDTO createComment(Long postId, CommentRequestDTO requestDTO) {
         User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
 
