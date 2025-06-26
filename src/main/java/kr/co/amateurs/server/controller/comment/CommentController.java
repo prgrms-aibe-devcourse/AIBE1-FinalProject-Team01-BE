@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.controller.comment;
 
+import jakarta.validation.Valid;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
@@ -46,7 +47,7 @@ public class CommentController {
     @PostMapping("/{postId}/comments")
     public ResponseEntity<CommentResponseDTO> createComment(
             @PathVariable Long postId,
-            @RequestBody CommentRequestDTO requestDTO
+            @Valid @RequestBody CommentRequestDTO requestDTO
             ){
         CommentResponseDTO comment = commentService.createComment(postId, requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
