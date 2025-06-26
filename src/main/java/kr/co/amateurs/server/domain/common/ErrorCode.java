@@ -28,6 +28,10 @@ public enum ErrorCode implements Supplier<CustomException> {
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "이미 사용 중인 이메일입니다."),
     DUPLICATE_NICKNAME(HttpStatus.BAD_REQUEST, "이미 사용 중인 닉네임입니다."),
 
+    // 회원 정보 수정 관련 에러
+    EMPTY_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호를 입력해주세요."),
+    INVALID_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다."),
+
     // 로그인 관련 에러
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 사용자입니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),

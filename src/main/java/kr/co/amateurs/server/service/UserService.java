@@ -2,6 +2,8 @@ package kr.co.amateurs.server.service;
 
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.user.UserProfileEditRequestDto;
+import kr.co.amateurs.server.domain.dto.user.UserProfileEditResponseDto;
 import kr.co.amateurs.server.domain.dto.user.UserProfileResponseDto;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
@@ -10,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +23,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public void validateEmailDuplicate(String email) {
         if (userRepository.existsByEmail(email)) {
@@ -102,5 +106,43 @@ public class UserService {
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);
 
         return UserProfileResponseDto.from(user);
+    }
+
+    @Transactional
+    public UserProfileEditResponseDto updateUserProfile(UserProfileEditRequestDto request) {
+        User currentUser = getCurrentLoginUser();
+
+        if (request.newPassword() != null && !request.newPassword().trim().isEmpty()) {
+            validateCurrentPassword(currentUser, request.currentPassword());
+        }
+
+        if (!currentUser.getNickname().equals(request.nickname())) {
+            validateNicknameDuplicate(request.nickname());
+            validateNicknameFormat(request.nickname());
+        }
+
+        User updatedUser = currentUser.toBuilder()
+                .nickname(request.nickname())
+                .name(request.name())
+                .imageUrl(request.imageUrl())
+                .password(request.newPassword() != null ?
+                        passwordEncoder.encode(request.newPassword()) : currentUser.getPassword())
+                .build();
+
+        updatedUser.getUserTopics().clear();
+        updatedUser.addUserTopics(request.topics());
+
+        User savedUser = userRepository.save(updatedUser);
+        return UserProfileEditResponseDto.from(savedUser);
+    }
+
+    private void validateCurrentPassword(User user, String currentPassword) {
+        if (currentPassword == null || currentPassword.trim().isEmpty()) {
+            throw ErrorCode.EMPTY_CURRENT_PASSWORD.get();
+        }
+
+        if(!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw ErrorCode.INVALID_CURRENT_PASSWORD.get();
+        }
     }
 }
