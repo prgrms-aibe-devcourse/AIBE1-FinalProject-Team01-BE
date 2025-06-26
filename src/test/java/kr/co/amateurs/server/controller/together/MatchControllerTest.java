@@ -6,6 +6,8 @@ import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
+import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -337,7 +339,7 @@ public class MatchControllerTest {
         return MatchPostResponseDTO.builder()
                 .postId(postId)
                 .nickname("nickname")
-                .devcourseName("AIBE")
+                .devcourseName(DevCourseTrack.AI_BACKEND)
                 .devcourseBatch("1기")
                 .userProfileImg(null)
                 .title(title)

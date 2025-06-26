@@ -7,6 +7,8 @@ import kr.co.amateurs.server.config.TestSecurityConfig;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
@@ -334,7 +336,7 @@ public class GatheringControllerTest {
         return GatheringPostResponseDTO.builder()
                 .postId(postId)
                 .nickname("nickname")
-                .devcourseName("AIBE")
+                .devcourseName(DevCourseTrack.AI_BACKEND)
                 .devcourseBatch("1기")
                 .userProfileImg(null)
                 .title(title)
