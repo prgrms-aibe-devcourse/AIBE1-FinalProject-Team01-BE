@@ -8,7 +8,10 @@ import lombok.Getter;
 public enum PaginationSortType {
     ID("id"),
     DM_SENT_AT("sentAt"),
-    EMPTY(null);
+    EMPTY(null),
+    LATEST("createdAt"),
+    POPULAR("likeCount"),
+    MOST_VIEW("viewCount");
 
     public final String field;
 }
