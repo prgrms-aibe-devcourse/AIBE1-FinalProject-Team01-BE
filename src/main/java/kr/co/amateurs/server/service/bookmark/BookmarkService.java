@@ -1,7 +1,7 @@
 package kr.co.amateurs.server.service.bookmark;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
-import kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO;
+import kr.co.amateurs.server.domain.dto.bookmark.*;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
@@ -81,17 +81,17 @@ public class BookmarkService {
         return switch (boardType){
             case GATHER -> {
                 GatheringPost gp = gatheringRepository.findByPostId(postId);
-                yield convertToGatheringDTO(bookmark, gp);
+                yield GatheringBookmarkDTO.convertToDTO(gp);
             }
             case MARKET -> {
                 MarketItem mi = marketRepository.findByPostId(postId);
-                yield convertToMarketDTO(bookmark, mi);
+                yield MarketBookmarkDTO.convertToDTO(mi);
             }
             case MATCH -> {
                 MatchingPost mp = matchRepository.findByPostId(postId);
-                yield convertToMatchingDTO(bookmark, mp);
+                yield MatchingBookmarkDTO.convertToDTO(mp);
             }
-            default -> convertToPostDTO(bookmark);
+            default -> PostBookmarkDTO.convertToDTO(p);
         };
     }
     public boolean checkHasBookmarked(Long postId) {
