@@ -1,8 +1,7 @@
 package kr.co.amateurs.server.repository.bookmark;
 
-import kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO;
+import kr.co.amateurs.server.domain.dto.bookmark.BookmarkCount;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
-import kr.co.amateurs.server.domain.entity.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -58,4 +57,14 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     int deleteByUserAndPost(@Param("userId") Long userId, @Param("postId") Long postId);
 
     Optional<Bookmark> findByPost_IdAndUser_Id(Long postId, Long id);
+
+    int countByPostId(@Param("postId") Long postId);
+
+    @Query("""
+        SELECT b.post.id as postId, COUNT(b) as bookmarkCount
+        FROM Bookmark b 
+        WHERE b.post.id IN :postIds 
+        GROUP BY b.post.id
+    """)
+    List<BookmarkCount> countByPostIds(@Param("postIds") List<Long> postIds);
 }

@@ -2,6 +2,7 @@ package kr.co.amateurs.server.domain.dto.together;
 
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import lombok.Builder;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 public record GatheringPostResponseDTO(
         Long postId,
         String nickname,
-        String devcourseName,
+        DevCourseTrack devcourseName,
         String devcourseBatch,
         String userProfileImg,
         String title,

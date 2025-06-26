@@ -2,6 +2,7 @@ package kr.co.amateurs.server.domain.entity.user;
 
 import jakarta.persistence.*;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -38,7 +39,7 @@ public class User extends BaseEntity {
     private ProviderType providerType;
 
     private String providerId;
-    private String devcourseName;
+    private DevCourseTrack devcourseName;
     private String password;
     private String devcourseBatch;
     private String imageUrl;
