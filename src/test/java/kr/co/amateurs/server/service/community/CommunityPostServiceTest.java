@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.service.community;
 
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
@@ -84,15 +85,15 @@ class CommunityPostServiceTest {
                 .build();
 
         // when
-        Page<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getNumber()).isEqualTo(page);
-        assertThat(result.getSize()).isEqualTo(pageSize);
-        assertThat(result.getTotalPages()).isEqualTo(1);
-        assertThat(result.getContent().get(0).title()).isEqualTo("자유2");
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.pageInfo().getPageNumber()).isEqualTo(page);
+        assertThat(result.pageInfo().getPageSize()).isEqualTo(pageSize);
+        assertThat(result.pageInfo().getTotalPages()).isEqualTo(1);
+        assertThat(result.content().get(0).title()).isEqualTo("자유2");
     }
 
     @Test
@@ -112,12 +113,12 @@ class CommunityPostServiceTest {
                 .build();
 
         // when
-        Page<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).title()).contains("자유2");
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.content().get(0).title()).contains("자유2");
     }
 
     @Test
@@ -137,11 +138,11 @@ class CommunityPostServiceTest {
                 .build();
 
         // when
-        Page<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
+        assertThat(result.content()).isEmpty();
     }
 
     @Test
@@ -160,14 +161,14 @@ class CommunityPostServiceTest {
                 .build();
 
         // when
-        Page<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
 
         // then
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).likeCount()).isGreaterThanOrEqualTo(
-                result.getContent().get(1).likeCount()
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.content().get(0).likeCount()).isGreaterThanOrEqualTo(
+                result.content().get(1).likeCount()
         );
-        assertThat(result.getContent().get(0).title()).contains("자유1");
+        assertThat(result.content().get(0).title()).contains("자유1");
     }
 
     @Test
@@ -186,14 +187,14 @@ class CommunityPostServiceTest {
                 .build();
 
         // when
-        Page<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
 
         // then
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).viewCount()).isGreaterThanOrEqualTo(
-                result.getContent().get(1).viewCount()
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.content().get(0).viewCount()).isGreaterThanOrEqualTo(
+                result.content().get(1).viewCount()
         );
-        assertThat(result.getContent().get(0).title()).contains("자유1");
+        assertThat(result.content().get(0).title()).contains("자유1");
     }
 
     @Test

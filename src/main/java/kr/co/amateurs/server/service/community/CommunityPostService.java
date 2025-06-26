@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.service.community;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -20,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -30,7 +33,7 @@ public class CommunityPostService {
 
     private final UserService userService;
 
-    public Page<CommunityResponseDTO> searchPosts(BoardType boardType, PostPaginationParam paginationParam) {
+    public PageResponseDTO<CommunityResponseDTO> searchPosts(BoardType boardType, PostPaginationParam paginationParam) {
         Pageable pageable = paginationParam.toPageable();
         String keyword = paginationParam.getKeyword();
         Page<Post> communityPage;
@@ -40,7 +43,7 @@ public class CommunityPostService {
             communityPage = postRepository.findByBoardType(boardType, pageable);
         }
 
-        return communityPage.map(post -> CommunityResponseDTO.from(post, false, false));
+        return convertPageToDTO(communityPage.map(post -> CommunityResponseDTO.from(post, false, false)));
     }
 
     public Post findById(long postId) {

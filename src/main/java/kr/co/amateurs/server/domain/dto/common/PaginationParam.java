@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class PaginationParam {
 
     @Schema(description = "페이지 번호 (기본값 0)", implementation = Integer.class, example = "0")

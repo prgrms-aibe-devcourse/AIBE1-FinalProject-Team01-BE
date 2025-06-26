@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.community;
 
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
@@ -26,12 +27,12 @@ public class CommunityPostController {
 
     @BoardAccess(needCategory = true, category = BoardCategory.COMMUNITY)
     @GetMapping("/{boardType}")
-    public ResponseEntity<Page<CommunityResponseDTO>> getCommunity(
+    public ResponseEntity<PageResponseDTO<CommunityResponseDTO>> getCommunity(
             @PathVariable BoardType boardType,
             @ParameterObject @Valid PostPaginationParam paginationParam
             ) {
 
-        Page<CommunityResponseDTO> postsPage = communityPostService.searchPosts(boardType, paginationParam);
+        PageResponseDTO<CommunityResponseDTO> postsPage = communityPostService.searchPosts(boardType, paginationParam);
 
         return ResponseEntity.ok(postsPage);
     }
