@@ -23,16 +23,16 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
-  springdoc:
-    swagger-ui:
-      path: /swagger-ui.html
-      operationsSorter: method
-      tagsSorter: alpha
-      docExpansion: none
-
   output:
     ansi:
       enabled: always
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    docExpansion: none
 
 langchain4j:
   google-ai-gemini:
