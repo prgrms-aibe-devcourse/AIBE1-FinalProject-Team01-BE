@@ -96,14 +96,12 @@ public class ITService {
 
     private boolean checkHasLiked(Long postId, User user) {
         return likeRepository
-                .findByPost_IdAndUser_Id(postId, user.getId())
-                .isPresent();
+                .existsByPost_IdAndUser_Id(postId, user.getId());
     }
 
     private boolean checkHasBookmarked(Long postId, User user) {
         return bookmarkRepository
-                .findByPost_IdAndUser_Id(postId, user.getId())
-                .isPresent();
+                .existsByPost_IdAndUser_Id(postId, user.getId());
     }
 
     private void validatePost(Post post) {

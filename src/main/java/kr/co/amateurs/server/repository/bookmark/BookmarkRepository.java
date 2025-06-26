@@ -1,8 +1,6 @@
 package kr.co.amateurs.server.repository.bookmark;
 
-import kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
-import kr.co.amateurs.server.domain.entity.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,7 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
@@ -58,4 +55,6 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     int deleteByUserAndPost(@Param("userId") Long userId, @Param("postId") Long postId);
 
     Optional<Bookmark> findByPost_IdAndUser_Id(Long postId, Long id);
+
+    boolean existsByPost_IdAndUser_Id(Long postId, Long id);
 }
