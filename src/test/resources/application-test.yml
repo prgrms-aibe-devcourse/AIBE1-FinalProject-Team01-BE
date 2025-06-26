@@ -16,16 +16,10 @@ spring:
     console:
       enabled: true
 
-  ai:
-    openai:
-      api-key: sk-test-dummy12345678901234567890123456789012345678 # dummy key for testing
-    vectorstore:
-      qdrant:
-        url: http://localhost:6333
-        collection-name: test-collection
-gemini:
-  key: dummy-gemini-key-1234567890 # dummy key for testing
-  model: gemini-1.5-flash
+langchain4j:
+  google-ai-gemini:
+    api-key: dummy-api-key # Replace with a dummy or test API key
+    model-name: gemini-1.5-flash
 
   data:
     mongodb:

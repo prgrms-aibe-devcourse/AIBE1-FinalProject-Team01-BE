@@ -17,10 +17,10 @@ import static dev.langchain4j.service.output.JsonSchemas.jsonSchemaFrom;
 @Configuration
 public class LangChain4jConfig {
 
-    @Value("${gemini.key}")
+    @Value("${langchain4j.google-ai-gemini.api-key}")
     private String geminiKey;
 
-    @Value("${gemini.model}")
+    @Value("${langchain4j.google-ai-gemini.model-name}")
     private String geminiModel;
 
     @Bean
