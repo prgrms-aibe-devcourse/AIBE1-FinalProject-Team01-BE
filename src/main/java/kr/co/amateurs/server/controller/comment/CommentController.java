@@ -35,10 +35,10 @@ public class CommentController {
     public ResponseEntity<CommentPageDTO> getReplies(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam(required = false) Long cursor,  // 대댓글 커서
+            @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "5") int size
     ) {
-        CommentPageDTO replies = commentService.getReplies(postId,commentId, cursor, size);
+        CommentPageDTO replies = commentService.getReplies(commentId, cursor, size);
         return ResponseEntity.ok(replies);
     }
 
@@ -59,7 +59,7 @@ public class CommentController {
             @PathVariable Long commentId,
             @RequestBody CommentRequestDTO requestDTO
     ){
-        commentService.updateComment(postId, commentId, requestDTO);
+        commentService.updateComment(commentId, requestDTO);
         return ResponseEntity.noContent().build();
     }
 
@@ -69,7 +69,7 @@ public class CommentController {
         @PathVariable Long postId,
         @PathVariable Long commentId
     ){
-        commentService.deleteComment(postId,commentId);
+        commentService.deleteComment(commentId);
         return ResponseEntity.noContent().build();
     }
 }
