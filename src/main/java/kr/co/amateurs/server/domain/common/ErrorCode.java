@@ -46,9 +46,7 @@ public enum ErrorCode implements Supplier<CustomException> {
 
     // POST
     POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시글을 찾을 수 없습니다."),
-
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 정보입니다."),
-    POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시글을 찾을 수 없습니다."),
 
     // AI 관련 에러
     NOT_FOUND_AI_PROFILE(HttpStatus.NOT_FOUND, "AI 프로필을 찾을 수 없습니다."),
