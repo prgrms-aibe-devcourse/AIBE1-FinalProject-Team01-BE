@@ -3,7 +3,6 @@ package kr.co.amateurs.server.domain.common;
 import kr.co.amateurs.server.exception.CustomException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.http.HttpStatus;
 
 import java.util.function.Supplier;
@@ -45,7 +44,10 @@ public enum ErrorCode implements Supplier<CustomException> {
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "이미지 파일 크기 제한을 초과하였습니다."),
 
     // POST
-    POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시글을 찾을 수 없습니다.");
+    POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시글을 찾을 수 없습니다."),
+
+    // REPORT
+    REPORT_NOT_FOUND(HttpStatus.BAD_REQUEST, "신고 글을 찾을 수 없습니다.");
 
 
     private final HttpStatus httpStatus;

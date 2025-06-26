@@ -24,6 +24,16 @@ public class ReportTestFixtures {
                 .build();
     }
 
+    public static User createGuestUser() {
+        return User.builder()
+                .nickname("guestUser")
+                .email("guest@test.com")
+                .password("Password")
+                .role(Role.GUEST)
+                .name("guestName")
+                .build();
+    }
+
     public static User createStudentUser() {
         return User.builder()
                 .nickname("student")

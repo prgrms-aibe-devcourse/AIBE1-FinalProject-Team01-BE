@@ -28,7 +28,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 
@@ -101,7 +100,7 @@ class ReportServiceTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(2); // testPostReport, testCommentReport
+        assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent()).allMatch(report -> report.reportStatus() == ReportStatus.PENDING);
     }
 
@@ -112,8 +111,8 @@ class ReportServiceTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(2); // testPostReport, reviewedReport
-        assertThat(result.getContent()).allMatch(report -> report.post() != null);
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent()).allMatch(report -> report.postTitle() != null);
     }
 
     @Test
@@ -123,9 +122,9 @@ class ReportServiceTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(1); // testPostReport만
+        assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).reportStatus()).isEqualTo(ReportStatus.PENDING);
-        assertThat(result.getContent().get(0).post()).isNotNull();
+        assertThat(result.getContent().get(0).postTitle()).isNotNull();
         assertThat(result.getContent().get(0).description()).isEqualTo("부적절한 게시글");
     }
 
@@ -141,10 +140,10 @@ class ReportServiceTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.description()).isEqualTo("스팸 게시글");
-        assertThat(result.post()).isNotNull();
-        assertThat(result.post().getId()).isEqualTo(testPost2.getId());
+        assertThat(result.postTitle()).isNotNull();
+        assertThat(result.postId()).isEqualTo(testPost2.getId());
         assertThat(result.reportStatus()).isEqualTo(ReportStatus.PENDING);
-        assertThat(result.username()).isEqualTo("student");
+        assertThat(result.reporterName()).isEqualTo("student");
     }
 
     @Test
@@ -159,10 +158,10 @@ class ReportServiceTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.description()).isEqualTo("욕설 댓글");
-        assertThat(result.comment()).isNotNull();
-        assertThat(result.comment().getId()).isEqualTo(testComment2.getId());
+        assertThat(result.commentContent()).isNotNull();
+        assertThat(result.commentId()).isEqualTo(testComment2.getId());
         assertThat(result.reportStatus()).isEqualTo(ReportStatus.PENDING);
-        assertThat(result.username()).isEqualTo("student");
+        assertThat(result.reporterName()).isEqualTo("student");
     }
 
     @Test
@@ -275,7 +274,7 @@ class ReportServiceTest {
 
         // then
         assertThat(firstPage.getContent()).hasSize(10);
-        assertThat(secondPage.getContent()).hasSize(8); // 총 18개 (기존 3개 + 추가 15개)
+        assertThat(secondPage.getContent()).hasSize(8);
         assertThat(firstPage.getTotalElements()).isEqualTo(18);
         assertThat(firstPage.getTotalPages()).isEqualTo(2);
         assertThat(firstPage.isFirst()).isTrue();
