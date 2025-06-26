@@ -44,10 +44,10 @@ openai:
   embedding-model: ${OPENAI_MODEL}
 
 qdrant:
-  url: ${QDRANT_URL}
+  host: ${QDRANT_URL}
+  prt: 6333
   api-key: ${QDRANT_API_KEY}
   collection-name: amateurs
-
 
 jwt:
   secret: ${JWT_SECRET}

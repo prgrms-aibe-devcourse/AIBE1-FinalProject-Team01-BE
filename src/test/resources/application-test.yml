@@ -26,7 +26,8 @@ openai:
   embedding-model: text-embedding-3-small
 
 qdrant:
-  url: http://dummy-qdrant-url # Replace with a dummy or test Qdrant URL
+  host: http://dummy-qdrant-url # Replace with a dummy or test Qdrant URL
+  port: 6333
   api-key: dummy-api-key
   collection-name: amateurs
 

@@ -1,12 +1,16 @@
 package kr.co.amateurs.server.service.post;
 
+import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.ai.PostContentData;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,6 +32,21 @@ public class PostService {
         } catch (Exception e) {
             return Collections.emptyList();
         }
+    }
 
+    public Post findById(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(ErrorCode.POST_NOT_FOUND);
+    }
+
+    public List<Post> findPopularPosts(int limit) {
+        LocalDateTime week = LocalDateTime.now().minusWeeks(1);
+
+        if (limit <= 10) {
+            return postRepository.findTop10ByIsDeletedFalseAndCreatedAtAfterOrderByLikeCountDescCreatedAtDesc(week);
+        } else {
+            // 10개 초과 요청시 20개 반환
+            return postRepository.findTop20ByIsDeletedFalseAndCreatedAtAfterOrderByLikeCountDescCreatedAtDesc(week);
+        }
     }
 }

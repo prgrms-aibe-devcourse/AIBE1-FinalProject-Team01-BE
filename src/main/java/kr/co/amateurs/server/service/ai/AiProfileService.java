@@ -49,10 +49,9 @@ public class AiProfileService {
             PostSummaryData writtenSummary = collectAndAnalyzeWritten(userId);
             log.info("사용자 AI 프로필 데이터 수집 완료: userId={}", userId);
 
-            String userTopics = collectUserTopics(userId);
-            log.info("사용자 관심사 수집 완료: userId={}, topics={}", userId, userTopics);
+            String userTopics = collectUserTopics(userId);;
             String devcourseName = collectDevcourseName(userId);
-            log.info("데브코스 이름 수집 완료: userId={}, devcourseName={}", userId, devcourseName);
+            log.info("사용자 정보 확인: userId={}, devcourseName={}", userId, devcourseName);
 
 
             List<PostSummaryData> summaries = List.of(bookmarkSummary, likeSummary, writtenSummary);
@@ -119,5 +118,16 @@ public class AiProfileService {
         }
     }
 
+    /**
+     * AI 프로필을 생성하고 Response DTO를 반환합니다.
+     */
+    @Transactional
+    public AiProfileResponse generateUserProfileResponse(Long userId) {
+        AiProfile savedProfile = generateCompleteUserProfile(userId);
+        return new AiProfileResponse(
+                savedProfile.getPersonaDescription(),
+                savedProfile.getInterestKeywords()
+        );
+    }
 
 }
