@@ -24,8 +24,8 @@ spring:
         url: http://localhost:6333
         collection-name: test-collection
 gemini:
-  key: ${GEMINI_API_KEY}
-  model: ${GEMINI_MODEL}
+  key: dummy-gemini-key-1234567890 # dummy key for testing
+  model: gemini-1.5-flash
 
   data:
     mongodb:
