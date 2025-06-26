@@ -1,10 +1,10 @@
 package kr.co.amateurs.server.service.community;
 
+import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
-import kr.co.amateurs.server.domain.entity.comment.Comment;
+import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.Post;
-import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -21,18 +21,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -73,13 +69,22 @@ class CommunityPostServiceTest {
     @Test
     void 유저가_키워드없이_검색하면_게시글목록이_반환되어야_한다() {
         // given
+
+
         int page = 0;
         int pageSize = 10;
         BoardType boardType = BoardType.FREE;
         SortType sortType = SortType.LATEST;
+        PostPaginationParam param = PostPaginationParam.builder()
+                .keyword(null)
+                .page(page)
+                .size(pageSize)
+                .sortDirection(Sort.Direction.DESC)
+                .field(PaginationSortType.LATEST)
+                .build();
 
         // when
-        Page<CommunityResponseDTO> result = communityPostService.searchPosts(null, page, boardType, sortType, pageSize);
+        Page<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
@@ -98,9 +103,16 @@ class CommunityPostServiceTest {
         int pageSize = 10;
         BoardType boardType = BoardType.FREE;
         SortType sortType = SortType.LATEST;
+        PostPaginationParam param = PostPaginationParam.builder()
+                .keyword(keyword)
+                .page(page)
+                .size(pageSize)
+                .sortDirection(Sort.Direction.DESC)
+                .field(PaginationSortType.LATEST)
+                .build();
 
         // when
-        Page<CommunityResponseDTO> result = communityPostService.searchPosts(keyword, page, boardType, sortType, pageSize);
+        Page<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
@@ -116,9 +128,16 @@ class CommunityPostServiceTest {
         int pageSize = 10;
         BoardType boardType = BoardType.FREE;
         SortType sortType = SortType.LATEST;
+        PostPaginationParam param = PostPaginationParam.builder()
+                .keyword(keyword)
+                .page(page)
+                .size(pageSize)
+                .sortDirection(Sort.Direction.DESC)
+                .field(PaginationSortType.LATEST)
+                .build();
 
         // when
-        Page<CommunityResponseDTO> result = communityPostService.searchPosts(keyword, page, boardType, sortType, pageSize);
+        Page<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
@@ -132,9 +151,16 @@ class CommunityPostServiceTest {
         int pageSize = 10;
         BoardType boardType = BoardType.FREE;
         SortType sortType = SortType.POPULAR;
+        PostPaginationParam param = PostPaginationParam.builder()
+                .keyword(null)
+                .page(page)
+                .size(pageSize)
+                .sortDirection(Sort.Direction.DESC)
+                .field(PaginationSortType.POPULAR)
+                .build();
 
         // when
-        Page<CommunityResponseDTO> result = communityPostService.searchPosts(null, page, boardType, sortType, pageSize);
+        Page<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
 
         // then
         assertThat(result.getContent()).hasSize(2);
@@ -151,9 +177,16 @@ class CommunityPostServiceTest {
         int pageSize = 10;
         BoardType boardType = BoardType.FREE;
         SortType sortType = SortType.VIEW_COUNT;
+        PostPaginationParam param = PostPaginationParam.builder()
+                .keyword(null)
+                .page(page)
+                .size(pageSize)
+                .sortDirection(Sort.Direction.DESC)
+                .field(PaginationSortType.MOST_VIEW)
+                .build();
 
         // when
-        Page<CommunityResponseDTO> result = communityPostService.searchPosts(null, page, boardType, sortType, pageSize);
+        Page<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
 
         // then
         assertThat(result.getContent()).hasSize(2);

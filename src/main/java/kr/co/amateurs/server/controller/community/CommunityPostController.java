@@ -1,18 +1,17 @@
 package kr.co.amateurs.server.controller.community;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.Operation;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.community.CommunityPostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,13 +28,10 @@ public class CommunityPostController {
     @GetMapping("/{boardType}")
     public ResponseEntity<Page<CommunityResponseDTO>> getCommunity(
             @PathVariable BoardType boardType,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "LATEST") SortType sortType,
-            @RequestParam(defaultValue = "8") @Min(1) @Max(100) int pageSize
+            @ParameterObject @Valid PostPaginationParam paginationParam
             ) {
 
-        Page<CommunityResponseDTO> postsPage = communityPostService.searchPosts(keyword, page, boardType, sortType, pageSize);
+        Page<CommunityResponseDTO> postsPage = communityPostService.searchPosts(boardType, paginationParam);
 
         return ResponseEntity.ok(postsPage);
     }

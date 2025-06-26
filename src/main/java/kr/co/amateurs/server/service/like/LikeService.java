@@ -59,7 +59,7 @@ public class LikeService {
     public void removeLikeFromPost(Long postId) {
         User currentUser = getCurrentUser();
         validateUser(currentUser.getId());
-        likeRepository.deleteByPostAndUser(postId, currentUser.getId());
+        likeRepository.deleteByPost_IdAndUser_Id(postId, currentUser.getId());
     }
 
     public void removeLikeFromComment(Long commentId) {

@@ -78,7 +78,7 @@ public class BookmarkService {
     @Transactional
     public void removeBookmarkPost(Long userId, Long postId) {
         validateUser(userId);
-        bookmarkRepository.deleteByUserAndPost(userId, postId);
+        bookmarkRepository.deleteByUser_IdAndPost_Id(userId, postId);
     }
 
     private BookmarkResponseDTO convertToDTO(Bookmark bookmark) {

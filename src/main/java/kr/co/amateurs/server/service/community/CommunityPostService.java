@@ -2,9 +2,9 @@ package kr.co.amateurs.server.service.community;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
+import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
@@ -14,9 +14,7 @@ import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,9 +30,9 @@ public class CommunityPostService {
 
     private final UserService userService;
 
-    public Page<CommunityResponseDTO> searchPosts(String keyword, int page, BoardType boardType, SortType sortType, int pageSize) {
-        Pageable pageable = createPageable(page, sortType, pageSize);
-
+    public Page<CommunityResponseDTO> searchPosts(BoardType boardType, PostPaginationParam paginationParam) {
+        Pageable pageable = paginationParam.toPageable();
+        String keyword = paginationParam.getKeyword();
         Page<Post> communityPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
             communityPage = postRepository.findByContentAndBoardType(keyword.trim(), boardType, pageable);
@@ -110,15 +108,5 @@ public class CommunityPostService {
         if (!Objects.equals(post.getUser().getId(), user.getId())) {
             throw ErrorCode.ACCESS_DENIED.get();
         }
-    }
-
-    private Pageable createPageable(int page, SortType sortType, int pageSize) {
-        Sort sort = switch (sortType) {
-            case LATEST -> Sort.by(Sort.Direction.DESC, "createdAt");
-            case POPULAR -> Sort.by(Sort.Direction.DESC, "likeCount");
-            case VIEW_COUNT -> Sort.by(Sort.Direction.DESC, "viewCount");
-        };
-
-        return PageRequest.of(page, pageSize, sort);
     }
 }
