@@ -62,7 +62,8 @@ public class UserService {
             throw ErrorCode.EMPTY_EMAIL.get();
         }
 
-        if (!email.contains("@") || !email.contains(".")) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        if (!email.matches(emailRegex)) {
             throw ErrorCode.INVALID_EMAIL_FORMAT.get();
         }
     }
