@@ -28,11 +28,27 @@ spring:
     mongodb:
       database: embedded_test
       auto-index-creation: true
+    redis:
+      host: localhost
+      port: ${embedded.redis.port:6379}
+      password:
 
 jwt:
   secret: "dGVzdC1rZXktZG8tbm90LXVzZS1pbi1kZXYtb3ItcHJvZA==" # Base64 encoded "test-key-do-not-use-in-dev-or-prod"
   access-token-expiration-ms: 3600000
   refresh-token-expiration-ms: 1209600000
+
+cloud:
+  aws:
+    credentials:
+      access-key: testAccessKey
+      secret_key: testSecretKey
+    region:
+      static: test-region
+    s3:
+      bucket: test-bucket-name
+    cloudfront:
+      domain: testdomain.net
 
 de:
   flapdoodle:
