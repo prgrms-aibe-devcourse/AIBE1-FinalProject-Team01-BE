@@ -40,7 +40,7 @@ public class SecurityConfig {
 //                .authorizeHttpRequests(auth -> auth
 //                        // 인증 없이 접근 가능
 //                        .requestMatchers(
-//                                "/api/auth/**",
+//                                "/api/v1/auth/**",
 //                                "/swagger-ui/**",
 //                                "/v3/api-docs/**",
 //                                "/swagger-ui.html",
