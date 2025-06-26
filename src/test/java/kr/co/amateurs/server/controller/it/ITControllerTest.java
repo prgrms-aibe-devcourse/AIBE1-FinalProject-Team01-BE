@@ -5,6 +5,7 @@ import kr.co.amateurs.server.config.TestSecurityConfig;
 import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.it.ITService;
 import org.junit.jupiter.api.Test;
@@ -103,7 +104,7 @@ public class ITControllerTest {
                 "테스트 내용",
                 "테스트 작성자",
                 "http://example.com/profile.jpg",
-                "AIBE",
+                DevCourseTrack.AI_BACKEND,
                 "1기",
                 BoardType.REVIEW,
                 0,
@@ -145,7 +146,7 @@ public class ITControllerTest {
                 "새 게시글 내용",
                 "테스트 작성자",
                 "http://example.com/profile.jpg",
-                "AIBE",
+                DevCourseTrack.AI_BACKEND,
                 "1기",
                 BoardType.REVIEW,
                 0,

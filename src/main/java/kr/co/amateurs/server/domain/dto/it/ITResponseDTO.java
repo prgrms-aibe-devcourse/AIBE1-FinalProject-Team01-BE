@@ -2,6 +2,7 @@ package kr.co.amateurs.server.domain.dto.it;
 
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 
 import java.time.LocalDateTime;
 
@@ -11,7 +12,7 @@ public record ITResponseDTO(
         String content,
         String nickname,
         String profileImageUrl,
-        String devcourseName,
+        DevCourseTrack devcourseName,
         String devcourseBatch,
         BoardType boardType,
         Integer viewCount,
