@@ -8,6 +8,7 @@ import kr.co.amateurs.server.domain.dto.ai.AiProfileResponse;
 import kr.co.amateurs.server.domain.entity.ai.AiProfile;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.service.ai.AiProfileService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingManageService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.ai.PostRecommendService;
 import kr.co.amateurs.server.service.post.PostService;
@@ -29,18 +30,14 @@ public class AiController {
 
     private final AiProfileService aiProfileService;
     private final PostRecommendService postRecommendService;
-    private final PostEmbeddingService postEmbeddingService;
+    private final PostEmbeddingManageService postEmbeddingManageService;
     private final PostService postService;
 
     @PostMapping("/profiles")
     @Operation(summary = "AI 프로필 생성")
     public ResponseEntity<AiProfileResponse> generateProfile(@AuthenticationPrincipal  CustomUserDetails currentUser) {
         Long userId = currentUser.getUser().getId();
-        AiProfile savedProfile = aiProfileService.generateCompleteUserProfile(userId);
-        AiProfileResponse response = new AiProfileResponse(
-                savedProfile.getPersonaDescription(),
-                savedProfile.getInterestKeywords()
-        );
+        AiProfileResponse response = aiProfileService.generateUserProfileResponse(userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -56,7 +53,7 @@ public class AiController {
     }
 
     @GetMapping("/posts/popular")
-    @Operation(summary = "일반 인기글 추천", description = "일주일 이내 좋아요가 많은 인기 게시글을 추천합니다")
+    @Operation(summary="일반 인기글 추천", description= "인기 게시글을 추천합니다. (좋아요 기반)")
     public ResponseEntity<List<Post>> getPopularPosts(
             @RequestParam(defaultValue = "10") int limit) {
 
@@ -64,33 +61,10 @@ public class AiController {
         return ResponseEntity.ok(popularPosts);
     }
 
-    @PostMapping("/embeddings/posts/{postId}")
-    @Operation(summary = "특정 게시글 임베딩 생성", description = "개발/테스트용 - 특정 게시글의 임베딩을 생성합니다")
-    public ResponseEntity<String> createPostEmbedding(@PathVariable Long postId) {
-        try {
-            Post post = postService.findById(postId);
-            postEmbeddingService.createPostEmbeddings(post);
-            return ResponseEntity.ok("게시글 임베딩이 생성되었습니다: " + postId);
-        } catch (Exception e) {
-            log.error("게시글 임베딩 생성 실패: postId={}", postId, e);
-            throw ErrorCode.ERROR_AI_PROFILE.get();
-        }
-    }
-
     @PostMapping("/embeddings/initialize")
-    @Operation(summary = "모든 게시글 임베딩 초기화", description = "개발/테스트용 - 모든 기존 게시글의 임베딩을 생성합니다")
-    public ResponseEntity<String> initializeAllEmbeddings() {
-        try {
-            List<Post> allPosts = postService.findRecentPosts(100);
-
-            for (Post post : allPosts) {
-                postEmbeddingService.createPostEmbeddings(post);
-            }
-
-            return ResponseEntity.ok("임베딩 초기화 완료: " + allPosts.size() + "개 게시글");
-        } catch (Exception e) {
-            log.error("임베딩 초기화 실패", e);
-            throw ErrorCode.ERROR_AI_PROFILE.get();
-        }
+    @Operation(summary = "[개발용] 게시글 임베딩 초기화", description = "모든 게시글의 임베딩을 생성하고 저장합니다")
+    public ResponseEntity<Void> initializeAllEmbeddings() {
+        postEmbeddingManageService.initializeAllPostEmbeddings();
+        return ResponseEntity.ok().build();
     }
 }

@@ -49,4 +49,8 @@ public class PostService {
             return postRepository.findTop20ByIsDeletedFalseAndCreatedAtAfterOrderByLikeCountDescCreatedAtDesc(week);
         }
     }
+
+    public List<Post> findAllPosts() {
+        return postRepository.findAll();
+    }
 }
