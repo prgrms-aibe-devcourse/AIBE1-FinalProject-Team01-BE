@@ -50,4 +50,4 @@ jobs:
           check_name: "테스트 결과"
           comment_title: "${{ github.sha }} 테스트 결과"
           report_individual_runs: true
-          compare_to_earlier_commit: false
+          compare_to_earlier_commit: true
