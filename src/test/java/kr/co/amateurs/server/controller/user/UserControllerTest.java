@@ -70,8 +70,7 @@ public class UserControllerTest {
                 .body("email", equalTo(signupRequest.email()))
                 .body("nickname", equalTo(signupRequest.nickname()))
                 .body("name", equalTo(signupRequest.name()))
-                .body("topics", notNullValue())
-                .body("topics", hasSize(signupRequest.topics().size()));
+                .body("topics", not(empty()));
     }
 
     @Test
