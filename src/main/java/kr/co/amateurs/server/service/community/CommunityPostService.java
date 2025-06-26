@@ -43,6 +43,11 @@ public class CommunityPostService {
         return communityPage.map(post -> CommunityResponseDTO.from(post, false, false));
     }
 
+    public Post findById(long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(ErrorCode.NOT_FOUND);
+    }
+
     public CommunityResponseDTO getPost(Long postId) {
         User user = userService.getCurrentUser().orElse(null);
 

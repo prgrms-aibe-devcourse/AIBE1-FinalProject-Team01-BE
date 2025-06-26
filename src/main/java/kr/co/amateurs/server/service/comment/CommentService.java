@@ -1,10 +1,11 @@
 package kr.co.amateurs.server.service.comment;
 
+import kr.co.amateurs.server.annotation.alarmtrigger.AlarmTrigger;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
-import kr.co.amateurs.server.domain.dto.comment.ReplyCount;
+import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -17,9 +18,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -51,6 +54,7 @@ public class CommentService {
     }
 
     @Transactional
+    @AlarmTrigger(type = AlarmType.COMMENT)
     public CommentResponseDTO createComment(Long postId, CommentRequestDTO requestDTO) {
         // TODO 유저 검증, 게시판 권한 로직
         User user = null;
