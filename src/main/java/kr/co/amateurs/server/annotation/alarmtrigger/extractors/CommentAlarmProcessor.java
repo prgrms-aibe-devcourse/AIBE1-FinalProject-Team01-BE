@@ -2,6 +2,7 @@ package kr.co.amateurs.server.annotation.alarmtrigger.extractors;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
+import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.alarm.metadata.AlarmMetaData;
 import kr.co.amateurs.server.domain.entity.alarm.metadata.CommentMetaData;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -39,17 +40,18 @@ public class CommentAlarmProcessor implements AlarmProcessor {
         if (!(result instanceof CommentResponseDTO responseDto)) {
             throw new CustomException(ErrorCode.UNSUPPORTED_RESULT_TYPE);
         }
+        //todo: post repo 조회 줄이기
         return postService.findById(responseDto.postId()).getUser().getId();
     }
 
     /**
-     * 이 프로세서가 처리하는 수신자 타입을 반환합니다.
+     * 이 프로세서가 처리하는 알람타입을 반환합니다.
      * 
-     * @return POST_AUTHOR (게시글 작성자)
+     * @return AlarmType.COMMENT
      */
     @Override
-    public AlarmReceiver getReceiver() {
-        return AlarmReceiver.POST_AUTHOR;
+    public AlarmType getType() {
+        return AlarmType.COMMENT;
     }
 
     /**

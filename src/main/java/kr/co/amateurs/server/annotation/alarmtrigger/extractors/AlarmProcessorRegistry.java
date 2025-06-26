@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.annotation.alarmtrigger.extractors;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 @Component
 public class AlarmProcessorRegistry {
 
-    private final Map<AlarmReceiver, AlarmProcessor> processorMap;
+    private final Map<AlarmType, AlarmProcessor> processorMap;
 
     /**
      * 모든 AlarmProcessor 구현체들을 주입받아 레지스트리를 초기화합니다.
@@ -31,7 +32,7 @@ public class AlarmProcessorRegistry {
     public AlarmProcessorRegistry(List<AlarmProcessor> processors) {
         this.processorMap = processors.stream()
                 .collect(Collectors.toUnmodifiableMap(
-                        AlarmProcessor::getReceiver,
+                        AlarmProcessor::getType,
                         Function.identity()
                 ));
     }
@@ -39,12 +40,12 @@ public class AlarmProcessorRegistry {
     /**
      * 주어진 AlarmReceiver 타입에 맞는 프로세서를 조회합니다.
      * 
-     * @param receiver 알람 수신자 타입
+     * @param type 알람 수신자 타입
      * @return 해당 타입을 처리할 수 있는 AlarmProcessor
      * @throws RuntimeException 등록되지 않은 수신자 타입인 경우
      */
-    public AlarmProcessor getProcessor(AlarmReceiver receiver) {
-        return Optional.ofNullable(processorMap.get(receiver))
+    public AlarmProcessor getProcessor(AlarmType type) {
+        return Optional.ofNullable(processorMap.get(type))
                 .orElseThrow(ErrorCode.ILLEGAL_ALARM_EXTRACTOR);
     }
 }

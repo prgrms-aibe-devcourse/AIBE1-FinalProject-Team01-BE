@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.annotation.alarmtrigger.extractors;
 
+import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.alarm.metadata.AlarmMetaData;
 import org.aspectj.lang.JoinPoint;
 
@@ -30,7 +31,7 @@ public interface AlarmProcessor {
      * 
      * @return 지원하는 AlarmReceiver 타입
      */
-    AlarmReceiver getReceiver();
+    AlarmType getType();
 
     /**
      * 알람 메시지 내용을 생성합니다.

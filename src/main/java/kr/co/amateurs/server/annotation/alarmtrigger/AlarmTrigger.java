@@ -1,6 +1,5 @@
 package kr.co.amateurs.server.annotation.alarmtrigger;
 
-import kr.co.amateurs.server.annotation.alarmtrigger.extractors.AlarmReceiver;
 import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 
 import java.lang.annotation.ElementType;
@@ -15,7 +14,7 @@ import java.lang.annotation.Target;
  * 자동으로 지정된 타입의 알람을 생성하여 해당 수신자에게 전송합니다.
  * 
  * 사용 예시:
- * @AlarmTrigger(type = AlarmType.COMMENT, receiver = AlarmReceiver.POST_AUTHOR)
+ * @AlarmTrigger(type = AlarmType.COMMENT)
  * public CommentResponse createComment(Long postId, CommentRequest request) {
  *     // 댓글 생성 로직
  *     return response;
@@ -41,14 +40,4 @@ public @interface AlarmTrigger {
      * @return 알람 타입
      */
     AlarmType type();
-
-    /**
-     * 알람을 받을 수신자의 타입을 지정합니다.
-     * 
-     * 이 값에 따라 적절한 AlarmProcessor가 선택되어
-     * 실제 수신자 ID 추출 및 메시지 생성이 이루어집니다.
-     * 
-     * @return 알람 수신자 타입
-     */
-    AlarmReceiver receiver();
 }

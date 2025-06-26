@@ -2,6 +2,7 @@ package kr.co.amateurs.server.annotation.alarmtrigger.extractors;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.directmessage.DirectMessageResponse;
+import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.alarm.metadata.AlarmMetaData;
 import kr.co.amateurs.server.domain.entity.alarm.metadata.DirectMessageMetaData;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessageRoom;
@@ -55,13 +56,13 @@ public class DirectMessageAlarmProcessor implements AlarmProcessor {
     }
 
     /**
-     * 이 프로세서가 처리하는 수신자 타입을 반환합니다.
+     * 이 프로세서가 처리하는 알람 타입을 반환합니다.
      * 
-     * @return DIRECT_MESSAGE_RECEIVER (DM 수신자)
+     * @return AlarmType.DIRECT_MESSAGE
      */
     @Override
-    public AlarmReceiver getReceiver() {
-        return AlarmReceiver.DM_RECEIVER;
+    public AlarmType getType() {
+        return AlarmType.DIRECT_MESSAGE;
     }
 
     /**

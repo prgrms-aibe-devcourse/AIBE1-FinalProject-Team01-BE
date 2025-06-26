@@ -17,7 +17,8 @@ public class DirectMessageRoom {
     @Id
     private String id;
     private String lastMessage;
-    private  List<Participant> participants = new ArrayList<>();
+    @Builder.Default
+    private final List<Participant> participants = new ArrayList<>();
 
     public void updateLastMessage(String message) {
         this.lastMessage = message;

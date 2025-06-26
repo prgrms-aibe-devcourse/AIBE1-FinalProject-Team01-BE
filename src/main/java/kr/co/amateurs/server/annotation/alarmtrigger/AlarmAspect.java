@@ -51,7 +51,7 @@ public class AlarmAspect {
     @AfterReturning(pointcut = "@annotation(alarmTrigger)", returning = "result")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleAlarm(JoinPoint joinPoint, AlarmTrigger alarmTrigger, Object result) {
-        AlarmProcessor processor = alarmProcessorRegistry.getProcessor(alarmTrigger.receiver());
+        AlarmProcessor processor = alarmProcessorRegistry.getProcessor(alarmTrigger.type());
         long userId = processor.extractTargetUserId(joinPoint, result);
         String content = processor.getContent(result);
 

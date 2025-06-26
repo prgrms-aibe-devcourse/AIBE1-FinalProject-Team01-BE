@@ -1,7 +1,6 @@
 package kr.co.amateurs.server.service.comment;
 
 import kr.co.amateurs.server.annotation.alarmtrigger.AlarmTrigger;
-import kr.co.amateurs.server.annotation.alarmtrigger.extractors.AlarmReceiver;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
@@ -55,7 +54,7 @@ public class CommentService {
     }
 
     @Transactional
-    @AlarmTrigger(type = AlarmType.COMMENT, receiver = AlarmReceiver.POST_AUTHOR)
+    @AlarmTrigger(type = AlarmType.COMMENT)
     public CommentResponseDTO createComment(Long postId, CommentRequestDTO requestDTO) {
         // TODO 유저 검증, 게시판 권한 로직
         User user = null;
