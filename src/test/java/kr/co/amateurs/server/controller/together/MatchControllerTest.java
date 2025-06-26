@@ -3,12 +3,20 @@ package kr.co.amateurs.server.controller.together;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.amateurs.server.config.SecurityConfig;
 import kr.co.amateurs.server.config.TestSecurityConfig;
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
+import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
+import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
+import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.service.together.MatchService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,19 +24,27 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -41,9 +57,36 @@ public class MatchControllerTest {
     @MockitoBean
     private MatchService matchService;
     @Autowired
+    private WebApplicationContext wac;
+    @Autowired
     private ObjectMapper objectMapper;
     @Autowired
     private MockMvc mockMvc;
+
+    private CustomUserDetails currentUser;
+
+    @BeforeEach
+    public void setup() {
+        User user = User.builder()
+                .email("test@email.com")
+                .password("password")
+                .nickname("testUser")
+                .name("이름")
+                .role(Role.STUDENT)
+                .build();
+        currentUser = new CustomUserDetails(user);
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                currentUser,
+                null,
+                currentUser.getAuthorities()
+        );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        this.mockMvc = MockMvcBuilders
+                .webAppContextSetup(wac)
+                .apply(SecurityMockMvcConfigurers.springSecurity())
+                .build();
+    }
 
     @Test
     void 검색어없이_기본파라미터로_목록조회하면_200OK와_전체목록반환() throws Exception {
@@ -54,8 +97,8 @@ public class MatchControllerTest {
         );
         Page<MatchPostResponseDTO> page = new PageImpl<>(matchPosts);
 
-        given(matchService.getMatchPostList(null, 0, 10, SortType.LATEST))
-                .willReturn(page);
+        given(matchService.getMatchPostList(any(TogetherPaginationParam.class)))
+                .willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/matches"))
@@ -72,11 +115,13 @@ public class MatchControllerTest {
         );
         Page<MatchPostResponseDTO> page = new PageImpl<>(searchResults);
 
-        given(matchService.getMatchPostList(keyword, 0, 10, SortType.LATEST))
-                .willReturn(page);
+        given(matchService.getMatchPostList(any(TogetherPaginationParam.class)))
+                .willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/matches")
+                        .with(user(currentUser))
+                        .accept(MediaType.APPLICATION_JSON)
                         .param("keyword", keyword))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
@@ -90,11 +135,13 @@ public class MatchControllerTest {
         );
         Page<MatchPostResponseDTO> page = new PageImpl<>(matchPosts);
 
-        given(matchService.getMatchPostList(null, 1, 5, SortType.LATEST))
-                .willReturn(page);
+        given(matchService.getMatchPostList(any(TogetherPaginationParam.class)))
+                .willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/matches")
+                        .with(user(currentUser))
+                        .accept(MediaType.APPLICATION_JSON)
                         .param("page", "1")
                         .param("size", "5"))
                 .andExpect(status().isOk())
@@ -109,12 +156,15 @@ public class MatchControllerTest {
         );
         Page<MatchPostResponseDTO> page = new PageImpl<>(matchPosts);
 
-        given(matchService.getMatchPostList(null, 0, 10, SortType.POPULAR))
-                .willReturn(page);
+
+        given(matchService.getMatchPostList(any(TogetherPaginationParam.class)))
+                .willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/matches")
-                        .param("sortType", "POPULAR"))
+                        .with(user(currentUser))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .param("field", "POPULAR"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray());
     }
@@ -184,12 +234,12 @@ public class MatchControllerTest {
 
 
     //TODO - 밸리데이션 적용 시 아래 테스트들 정상 작동 예정 현재는 비정상 테스트
-    /*
+
     @Test
     void 잘못된_정렬타입으로_목록조회하면_400에러반환() throws Exception {
         // when & then
         mockMvc.perform(get("/api/v1/matches")
-                        .param("sortType", "INVALID_SORT"))
+                        .param("field", "INVALID_SORT"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -287,13 +337,16 @@ public class MatchControllerTest {
                 .andExpect(status().isInternalServerError());
     }
 
-     */
+
 
 
     private MatchPostResponseDTO createMatchPostResponseDTO(Long postId, String title, String content) {
         return MatchPostResponseDTO.builder()
                 .postId(postId)
-                .userId(1L)
+                .nickname("nickname")
+                .devcourseName(DevCourseTrack.AI_BACKEND)
+                .devcourseBatch("1기")
+                .userProfileImg(null)
                 .title(title)
                 .content(content)
                 .tags("태그")
@@ -304,12 +357,13 @@ public class MatchControllerTest {
                 .expertiseArea("서울")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .hasLiked(false).hasBookmarked(false).hasImages(false)
                 .build();
     }
 
     private MatchPostRequestDTO createMatchPostRequestDTO() {
         return new MatchPostRequestDTO(
-                1L, "테스트 모집", "테스트 내용", "태그",
+                "테스트 모집", "테스트 내용", "태그",
                 MatchingType.COFFEE_CHAT, MatchingStatus.OPEN, "서울"
         );
     }
