@@ -47,7 +47,8 @@ public record UserProfileResponseDto(
                 .nickname(user.getNickname())
                 .name(user.getName())
                 .imageUrl(user.getImageUrl())
-                .devcourseName(user.getDevcourseName())
+                .devcourseName(user.getDevcourseName() != null ?
+                        user.getDevcourseName().getDescription() : null)
                 .devcourseBatch(user.getDevcourseBatch())
                 .providerType(user.getProviderType())
                 .topics(user.getUserTopics().stream()

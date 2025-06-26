@@ -3,6 +3,7 @@ package kr.co.amateurs.server.controller.user;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
+import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
 import kr.co.amateurs.server.fixture.auth.AuthTestFixture;
@@ -23,7 +24,7 @@ import static org.hamcrest.Matchers.*;
 @ActiveProfiles("test")
 @Transactional
 @Import(EmbeddedRedisConfig.class)
-public class UserControllerTest {
+public class UserControllerTest extends AbstractControllerTest {
 
     @LocalServerPort
     private int port;
@@ -41,7 +42,7 @@ public class UserControllerTest {
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(201);
 
@@ -54,7 +55,7 @@ public class UserControllerTest {
                 .contentType(ContentType.JSON)
                 .body(loginRequest)
                 .when()
-                .post("/api/v1/auth/login")
+                .post("/auth/login")
                 .then()
                 .statusCode(200)
                 .extract()
@@ -64,7 +65,7 @@ public class UserControllerTest {
         given()
                 .header("Authorization", "Bearer " + accessToken)
                 .when()
-                .get("/api/v1/users/me")
+                .get("/users/me")
                 .then()
                 .statusCode(200)
                 .body("email", equalTo(signupRequest.email()))
@@ -78,7 +79,7 @@ public class UserControllerTest {
         // when & then
         given()
                 .when()
-                .get("/api/v1/users/me")
+                .get("/users/me")
                 .then()
                 .statusCode(404);
     }
@@ -92,7 +93,7 @@ public class UserControllerTest {
         given()
                 .header("Authorization", "Bearer " + invalidToken)
                 .when()
-                .get("/api/v1/users/me")
+                .get("/users/me")
                 .then()
                 .statusCode(404);
     }
