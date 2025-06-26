@@ -61,6 +61,7 @@ public interface AiPostAnalysis {
         {{summaries}}
         
         사용자의 특성을 분석하고 관심 기술 키워드를 추출해주세요.
+        - 관심 기술 키워드는 5~8개 이내로 작성
         """)
     AiProfileResponse generateFinalProfile(@V("userTopics") String userTopics, @V("devcourseName") String devcourseName, @V("summaries") String summaries);
 }
