@@ -54,7 +54,7 @@ public class PostEmbeddingService {
     }
 
     /**
-     * 특정 게시글의 임베딩을 생성합니다.
+     * [개발용] 특정 게시글의 임베딩을 생성합니다.
      * @param postId 게시글 ID
      * @return 생성 결과 메시지
      */

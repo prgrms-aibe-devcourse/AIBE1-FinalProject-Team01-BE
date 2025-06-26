@@ -5,11 +5,15 @@ import dev.langchain4j.store.embedding.EmbeddingMatch;
 import kr.co.amateurs.server.domain.entity.ai.AiProfile;
 import kr.co.amateurs.server.domain.entity.ai.RecommendedPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.ai.AiProfileRepository;
+import kr.co.amateurs.server.repository.ai.AiRecommendPostRepository;
+import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,42 +26,32 @@ public class PostRecommendService {
     private final PostEmbeddingService postEmbeddingService;
     private final PostService postService;
     private final AiProfileRepository aiProfileRepository;
+    private final UserService userService;
+    private final AiRecommendPostRepository aiRecommendPostRepository;
+
 
     /**
      * AI 프로필 기반 게시글 추천
+     * - AI 프로필이 있으면: AI 기반 추천
+     * - AI 프로필이 없으면: 인기글 추천
+     * - 오류 발생시: 인기글 fallback
      * @param userId 사용자 ID
      * @param limit 추천 게시글 개수
      * @return 추천 게시글 목록
      */
     public List<Post> getAiPersonalRecommendedPosts(Long userId, int limit) {
         try {
-            log.info("추천 시작: userId={}, limit={}", userId, limit);
+            log.info("AI 추천 시작: userId={}, limit={}", userId, limit);
             Optional<AiProfile> aiProfile = aiProfileRepository.findByUserId(userId);
 
-            if(aiProfile.isPresent()) {
-                log.info("AI 프로필 조회 성공 / 게시글 추천 시작 : userId={}", userId);
-                return getAiRecommendPosts(aiProfile.get(), userId, limit);
-            } else {
+            if(aiProfile.isEmpty()) {
                 log.info("AI 프로필 없음 - 인기글 추천: userId={}", userId);
-                return getGuestPost(userId, limit);
+                return postService.findPopularPosts(limit);
             }
-        } catch(Exception e) {
-            log.error("추천 오류 - 인기글 추천 : userId={}, error={}", userId, e.getMessage());
-            return getGuestPost(userId, limit);
-        }
-    }
 
-    /**
-     * AI 프로필 기반 게시글 추천
-     * @param aiProfile AI 프로필
-     * @param userId 사용자 ID
-     * @param limit 추천 게시글 개수
-     * @return 추천 게시글 목록
-     */
-    private List<Post> getAiRecommendPosts(AiProfile aiProfile, Long userId, int limit) {
-        try {
-            log.info("AI 프로필 기반 게시글 추천 시작: userId={}, limit={}", userId, limit);
-            String query = buildRecommendationQuery(aiProfile);
+            // AI 프로필 기반 추천 로직
+            log.info("AI 프로필 기반 게시글 추천 시작: userId={}", userId);
+            String query = buildRecommendationQuery(aiProfile.get());
             List<EmbeddingMatch<TextSegment>> matches = postEmbeddingService.findSimilarPosts(query, limit);
             List<Post> recommendedPosts = matches.stream()
                     .filter(match -> match.embedded().metadata().containsKey("postId"))
@@ -71,8 +65,59 @@ public class PostRecommendService {
 
             log.info("AI 기반 게시글 추천 완료: userId={}, 추천 게시글 수={}", userId, recommendedPosts.size());
             return recommendedPosts;
+
         } catch (Exception e) {
-            log.error("AI 프로필 기반 게시글 추천 실패: userId={}, error={}", userId, e.getMessage());
+            log.error("AI 추천 실패 - 인기글 fallback: userId={}, error={}", userId, e.getMessage());
+            return postService.findPopularPosts(limit);
+        }
+    }
+
+    /**
+     * 추천 게시글을 DB에 저장
+     * @param userId 사용자 ID
+     * @param limit 추천 게시글 개수
+     */
+    @Transactional
+    public void saveRecommendationsToDB(Long userId, int limit) {
+        try {
+            log.info("추천 게시글 생성 및 저장 시작: userId={}, limit={}", userId, limit);
+
+            List<Post> recommendedPosts = getAiPersonalRecommendedPosts(userId, limit);
+            aiRecommendPostRepository.deleteByUserId(userId);
+            log.info("기존 추천 게시글 삭제 완료: userId={}", userId);
+
+            User user = userService.findById(userId);
+            for (Post post : recommendedPosts) {
+                RecommendedPost recommendedPost = RecommendedPost.builder()
+                        .user(user)
+                        .post(post)
+                        .build();
+                aiRecommendPostRepository.save(recommendedPost);
+            }
+            log.info("추천 게시글 저장 완료: userId={}, 개수={}", userId, recommendedPosts.size());
+        } catch (Exception e) {
+            log.error("추천 게시글 저장 실패: userId={}, error={}", userId, e.getMessage());
+            throw new RuntimeException("추천 게시글 저장에 실패했습니다", e);
+        }
+    }
+
+    /**
+     * 메인 페이지에서 저장된 추천 게시글 조회
+     * @param userId 사용자 ID
+     * @param limit 조회할 게시글 개수
+     * @return 추천 게시글 목록
+     */
+    public List<Post> getStoredRecommendations(Long userId, int limit) {
+        try {
+            List<RecommendedPost> recommendedPosts = aiRecommendPostRepository
+                    .findByUserIdOrderByCreatedAtDesc(userId);
+
+            return recommendedPosts.stream()
+                    .limit(limit)
+                    .map(RecommendedPost::getPost)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("저장된 추천 게시글 조회 실패: userId={}, error={}", userId, e.getMessage());
             return getGuestPost(userId, limit);
         }
     }
