@@ -1,7 +1,9 @@
 package kr.co.amateurs.server.service.directmessage;
 
+import kr.co.amateurs.server.annotation.alarmtrigger.AlarmTrigger;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.directmessage.*;
+import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessage;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessageRoom;
 import kr.co.amateurs.server.domain.entity.directmessage.Participant;
@@ -21,6 +23,7 @@ public class DirectMessageService {
     private final DirectMessageRepository directMessageRepository;
     private final DirectMessageRoomRepository directMessageRoomRepository;
 
+    @AlarmTrigger(type = AlarmType.DIRECT_MESSAGE)
     public DirectMessageResponse saveMessage(String roomId, DirectMessageRequest request) {
         DirectMessageRoom room = validateRoomAccess(roomId, request.senderId());
 
@@ -37,6 +40,11 @@ public class DirectMessageService {
                 .orElseGet(() -> directMessageRoomRepository.save(request.toCollection()));
         Long currentUserId = 1L;
         return DirectMessageRoomResponse.fromCollection(room, currentUserId);
+    }
+
+    public DirectMessageRoom findRoomById(String roomId) {
+        return directMessageRoomRepository.findById(roomId)
+                .orElseThrow(ErrorCode.NOT_FOUND_ROOM);
     }
 
     public List<DirectMessageRoomResponse> getRooms(Long userId) {
