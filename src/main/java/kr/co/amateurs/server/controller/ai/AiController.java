@@ -26,7 +26,7 @@ public class AiController {
 
     @PostMapping("/profiles")
     @Operation(summary = "AI 프로필 생성")
-    public ResponseEntity<AiProfileResponse> generateProfile(@AuthenticationPrincipal CustomUserDetails currentUser) {
+    public ResponseEntity<AiProfileResponse> generateProfile(@AuthenticationPrincipal  CustomUserDetails currentUser) {
         Long userId = currentUser.getUser().getId();
         AiProfile savedProfile = aiProfileService.generateCompleteUserProfile(userId);
         AiProfileResponse response = new AiProfileResponse(

@@ -56,15 +56,18 @@ public class AiProfileService {
             AiProfileResponse profile = aiLlmService.generateFinalProfile(request);
 
             User user = userService.findById(userId);
-            aiProfileRepository.findByUserId(userId).ifPresent(aiProfileRepository::delete);
+            AiProfile aiProfile = aiProfileRepository.findByUserId(userId)
+                    .map(exist -> {
+                        exist.updateProfile(profile);
+                        return exist;
+                    })
+                    .orElseGet(() -> AiProfile.builder()
+                            .user(user)
+                            .personaDescription(profile.personaDescription())
+                            .interestKeywords(profile.interestKeywords())
+                            .build());
 
-            AiProfile savedProfile = AiProfile.builder()
-                    .user(user)
-                    .personaDescription(profile.personaDescription())
-                    .interestKeywords(profile.interestKeywords())
-                    .build();
-
-            AiProfile result = aiProfileRepository.save(savedProfile);
+            AiProfile result = aiProfileRepository.save(aiProfile);
 
             log.info("사용자 AI 프로필 생성 완료: userId={}", userId);
             return result;
