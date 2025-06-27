@@ -8,6 +8,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,17 +31,22 @@ public class UserServiceTest {
     @Autowired
     private UserRepository userRepository;
 
-    @Test
-    void 사용자_엔티티를_프로필_응답_DTO로_올바르게_변환한다() {
-        // given
-        User user = UserTestFixture.defaultUser()
+    private User testUser;
+
+    @BeforeEach
+    void setUp() {
+        testUser = UserTestFixture.defaultUser()
                 .email(UserTestFixture.generateUniqueEmail())
                 .nickname(UserTestFixture.generateUniqueNickname())
                 .role(Role.GUEST)
                 .build();
-        user.addUserTopics(Set.of(Topic.FRONTEND, Topic.BACKEND));
+        testUser.addUserTopics(Set.of(Topic.FRONTEND, Topic.BACKEND));
+    }
 
-        User savedUser = userRepository.save(user);
+    @Test
+    void 사용자_엔티티를_프로필_응답_DTO로_올바르게_변환한다() {
+        // given
+        User savedUser = userRepository.save(testUser);
 
         // when
         UserProfileResponseDto result = UserProfileResponseDto.from(savedUser);
@@ -57,13 +63,7 @@ public class UserServiceTest {
     @Test
     void 토픽_Lazy_Loading이_정상_작동한다() {
         // given
-        User user = UserTestFixture.defaultUser()
-                .email(UserTestFixture.generateUniqueEmail())
-                .nickname(UserTestFixture.generateUniqueNickname())
-                .build();
-        user.addUserTopics(Set.of(Topic.FRONTEND, Topic.BACKEND));
-
-        User savedUser = userRepository.save(user);
+        User savedUser = userRepository.save(testUser);
 
         // when
         User foundUser = userRepository.findById(savedUser.getId()).orElseThrow();

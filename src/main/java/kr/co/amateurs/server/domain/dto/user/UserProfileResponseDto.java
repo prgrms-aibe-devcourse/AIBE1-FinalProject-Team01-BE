@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.domain.dto.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
@@ -28,7 +29,7 @@ public record UserProfileResponseDto(
         String imageUrl,
 
         @Schema(description = "데브코스 이름")
-        String devcourseName,
+        DevCourseTrack devcourseName,
 
         @Schema(description = "데브코스 기수")
         String devcourseBatch,
@@ -47,8 +48,7 @@ public record UserProfileResponseDto(
                 .nickname(user.getNickname())
                 .name(user.getName())
                 .imageUrl(user.getImageUrl())
-                .devcourseName(user.getDevcourseName() != null ?
-                        user.getDevcourseName().getDescription() : null)
+                .devcourseName(user.getDevcourseName())
                 .devcourseBatch(user.getDevcourseBatch())
                 .providerType(user.getProviderType())
                 .topics(user.getUserTopics().stream()

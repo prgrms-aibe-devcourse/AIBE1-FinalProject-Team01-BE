@@ -1,6 +1,5 @@
 package kr.co.amateurs.server.controller.user;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
@@ -9,30 +8,14 @@ import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
 import kr.co.amateurs.server.fixture.auth.AuthTestFixture;
 import kr.co.amateurs.server.fixture.auth.TokenTestFixture;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
-@Transactional
 @Import(EmbeddedRedisConfig.class)
 public class UserControllerTest extends AbstractControllerTest {
-
-    @LocalServerPort
-    private int port;
-
-    @BeforeEach
-    void setUp() {
-        RestAssured.port = port;
-    }
 
     @Test
     void 로그인된_사용자의_프로필_조회가_성공한다() {
