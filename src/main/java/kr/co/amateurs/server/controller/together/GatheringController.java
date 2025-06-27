@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.controller.together;
 
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/gatherings")
 @RequiredArgsConstructor
+@Tag(name="Gathering Post", description = "함께해요 게시판의 팀원 모집 탭 API")
 public class GatheringController {
 
     private final GatheringService gatheringService;

@@ -23,7 +23,7 @@ public class LikeController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
     @PostMapping("/posts/{postId}/likes")
-    @Operation()
+    @Operation(summary = "게시글 좋아요", description = "게시글에 좋아요를 누릅니다.")
     public ResponseEntity<LikeResponseDTO> addLikeToPost(
             @PathVariable Long postId
     ){
@@ -33,6 +33,7 @@ public class LikeController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
     @PostMapping("/comments/{commentId}/likes")
+    @Operation(summary = "댓글 좋아요", description = "댓글에 좋아요를 누릅니다.")
     public ResponseEntity<LikeResponseDTO> addLikeToComment(
             @PathVariable Long commentId
     ){
@@ -42,6 +43,7 @@ public class LikeController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
     @DeleteMapping("/posts/{postId}/likes")
+    @Operation(summary = "게시글 좋아요 제거", description = "좋아요를 눌렀던 게시글에 좋아요를 제거합니다.")
     public ResponseEntity<Void> removeLikeToPost(
             @PathVariable Long postId
     ){
@@ -51,6 +53,7 @@ public class LikeController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
     @DeleteMapping("/comments/{commentId}/likes")
+    @Operation(summary = "댓글 좋아요 제거", description = "좋아요를 눌렀던 댓글에 좋아요를 제거합니다.")
     public ResponseEntity<Void> removeLikeToComment(
             @PathVariable Long commentId
     ){

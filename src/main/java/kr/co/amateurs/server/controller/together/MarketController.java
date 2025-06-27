@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.controller.together;
 
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/market")
 @RequiredArgsConstructor
+@Tag(name="Gathering Post", description = "함께해요 게시판의 장터 탭 API")
 public class MarketController {
     private final MarketService marketService;
 
