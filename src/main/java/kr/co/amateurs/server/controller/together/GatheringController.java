@@ -9,7 +9,7 @@ import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.Operation;
+import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.service.together.GatheringService;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -48,7 +48,7 @@ public class GatheringController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasBoardType = false, boardType = BoardType.GATHER, operation = Operation.WRITE)
+    @BoardAccess(hasBoardType = false, boardType = BoardType.GATHER, operation = OperationType.WRITE)
     @PostMapping
     public ResponseEntity<GatheringPostResponseDTO> createGatheringPost(
             @RequestBody @Valid GatheringPostRequestDTO dto){
@@ -57,7 +57,7 @@ public class GatheringController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @PutMapping("/{postId}")
     public ResponseEntity<Void> updateGatheringPost(
 
@@ -69,7 +69,7 @@ public class GatheringController {
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deleteGatheringPost(
             @PathVariable("postId") Long postId){

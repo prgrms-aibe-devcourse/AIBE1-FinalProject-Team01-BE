@@ -1,10 +1,11 @@
 package kr.co.amateurs.server.controller.comment;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
-import kr.co.amateurs.server.domain.entity.post.enums.Operation;
+import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.service.comment.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Comment", description = "댓글 관련 API")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/posts")
@@ -42,7 +44,7 @@ public class CommentController {
         return ResponseEntity.ok(replies);
     }
 
-    @BoardAccess(hasPostId = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, operation = OperationType.WRITE)
     @PostMapping("/{postId}/comments")
     public ResponseEntity<CommentResponseDTO> createComment(
             @PathVariable Long postId,
@@ -52,7 +54,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
     }
 
-    @BoardAccess(isComment = true, checkAuthor = true, hasPostId = true, operation = Operation.WRITE)
+    @BoardAccess(isComment = true, checkAuthor = true, hasPostId = true, operation = OperationType.WRITE)
     @PutMapping("/{postId}/comments/{commentId}")
     public ResponseEntity<Void> updateComment(
             @PathVariable Long postId,
@@ -63,7 +65,7 @@ public class CommentController {
         return ResponseEntity.noContent().build();
     }
 
-    @BoardAccess(isComment = true, checkAuthor = true, hasPostId = true, operation = Operation.WRITE)
+    @BoardAccess(isComment = true, checkAuthor = true, hasPostId = true, operation = OperationType.WRITE)
     @DeleteMapping("/{postId}/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
         @PathVariable Long postId,

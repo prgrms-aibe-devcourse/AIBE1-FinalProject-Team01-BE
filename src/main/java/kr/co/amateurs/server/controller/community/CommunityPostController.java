@@ -8,12 +8,11 @@ import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.Operation;
+import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.service.community.CommunityPostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -48,7 +47,7 @@ public class CommunityPostController {
         return ResponseEntity.ok(post);
     }
 
-    @BoardAccess(needCategory = true,category = BoardCategory.COMMUNITY, operation = Operation.WRITE)
+    @BoardAccess(needCategory = true,category = BoardCategory.COMMUNITY, operation = OperationType.WRITE)
     @PostMapping("/{boardType}")
     public ResponseEntity<CommunityResponseDTO> createPost(
             @PathVariable BoardType boardType,
@@ -59,7 +58,7 @@ public class CommunityPostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @PutMapping("/{boardType}/{postId}")
     public ResponseEntity<Void> updatePost(
             @PathVariable BoardType boardType,
@@ -71,7 +70,7 @@ public class CommunityPostController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @DeleteMapping("/{boardType}/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable BoardType boardType,
