@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.domain.dto.project;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.Project;
 import lombok.Builder;
@@ -10,13 +11,21 @@ import java.time.LocalDateTime;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ProjectResponseDTO(
+        @Schema(description = "프로젝트 ID", example = "1")
         Long projectId,
+        @Schema(description = "게시글 ID", example = "1")
         Long postId,
+        @Schema(description = "게시글 제목", example = "test 제목")
         String title,
+        @Schema(description = "게시글 내용", example = "test 내용")
         String content,
+        @Schema(description = "작성자 닉네임", example = "test닉네임")
         String nickname,
+        @Schema(description = "게시글 태그", example = "Spring Boot")
         String tags,
+        @Schema(description = "작성자 수강 코스 이름", example = "AIBE")
         String devcourseTrack,
+        @Schema(description = "작성자 수강 코스 기수", example = "1")
         String devcourseBatch,
         String demoUrl,
         String githubUrl,
