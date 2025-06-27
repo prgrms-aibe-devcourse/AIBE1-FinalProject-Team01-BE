@@ -1,8 +1,8 @@
 package kr.co.amateurs.server.controller.comment;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
+import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -16,20 +16,11 @@ import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
-@ActiveProfiles("test")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class CommentControllerTest {
-    @LocalServerPort
-    private int port;
+public class CommentControllerTest extends AbstractControllerTest {
 
     @Autowired
     private CommentRepository commentRepository;
@@ -55,8 +46,6 @@ public class CommentControllerTest {
 
     @BeforeEach
     void setUp() {
-        RestAssured.port = port;
-
         likeRepository.deleteAll();
         commentRepository.deleteAll();
         postRepository.deleteAll();
@@ -85,7 +74,7 @@ public class CommentControllerTest {
         given()
                 .header("Authorization", "Bearer " + userToken)
                 .when()
-                .get("/api/v1/posts/{postId}/comments?size={size}", testPost.getId(), 8)
+                .get("/posts/{postId}/comments?size={size}", testPost.getId(), 8)
                 .then()
                 .statusCode(200)
                 .body("comments", hasSize(2))
@@ -109,7 +98,7 @@ public class CommentControllerTest {
         // when & then
         given()
                 .when()
-                .get("/api/v1/posts/{postId}/comments?size={size}", testITPost.getId(), 8)
+                .get("/posts/{postId}/comments?size={size}", testITPost.getId(), 8)
                 .then()
                 .statusCode(200)
                 .body("comments", hasSize(1))
@@ -125,7 +114,7 @@ public class CommentControllerTest {
         // when & then
         given()
                 .when()
-                .get("/api/v1/posts/{postId}/comments?size={size}", testPost.getId(), 8)
+                .get("/posts/{postId}/comments?size={size}", testPost.getId(), 8)
                 .then()
                 .statusCode(400);
     }
@@ -142,7 +131,7 @@ public class CommentControllerTest {
                 given()
                         .header("Authorization", "Bearer " + userToken)
                         .when()
-                        .get("/api/v1/posts/{postId}/comments?size={size}", testPost.getId(), 2)
+                        .get("/posts/{postId}/comments?size={size}", testPost.getId(), 2)
                         .then()
                         .statusCode(200)
                         .body("comments", hasSize(2))
@@ -156,7 +145,7 @@ public class CommentControllerTest {
         given()
                 .header("Authorization", "Bearer " + userToken)
                 .when()
-                .get("/api/v1/posts/{postId}/comments?cursor={cursor}&size={size}",
+                .get("/posts/{postId}/comments?cursor={cursor}&size={size}",
                         testPost.getId(), nextCursor, 2)
                 .then()
                 .statusCode(200)
@@ -176,7 +165,7 @@ public class CommentControllerTest {
         given()
                 .header("Authorization", "Bearer " + userToken)
                 .when()
-                .get("/api/v1/posts/{postId}/comments/{commentId}/replies",
+                .get("/posts/{postId}/comments/{commentId}/replies",
                         testPost.getId(), parentComment.getId())
                 .then()
                 .statusCode(200)
@@ -195,7 +184,7 @@ public class CommentControllerTest {
         given()
                 .header("Authorization", "Bearer " + userToken)
                 .when()
-                .get("/api/v1/posts/{postId}/comments", testPost.getId())
+                .get("/posts/{postId}/comments", testPost.getId())
                 .then()
                 .statusCode(200)
                 .body("comments", hasSize(0))
@@ -214,7 +203,7 @@ public class CommentControllerTest {
                 .contentType(ContentType.JSON)
                 .body(requestDTO)
                 .when()
-                .post("/api/v1/posts/{postId}/comments", testPost.getId())
+                .post("/posts/{postId}/comments", testPost.getId())
                 .then()
                 .statusCode(201)
                 .body("content", equalTo("새로운 루트 댓글"))
@@ -237,7 +226,7 @@ public class CommentControllerTest {
                 .contentType(ContentType.JSON)
                 .body(requestDTO)
                 .when()
-                .post("/api/v1/posts/{postId}/comments", testPost.getId())
+                .post("/posts/{postId}/comments", testPost.getId())
                 .then()
                 .statusCode(201)
                 .body("content", equalTo("새로운 답글"))
@@ -259,7 +248,7 @@ public class CommentControllerTest {
                 .contentType(ContentType.JSON)
                 .body(requestDTO)
                 .when()
-                .post("/api/v1/posts/{postId}/comments", testPost.getId())
+                .post("/posts/{postId}/comments", testPost.getId())
                 .then()
                 .statusCode(400);
     }
@@ -274,7 +263,7 @@ public class CommentControllerTest {
                 .contentType(ContentType.JSON)
                 .body(requestDTO)
                 .when()
-                .post("/api/v1/posts/{postId}/comments", testPost.getId())
+                .post("/posts/{postId}/comments", testPost.getId())
                 .then()
                 .statusCode(400);
     }
@@ -292,7 +281,7 @@ public class CommentControllerTest {
                 .contentType(ContentType.JSON)
                 .body(requestDTO)
                 .when()
-                .put("/api/v1/posts/{postId}/comments/{commentId}",
+                .put("/posts/{postId}/comments/{commentId}",
                         testPost.getId(), comment.getId())
                 .then()
                 .statusCode(204);
@@ -314,7 +303,7 @@ public class CommentControllerTest {
                 .contentType(ContentType.JSON)
                 .body(requestDTO)
                 .when()
-                .put("/api/v1/posts/{postId}/comments/{commentId}",
+                .put("/posts/{postId}/comments/{commentId}",
                         testPost.getId(), comment.getId())
                 .then()
                 .statusCode(400);
@@ -330,7 +319,7 @@ public class CommentControllerTest {
         given()
                 .header("Authorization", "Bearer " + userToken)
                 .when()
-                .delete("/api/v1/posts/{postId}/comments/{commentId}",
+                .delete("/posts/{postId}/comments/{commentId}",
                         testPost.getId(), commentId)
                 .then()
                 .statusCode(204);
@@ -348,7 +337,7 @@ public class CommentControllerTest {
         given()
                 .header("Authorization", "Bearer " + userToken)
                 .when()
-                .delete("/api/v1/posts/{postId}/comments/{commentId}",
+                .delete("/posts/{postId}/comments/{commentId}",
                         testPost.getId(), comment.getId())
                 .then()
                 .statusCode(400);
@@ -360,7 +349,7 @@ public class CommentControllerTest {
         given()
                 .header("Authorization", "Bearer " + userToken)
                 .when()
-                .get("/api/v1/posts/{postId}/comments", 999L)
+                .get("/posts/{postId}/comments", 999L)
                 .then()
                 .statusCode(404);
     }
@@ -376,7 +365,7 @@ public class CommentControllerTest {
                 .contentType(ContentType.JSON)
                 .body(requestDTO)
                 .when()
-                .put("/api/v1/posts/{postId}/comments/{commentId}",
+                .put("/posts/{postId}/comments/{commentId}",
                         testPost.getId(), 999L)
                 .then()
                 .statusCode(404);
@@ -388,7 +377,7 @@ public class CommentControllerTest {
         given()
                 .header("Authorization", "Bearer " + userToken)
                 .when()
-                .delete("/api/v1/posts/{postId}/comments/{commentId}",
+                .delete("/posts/{postId}/comments/{commentId}",
                         testPost.getId(), 999L)
                 .then()
                 .statusCode(404);
@@ -405,7 +394,7 @@ public class CommentControllerTest {
                 .contentType(ContentType.JSON)
                 .body(requestDTO)
                 .when()
-                .post("/api/v1/posts/{postId}/comments", testPost.getId())
+                .post("/posts/{postId}/comments", testPost.getId())
                 .then()
                 .statusCode(400);
     }
