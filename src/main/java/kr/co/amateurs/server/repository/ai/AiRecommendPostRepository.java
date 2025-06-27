@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface AiRecommendPostRepository extends JpaRepository<RecommendedPost, Long> {
-    List<RecommendedPost> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<RecommendedPost> findByUserIdOrderById(Long userId);
     void deleteByUserId(Long userId);
 }

@@ -3,6 +3,7 @@ package kr.co.amateurs.server.service.ai;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.ai.PostRecommendationResponse;
 import kr.co.amateurs.server.domain.entity.ai.AiProfile;
 import kr.co.amateurs.server.domain.entity.ai.RecommendedPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -32,7 +33,7 @@ public class PostRecommendService {
 
 
     /**
-     * AI 프로필 기반 게시글 추천
+     * AI 프로필 기반 게시글 추천 - (게시글 추천)
      * - AI 프로필이 있으면: AI 기반 추천
      * - AI 프로필이 없으면: 인기글 추천
      * - 오류 발생시: 인기글 fallback
@@ -58,6 +59,11 @@ public class PostRecommendService {
                     .filter(match -> match.embedded().metadata().containsKey("postId"))
                     .filter(match -> match.embedded().metadata().containsKey("userId"))
                     .filter(match -> !match.embedded().metadata().getString("userId").equals(userId.toString()))
+                    .peek(match -> {
+                        String postId = match.embedded().metadata().getString("postId");
+                        double similarity = match.score();
+                        log.info("추천 게시글: postId={}, 유사도={}", postId, similarity);
+                    })
                     .map(match -> Long.parseLong(match.embedded().metadata().getString("postId")))
                     .distinct()
                     .limit(limit)
@@ -74,7 +80,7 @@ public class PostRecommendService {
     }
 
     /**
-     * 추천 게시글을 DB에 저장
+     * 추천 게시글을 DB에 저장 - (추천 게시글 저장)
      * @param userId 사용자 ID
      * @param limit 추천 게시글 개수
      */
@@ -108,23 +114,30 @@ public class PostRecommendService {
      * @param limit 조회할 게시글 개수
      * @return 추천 게시글 목록
      */
-    public List<Post> getStoredRecommendations(Long userId, int limit) {
+    public List<PostRecommendationResponse> getStoredRecommendations(Long userId, int limit) {
         try {
             List<RecommendedPost> recommendedPosts = aiRecommendPostRepository
-                    .findByUserIdOrderByCreatedAtDesc(userId);
+                    .findByUserIdOrderById(userId);
 
             return recommendedPosts.stream()
                     .limit(limit)
-                    .map(RecommendedPost::getPost)
+                    .map(rp -> PostRecommendationResponse.from(rp.getPost()))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("저장된 추천 게시글 조회 실패: userId={}, error={}", userId, e.getMessage());
-            return getGuestPost(userId, limit);
+            return getGuestPostAsResponse(userId, limit);
         }
     }
 
     private List<Post> getGuestPost(Long userId, int limit) {
         return postService.findPopularPosts(limit);
+    }
+
+    private List<PostRecommendationResponse> getGuestPostAsResponse(Long userId, int limit) {
+        log.info("게스트 사용자 인기글 추천: userId={}, limit={}", userId, limit);
+        return postService.findPopularPosts(limit).stream()
+                .map(PostRecommendationResponse::from)
+                .collect(Collectors.toList());
     }
 
     private String buildRecommendationQuery(AiProfile profile) {

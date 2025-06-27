@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.ai.AiProfileResponse;
+import kr.co.amateurs.server.domain.dto.ai.PostRecommendationResponse;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.service.ai.AiProfileService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingManageService;
@@ -34,12 +35,12 @@ public class AiController {
 
     @GetMapping("/posts/recommendations")
     @Operation(summary = "AI 개인화 게시글 추천", description = "사용자의 AI 프로필을 기반으로 맞춤 게시글을 추천합니다")
-    public ResponseEntity<List<Post>> getAiRecommendations(
+    public ResponseEntity<List<PostRecommendationResponse>> getAiRecommendations(
             @AuthenticationPrincipal CustomUserDetails currentUser,
             @RequestParam(defaultValue = "10") int limit) {
 
         Long userId = currentUser.getUser().getId();
-        List<Post> recommendations = postRecommendService.getStoredRecommendations(userId, limit);
+        List<PostRecommendationResponse> recommendations = postRecommendService.getStoredRecommendations(userId, limit);
         return ResponseEntity.ok(recommendations);
     }
 

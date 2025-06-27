@@ -31,6 +31,7 @@ spring:
   springdoc:
     swagger-ui:
       enabled: false
+    enable-kotlin: false
 
   output:
     ansi:
@@ -47,7 +48,7 @@ openai:
 
 qdrant:
   host: ${QDRANT_URL}
-  port: 6333
+  port: 6334
   api-key: ${QDRANT_API_KEY}
   collection-name: amateurs
 

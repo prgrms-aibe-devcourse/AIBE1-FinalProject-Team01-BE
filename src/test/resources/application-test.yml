@@ -27,7 +27,7 @@ openai:
 
 qdrant:
   host: dummy-qdrant-url # Replace with a dummy or test Qdrant URL
-  port: 6333
+  port: 6334
   api-key: dummy-api-key
   collection-name: amateurs
 
