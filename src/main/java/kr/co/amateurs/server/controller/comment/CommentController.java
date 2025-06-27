@@ -1,6 +1,8 @@
 package kr.co.amateurs.server.controller.comment;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
@@ -23,6 +25,10 @@ public class CommentController {
 
     @BoardAccess(hasPostId = true)
     @GetMapping("/{postId}/comments")
+    @Operation(
+            summary = "댓글 목록 조회",
+            description = "부모 댓글만 커서 페이지네이션으로 조회됩니다."
+    )
     public ResponseEntity<CommentPageDTO> getComments(
             @PathVariable Long postId,
             @RequestParam(required = false) Long cursor,
@@ -34,6 +40,10 @@ public class CommentController {
 
     @BoardAccess(hasPostId = true)
     @GetMapping("/{postId}/comments/{commentId}/replies")
+    @Operation(
+            summary = "대댓글 목록 조회",
+            description = "특정 댓글의 대댓글 목록을 커서 페이지네이션으로 조회합니다."
+    )
     public ResponseEntity<CommentPageDTO> getReplies(
             @PathVariable Long postId,
             @PathVariable Long commentId,
@@ -46,9 +56,13 @@ public class CommentController {
 
     @BoardAccess(hasPostId = true, operation = OperationType.WRITE)
     @PostMapping("/{postId}/comments")
+    @Operation(
+            summary = "댓글 작성",
+            description = "새로운 댓글을 작성합니다. parentCommentId가 있으면 대댓글, 없으면 일반 댓글로 작성됩니다."
+    )
     public ResponseEntity<CommentResponseDTO> createComment(
             @PathVariable Long postId,
-            @RequestBody CommentRequestDTO requestDTO
+            @Valid @RequestBody CommentRequestDTO requestDTO
             ){
         CommentResponseDTO comment = commentService.createComment(postId, requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
@@ -56,10 +70,14 @@ public class CommentController {
 
     @BoardAccess(isComment = true, checkAuthor = true, hasPostId = true, operation = OperationType.WRITE)
     @PutMapping("/{postId}/comments/{commentId}")
+    @Operation(
+            summary = "댓글 수정",
+            description = "댓글 작성자만 기존 댓글의 내용을 수정합니다."
+    )
     public ResponseEntity<Void> updateComment(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestBody CommentRequestDTO requestDTO
+            @Valid @RequestBody CommentRequestDTO requestDTO
     ){
         commentService.updateComment(postId, commentId, requestDTO);
         return ResponseEntity.noContent().build();
@@ -67,6 +85,10 @@ public class CommentController {
 
     @BoardAccess(isComment = true, checkAuthor = true, hasPostId = true, operation = OperationType.WRITE)
     @DeleteMapping("/{postId}/comments/{commentId}")
+    @Operation(
+            summary = "댓글 삭제",
+            description = "댓글 작성자만 댓글을 삭제합니다."
+    )
     public ResponseEntity<Void> deleteComment(
         @PathVariable Long postId,
         @PathVariable Long commentId
