@@ -12,6 +12,8 @@ import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.bookmark.BookmarkService;
+import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,8 +30,8 @@ import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPag
 @RequiredArgsConstructor
 public class CommunityPostService {
     private final PostRepository postRepository;
-    private final BookmarkRepository bookmarkRepository;
-    private final LikeRepository likeRepository;
+    private final BookmarkService bookmarkService;
+    private final LikeService likeService;
 
     private final UserService userService;
 
@@ -59,8 +61,8 @@ public class CommunityPostService {
         boolean hasBookmarked = false;
         boolean hasLiked = false;
         if (user != null) {
-            hasBookmarked = checkHasBookmarked(postId, user);
-            hasLiked = checkHasLiked(postId, user);
+            hasBookmarked = bookmarkService.checkHasBookmarked(postId);
+            hasLiked = likeService.checkHasLiked(postId);
         }
 
         return CommunityResponseDTO.from(post, hasLiked, hasBookmarked);
@@ -98,23 +100,18 @@ public class CommunityPostService {
         postRepository.delete(post);
     }
 
-    private boolean checkHasLiked(Long postId, User user) {
-        return likeRepository
-                .findByPostIdAndUserId(postId, user.getId())
-                .isPresent();
-    }
-
-    private boolean checkHasBookmarked(Long postId, User user) {
-        return bookmarkRepository
-                .findByPostIdAndUserId(postId, user.getId())
-                .isPresent();
-    }
-
     private void validatePost(Post post) {
         User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
 
         if (!Objects.equals(post.getUser().getId(), user.getId())) {
             throw ErrorCode.ACCESS_DENIED.get();
         }
+    }
+
+    // TODO - 사용자가 한 게시글을 여러번 조회할 경우 viewCount를 중복으로 올라가도록 할 지 한 명당 1회만 올라가게 할 지 정해야 함
+    //         + 조회수 증가를 별도의 API로 할 지 다른 곳에다 붙일 지 정해야 함
+    @Transactional
+    public void increaseViewCount(Long postId) {
+        postRepository.increaseViewCount(postId);
     }
 }

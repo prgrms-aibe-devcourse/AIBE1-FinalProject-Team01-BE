@@ -40,6 +40,7 @@ public class LikeService {
                 .post(post)
                 .build();
         Like savedLike = likeRepository.save(likeToPost);
+        likeRepository.increasePostLikeCount(postId);
         return convertToDTO(savedLike, "post");
     }
 
@@ -52,6 +53,7 @@ public class LikeService {
                 .comment(comment)
                 .build();
         Like savedLike = likeRepository.save(likeToPost);
+        likeRepository.increaseCommentLikeCount(commentId);
         return convertToDTO(savedLike, "comment");
 
     }
