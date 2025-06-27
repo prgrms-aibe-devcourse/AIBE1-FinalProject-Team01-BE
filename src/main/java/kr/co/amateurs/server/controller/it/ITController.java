@@ -7,7 +7,7 @@ import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.Operation;
+import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.it.ITService;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class ITController {
         return ResponseEntity.ok(post);
     }
 
-    @BoardAccess(needCategory = true, category = BoardCategory.IT, operation = Operation.WRITE)
+    @BoardAccess(needCategory = true, category = BoardCategory.IT, operation = OperationType.WRITE)
     @PostMapping("/{boardType}")
     public ResponseEntity<ITResponseDTO> createPost(
             @PathVariable BoardType boardType,
@@ -59,7 +59,7 @@ public class ITController {
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @PutMapping("/{boardType}/{postId}")
     public ResponseEntity<Void> updatePost(
             @PathVariable BoardType boardType,
@@ -71,7 +71,7 @@ public class ITController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @DeleteMapping("/{boardType}/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable BoardType boardType,

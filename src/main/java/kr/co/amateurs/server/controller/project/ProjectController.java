@@ -9,7 +9,7 @@ import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.Operation;
+import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.service.project.ProjectService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,7 @@ public class ProjectController {
 //    }
 
     @PostMapping
-    @BoardAccess(needCategory = true, category = BoardCategory.PROJECT, operation = Operation.WRITE,
+    @BoardAccess(needCategory = true, category = BoardCategory.PROJECT, operation = OperationType.WRITE,
             boardType = BoardType.PROJECT_HUB, hasBoardType = false)
     public ResponseEntity<?> createProject(@AuthenticationPrincipal CustomUserDetails userDetails,
                                            @RequestBody ProjectRequestDTO projectRequestDTO) {
@@ -56,7 +56,7 @@ public class ProjectController {
     }
 
     @PutMapping("/{postId}")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE,
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE,
             boardType = BoardType.PROJECT_HUB, hasBoardType = false)
     public ResponseEntity<Void> updateProject(@PathVariable Long postId,
                                               @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -66,7 +66,7 @@ public class ProjectController {
     }
 
     @DeleteMapping("/{postId}")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE,
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE,
             boardType = BoardType.PROJECT_HUB, hasBoardType = false)
     public ResponseEntity<Void> deleteProject(@PathVariable Long postId,
                                               @AuthenticationPrincipal CustomUserDetails userDetails) {

@@ -7,7 +7,7 @@ import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.Operation;
+import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.service.together.MatchService;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -44,7 +44,7 @@ public class MatchController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasBoardType = false, boardType = BoardType.MATCH, operation = Operation.WRITE)
+    @BoardAccess(hasBoardType = false, boardType = BoardType.MATCH, operation = OperationType.WRITE)
     @PostMapping
     public ResponseEntity<MatchPostResponseDTO> createMatchPost(
             @RequestBody @Valid MatchPostRequestDTO dto){
@@ -53,7 +53,7 @@ public class MatchController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @PutMapping("/{postId}")
     public ResponseEntity<Void> updateMatchPost(
             @PathVariable("postId") Long postId,
@@ -64,7 +64,7 @@ public class MatchController {
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deleteMatchPost(
             @PathVariable("postId") Long postId){

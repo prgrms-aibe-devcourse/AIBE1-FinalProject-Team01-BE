@@ -8,7 +8,7 @@ import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.Operation;
+import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.service.together.MarketService;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -43,7 +43,7 @@ public class MarketController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasBoardType = false, boardType = BoardType.MARKET, operation = Operation.WRITE)
+    @BoardAccess(hasBoardType = false, boardType = BoardType.MARKET, operation = OperationType.WRITE)
     @PostMapping
     public ResponseEntity<MarketPostResponseDTO> createMarketPost(
             @RequestBody @Valid MarketPostRequestDTO dto){
@@ -52,7 +52,7 @@ public class MarketController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @PutMapping("/{postId}")
     public ResponseEntity<Void> updateMarketPost(
             @PathVariable("postId") Long postId,
@@ -63,7 +63,7 @@ public class MarketController {
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deleteMarketPost(
             @PathVariable("postId") Long postId){
