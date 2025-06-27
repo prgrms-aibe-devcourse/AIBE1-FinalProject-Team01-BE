@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/matches")
 @RequiredArgsConstructor
-@Tag(name="Gathering Post", description = "함께해요 게시판의 커피챗/멘토링 탭 API")
+@Tag(name="Matching", description = "함께해요 게시판의 커피챗/멘토링 탭 API")
 public class MatchController {
     
     private final MatchService matchService;

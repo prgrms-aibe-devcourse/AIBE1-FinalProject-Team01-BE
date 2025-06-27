@@ -21,7 +21,7 @@ public record ProjectRequestDTO(
         String githubUrl,
         @Schema(description = "프로젝트 요약", example = "test 프로젝트입니다.")
         String simpleContent,
-        @Schema(description = "배포 URL", example = "https://test.com")
+        @Schema(description = "데모 사이트 배포 URL", example = "https://test.com")
         String demoUrl,
         @Schema(description = "프로젝트 참여 인원", example = "홍길동")
         String projectMembers

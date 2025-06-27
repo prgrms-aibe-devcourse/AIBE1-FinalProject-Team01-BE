@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/market")
 @RequiredArgsConstructor
-@Tag(name="Gathering Post", description = "함께해요 게시판의 장터 탭 API")
+@Tag(name="Market", description = "함께해요 게시판의 장터 탭 API")
 public class MarketController {
     private final MarketService marketService;
 

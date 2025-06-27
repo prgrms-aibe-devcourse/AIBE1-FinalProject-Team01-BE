@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.controller.it;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/IT")
 @RequiredArgsConstructor
+@Tag(name="IT", description = "IT 게시판 관련 API")
 public class ITController {
     private final ITService itService;
 
