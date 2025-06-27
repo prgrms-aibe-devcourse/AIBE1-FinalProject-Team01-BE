@@ -3,11 +3,13 @@ package kr.co.amateurs.server.controller.report;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
+import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.report.ReportRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.report.Report;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
@@ -15,22 +17,15 @@ import kr.co.amateurs.server.service.report.ReportTestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 
-@ActiveProfiles("test")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class ReportControllerTest {
-
+public class ReportControllerTest extends AbstractControllerTest {
     @LocalServerPort
     private int port;
 
@@ -42,6 +37,9 @@ public class ReportControllerTest {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private BookmarkRepository bookmarkRepository;
 
     @Autowired
     private JwtProvider jwtProvider;
@@ -57,9 +55,12 @@ public class ReportControllerTest {
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
+
+        bookmarkRepository.deleteAll();
         reportRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();
+
         adminUser = userRepository.save(ReportTestFixtures.createAdminUser());
         studentUser = userRepository.save(ReportTestFixtures.createStudentUser());
         guestUser = userRepository.save(ReportTestFixtures.createGuestUser());
@@ -85,7 +86,7 @@ public class ReportControllerTest {
                 .header("Authorization", "Bearer " + studentToken)
                 .body(requestDTO)
                 .when()
-                .post("/api/v1/reports")
+                .post("/reports")
                 .then()
                 .statusCode(201)
                 .body("reporterName", notNullValue())
@@ -109,7 +110,7 @@ public class ReportControllerTest {
                 .header("Authorization", "Bearer " + guestToken)
                 .body(requestDTO)
                 .when()
-                .post("/api/v1/reports")
+                .post("/reports")
                 .then()
                 .statusCode(403);
 
@@ -129,7 +130,7 @@ public class ReportControllerTest {
                 .contentType(ContentType.JSON)
                 .body(requestDTO)
                 .when()
-                .post("/api/v1/reports")
+                .post("/reports")
                 .then()
                 .statusCode(403);
     }
@@ -151,7 +152,7 @@ public class ReportControllerTest {
                 .param("size", "10")
                 .header("Authorization", "Bearer " + adminToken)
                 .when()
-                .get("/api/v1/reports")
+                .get("/reports")
                 .then()
                 .statusCode(200)
                 .body("content", hasSize(2))
@@ -171,7 +172,7 @@ public class ReportControllerTest {
                 .param("size", "10")
                 .header("Authorization", "Bearer " + studentToken)
                 .when()
-                .get("/api/v1/reports")
+                .get("/reports")
                 .then()
                 .statusCode(403);
     }
@@ -184,7 +185,7 @@ public class ReportControllerTest {
                 .param("page", "0")
                 .param("size", "10")
                 .when()
-                .get("/api/v1/reports")
+                .get("/reports")
                 .then()
                 .statusCode(403);
     }
@@ -200,7 +201,7 @@ public class ReportControllerTest {
         given()
                 .header("Authorization", "Bearer " + adminToken)
                 .when()
-                .put("/api/v1/reports/{reportId}/{status}", report.getId(), ReportStatus.REVIEWED)
+                .put("/reports/{reportId}/{status}", report.getId(), ReportStatus.REVIEWED)
                 .then()
                 .statusCode(204);
 
@@ -220,7 +221,7 @@ public class ReportControllerTest {
         given()
                 .header("Authorization", "Bearer " + studentToken)
                 .when()
-                .put("/api/v1/reports/{reportId}/{status}", report.getId(), ReportStatus.REVIEWED)
+                .put("/reports/{reportId}/{status}", report.getId(), ReportStatus.REVIEWED)
                 .then()
                 .statusCode(403);
     }
@@ -237,7 +238,7 @@ public class ReportControllerTest {
         given()
                 .header("Authorization", "Bearer " + adminToken)
                 .when()
-                .delete("/api/v1/reports/{reportId}", reportId)
+                .delete("/reports/{reportId}", reportId)
                 .then()
                 .statusCode(204);
 
@@ -255,7 +256,7 @@ public class ReportControllerTest {
         given()
                 .header("Authorization", "Bearer " + studentToken)
                 .when()
-                .delete("/api/v1/reports/{reportId}", report.getId())
+                .delete("/reports/{reportId}", report.getId())
                 .then()
                 .statusCode(403);
     }
@@ -274,7 +275,7 @@ public class ReportControllerTest {
                 .contentType(ContentType.JSON)
                 .body(requestDTO)
                 .when()
-                .post("/api/v1/reports")
+                .post("/reports")
                 .then()
                 .statusCode(400);
     }
@@ -293,7 +294,7 @@ public class ReportControllerTest {
                 .contentType(ContentType.JSON)
                 .body(requestDTO)
                 .when()
-                .post("/api/v1/reports")
+                .post("/reports")
                 .then()
                 .statusCode(404);
     }

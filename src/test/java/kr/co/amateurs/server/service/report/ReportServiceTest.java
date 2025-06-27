@@ -222,7 +222,7 @@ class ReportServiceTest {
         // when & then
         assertThatThrownBy(() -> reportService.updateStatusReport(nonExistentReportId, newStatus))
                 .isInstanceOf(CustomException.class)
-                .hasMessage("조회할 대상을 찾을 수 없습니다.");
+                .hasMessage("신고 글을 찾을 수 없습니다.");
     }
 
     @Test
@@ -246,7 +246,7 @@ class ReportServiceTest {
         // when & then
         assertThatThrownBy(() -> reportService.deleteReport(nonExistentReportId))
                 .isInstanceOf(CustomException.class)
-                .hasMessage("조회할 대상을 찾을 수 없습니다.");
+                .hasMessage("신고 글을 찾을 수 없습니다.");
     }
 
     @Test
@@ -262,7 +262,7 @@ class ReportServiceTest {
 
     @Test
     void 페이징이_정상적으로_동작해야_한다() {
-        // given - 추가 신고 데이터 생성
+        // given
         for (int i = 0; i < 15; i++) {
             Post additionalPost = postRepository.save(ReportTestFixtures.createCustomPost(testUser, "추가 게시글" + i, "내용" + i, BoardType.FREE));
             reportRepository.save(ReportTestFixtures.createPostReport(reporterUser, additionalPost, "추가 신고" + i));
