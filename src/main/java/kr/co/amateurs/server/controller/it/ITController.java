@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ITController {
     private final ITService itService;
-    // TODO ITResponseDTO 와 CommunityResponseDTO 가 현재 같음 나중에 리팩토링 예쩡
 
     @BoardAccess(needCategory = true, category = BoardCategory.IT)
     @GetMapping("/{boardType}")
