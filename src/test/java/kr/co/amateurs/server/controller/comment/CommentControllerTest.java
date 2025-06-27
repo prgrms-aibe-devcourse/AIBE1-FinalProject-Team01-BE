@@ -1,11 +1,11 @@
 package kr.co.amateurs.server.controller.comment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.amateurs.server.config.SecurityConfig;
 import kr.co.amateurs.server.config.TestSecurityConfig;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.service.comment.CommentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +44,7 @@ public class CommentControllerTest {
         int size = 10;
         List<CommentResponseDTO> comments = new ArrayList<>();
         for (int i = 1; i <= size; i++) {
-            comments.add(new CommentResponseDTO((long) i, postId,"testUser",null, null, "댓글 내용 " + i, 0, 0, false, LocalDateTime.now(), LocalDateTime.now()));
+            comments.add(new CommentResponseDTO((long) i, postId,"testUser",null, DevCourseTrack.AI_BACKEND, null, "댓글 내용 " + i, 0, 0, false, LocalDateTime.now(), LocalDateTime.now()));
         }
 
         CommentPageDTO commentPageDTO = new CommentPageDTO(comments, null, false);
@@ -87,7 +87,7 @@ public class CommentControllerTest {
 
         List<CommentResponseDTO> comments = new ArrayList<>();
         for (int i = 11; i <= 15; i++) {
-            comments.add(new CommentResponseDTO((long) i, postId,"testUser",null, null, "댓글 내용 " + i, 0, 0, false, LocalDateTime.now(), LocalDateTime.now()));
+            comments.add(new CommentResponseDTO((long) i, postId,"testUser",null, DevCourseTrack.AI_BACKEND,null, "댓글 내용 " + i, 0, 0, false, LocalDateTime.now(), LocalDateTime.now()));
         }
 
         CommentPageDTO commentPageDTO = new CommentPageDTO(comments, 15L, true);
@@ -114,7 +114,7 @@ public class CommentControllerTest {
 
         List<CommentResponseDTO> replies = new ArrayList<>();
         for (int i = 1; i <= size; i++) {
-            replies.add(new CommentResponseDTO((long) i, postId,"testUser",null, commentId, "답글 내용 " + i, 0, 0, false, LocalDateTime.now(), LocalDateTime.now()));
+            replies.add(new CommentResponseDTO((long) i, postId,"testUser",null, DevCourseTrack.AI_BACKEND,commentId, "답글 내용 " + i, 0, 0, false, LocalDateTime.now(), LocalDateTime.now()));
         }
 
         CommentPageDTO replyPageDTO = new CommentPageDTO(replies, null, false);
@@ -155,7 +155,7 @@ public class CommentControllerTest {
         Long postId = 1L;
         CommentRequestDTO requestDTO = new CommentRequestDTO(100L,"새로운 댓글 내용");
 
-        CommentResponseDTO responseDTO = new CommentResponseDTO(1L, postId,"testUser",null, 100L, "새로운 댓글 내용", 0, 0, false, LocalDateTime.now(), LocalDateTime.now());
+        CommentResponseDTO responseDTO = new CommentResponseDTO(1L, postId,"testUser",null, DevCourseTrack.AI_BACKEND,100L, "새로운 댓글 내용", 0, 0, false, LocalDateTime.now(), LocalDateTime.now());
 
         given(commentService.createComment(eq(postId), any(CommentRequestDTO.class)))
                 .willReturn(responseDTO);

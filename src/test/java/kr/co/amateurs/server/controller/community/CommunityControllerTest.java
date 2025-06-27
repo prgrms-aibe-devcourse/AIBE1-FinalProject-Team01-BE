@@ -8,6 +8,7 @@ import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.service.community.CommunityPostService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -123,6 +123,8 @@ class CommunityControllerTest {
                 "테스트 내용",
                 "테스트 작성자",
                 "http://example.com/profile.jpg",
+                DevCourseTrack.AI_BACKEND,
+                "1기",
                 BoardType.FREE,
                 0,
                 0,
@@ -163,6 +165,8 @@ class CommunityControllerTest {
                 "새 게시글 내용",
                 "테스트 작성자",
                 "http://example.com/profile.jpg",
+                DevCourseTrack.AI_BACKEND,
+                "1기",
                 BoardType.FREE,
                 0,
                 0,

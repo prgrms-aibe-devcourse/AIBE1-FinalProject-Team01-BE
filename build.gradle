@@ -9,7 +9,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+//		languageVersion = JavaLanguageVersion.of(17)
 	}
 }
 
@@ -48,8 +48,8 @@ dependencies {
 
 
 	// AI 관련 의존성
-	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
-	implementation 'org.springframework.ai:spring-ai-starter-vector-store-qdrant'
+//	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+//	implementation 'org.springframework.ai:spring-ai-starter-vector-store-qdrant'
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
