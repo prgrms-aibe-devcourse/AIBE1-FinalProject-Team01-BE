@@ -2,6 +2,7 @@ package kr.co.amateurs.server.service;
 
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.user.UserProfileResponseDto;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
@@ -12,6 +13,7 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -92,6 +94,17 @@ public class UserService {
         if (nickname.length() < 2 || nickname.length() > 20) {
             throw ErrorCode.INVALID_NICKNAME_LENGTH.get();
         }
+    }
+
+    public UserProfileResponseDto getCurrentUserProfile() {
+        Long userId = getCurrentUser()
+                .map(User::getId)
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        return UserProfileResponseDto.from(user);
     }
 
     public String getDevcourseName(Long userId) {

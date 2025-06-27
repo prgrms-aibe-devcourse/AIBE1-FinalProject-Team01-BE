@@ -1,7 +1,6 @@
 package kr.co.amateurs.server.repository.like;
 
 import kr.co.amateurs.server.domain.entity.like.Like;
-import kr.co.amateurs.server.domain.entity.post.Post;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -26,6 +25,8 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     int deleteByPostAndUser(@Param("postId") Long postId, @Param("userId") Long userId);
 
     Optional<Like> findByPost_IdAndUser_Id(Long postId, Long id);
+
+    boolean existsByPost_IdAndUser_Id(Long postId, Long id);
 
     boolean existsByUserIdAndUpdatedAtAfter(Long userId, LocalDateTime since);
 

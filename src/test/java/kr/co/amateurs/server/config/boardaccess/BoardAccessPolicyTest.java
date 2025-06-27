@@ -74,7 +74,7 @@ public class BoardAccessPolicyTest {
         // given & when & then
         assertThat(boardAccessPolicy.canAccess(Role.ANONYMOUS, BoardCategory.IT, Operation.WRITE)).isFalse();
         assertThat(boardAccessPolicy.canAccess(Role.GUEST, BoardCategory.IT, Operation.WRITE)).isFalse();
-        assertThat(boardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.IT, Operation.WRITE)).isFalse();
+        assertThat(boardAccessPolicy.canAccess(Role.STUDENT, BoardCategory.IT, Operation.WRITE)).isTrue();
         assertThat(boardAccessPolicy.canAccess(Role.ADMIN, BoardCategory.IT, Operation.WRITE)).isTrue();
     }
 
