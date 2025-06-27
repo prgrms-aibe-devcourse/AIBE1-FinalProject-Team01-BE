@@ -26,8 +26,6 @@ import static org.hamcrest.Matchers.*;
 
 
 public class ReportControllerTest extends AbstractControllerTest {
-    @LocalServerPort
-    private int port;
 
     @Autowired
     private ReportRepository reportRepository;
@@ -54,9 +52,6 @@ public class ReportControllerTest extends AbstractControllerTest {
 
     @BeforeEach
     void setUp() {
-        RestAssured.port = port;
-
-        bookmarkRepository.deleteAll();
         reportRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();
@@ -72,7 +67,6 @@ public class ReportControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "STUDENT")
     void STUDENT_권한으로_신고를_생성하면_성공해야_한다() {
         // given
         ReportRequestDTO requestDTO = ReportTestFixtures.createPostReportRequestDTO(
