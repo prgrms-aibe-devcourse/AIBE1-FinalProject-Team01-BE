@@ -28,4 +28,6 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     @Modifying
     @Query("UPDATE Comment c SET c.likeCount = c.likeCount + 1 WHERE c.id = :commentId")
     void increaseCommentLikeCount(@Param("commentId") Long commentId);
+
+    boolean existsByPost_IdAndUser_Id(Long postId, Long id);
 }
