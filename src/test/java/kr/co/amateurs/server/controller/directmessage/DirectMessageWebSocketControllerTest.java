@@ -1,6 +1,6 @@
 package kr.co.amateurs.server.controller.directmessage;
 
-import io.restassured.RestAssured;
+import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.directmessage.DirectMessageRequest;
 import kr.co.amateurs.server.domain.dto.directmessage.DirectMessageResponse;
 import kr.co.amateurs.server.domain.entity.directmessage.enums.MessageType;
@@ -10,12 +10,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
@@ -28,16 +24,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
-@ActiveProfiles("test")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class DirectMessageWebSocketControllerTest {
+class DirectMessageWebSocketControllerTest extends AbstractControllerTest {
 
     @MockitoBean
     private DirectMessageService directMessageService;
-
-    @LocalServerPort
-    private int port;
 
     @Autowired
     private DirectMessageRepository directMessageRepository;
@@ -47,8 +37,6 @@ class DirectMessageWebSocketControllerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        RestAssured.port = port;
-
         directMessageRepository.deleteAll();
 
         messageQueue = new LinkedBlockingQueue<>();
