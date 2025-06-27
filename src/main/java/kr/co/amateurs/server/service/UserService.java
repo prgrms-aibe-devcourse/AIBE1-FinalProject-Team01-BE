@@ -92,7 +92,6 @@ public class UserService {
         }
     }
 
-    @Transactional(readOnly = true)
     public UserProfileResponseDto getCurrentUserProfile() {
         Long userId = getCurrentUser()
                 .map(User::getId)
