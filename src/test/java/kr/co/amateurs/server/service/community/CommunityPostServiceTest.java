@@ -70,8 +70,6 @@ class CommunityPostServiceTest {
     @Test
     void 유저가_키워드없이_검색하면_게시글목록이_반환되어야_한다() {
         // given
-
-
         int page = 0;
         int pageSize = 10;
         BoardType boardType = BoardType.FREE;
