@@ -43,14 +43,7 @@ public class GatheringService {
     private final UserService userService;
 
     public PageResponseDTO<GatheringPostResponseDTO> getGatheringPostList(PostPaginationParam paginationParam) {
-        String keyword = paginationParam.getKeyword();
-        Pageable pageable = paginationParam.toPageable();
-        Page<GatheringPost> gpPage = switch (paginationParam.getField()) {
-            case LATEST -> gatheringRepository.findAllByKeyword(keyword, pageable);
-            case POPULAR -> gatheringRepository.findAllByKeywordOrderByLikeCountDesc(keyword, pageable);
-            case MOST_VIEW -> gatheringRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
-            default -> gatheringRepository.findAllByKeyword(keyword, pageable);
-        };
+        Page<GatheringPost> gpPage = gatheringRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
         Page<GatheringPostResponseDTO> response = gpPage.map(gp->convertToDTO(gp, gp.getPost(), checkHasLiked(gp.getPost().getId()), checkHasBookmarked(gp.getPost().getId())));
         return convertPageToDTO(response);
     }

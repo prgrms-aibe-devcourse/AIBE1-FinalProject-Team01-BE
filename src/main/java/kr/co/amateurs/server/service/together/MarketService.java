@@ -42,14 +42,7 @@ public class MarketService {
 
 
     public PageResponseDTO<MarketPostResponseDTO> getMarketPostList(PostPaginationParam paginationParam) {
-        String keyword = paginationParam.getKeyword();
-        Pageable pageable = paginationParam.toPageable();
-        Page<MarketItem> miPage = switch (paginationParam.getField()) {
-            case LATEST -> marketRepository.findAllByKeyword(keyword, pageable);
-            case POPULAR -> marketRepository.findAllByKeywordOrderByLikeCountDesc(keyword, pageable);
-            case MOST_VIEW -> marketRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
-            default -> marketRepository.findAllByKeyword(keyword, pageable);
-        };
+        Page<MarketItem> miPage = marketRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
         Page<MarketPostResponseDTO> response = miPage.map(mi-> convertToDTO(mi, mi.getPost(), likeService.checkHasLiked(mi.getPost().getId()), bookmarkService.checkHasBookmarked(mi.getPost().getId())));
         return convertPageToDTO(response);
     }

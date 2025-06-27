@@ -43,14 +43,16 @@ public class MatchService {
     private final BookmarkService bookmarkService;
 
     public PageResponseDTO<MatchPostResponseDTO> getMatchPostList(PostPaginationParam paginationParam) {
-        String keyword = paginationParam.getKeyword();
-        Pageable pageable = paginationParam.toPageable();
-        Page<MatchingPost> mpPage = switch (paginationParam.getField()) {
-            case LATEST -> matchRepository.findAllByKeyword(keyword, pageable);
-            case POPULAR -> matchRepository.findAllByKeywordOrderByLikeCountDesc(keyword, pageable);
-            case MOST_VIEW -> matchRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
-            default -> matchRepository.findAllByKeyword(keyword, pageable);
-        };
+        //TODO - 테스트 코드 수정 후 통과 시 삭제 예정
+//        String keyword = paginationParam.getKeyword();
+//        Pageable pageable = paginationParam.toPageable();
+//        Page<MatchingPost> mpPage = switch (paginationParam.getField()) {
+//            case LATEST -> matchRepository.findAllByKeyword(keyword, pageable);
+//            case POPULAR -> matchRepository.findAllByKeywordOrderByLikeCountDesc(keyword, pageable);
+//            case MOST_VIEW -> matchRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
+//            default -> matchRepository.findAllByKeyword(keyword, pageable);
+//        };
+        Page<MatchingPost> mpPage = matchRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
         Page<MatchPostResponseDTO> response = mpPage.map(mp-> convertToDTO(mp, mp.getPost(), likeService.checkHasLiked(mp.getPost().getId()), bookmarkService.checkHasBookmarked(mp.getPost().getId())));
         return convertPageToDTO(response);
     }

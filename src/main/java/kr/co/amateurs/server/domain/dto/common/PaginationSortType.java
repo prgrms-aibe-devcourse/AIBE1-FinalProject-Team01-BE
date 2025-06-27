@@ -11,7 +11,11 @@ public enum PaginationSortType {
     EMPTY(null),
     LATEST("createdAt"),
     POPULAR("likeCount"),
-    MOST_VIEW("viewCount");
+    MOST_VIEW("viewCount"),
+
+    POST_LATEST("post.createdAt"),
+    POST_POPULAR("post.likeCount"),
+    POST_MOST_VIEW("post.viewCount");
 
     public final String field;
 }
