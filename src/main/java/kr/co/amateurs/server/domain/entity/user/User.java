@@ -49,11 +49,21 @@ public class User extends BaseEntity {
     private List<UserTopic> userTopics = new ArrayList<>();
 
     public void addUserTopics(Set<Topic> topics) {
-        this.userTopics = topics.stream()
-                .map(topic -> UserTopic.builder()
-                        .user(this)
-                        .topic(topic)
-                        .build())
-                .collect(Collectors.toList());
+        this.userTopics.clear();
+
+        topics.forEach(topic -> {
+            UserTopic userTopic = UserTopic.builder()
+                    .user(this)
+                    .topic(topic)
+                    .build();
+            this.userTopics.add(userTopic);
+        });
+    }
+
+    public void updateProfile(String nickname, String name, String imageUrl, String password) {
+        if (nickname != null) this.nickname = nickname;
+        if (name != null) this.name = name;
+        if (imageUrl != null) this.imageUrl = imageUrl;
+        if (password != null) this.password = password;
     }
 }

@@ -111,27 +111,30 @@ public class UserService {
     public UserProfileEditResponseDto updateUserProfile(UserProfileEditRequestDto request) {
         User currentUser = getCurrentLoginUser();
 
+        User userFromDb = userRepository.findById(currentUser.getId())
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+
         if (request.newPassword() != null && !request.newPassword().trim().isEmpty()) {
-            validateCurrentPassword(currentUser, request.currentPassword());
+            validateCurrentPassword(userFromDb, request.currentPassword());
         }
 
-        if (!currentUser.getNickname().equals(request.nickname())) {
+        if (!userFromDb.getNickname().equals(request.nickname())) {
             validateNicknameDuplicate(request.nickname());
             validateNicknameFormat(request.nickname());
         }
 
-        User updatedUser = currentUser.toBuilder()
-                .nickname(request.nickname())
-                .name(request.name())
-                .imageUrl(request.imageUrl())
-                .password(request.newPassword() != null ?
-                        passwordEncoder.encode(request.newPassword()) : currentUser.getPassword())
-                .build();
+        userFromDb.updateProfile(
+                request.nickname(),
+                request.name(),
+                request.imageUrl(),
+                request.newPassword() != null ?
+                        passwordEncoder.encode(request.newPassword()) : null
+        );
 
-        updatedUser.getUserTopics().clear();
-        updatedUser.addUserTopics(request.topics());
+        userFromDb.getUserTopics().clear();
+        userFromDb.addUserTopics(request.topics());
 
-        User savedUser = userRepository.save(updatedUser);
+        User savedUser = userRepository.save(userFromDb);
         return UserProfileEditResponseDto.from(savedUser);
     }
 
