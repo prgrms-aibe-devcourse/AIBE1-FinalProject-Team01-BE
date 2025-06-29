@@ -1,11 +1,11 @@
-package kr.co.amateurs.server.service.community;
+package kr.co.amateurs.server.service.it;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
-import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
+import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
+import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
-import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
@@ -25,32 +25,29 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CommunityPostService {
+public class ITService {
     private final PostRepository postRepository;
     private final BookmarkRepository bookmarkRepository;
     private final LikeRepository likeRepository;
 
     private final UserService userService;
 
-    public Page<CommunityResponseDTO> searchPosts(String keyword, int page, BoardType boardType, SortType sortType, int pageSize) {
+    public Page<ITResponseDTO> searchPosts(String keyword, int page, BoardType boardType, SortType sortType, int pageSize) {
+        // Community와 코드와 현재는 동일 이후에 뉴스가 나오면 뉴스 종류나 카테고리 필드가 추가 될 수도 있어서 서비스 레이어 생성
+
         Pageable pageable = createPageable(page, sortType, pageSize);
 
-        Page<Post> communityPage;
+        Page<Post> itPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            communityPage = postRepository.findByContentAndBoardType(keyword.trim(), boardType, pageable);
+            itPage = postRepository.findByContentAndBoardType(keyword.trim(), boardType, pageable);
         } else {
-            communityPage = postRepository.findByBoardType(boardType, pageable);
+            itPage = postRepository.findByBoardType(boardType, pageable);
         }
 
-        return communityPage.map(post -> CommunityResponseDTO.from(post, false, false));
+        return itPage.map(post -> ITResponseDTO.from(post, false, false));
     }
 
-    public Post findById(long postId) {
-        return postRepository.findById(postId)
-                .orElseThrow(ErrorCode.NOT_FOUND);
-    }
-
-    public CommunityResponseDTO getPost(Long postId) {
+    public ITResponseDTO getPost(Long postId) {
         User user = userService.getCurrentUser().orElse(null);
 
         Post post = postRepository.findById(postId).orElseThrow(ErrorCode.POST_NOT_FOUND);
@@ -62,22 +59,22 @@ public class CommunityPostService {
             hasLiked = checkHasLiked(postId, user);
         }
 
-        return CommunityResponseDTO.from(post, hasLiked, hasBookmarked);
+        return ITResponseDTO.from(post, hasLiked, hasBookmarked);
     }
 
     @Transactional
-    public CommunityResponseDTO createPost(CommunityRequestDTO requestDTO, BoardType boardType) {
+    public ITResponseDTO createPost(ITRequestDTO requestDTO, BoardType boardType) {
         User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
 
         Post post = Post.from(requestDTO, user, boardType);
 
         postRepository.save(post);
 
-        return CommunityResponseDTO.from(post, false, false);
+        return ITResponseDTO.from(post, false, false);
     }
 
     @Transactional
-    public void updatePost(CommunityRequestDTO requestDTO, Long postId) {
+    public void updatePost(ITRequestDTO requestDTO, Long postId) {
         Post post = postRepository.findById(postId).orElseThrow(ErrorCode.POST_NOT_FOUND);
 
         validatePost(post);
@@ -99,14 +96,12 @@ public class CommunityPostService {
 
     private boolean checkHasLiked(Long postId, User user) {
         return likeRepository
-                .findByPost_IdAndUser_Id(postId, user.getId())
-                .isPresent();
+                .existsByPost_IdAndUser_Id(postId, user.getId());
     }
 
     private boolean checkHasBookmarked(Long postId, User user) {
         return bookmarkRepository
-                .findByPost_IdAndUser_Id(postId, user.getId())
-                .isPresent();
+                .existsByPost_IdAndUser_Id(postId, user.getId());
     }
 
     private void validatePost(Post post) {

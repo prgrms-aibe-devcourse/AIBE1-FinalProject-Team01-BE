@@ -22,7 +22,7 @@ public class BoardAccessPolicy {
     private final Map<BoardCategory, Set<Role>> WRITE_ACCESS_MAP = Map.of(
             BoardCategory.COMMUNITY, Set.of(Role.STUDENT, Role.ADMIN),
             BoardCategory.TOGETHER, Set.of(Role.STUDENT, Role.ADMIN),
-            BoardCategory.IT, Set.of(Role.ADMIN),
+            BoardCategory.IT, Set.of(Role.STUDENT, Role.ADMIN),
             BoardCategory.PROJECT, Set.of(Role.STUDENT, Role.ADMIN)
     );
 
@@ -36,8 +36,8 @@ public class BoardAccessPolicy {
             BoardType.MATCH, BoardCategory.TOGETHER,
 
             BoardType.INFO, BoardCategory.IT,
+            BoardType.REVIEW, BoardCategory.IT,
 
-            BoardType.REVIEW, BoardCategory.PROJECT,
             BoardType.PROJECT_HUB, BoardCategory.PROJECT
     );
 

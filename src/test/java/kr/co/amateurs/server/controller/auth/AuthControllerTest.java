@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.controller.auth;
 
+import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.fixture.auth.AuthTestFixture;
 import kr.co.amateurs.server.fixture.auth.TokenTestFixture;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
@@ -23,7 +24,7 @@ import static org.hamcrest.Matchers.notNullValue;
 @ActiveProfiles("test")
 @Transactional
 @Import(EmbeddedRedisConfig.class)
-public class AuthControllerTest {
+public class AuthControllerTest extends AbstractControllerTest {
 
     @LocalServerPort
     private int port;
@@ -41,7 +42,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(201);
 
@@ -54,7 +55,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(loginRequest)
                 .when()
-                .post("/api/v1/auth/login")
+                .post("/auth/login")
                 .then()
                 .statusCode(200)
                 .body("accessToken", notNullValue())
@@ -72,7 +73,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(request)
                 .when()
-                .post("/api/v1/auth/login")
+                .post("/auth/login")
                 .then()
                 .statusCode(404)
                 .body("message", equalTo("존재하지 않는 사용자입니다."));
@@ -86,7 +87,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(201);
 
@@ -100,7 +101,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(wrongPasswordRequest)
                 .when()
-                .post("/api/v1/auth/login")
+                .post("/auth/login")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("비밀번호가 일치하지 않습니다."));
@@ -116,7 +117,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(invalidEmailRequest)
                 .when()
-                .post("/api/v1/auth/login")
+                .post("/auth/login")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("올바른 이메일 형식이 아닙니다"));
@@ -132,7 +133,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(emptyEmailRequest)
                 .when()
-                .post("/api/v1/auth/login")
+                .post("/auth/login")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("이메일은 필수입니다"));
@@ -148,7 +149,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(emptyPasswordRequest)
                 .when()
-                .post("/api/v1/auth/login")
+                .post("/auth/login")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("비밀번호는 필수입니다"));
@@ -164,7 +165,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(201)
                 .body("userId", notNullValue())
@@ -181,7 +182,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(firstSignupRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(201);
 
@@ -195,7 +196,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(duplicateEmailRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("이미 사용 중인 이메일입니다."));
@@ -209,7 +210,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(firstSignupRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(201);
 
@@ -223,7 +224,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(duplicateNicknameRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("이미 사용 중인 닉네임입니다."));
@@ -242,7 +243,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(invalidEmailRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("올바른 이메일 형식이 아닙니다"));
@@ -261,7 +262,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(emptyEmailRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("이메일은 필수입니다"));
@@ -281,7 +282,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(shortPasswordRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("비밀번호는 최소 8자 이상이어야 합니다"));
@@ -295,7 +296,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(201);
 
@@ -308,7 +309,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(loginRequest)
                 .when()
-                .post("/api/v1/auth/login")
+                .post("/auth/login")
                 .then()
                 .statusCode(200)
                 .body("accessToken", notNullValue())
@@ -326,7 +327,7 @@ public class AuthControllerTest {
         RestAssured.given()
                 .param("email", availableEmail)
                 .when()
-                .get("/api/v1/auth/check/email")
+                .get("/auth/check/email")
                 .then()
                 .statusCode(200)
                 .body("available", equalTo(true))
@@ -341,7 +342,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(201);
 
@@ -349,7 +350,7 @@ public class AuthControllerTest {
         RestAssured.given()
                 .param("email", signupRequest.email())
                 .when()
-                .get("/api/v1/auth/check/email")
+                .get("/auth/check/email")
                 .then()
                 .statusCode(200)
                 .body("available", equalTo(false))
@@ -365,7 +366,7 @@ public class AuthControllerTest {
         RestAssured.given()
                 .param("nickname", availableNickname)
                 .when()
-                .get("/api/v1/auth/check/nickname")
+                .get("/auth/check/nickname")
                 .then()
                 .statusCode(200)
                 .body("available", equalTo(true))
@@ -380,7 +381,7 @@ public class AuthControllerTest {
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
                 .when()
-                .post("/api/v1/auth/signup")
+                .post("/auth/signup")
                 .then()
                 .statusCode(201);
 
@@ -388,7 +389,7 @@ public class AuthControllerTest {
         RestAssured.given()
                 .param("nickname", signupRequest.nickname())
                 .when()
-                .get("/api/v1/auth/check/nickname")
+                .get("/auth/check/nickname")
                 .then()
                 .statusCode(200)
                 .body("available", equalTo(false))
@@ -405,7 +406,7 @@ public class AuthControllerTest {
         RestAssured.given()
                 .param("email", emptyEmail)
                 .when()
-                .get("/api/v1/auth/check/email")
+                .get("/auth/check/email")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("이메일은 필수입니다."));
@@ -420,7 +421,7 @@ public class AuthControllerTest {
         RestAssured.given()
                 .param("email", invalidEmail)
                 .when()
-                .get("/api/v1/auth/check/email")
+                .get("/auth/check/email")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("올바른 이메일 형식이 아닙니다."));
@@ -435,7 +436,7 @@ public class AuthControllerTest {
         RestAssured.given()
                 .param("nickname", emptyNickname)
                 .when()
-                .get("/api/v1/auth/check/nickname")
+                .get("/auth/check/nickname")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("닉네임은 필수입니다."));
@@ -450,7 +451,7 @@ public class AuthControllerTest {
         RestAssured.given()
                 .param("nickname", longNickname)
                 .when()
-                .get("/api/v1/auth/check/nickname")
+                .get("/auth/check/nickname")
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("닉네임은 2자 이상 20자 이하여야 합니다."));
