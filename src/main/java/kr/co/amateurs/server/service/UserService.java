@@ -153,4 +153,17 @@ public class UserService {
             throw ErrorCode.INVALID_CURRENT_PASSWORD.get();
         }
     }
+
+    public UserTopicsEditResponseDto updateTopics(UserTopicsEditRequestDto request) {
+        User currentUser = getCurrentLoginUser();
+
+        User userFromDb = userRepository.findById(currentUser.getId())
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        userFromDb.getUserTopics().clear();
+        userFromDb.addUserTopics(request.topics());
+
+        User savedUser = userRepository.save(userFromDb);
+        return UserTopicsEditResponseDto.from(savedUser);
+    }
 }

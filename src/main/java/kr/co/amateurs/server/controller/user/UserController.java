@@ -42,4 +42,13 @@ public class UserController {
         UserPasswordEditResponseDto response = userService.updatePassword(request);
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "관심 주제 변경", description = "사용자의 관심 주제를 변경합니다")
+    @PutMapping("/profile/topics")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserTopicsEditResponseDto> updateTopics(
+            @Valid @RequestBody UserTopicsEditRequestDto request) {
+        UserTopicsEditResponseDto response = userService.updateTopics(request);
+        return ResponseEntity.ok(response);
+    }
 }
