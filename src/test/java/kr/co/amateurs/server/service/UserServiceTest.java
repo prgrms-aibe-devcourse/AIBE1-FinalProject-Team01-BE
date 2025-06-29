@@ -3,13 +3,12 @@ package kr.co.amateurs.server.service;
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.config.TestAuthHelper;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
-import kr.co.amateurs.server.domain.dto.user.UserBasicProfileEditRequestDto;
-import kr.co.amateurs.server.domain.dto.user.UserBasicProfileEditResponseDto;
-import kr.co.amateurs.server.domain.dto.user.UserProfileResponseDto;
+import kr.co.amateurs.server.domain.dto.user.*;
 import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
+import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,8 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -117,5 +115,36 @@ public class UserServiceTest {
         assertThat(updatedUser.getName()).isEqualTo("변경된이름");
         assertThat(updatedUser.getNickname()).isEqualTo("changedNick");
         assertThat(updatedUser.getImageUrl()).isEqualTo("https://example.com/new-profile.jpg");
+    }
+
+    @Test
+    void 올바른_비밀번호로_변경_시_정상적으로_업데이트된다() {
+        // given
+        UserPasswordEditRequestDto request = UserPasswordEditRequestDto.builder()
+                .currentPassword(UserTestFixture.DEFAULT_PASSWORD)
+                .newPassword("newPassword123")
+                .build();
+
+        // when
+        UserPasswordEditResponseDto response = userService.updatePassword(request);
+
+        // then
+        assertThat(response.message()).isEqualTo("비밀번호가 성공적으로 변경되었습니다");
+
+        User updatedUser = userRepository.findByEmail(testUser.getEmail()).orElseThrow();
+        assertThat(passwordEncoder.matches("newPassword123", updatedUser.getPassword())).isTrue();
+    }
+
+    @Test
+    void 잘못된_현재_비밀번호_입력_시_예외가_발생한다() {
+        // given
+        UserPasswordEditRequestDto request = UserPasswordEditRequestDto.builder()
+                .currentPassword("wrongPassword")
+                .newPassword("newPassword123")
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> userService.updatePassword(request))
+                .isInstanceOf(CustomException.class);
     }
 }
