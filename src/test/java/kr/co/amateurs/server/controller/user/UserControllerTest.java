@@ -5,6 +5,7 @@ import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.user.UserBasicProfileEditRequestDto;
 import kr.co.amateurs.server.domain.dto.user.UserPasswordEditRequestDto;
+import kr.co.amateurs.server.domain.dto.user.UserTopicsEditRequestDto;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
@@ -164,6 +165,62 @@ public class UserControllerTest extends AbstractControllerTest {
                 .body(passwordRequest)
                 .when()
                 .put("/users/profile/password")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void 인증된_사용자가_유효한_토픽으로_변경_요청_시_정상적으로_업데이트된다() {
+        // given
+        UserTopicsEditRequestDto topicsRequest = UserTopicsEditRequestDto.builder()
+                .topics(Set.of(Topic.BACKEND, Topic.DATA, Topic.MOBILE))
+                .build();
+
+        // when & then
+        given()
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(ContentType.JSON)
+                .body(topicsRequest)
+                .when()
+                .put("/users/profile/topics")
+                .then()
+                .statusCode(200)
+                .body("topics", hasSize(3))
+                .body("topics", hasItems("BACKEND", "DATA", "MOBILE"));
+    }
+
+    @Test
+    void 인증된_사용자가_빈_토픽으로_변경_요청_시_400_에러가_발생한다() {
+        // given
+        UserTopicsEditRequestDto topicsRequest = UserTopicsEditRequestDto.builder()
+                .topics(Set.of())
+                .build();
+
+        // when & then
+        given()
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(ContentType.JSON)
+                .body(topicsRequest)
+                .when()
+                .put("/users/profile/topics")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void 인증된_사용자가_4개_이상_토픽으로_변경_요청_시_400_에러가_발생한다() {
+        // given
+        UserTopicsEditRequestDto topicsRequest = UserTopicsEditRequestDto.builder()
+                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.DATA, Topic.MOBILE))
+                .build();
+
+        // when & then
+        given()
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(ContentType.JSON)
+                .body(topicsRequest)
+                .when()
+                .put("/users/profile/topics")
                 .then()
                 .statusCode(400);
     }
