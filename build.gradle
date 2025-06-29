@@ -1,7 +1,17 @@
+import org.jooq.meta.jaxb.*
+
+buildscript {
+	ext {
+		jooqVersion = '3.19.15'
+	}
+}
+
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.0'
 	id 'io.spring.dependency-management' version '1.1.7'
+
+	id 'dev.monosoul.jooq-docker' version '6.1.9'
 }
 
 group = 'kr.co.amateurs'
@@ -29,6 +39,74 @@ dependencyManagement {
 	}
 }
 
+sourceSets {
+	main {
+		java {
+			srcDirs = ["src/main/java", "src/generated"]
+		}
+	}
+}
+
+jooq {
+	version = "${jooqVersion}"
+
+	withContainer {
+		image {
+			name = "mysql:8.0.41"
+			envVars = [
+					MYSQL_ROOT_PASSWORD: "passwd",
+					MYSQL_DATABASE     : "amateurs_db"
+			]
+		}
+
+		db {
+			username = "root"
+			password = "passwd"
+			name = "amateurs_db"
+			port = 3306
+			jdbc {
+				schema = "jdbc:mysql"
+				driverClassName = "com.mysql.cj.jdbc.Driver"
+			}
+		}
+	}
+}
+
+tasks {
+	generateJooqClasses {
+		schemas.set(["amateurs_db"])
+		outputDirectory.set(project.layout.projectDirectory.dir("src/generated"))
+		includeFlywayTable.set(false)
+
+		usingJavaConfig {
+			generate = new Generate()
+					.withJavaTimeTypes(true)
+					.withDeprecated(false)
+					.withDaos(false)
+					.withFluentSetters(true)
+					.withRecords(true)
+					.withPojos(true)
+					.withSpringAnnotations(true)
+					.withValidationAnnotations(true)
+
+			database.withForcedTypes(
+					new ForcedType()
+							.withUserType("java.lang.Long")
+							.withTypes("int unsigned"),
+					new ForcedType()
+							.withUserType("java.lang.Integer")
+							.withTypes("tinyint unsigned"),
+					new ForcedType()
+							.withUserType("java.lang.Integer")
+							.withTypes("smallint unsigned"),
+					new ForcedType()
+							.withUserType("java.lang.Boolean")
+							.withTypes("tinyint\\(1\\)")
+			)
+		}
+	}
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -37,6 +115,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
 	// JWT 관련 의존성
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
@@ -46,14 +125,30 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-
 	// AI 관련 의존성
 	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
 	implementation 'org.springframework.ai:spring-ai-starter-vector-store-qdrant'
 
+	// AWS S3 관련 의존성
+	implementation 'software.amazon.awssdk:s3:2.31.68'
+	implementation 'software.amazon.awssdk:auth:2.31.68'
+
+	implementation "org.jooq:jooq:${jooqVersion}"
+	implementation('org.springframework.boot:spring-boot-starter-jooq') {
+		exclude group: 'org.jooq'
+	}
+
+	jooqCodegen "org.jooq:jooq:${jooqVersion}"
+	jooqCodegen "org.jooq:jooq-meta:${jooqVersion}"
+	jooqCodegen "org.jooq:jooq-codegen:${jooqVersion}"
+	jooqCodegen 'com.mysql:mysql-connector-j'
+	jooqCodegen 'org.flywaydb:flyway-core'
+	jooqCodegen 'org.flywaydb:flyway-mysql'
+
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation 'com.h2database:h2'
@@ -66,11 +161,24 @@ dependencies {
 	testImplementation 'io.rest-assured:rest-assured:5.5.5'
 	testImplementation 'io.rest-assured:json-path:5.3.2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	// aws S3 이미지 업로드 관련 의존성
-	implementation 'software.amazon.awssdk:s3:2.31.68'
-	implementation 'software.amazon.awssdk:auth:2.31.68'
+
+	testImplementation 'org.testcontainers:testcontainers'
+	testImplementation 'org.testcontainers:mysql'
+	testImplementation 'org.testcontainers:junit-jupiter'
+
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.named('compileJava') {
+	options.encoding = 'UTF-8'
+	dependsOn('generateJooqClasses')
+}
+
+clean {
+	delete "src/generated"
 }
