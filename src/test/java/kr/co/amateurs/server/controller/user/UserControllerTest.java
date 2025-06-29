@@ -5,6 +5,7 @@ import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
+import kr.co.amateurs.server.domain.dto.user.UserBasicProfileEditRequestDto;
 import kr.co.amateurs.server.fixture.auth.AuthTestFixture;
 import kr.co.amateurs.server.fixture.auth.TokenTestFixture;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
@@ -79,5 +80,69 @@ public class UserControllerTest extends AbstractControllerTest {
                 .get("/users/me")
                 .then()
                 .statusCode(404);
+    }
+
+    @Test
+    void 인증된_사용자가_기본_정보_수정_요청_시_정상적으로_업데이트된다() {
+        // given
+        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/auth/signup")
+                .then()
+                .statusCode(201);
+
+        LoginRequestDto loginRequest = AuthTestFixture.defaultLoginRequest()
+                .email(signupRequest.email())
+                .password(signupRequest.password())
+                .build();
+
+        String accessToken = given()
+                .contentType(ContentType.JSON)
+                .body(loginRequest)
+                .when()
+                .post("/auth/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("accessToken");
+
+        UserBasicProfileEditRequestDto updateRequest = UserBasicProfileEditRequestDto.builder()
+                .name("변경된이름")
+                .nickname("changeNick")
+                .imageUrl("https://example.com/new-profile.jpg")
+                .build();
+
+        // when & then
+        given()
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(ContentType.JSON)
+                .body(updateRequest)
+                .when()
+                .put("/users/profile/basic")
+                .then()
+                .statusCode(200)
+                .body("name", equalTo("변경된이름"))
+                .body("nickname", equalTo("changeNick"))
+                .body("imageUrl", equalTo("https://example.com/new-profile.jpg"));
+    }
+
+    @Test
+    void 인증_토큰_없이_기본_정보_수정_요청_시_401_에러가_발생한다() {
+        // given
+        UserBasicProfileEditRequestDto updateRequest = UserBasicProfileEditRequestDto.builder()
+                .name("변경된이름")
+                .build();
+
+        // when & then
+        given()
+                .contentType(ContentType.JSON)
+                .body(updateRequest)
+                .when()
+                .put("/users/profile/basic")
+                .then()
+                .statusCode(401);
     }
 }
