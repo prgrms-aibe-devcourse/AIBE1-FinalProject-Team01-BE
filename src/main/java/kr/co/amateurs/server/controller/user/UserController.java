@@ -33,4 +33,13 @@ public class UserController {
         UserBasicProfileEditResponseDto response = userService.updateBasicProfile(request);
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "비밀번호 변경", description = "현재 비밀번호 확인 후 새로운 비밀번호로 변경합니다")
+    @PutMapping("/profile/password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserPasswordEditResponseDto> updatePassword(
+            @Valid @RequestBody UserPasswordEditRequestDto request) {
+        UserPasswordEditResponseDto response = userService.updatePassword(request);
+        return ResponseEntity.ok(response);
+    }
 }

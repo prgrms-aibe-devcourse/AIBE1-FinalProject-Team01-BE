@@ -71,4 +71,10 @@ public class User extends BaseEntity {
             this.imageUrl = imageUrl;
         }
     }
+
+    public void updatePassword(String password) {
+        if(password != null && !password.trim().isEmpty()) {
+            this.password = password;
+        }
+    }
 }

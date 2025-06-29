@@ -126,6 +126,24 @@ public class UserService {
         return UserBasicProfileEditResponseDto.from(savedUser);
     }
 
+    public UserPasswordEditResponseDto updatePassword(UserPasswordEditRequestDto request) {
+        User currentUser = getCurrentLoginUser();
+
+        User userFromDb = userRepository.findById(currentUser.getId())
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        validateCurrentPassword(userFromDb, request.currentPassword());
+
+        String encodedPassword = passwordEncoder.encode(request.newPassword());
+        userFromDb.updatePassword(encodedPassword);
+
+        userRepository.save(userFromDb);
+
+        return UserPasswordEditResponseDto.builder()
+                .message("비밀번호가 성공적으로 변경되었습니다")
+                .build();
+    }
+
     private void validateCurrentPassword(User user, String currentPassword) {
         if (currentPassword == null || currentPassword.trim().isEmpty()) {
             throw ErrorCode.EMPTY_CURRENT_PASSWORD.get();
