@@ -2,7 +2,6 @@ package kr.co.amateurs.server.service;
 
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.config.TestAuthHelper;
-import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.user.*;
 import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -16,8 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -145,6 +142,48 @@ public class UserServiceTest {
 
         // when & then
         assertThatThrownBy(() -> userService.updatePassword(request))
+                .isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    void 유효한_토픽_목록으로_변경_시_정상적으로_업데이트된다() {
+        // given
+        UserTopicsEditRequestDto request = UserTopicsEditRequestDto.builder()
+                .topics(Set.of(Topic.BACKEND, Topic.DATA, Topic.MOBILE))
+                .build();
+
+        // when
+        UserTopicsEditResponseDto response = userService.updateTopics(request);
+
+        // then
+        assertThat(response.topics()).hasSize(3);
+        assertThat(response.topics()).containsExactlyInAnyOrder(Topic.BACKEND, Topic.DATA, Topic.MOBILE);
+
+        User updatedUser = userRepository.findByEmail(testUser.getEmail()).orElseThrow();
+        assertThat(updatedUser.getUserTopics()).hasSize(3);
+    }
+
+    @Test
+    void 빈_토픽_목록으로_변경_시_예외가_발생한다() {
+        // given
+        UserTopicsEditRequestDto request = UserTopicsEditRequestDto.builder()
+                .topics(Set.of())
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> userService.updateTopics(request))
+                .isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    void 토픽_4개_이상_변경_시_예외가_발생한다() {
+        // given
+        UserTopicsEditRequestDto request = UserTopicsEditRequestDto.builder()
+                .topics(Set.of(Topic.FRONTEND, Topic.DEVOPS, Topic.AI, Topic.BACKEND))
+                .build();
+
+        // when & then
+        assertThatThrownBy(() -> userService.updateTopics(request))
                 .isInstanceOf(CustomException.class);
     }
 }
