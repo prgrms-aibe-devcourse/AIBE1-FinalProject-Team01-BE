@@ -4,6 +4,7 @@ import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.user.*;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -160,10 +162,22 @@ public class UserService {
         User userFromDb = userRepository.findById(currentUser.getId())
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);
 
+        validateTopicsCount(request.topics());
+
         userFromDb.getUserTopics().clear();
         userFromDb.addUserTopics(request.topics());
 
         User savedUser = userRepository.save(userFromDb);
         return UserTopicsEditResponseDto.from(savedUser);
+    }
+
+    private void validateTopicsCount(Set<Topic> topics) {
+        if (topics == null || topics.isEmpty()) {
+            throw ErrorCode.TOPICS_REQUIRED.get();
+        }
+
+        if (topics.size() > 3) {
+            throw ErrorCode.TOPICS_TOO_MANY.get();
+        }
     }
 }

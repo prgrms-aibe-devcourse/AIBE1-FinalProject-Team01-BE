@@ -37,6 +37,10 @@ public enum ErrorCode implements Supplier<CustomException> {
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     ANONYMOUS_USER(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
 
+    // 토픽 관련 에러
+    TOPICS_REQUIRED(HttpStatus.BAD_REQUEST, "관심 주제를 최소 1개 이상 선택해주세요."),
+    TOPICS_TOO_MANY(HttpStatus.BAD_REQUEST, "관심 주제는 최대 3개까지 선택할 수 있습니다."),
+
     // 토큰 관련 에러
     EMPTY_EMAIL(HttpStatus.BAD_REQUEST, "이메일은 필수입니다."),
     INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "올바른 이메일 형식이 아닙니다."),
