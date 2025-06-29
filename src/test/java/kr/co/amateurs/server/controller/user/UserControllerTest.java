@@ -6,6 +6,7 @@ import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
 import kr.co.amateurs.server.domain.dto.user.UserBasicProfileEditRequestDto;
+import kr.co.amateurs.server.domain.dto.user.UserPasswordEditRequestDto;
 import kr.co.amateurs.server.fixture.auth.AuthTestFixture;
 import kr.co.amateurs.server.fixture.auth.TokenTestFixture;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
@@ -144,5 +145,92 @@ public class UserControllerTest extends AbstractControllerTest {
                 .put("/users/profile/basic")
                 .then()
                 .statusCode(401);
+    }
+
+    @Test
+    void 인증된_사용자가_올바른_비밀번호로_변경_요청_시_정상적으로_업데이트된다() {
+        // given
+        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/auth/signup")
+                .then()
+                .statusCode(201);
+
+        LoginRequestDto loginRequest = AuthTestFixture.defaultLoginRequest()
+                .email(signupRequest.email())
+                .password(signupRequest.password())
+                .build();
+
+        String accessToken = given()
+                .contentType(ContentType.JSON)
+                .body(loginRequest)
+                .when()
+                .post("/auth/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("accessToken");
+
+        UserPasswordEditRequestDto passwordRequest = UserPasswordEditRequestDto.builder()
+                .currentPassword(signupRequest.password())
+                .newPassword("newPassword123")
+                .build();
+
+        // when & then
+        given()
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(ContentType.JSON)
+                .body(passwordRequest)
+                .when()
+                .put("/users/profile/password")
+                .then()
+                .statusCode(200)
+                .body("message", equalTo("비밀번호가 성공적으로 변경되었습니다"));
+    }
+
+    @Test
+    void 인증된_사용자가_잘못된_현재_비밀번호로_변경_요청_시_400_에러가_발생한다() {
+        // given
+        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/auth/signup")
+                .then()
+                .statusCode(201);
+
+        LoginRequestDto loginRequest = AuthTestFixture.defaultLoginRequest()
+                .email(signupRequest.email())
+                .password(signupRequest.password())
+                .build();
+
+        String accessToken = given()
+                .contentType(ContentType.JSON)
+                .body(loginRequest)
+                .when()
+                .post("/auth/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("accessToken");
+
+        UserPasswordEditRequestDto passwordRequest = UserPasswordEditRequestDto.builder()
+                .currentPassword("wrongPassword")
+                .newPassword("newPassword123")
+                .build();
+
+        // when & then
+        given()
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(ContentType.JSON)
+                .body(passwordRequest)
+                .when()
+                .put("/users/profile/password")
+                .then()
+                .statusCode(400);
     }
 }
