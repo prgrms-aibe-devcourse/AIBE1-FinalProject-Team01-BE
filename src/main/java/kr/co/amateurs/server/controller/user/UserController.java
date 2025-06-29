@@ -3,9 +3,7 @@ package kr.co.amateurs.server.controller.user;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kr.co.amateurs.server.domain.dto.user.UserProfileEditRequestDto;
-import kr.co.amateurs.server.domain.dto.user.UserProfileEditResponseDto;
-import kr.co.amateurs.server.domain.dto.user.UserProfileResponseDto;
+import kr.co.amateurs.server.domain.dto.user.*;
 import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +25,12 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "내 정보 수정", description = "현재 로그인 한 사용자의 프로필 정보를 수정합니다")
-    @PutMapping("/profile")
+    @Operation(summary = "기본 정보 수정", description = "현재 로그인 한 사용자의 기본 프로필을 수정합니다")
+    @PutMapping("/profile/basic")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserProfileEditResponseDto> updateProfile(
-            @Valid @RequestBody UserProfileEditRequestDto request) {
-        UserProfileEditResponseDto response = userService.updateUserProfile(request);
+    public ResponseEntity<UserBasicProfileEditResponseDto> updateBasicProfile(
+            @Valid @RequestBody UserBasicProfileEditRequestDto request) {
+        UserBasicProfileEditResponseDto response = userService.updateBasicProfile(request);
         return ResponseEntity.ok(response);
     }
 }

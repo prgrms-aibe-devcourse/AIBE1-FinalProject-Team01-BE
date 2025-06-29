@@ -60,10 +60,15 @@ public class User extends BaseEntity {
         });
     }
 
-    public void updateProfile(String nickname, String name, String imageUrl, String password) {
-        if (nickname != null) this.nickname = nickname;
-        if (name != null) this.name = name;
-        if (imageUrl != null) this.imageUrl = imageUrl;
-        if (password != null) this.password = password;
+    public void updateBasicProfile(String name, String nickname, String imageUrl) {
+        if (name != null && !name.trim().isEmpty()) {
+            this.name = name;
+        }
+        if (nickname != null && !nickname.trim().isEmpty()) {
+            this.nickname = nickname;
+        }
+        if (imageUrl != null) {
+            this.imageUrl = imageUrl;
+        }
     }
 }

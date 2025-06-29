@@ -2,9 +2,7 @@ package kr.co.amateurs.server.service;
 
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
-import kr.co.amateurs.server.domain.dto.user.UserProfileEditRequestDto;
-import kr.co.amateurs.server.domain.dto.user.UserProfileEditResponseDto;
-import kr.co.amateurs.server.domain.dto.user.UserProfileResponseDto;
+import kr.co.amateurs.server.domain.dto.user.*;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.user.UserRepository;
@@ -107,35 +105,25 @@ public class UserService {
         return UserProfileResponseDto.from(user);
     }
 
-    @Transactional
-    public UserProfileEditResponseDto updateUserProfile(UserProfileEditRequestDto request) {
+    public UserBasicProfileEditResponseDto updateBasicProfile(UserBasicProfileEditRequestDto request) {
         User currentUser = getCurrentLoginUser();
 
         User userFromDb = userRepository.findById(currentUser.getId())
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);
 
-        if (request.newPassword() != null && !request.newPassword().trim().isEmpty()) {
-            validateCurrentPassword(userFromDb, request.currentPassword());
-        }
-
-        if (!userFromDb.getNickname().equals(request.nickname())) {
-            validateNicknameDuplicate(request.nickname());
+        if(request.nickname() != null && !request.nickname().equals(userFromDb.getNickname())) {
+            validateEmailDuplicate(request.nickname());
             validateNicknameFormat(request.nickname());
         }
 
-        userFromDb.updateProfile(
-                request.nickname(),
+        userFromDb.updateBasicProfile(
                 request.name(),
-                request.imageUrl(),
-                request.newPassword() != null ?
-                        passwordEncoder.encode(request.newPassword()) : null
+                request.nickname(),
+                request.imageUrl()
         );
 
-        userFromDb.getUserTopics().clear();
-        userFromDb.addUserTopics(request.topics());
-
         User savedUser = userRepository.save(userFromDb);
-        return UserProfileEditResponseDto.from(savedUser);
+        return UserBasicProfileEditResponseDto.from(savedUser);
     }
 
     private void validateCurrentPassword(User user, String currentPassword) {
