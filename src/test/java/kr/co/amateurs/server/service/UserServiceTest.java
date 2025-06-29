@@ -1,6 +1,10 @@
 package kr.co.amateurs.server.service;
 
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
+import kr.co.amateurs.server.config.TestAuthHelper;
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.domain.dto.user.UserBasicProfileEditRequestDto;
+import kr.co.amateurs.server.domain.dto.user.UserBasicProfileEditResponseDto;
 import kr.co.amateurs.server.domain.dto.user.UserProfileResponseDto;
 import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -13,6 +17,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +38,12 @@ public class UserServiceTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     private User testUser;
 
     @BeforeEach
@@ -38,9 +51,13 @@ public class UserServiceTest {
         testUser = UserTestFixture.defaultUser()
                 .email(UserTestFixture.generateUniqueEmail())
                 .nickname(UserTestFixture.generateUniqueNickname())
+                .password(passwordEncoder.encode(UserTestFixture.DEFAULT_PASSWORD))
                 .role(Role.GUEST)
+                .imageUrl("https://example.com/profile.jpg")
                 .build();
         testUser.addUserTopics(Set.of(Topic.FRONTEND, Topic.BACKEND));
+
+        testUser = TestAuthHelper.setAuthentication(testUser, userRepository);
     }
 
     @Test
@@ -77,5 +94,28 @@ public class UserServiceTest {
             assertThat(topics).hasSize(2);
             assertThat(topics).containsExactlyInAnyOrder(Topic.FRONTEND, Topic.BACKEND);
         });
+    }
+
+    @Test
+    void 기본_정보_수정_요청_시_정상적으로_업데이트된다() {
+        // given
+        UserBasicProfileEditRequestDto request = UserBasicProfileEditRequestDto.builder()
+                .name("변경된이름")
+                .nickname("changedNick")
+                .imageUrl("https://example.com/new-profile.jpg")
+                .build();
+
+        // when
+        UserBasicProfileEditResponseDto response = userService.updateBasicProfile(request);
+
+        // then
+        assertThat(response.name()).isEqualTo("변경된이름");
+        assertThat(response.nickname()).isEqualTo("changedNick");
+        assertThat(response.imageUrl()).isEqualTo("https://example.com/new-profile.jpg");
+
+        User updatedUser = userRepository.findByEmail(testUser.getEmail()).orElseThrow();
+        assertThat(updatedUser.getName()).isEqualTo("변경된이름");
+        assertThat(updatedUser.getNickname()).isEqualTo("changedNick");
+        assertThat(updatedUser.getImageUrl()).isEqualTo("https://example.com/new-profile.jpg");
     }
 }
