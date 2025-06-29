@@ -39,6 +39,7 @@ public class User extends BaseEntity {
     private ProviderType providerType;
 
     private String providerId;
+    @Enumerated(EnumType.STRING)
     private DevCourseTrack devcourseName;
     private String password;
     private String devcourseBatch;
