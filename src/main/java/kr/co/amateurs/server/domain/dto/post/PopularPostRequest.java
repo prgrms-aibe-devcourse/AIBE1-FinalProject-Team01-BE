@@ -9,4 +9,15 @@ public record PopularPostRequest(
         Integer commentCount,
         Double popularityScore,
         LocalDate calculatedDate
-) {}
+) {
+    public static PopularPostRequest of(
+            Long postId,
+            Integer viewCount,
+            Integer likeCount,
+            Integer commentCount,
+            Double popularityScore,
+            LocalDate calculatedDate) {
+        return new PopularPostRequest(postId, viewCount, likeCount, commentCount,
+                popularityScore, calculatedDate);
+    }
+}

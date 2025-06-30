@@ -17,11 +17,9 @@ import static org.jooq.generated.Tables.*;
 @Repository
 @RequiredArgsConstructor
 @Slf4j
-public class PopularPostRepostiroy {
+public class PopularPostRepository {
     private final DSLContext dsl;
-    /**
-     * 3일 이내 게시글과 댓글 수 조회
-     */
+
     public List<PopularPostRequest> findRecentPostsWithCounts(LocalDateTime threeDaysAgo) {
         return dsl.select(
                         POSTS.ID.as("postId"),
@@ -37,9 +35,6 @@ public class PopularPostRepostiroy {
                 .fetchInto(PopularPostRequest.class);
     }
 
-    /**
-     * 인기글 일괄 저장
-     */
     public void savePopularPosts(List<PopularPostRequest> requests) {
         if (requests.isEmpty()) return;
 
@@ -71,9 +66,6 @@ public class PopularPostRepostiroy {
         log.info("인기글 {}개 저장 완료", requests.size());
     }
 
-    /**
-     * 특정 날짜 인기글 삭제
-     */
     public void deleteByDate(LocalDate date) {
         int count = dsl.deleteFrom(POPULAR_POSTS)
                 .where(POPULAR_POSTS.CALCULATED_DATE.eq(date))
@@ -81,9 +73,6 @@ public class PopularPostRepostiroy {
         log.info("날짜 {} 인기글 {}개 삭제", date, count);
     }
 
-    /**
-     * 가장 최근 인기글 조회 (메인 페이지용)
-     */
     public List<Post> findLatestPopularPosts(int limit) {
         var latestDate = dsl.select(DSL.max(POPULAR_POSTS.CALCULATED_DATE))
                 .from(POPULAR_POSTS)
@@ -100,7 +89,6 @@ public class PopularPostRepostiroy {
 
         if (postIds.isEmpty()) return List.of();
 
-        // 순서 유지하면서 Post 조회
         var postsMap = dsl.selectFrom(POSTS)
                 .where(POSTS.ID.in(postIds))
                 .and(POSTS.IS_DELETED.eq(false))
@@ -112,9 +100,6 @@ public class PopularPostRepostiroy {
                 .toList();
     }
 
-    /**
-     * 특정 날짜에 인기글이 있는지 확인
-     */
     public boolean existsByDate(LocalDate date) {
         return dsl.fetchExists(
                 dsl.selectFrom(POPULAR_POSTS)
