@@ -1,4 +1,4 @@
-package kr.co.amateurs.server.service.community;
+package kr.co.amateurs.server.fixture.community;
 
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
@@ -9,7 +9,6 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class CommunityTestFixtures {
     public static User createAdminUser() {

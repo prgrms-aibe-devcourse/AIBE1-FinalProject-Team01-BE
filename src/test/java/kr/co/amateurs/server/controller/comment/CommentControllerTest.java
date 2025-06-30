@@ -1,15 +1,9 @@
 package kr.co.amateurs.server.controller.comment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.amateurs.server.config.TestSecurityConfig;
-import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
-import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
-import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
-import kr.co.amateurs.server.service.comment.CommentService;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
