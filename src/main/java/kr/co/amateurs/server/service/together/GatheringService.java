@@ -50,10 +50,7 @@ public class GatheringService {
 
 
     public GatheringPostResponseDTO getGatheringPost(Long id) {
-        GatheringPost gp = gatheringRepository.findByPostId(id);
-        if(gp == null) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+        GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
         return convertToDTO(gp, post, checkHasLiked(post.getId()), checkHasBookmarked(post.getId()));
     }
@@ -87,11 +84,8 @@ public class GatheringService {
 
 
     @Transactional
-    public void updateGatheringPost(Long postId, GatheringPostRequestDTO dto) {
-        GatheringPost gp = gatheringRepository.findByPostId(postId);
-        if(gp == null) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+    public void updateGatheringPost(Long id, GatheringPostRequestDTO dto) {
+        GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
         validateUser(post.getUser().getId());
         CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
@@ -100,11 +94,8 @@ public class GatheringService {
     }
 
     @Transactional
-    public void deleteGatheringPost(Long postId) {
-        GatheringPost gp = gatheringRepository.findByPostId(postId);
-        if(gp == null) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+    public void deleteGatheringPost(Long id) {
+        GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
         validateUser(post.getUser().getId());
         gatheringRepository.deleteById(gp.getId());
