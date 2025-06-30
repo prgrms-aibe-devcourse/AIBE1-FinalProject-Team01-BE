@@ -10,7 +10,8 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.service.alarm.AlarmService;
-import kr.co.amateurs.server.service.community.CommunityPostService;
+import kr.co.amateurs.server.service.community.CommunityService;
+import kr.co.amateurs.server.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +34,7 @@ import org.springframework.stereotype.Component;
 public class CommentAlarmCreator implements AlarmCreator {
 
     private final AlarmService alarmService;
-    private final CommunityPostService postService;
+    private final PostService postService;
     private final ReplyAlarmCreator replyAlarmCreator;
 
     /**

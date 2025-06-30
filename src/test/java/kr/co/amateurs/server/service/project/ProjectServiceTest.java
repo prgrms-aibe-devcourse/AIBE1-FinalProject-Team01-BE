@@ -23,7 +23,7 @@ import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
-import kr.co.amateurs.server.service.community.CommunityPostService;
+import kr.co.amateurs.server.service.community.CommunityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ class ProjectServiceTest {
     private ProjectService projectService;
 
     @Autowired
-    private CommunityPostService communityPostService;
+    private CommunityService communityService;
 
     @Autowired
     private ProjectRepository projectRepository;
@@ -314,7 +314,7 @@ class ProjectServiceTest {
 
             // then
             ProjectResponseDTO updatedProjectResponseDTO = projectService.getProjectDetails(projectId);
-            CommunityResponseDTO updatedPostResponseDTO = communityPostService.getPost(updatedProjectResponseDTO.postId());
+            CommunityResponseDTO updatedPostResponseDTO = communityService.getPost(updatedProjectResponseDTO.postId());
 
             assertThat(updatedPostResponseDTO.title()).isEqualTo("수정된 프로젝트");
             assertThat(updatedPostResponseDTO.content()).isEqualTo("수정된 내용");
@@ -376,7 +376,7 @@ class ProjectServiceTest {
 
             // then
             ProjectResponseDTO updatedProjectResponseDTO = projectService.getProjectDetails(projectId);
-            CommunityResponseDTO updatedPostResponseDTO = communityPostService.getPost(updatedProjectResponseDTO.postId());
+            CommunityResponseDTO updatedPostResponseDTO = communityService.getPost(updatedProjectResponseDTO.postId());
 
             assertThat(updatedPostResponseDTO.title()).isEqualTo("제목 수정 어쩌구저쩌구");
             assertThat(updatedPostResponseDTO.content()).isEqualTo("내용수정 저쩌구어쩌구");
