@@ -1,55 +1,29 @@
 package kr.co.amateurs.server.service.together;
 
-import jakarta.persistence.EntityManager;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
-import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
-import kr.co.amateurs.server.domain.dto.common.PaginationParam;
-import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
-import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
-import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
-import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class GatheringServiceTest {
@@ -95,7 +69,7 @@ public class GatheringServiceTest {
 //                createGatheringPost("두 번째 모집")
 //        );
 //        Page<GatheringPost> page = new PageImpl<>(gatheringPosts);
-//        TogetherPaginationParam paginationParam = TogetherPaginationParam.builder()
+//        PostPaginationParam paginationParam = PostPaginationParam.builder()
 //                .keyword(null)
 //                .page(0)
 //                .size(10)
@@ -123,7 +97,7 @@ public class GatheringServiceTest {
 //                createGatheringPost("테스트 모집")
 //        );
 //        Page<GatheringPost> page = new PageImpl<>(gatheringPosts);
-//        TogetherPaginationParam paginationParam = TogetherPaginationParam.builder()
+//        PostPaginationParam paginationParam = PostPaginationParam.builder()
 //                .keyword("")
 //                .page(0)
 //                .size(10)
@@ -151,7 +125,7 @@ public class GatheringServiceTest {
 //                createGatheringPost("Java 스터디")
 //        );
 //        Page<GatheringPost> page = new PageImpl<>(searchResults);
-//        TogetherPaginationParam paginationParam = TogetherPaginationParam.builder()
+//        PostPaginationParam paginationParam = PostPaginationParam.builder()
 //                .keyword(keyword)
 //                .page(0)
 //                .size(10)
@@ -177,7 +151,7 @@ public class GatheringServiceTest {
 //        // given
 //        List<GatheringPost> gatheringPosts = Arrays.asList(createGatheringPost( "인기 모집"));
 //        Page<GatheringPost> page = new PageImpl<>(gatheringPosts);
-//        TogetherPaginationParam paginationParam = TogetherPaginationParam.builder()
+//        PostPaginationParam paginationParam = PostPaginationParam.builder()
 //                .keyword(null)
 //                .page(0)
 //                .size(10)
@@ -203,7 +177,7 @@ public class GatheringServiceTest {
 //        // given
 //        List<GatheringPost> gatheringPosts = Arrays.asList(createGatheringPost("조회 많은 모집"));
 //        Page<GatheringPost> page = new PageImpl<>(gatheringPosts);
-//        TogetherPaginationParam paginationParam = TogetherPaginationParam.builder()
+//        PostPaginationParam paginationParam = PostPaginationParam.builder()
 //                .keyword(null)
 //                .page(0)
 //                .size(10)

@@ -13,17 +13,23 @@ import java.util.Set;
 
 public interface LikeRepository extends JpaRepository<Like, Long> {
 
-    @Transactional
-    @Modifying
-    @Query("DELETE FROM Like l WHERE l.comment.id = :commentId AND l.user.id = :userId")
-    int deleteByCommentAndUser(@Param("commentId") Long commentId, @Param("userId") Long userId);
+    Optional<Like> findByPostIdAndUserId(Long postId, Long id);
 
     @Transactional
     @Modifying
-    @Query("DELETE FROM Like l WHERE l.post.id = :postId AND l.user.id = :userId")
-    int deleteByPostAndUser(@Param("postId") Long postId, @Param("userId") Long userId);
+    void deleteByPostIdAndUserId(Long postId, Long userId);
 
-    Optional<Like> findByPost_IdAndUser_Id(Long postId, Long id);
+    @Transactional
+    @Modifying
+    void deleteByCommentIdAndUserId(Long commentId, Long userId);
+
+    @Modifying
+    @Query("UPDATE Post p SET p.likeCount = p.likeCount + 1 WHERE p.id = :postId")
+    void increasePostLikeCount(@Param("postId") Long postId);
+
+    @Modifying
+    @Query("UPDATE Comment c SET c.likeCount = c.likeCount + 1 WHERE c.id = :commentId")
+    void increaseCommentLikeCount(@Param("commentId") Long commentId);
 
     @Query("SELECT l.comment.id FROM Like l WHERE l.comment.id IN :commentIds AND l.user.id = :userId")
     Set<Long> findByCommentIdsAndUserId(@Param("commentIds") List<Long> commentIds, @Param("userId") Long userId);

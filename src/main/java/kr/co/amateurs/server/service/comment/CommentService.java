@@ -123,7 +123,7 @@ public class CommentService {
                 .orElseThrow(ErrorCode.NOT_FOUND);
     }
 
-    private Comment findCommentById(Long commentId) {
+    public Comment findCommentById(Long commentId) {
         return commentRepository.findById(commentId)
                 .orElseThrow(ErrorCode.NOT_FOUND);
     }

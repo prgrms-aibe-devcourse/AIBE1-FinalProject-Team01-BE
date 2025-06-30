@@ -1,40 +1,43 @@
 package kr.co.amateurs.server.service.community;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
+import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.bookmark.BookmarkService;
+import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CommunityPostService {
     private final PostRepository postRepository;
-    private final BookmarkRepository bookmarkRepository;
-    private final LikeRepository likeRepository;
+    private final BookmarkService bookmarkService;
+    private final LikeService likeService;
 
     private final UserService userService;
 
-    public Page<CommunityResponseDTO> searchPosts(String keyword, int page, BoardType boardType, SortType sortType, int pageSize) {
-        Pageable pageable = createPageable(page, sortType, pageSize);
-
+    public PageResponseDTO<CommunityResponseDTO> searchPosts(BoardType boardType, PostPaginationParam paginationParam) {
+        Pageable pageable = paginationParam.toPageable();
+        String keyword = paginationParam.getKeyword();
         Page<Post> communityPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
             communityPage = postRepository.findByContentAndBoardType(keyword.trim(), boardType, pageable);
@@ -42,7 +45,7 @@ public class CommunityPostService {
             communityPage = postRepository.findByBoardType(boardType, pageable);
         }
 
-        return communityPage.map(post -> CommunityResponseDTO.from(post, false, false));
+        return convertPageToDTO(communityPage.map(post -> CommunityResponseDTO.from(post, false, false)));
     }
 
     public Post findById(long postId) {
@@ -58,8 +61,8 @@ public class CommunityPostService {
         boolean hasBookmarked = false;
         boolean hasLiked = false;
         if (user != null) {
-            hasBookmarked = checkHasBookmarked(postId, user);
-            hasLiked = checkHasLiked(postId, user);
+            hasBookmarked = bookmarkService.checkHasBookmarked(postId);
+            hasLiked = likeService.checkHasLiked(postId);
         }
 
         return CommunityResponseDTO.from(post, hasLiked, hasBookmarked);
@@ -97,18 +100,6 @@ public class CommunityPostService {
         postRepository.delete(post);
     }
 
-    private boolean checkHasLiked(Long postId, User user) {
-        return likeRepository
-                .findByPost_IdAndUser_Id(postId, user.getId())
-                .isPresent();
-    }
-
-    private boolean checkHasBookmarked(Long postId, User user) {
-        return bookmarkRepository
-                .findByPost_IdAndUser_Id(postId, user.getId())
-                .isPresent();
-    }
-
     private void validatePost(Post post) {
         User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
 
@@ -117,13 +108,10 @@ public class CommunityPostService {
         }
     }
 
-    private Pageable createPageable(int page, SortType sortType, int pageSize) {
-        Sort sort = switch (sortType) {
-            case LATEST -> Sort.by(Sort.Direction.DESC, "createdAt");
-            case POPULAR -> Sort.by(Sort.Direction.DESC, "likeCount");
-            case VIEW_COUNT -> Sort.by(Sort.Direction.DESC, "viewCount");
-        };
-
-        return PageRequest.of(page, pageSize, sort);
+    // TODO - 사용자가 한 게시글을 여러번 조회할 경우 viewCount를 중복으로 올라가도록 할 지 한 명당 1회만 올라가게 할 지 정해야 함
+    //         + 조회수 증가를 별도의 API로 할 지 다른 곳에다 붙일 지 정해야 함
+    @Transactional
+    public void increaseViewCount(Long postId) {
+        postRepository.increaseViewCount(postId);
     }
 }
