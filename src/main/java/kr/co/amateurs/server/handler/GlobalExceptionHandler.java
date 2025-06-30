@@ -61,6 +61,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(
+            final HttpMessageNotReadableException e,
+            HttpServletRequest request) {
+        logError(request, e, "HttpMessageNotReadableException");
+        ErrorResponse error = ErrorResponse.from(e, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.badRequest().body(error);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
             final IllegalArgumentException e,
