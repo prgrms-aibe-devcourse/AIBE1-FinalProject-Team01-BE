@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.repository.like;
 
+import kr.co.amateurs.server.domain.dto.like.CommentLikeStatusDTO;
 import kr.co.amateurs.server.domain.entity.like.Like;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -31,8 +32,14 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     @Query("UPDATE Comment c SET c.likeCount = c.likeCount + 1 WHERE c.id = :commentId")
     void increaseCommentLikeCount(@Param("commentId") Long commentId);
 
-    @Query("SELECT l.comment.id FROM Like l WHERE l.comment.id IN :commentIds AND l.user.id = :userId")
-    Set<Long> findByCommentIdsAndUserId(@Param("commentIds") List<Long> commentIds, @Param("userId") Long userId);
+    @Query("SELECT new kr.co.amateurs.server.domain.dto.like.CommentLikeStatusDTO(c.id, " +
+            "CASE WHEN l.id IS NOT NULL THEN true ELSE false END) " +
+            "FROM Comment c LEFT JOIN Like l ON c.id = l.comment.id AND l.user.id = :userId " +
+            "WHERE c.id IN :commentIds")
+    List<CommentLikeStatusDTO> findCommentLikeStatusByCommentIdsAndUserId(
+            @Param("commentIds") List<Long> commentIds,
+            @Param("userId") Long userId
+    );
 
     boolean existsByPost_IdAndUser_Id(Long postId, Long id);
 }

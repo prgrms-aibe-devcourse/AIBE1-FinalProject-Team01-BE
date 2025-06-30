@@ -5,6 +5,7 @@ import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
+import kr.co.amateurs.server.domain.dto.like.CommentLikeStatusDTO;
 import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -203,12 +204,12 @@ public class CommentService {
                 .map(Comment::getId)
                 .toList();
 
-        Set<Long> likedCommentIds = likeRepository.findByCommentIdsAndUserId(commentIds, user.getId());
+        List<CommentLikeStatusDTO> commentLikeStatus = likeRepository.findCommentLikeStatusByCommentIdsAndUserId(commentIds, user.getId());
 
-        return comments.stream()
+        return commentLikeStatus.stream()
                 .collect(Collectors.toMap(
-                        Comment::getId,
-                        comment -> likedCommentIds.contains(comment.getId())
+                        CommentLikeStatusDTO::commentId,
+                        CommentLikeStatusDTO::isLiked
                 ));
     }
 }
