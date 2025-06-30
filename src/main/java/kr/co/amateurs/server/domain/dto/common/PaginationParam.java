@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class PaginationParam {
 
     @Schema(description = "페이지 번호 (기본값 0)", implementation = Integer.class, example = "0")
@@ -33,7 +34,7 @@ public class PaginationParam {
     @Builder.Default
     protected Sort.Direction sortDirection = Sort.Direction.DESC;
     @Builder.Default
-    protected PaginationSortType field = PaginationSortType.EMPTY;
+    protected PaginationSortType field = PaginationSortType.ID;
 
     public Pageable toPageable() {
         return PageRequest.of(page, size, sortDirection, field.getField());

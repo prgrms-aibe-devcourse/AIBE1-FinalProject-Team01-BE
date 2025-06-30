@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.domain.dto.bookmark;
 
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
@@ -12,127 +13,23 @@ import java.time.LocalDateTime;
 
 //TODO - null 사용을 줄이기 위한 인터페이스화
 
-public record BookmarkResponseDTO(
-        Long postId,
-        BoardType boardType,
-        String title,
-        String content,
-        Integer likeCount,
-        Integer viewCount,
-        String tag,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
-        GatheringInfo gatheringInfo,
-        MarketItemInfo marketItemInfo,
-        MatchingPostInfo matchingPostInfo
-) {
-    public record GatheringInfo(
-            GatheringType gatheringType,
-            GatheringStatus status,
-            int headCount,
-            String place,
-            String period,
-            String schedule
-    ) {}
-
-    public record MarketItemInfo(
-            int price,
-            MarketStatus status
-    ) {}
-
-    public record MatchingPostInfo(
-            MatchingType matchingType,
-            MatchingStatus status,
-            String expertiseAreas
-    ) {}
-
-
-    public static BookmarkResponseDTO convertToPostDTO(Bookmark b) {
-        Post p = b.getPost();
-        return new BookmarkResponseDTO(
-                p.getId(),
-                p.getBoardType(),
-                p.getTitle(),
-                p.getContent(),
-                p.getLikeCount(),
-                p.getViewCount(),
-                p.getTags(),
-                p.getCreatedAt(),
-                p.getUpdatedAt(),
-                null,
-                null,
-                null
-        );
-    }
-
-    public static BookmarkResponseDTO convertToGatheringDTO(Bookmark b, GatheringPost gp) {
-        Post p = b.getPost();
-        GatheringInfo gi = new GatheringInfo(
-                gp.getGatheringType(),
-                gp.getStatus(),
-                gp.getHeadCount(),
-                gp.getPlace(),
-                gp.getPeriod(),
-                gp.getSchedule()
-        );
-        return new BookmarkResponseDTO(
-                p.getId(),
-                p.getBoardType(),
-                p.getTitle(),
-                p.getContent(),
-                p.getLikeCount(),
-                p.getViewCount(),
-                p.getTags(),
-                p.getCreatedAt(),
-                p.getUpdatedAt(),
-                gi,
-                null,
-                null
-        );
-    }
-
-    public static BookmarkResponseDTO convertToMatchingDTO(Bookmark b, MatchingPost mp) {
-        Post p = b.getPost();
-        MatchingPostInfo mpi = new MatchingPostInfo(
-                mp.getMatchingType(),
-                mp.getStatus(),
-                mp.getExpertiseAreas()
-        );
-        return new BookmarkResponseDTO(
-                p.getId(),
-                p.getBoardType(),
-                p.getTitle(),
-                p.getContent(),
-                p.getLikeCount(),
-                p.getViewCount(),
-                p.getTags(),
-                p.getCreatedAt(),
-                p.getUpdatedAt(),
-                null,
-                null,
-                mpi
-        );
-    }
-
-    public static BookmarkResponseDTO convertToMarketDTO(Bookmark b, MarketItem mi){
-        Post p = b.getPost();
-        MarketItemInfo mii = new MarketItemInfo(
-                mi.getPrice(),
-                mi.getStatus()
-        );
-        return new BookmarkResponseDTO(
-                p.getId(),
-                p.getBoardType(),
-                p.getTitle(),
-                p.getContent(),
-                p.getLikeCount(),
-                p.getViewCount(),
-                p.getTags(),
-                p.getCreatedAt(),
-                p.getUpdatedAt(),
-                null,
-                mii,
-                null
-        );
-    }
+public interface BookmarkResponseDTO {
+    @Schema(description = "게시글 ID", example = "1")
+    Long postId();
+    @Schema(description = "게시판 종류", example = "GATHER")
+    BoardType boardType();
+    @Schema(description = "게시글 제목", example = "test 제목")
+    String title();
+    @Schema(description = "게시글 내용", example = "test 내용")
+    String content();
+    @Schema(description = "좋아요 수", example = "1")
+    Integer likeCount();
+    @Schema(description = "조회수", example = "3")
+    Integer viewCount();
+    @Schema(description = "게시글 태그", example = "Spring Boot")
+    String tag();
+    @Schema(description = "생성 일시", example = "2025-06-25T00:08:25")
+    LocalDateTime createdAt();
+    @Schema(description = "수정 일시", example = "2025-06-25T00:08:25")
+    LocalDateTime updatedAt();
 }

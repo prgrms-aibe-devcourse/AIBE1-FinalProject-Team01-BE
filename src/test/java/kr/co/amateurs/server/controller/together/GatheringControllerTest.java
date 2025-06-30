@@ -2,37 +2,26 @@ package kr.co.amateurs.server.controller.together;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.amateurs.server.config.SecurityConfig;
 import kr.co.amateurs.server.config.TestConfig;
 import kr.co.amateurs.server.config.TestSecurityConfig;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
-import kr.co.amateurs.server.domain.dto.common.PaginationParam;
-import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
-import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
+import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.service.together.GatheringService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
-import org.springframework.data.web.config.SpringDataJacksonModules;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -101,7 +90,7 @@ public class GatheringControllerTest {
                 createGatheringPostResponseDTO(2L, "두 번째 모집", "두 번째 내용")
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
-        given(gatheringService.getGatheringPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
+        given(gatheringService.getGatheringPostList(any(PostPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings"))
@@ -118,7 +107,7 @@ public class GatheringControllerTest {
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(searchResults);
 
-        given(gatheringService.getGatheringPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
+        given(gatheringService.getGatheringPostList(any(PostPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
@@ -137,7 +126,7 @@ public class GatheringControllerTest {
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
 
-        given(gatheringService.getGatheringPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
+        given(gatheringService.getGatheringPostList(any(PostPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
@@ -157,7 +146,7 @@ public class GatheringControllerTest {
         );
         Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
 
-        given(gatheringService.getGatheringPostList(any(TogetherPaginationParam.class))).willReturn(convertPageToDTO(page));
+        given(gatheringService.getGatheringPostList(any(PostPaginationParam.class))).willReturn(convertPageToDTO(page));
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings")
@@ -309,7 +298,7 @@ public class GatheringControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings/{gatheringId}", nonExistentId))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -325,7 +314,7 @@ public class GatheringControllerTest {
         mockMvc.perform(put("/api/v1/gatherings/{gatheringId}", nonExistentId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test

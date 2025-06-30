@@ -2,9 +2,11 @@ package kr.co.amateurs.server.service;
 
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.user.*;
 import kr.co.amateurs.server.domain.dto.user.UserProfileResponseDto;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.repository.user.UserRepository;
@@ -12,18 +14,21 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public void validateEmailDuplicate(String email) {
         if (userRepository.existsByEmail(email)) {
@@ -105,6 +110,80 @@ public class UserService {
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);
 
         return UserProfileResponseDto.from(user);
+    }
+
+    public UserBasicProfileEditResponseDto updateBasicProfile(UserBasicProfileEditRequestDto request) {
+        User currentUser = getCurrentLoginUser();
+
+        User userFromDb = userRepository.findById(currentUser.getId())
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        if(request.nickname() != null && !request.nickname().equals(userFromDb.getNickname())) {
+            validateEmailDuplicate(request.nickname());
+            validateNicknameFormat(request.nickname());
+        }
+
+        userFromDb.updateBasicProfile(
+                request.name(),
+                request.nickname(),
+                request.imageUrl()
+        );
+
+        User savedUser = userRepository.save(userFromDb);
+        return UserBasicProfileEditResponseDto.from(savedUser);
+    }
+
+    public UserPasswordEditResponseDto updatePassword(UserPasswordEditRequestDto request) {
+        User currentUser = getCurrentLoginUser();
+
+        User userFromDb = userRepository.findById(currentUser.getId())
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        validateCurrentPassword(userFromDb, request.currentPassword());
+
+        String encodedPassword = passwordEncoder.encode(request.newPassword());
+        userFromDb.updatePassword(encodedPassword);
+
+        userRepository.save(userFromDb);
+
+        return UserPasswordEditResponseDto.builder()
+                .message("비밀번호가 성공적으로 변경되었습니다")
+                .build();
+    }
+
+    private void validateCurrentPassword(User user, String currentPassword) {
+        if (currentPassword == null || currentPassword.trim().isEmpty()) {
+            throw ErrorCode.EMPTY_CURRENT_PASSWORD.get();
+        }
+
+        if(!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw ErrorCode.INVALID_CURRENT_PASSWORD.get();
+        }
+    }
+
+    public UserTopicsEditResponseDto updateTopics(UserTopicsEditRequestDto request) {
+        User currentUser = getCurrentLoginUser();
+
+        User userFromDb = userRepository.findById(currentUser.getId())
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        validateTopicsCount(request.topics());
+
+        userFromDb.getUserTopics().clear();
+        userFromDb.addUserTopics(request.topics());
+
+        User savedUser = userRepository.save(userFromDb);
+        return UserTopicsEditResponseDto.from(savedUser);
+    }
+
+    private void validateTopicsCount(Set<Topic> topics) {
+        if (topics == null || topics.isEmpty()) {
+            throw ErrorCode.TOPICS_REQUIRED.get();
+        }
+
+        if (topics.size() > 3) {
+            throw ErrorCode.TOPICS_TOO_MANY.get();
+        }
     }
 
     public String getDevcourseName(Long userId) {

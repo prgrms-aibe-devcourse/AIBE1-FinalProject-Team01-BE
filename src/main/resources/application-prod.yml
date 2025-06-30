@@ -12,7 +12,7 @@ spring:
       connection-timeout: 30000
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
     properties:
@@ -20,6 +20,12 @@ spring:
         show_sql: false
         format_sql: false
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+  flyway:
+    enabled: false
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+    validate-on-migrate: true
 
   data:
     mongodb:

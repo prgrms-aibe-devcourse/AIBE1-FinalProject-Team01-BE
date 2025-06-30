@@ -18,6 +18,10 @@ public class AlarmService {
 
     private final UserService userService;
 
+    public void saveAlarm(Alarm alarm) {
+        alarmRepository.save(alarm);
+    }
+
     public AlarmPageResponse readAlarms(PaginationParam param) {
         User user = userService.getCurrentLoginUser();
         Page<Alarm> page = alarmRepository.findByUserId(user.getId(), param.toPageable());

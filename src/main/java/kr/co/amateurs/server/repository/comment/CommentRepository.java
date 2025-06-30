@@ -19,7 +19,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     List<Comment> findByParentCommentAndIdGreaterThanOrderByCreatedAtAsc(Comment parentComment, Long cursor, PageRequest pageRequest);
 
-    // TODO QueryDSL or JOOQ 사용 시 변경
     @Query("SELECT c.parentComment.id as parentCommentId, COUNT(c) as count FROM Comment c " +
             "WHERE c.parentComment.id IN :parentIds " +
             "GROUP BY c.parentComment.id")

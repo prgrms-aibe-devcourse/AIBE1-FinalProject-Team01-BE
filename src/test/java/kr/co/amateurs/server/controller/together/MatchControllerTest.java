@@ -1,30 +1,24 @@
 package kr.co.amateurs.server.controller.together;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.amateurs.server.config.SecurityConfig;
 import kr.co.amateurs.server.config.TestSecurityConfig;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
-import kr.co.amateurs.server.domain.dto.common.PaginationParam;
-import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
-import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
+import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.service.together.MatchService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -97,7 +91,7 @@ public class MatchControllerTest {
         );
         Page<MatchPostResponseDTO> page = new PageImpl<>(matchPosts);
 
-        given(matchService.getMatchPostList(any(TogetherPaginationParam.class)))
+        given(matchService.getMatchPostList(any(PostPaginationParam.class)))
                 .willReturn(convertPageToDTO(page));
 
         // when & then
@@ -115,7 +109,7 @@ public class MatchControllerTest {
         );
         Page<MatchPostResponseDTO> page = new PageImpl<>(searchResults);
 
-        given(matchService.getMatchPostList(any(TogetherPaginationParam.class)))
+        given(matchService.getMatchPostList(any(PostPaginationParam.class)))
                 .willReturn(convertPageToDTO(page));
 
         // when & then
@@ -135,7 +129,7 @@ public class MatchControllerTest {
         );
         Page<MatchPostResponseDTO> page = new PageImpl<>(matchPosts);
 
-        given(matchService.getMatchPostList(any(TogetherPaginationParam.class)))
+        given(matchService.getMatchPostList(any(PostPaginationParam.class)))
                 .willReturn(convertPageToDTO(page));
 
         // when & then
@@ -157,7 +151,7 @@ public class MatchControllerTest {
         Page<MatchPostResponseDTO> page = new PageImpl<>(matchPosts);
 
 
-        given(matchService.getMatchPostList(any(TogetherPaginationParam.class)))
+        given(matchService.getMatchPostList(any(PostPaginationParam.class)))
                 .willReturn(convertPageToDTO(page));
 
         // when & then
@@ -306,7 +300,7 @@ public class MatchControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/v1/matches/{matchId}", nonExistentId))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -322,7 +316,7 @@ public class MatchControllerTest {
         mockMvc.perform(put("/api/v1/matches/{matchId}", nonExistentId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test

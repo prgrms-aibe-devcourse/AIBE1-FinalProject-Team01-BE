@@ -1,27 +1,22 @@
 package kr.co.amateurs.server.controller.together;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import kr.co.amateurs.server.config.jwt.CustomUserDetails;
-import kr.co.amateurs.server.domain.dto.common.PageInfo;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
-import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
-import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
+import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.Operation;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
+import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.service.together.GatheringService;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -29,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/gatherings")
 @RequiredArgsConstructor
+@Tag(name="Gathering Post", description = "함께해요 게시판의 팀원 모집 탭 API")
 public class GatheringController {
 
     private final GatheringService gatheringService;
@@ -36,8 +32,9 @@ public class GatheringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @BoardAccess(hasBoardType = false, boardType = BoardType.GATHER)
     @GetMapping
+    @Operation(summary = "팀원 모집 글 리스트", description = "팀원 모집 탭의 모든 게시글을 검색어, 정렬기준에 따라 불러옵니다.")
     public ResponseEntity<PageResponseDTO<GatheringPostResponseDTO>> getGatheringPostList(
-            @ParameterObject @Valid TogetherPaginationParam paginationParam
+            @ParameterObject @Valid PostPaginationParam paginationParam
             ){
         PageResponseDTO<GatheringPostResponseDTO> gatheringList = gatheringService.getGatheringPostList(paginationParam);
         return ResponseEntity.ok(gatheringList);
@@ -46,6 +43,7 @@ public class GatheringController {
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @BoardAccess(hasPostId = true)
     @GetMapping("/{postId}")
+    @Operation(summary = "팀원 모집 글 정보", description = "팀원 모집 탭의 특정 게시글의 정보를 불러옵니다.")
     public ResponseEntity<GatheringPostResponseDTO> getGatheringPost(
             @PathVariable("postId") Long postId){
         GatheringPostResponseDTO gatherPost = gatheringService.getGatheringPost(postId);
@@ -53,8 +51,9 @@ public class GatheringController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasBoardType = false, boardType = BoardType.GATHER, operation = Operation.WRITE)
+    @BoardAccess(hasBoardType = false, boardType = BoardType.GATHER, operation = OperationType.WRITE)
     @PostMapping
+    @Operation(summary = "팀원 모집 글쓰기", description = "팀원 모집 탭에 새로운 게시글을 등록합니다.")
     public ResponseEntity<GatheringPostResponseDTO> createGatheringPost(
             @RequestBody @Valid GatheringPostRequestDTO dto){
         GatheringPostResponseDTO post = gatheringService.createGatheringPost(dto);
@@ -62,8 +61,9 @@ public class GatheringController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @PutMapping("/{postId}")
+    @Operation(summary = "팀원 모집 글 수정", description = "팀원 모집 탭의 본인이 작성한 게시글을 수정합니다.")
     public ResponseEntity<Void> updateGatheringPost(
 
             @PathVariable("postId") Long postId,
@@ -74,8 +74,9 @@ public class GatheringController {
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @DeleteMapping("/{postId}")
+    @Operation(summary = "팀원 모집 글 삭제", description = "팀원 모집 탭의 본인이 작성한 게시글을 삭제합니다.")
     public ResponseEntity<Void> deleteGatheringPost(
             @PathVariable("postId") Long postId){
         gatheringService.deleteGatheringPost(postId);
