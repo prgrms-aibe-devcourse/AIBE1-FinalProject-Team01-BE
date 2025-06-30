@@ -67,7 +67,6 @@ public enum ErrorCode implements Supplier<CustomException> {
     // 댓글
     INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "자식 댓글에는 댓글을 달 수 없습니다."),
 
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 정보입니다.");
     // AI 프로필 관련
     ERROR_SUMMARIZE(HttpStatus.INTERNAL_SERVER_ERROR, "활동 요약 생성 중 오류가 발생했습니다."),
     ERROR_AI_PROFILE_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "AI 프로필 생성 중 오류가 발생했습니다."),
