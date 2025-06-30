@@ -2,7 +2,7 @@ package kr.co.amateurs.server.annotation.boardaccess;
 
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.Operation;
+import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -77,5 +77,5 @@ public @interface BoardAccess {
      *
      * @return 작업 타입 (기본값: READ)
      */
-    Operation operation() default Operation.READ;
+    OperationType operation() default OperationType.READ;
 }

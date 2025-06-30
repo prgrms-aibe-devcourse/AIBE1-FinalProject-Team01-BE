@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.domain.dto.bookmark;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -21,14 +22,19 @@ public record MarketBookmarkDTO(
         MarketItemInfo marketItemInfo
 ) implements BookmarkResponseDTO {
     public record MarketItemInfo(
+            @Schema(description = "장터 물품 가격", example = "10000")
             int price,
-            MarketStatus status
+            @Schema(description = "장터 물품 판매 상태", example = "SELLING")
+            MarketStatus status,
+            @Schema(description = "물품 판매 지역", example = "서울")
+            String place
     ) {}
     public static MarketBookmarkDTO convertToDTO(MarketItem mi) {
         Post p = mi.getPost();
         MarketItemInfo mii = new MarketItemInfo(
                 mi.getPrice(),
-                mi.getStatus()
+                mi.getStatus(),
+                mi.getPlace()
         );
         return new MarketBookmarkDTO(
                 p.getId(),

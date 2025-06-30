@@ -28,15 +28,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
-@ActiveProfiles("test")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class DirectMessageWebSocketControllerTest {
+class DirectMessageWebSocketControllerTest extends AbstractControllerTest {
 
     @MockitoBean
     private DirectMessageService directMessageService;
-
-    @LocalServerPort
-    private int port;
 
     @Autowired
     private DirectMessageRepository directMessageRepository;
@@ -46,8 +41,6 @@ class DirectMessageWebSocketControllerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        RestAssured.port = port;
-
         directMessageRepository.deleteAll();
 
         messageQueue = new LinkedBlockingQueue<>();

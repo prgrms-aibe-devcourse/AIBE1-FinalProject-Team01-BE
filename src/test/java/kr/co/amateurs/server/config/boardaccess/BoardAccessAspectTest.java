@@ -6,7 +6,7 @@ import kr.co.amateurs.server.annotation.boardaccess.BoardAccessPolicy;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.Operation;
+import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.post.PostRepository;
@@ -97,7 +97,7 @@ public class BoardAccessAspectTest {
         Long postId = 1L;
         when(userService.getCurrentUser()).thenReturn(Optional.of(studentUser));
         when(boardAccess.hasPostId()).thenReturn(true);
-        when(boardAccess.operation()).thenReturn(Operation.READ);
+        when(boardAccess.operation()).thenReturn(OperationType.READ);
         when(boardAccess.needCategory()).thenReturn(false);
 
         when(joinPoint.getSignature()).thenReturn(methodSignature);
@@ -151,7 +151,7 @@ public class BoardAccessAspectTest {
         when(userService.getCurrentUser()).thenReturn(Optional.of(studentUser));
         when(boardAccess.hasPostId()).thenReturn(false);
         when(boardAccess.hasBoardType()).thenReturn(true);
-        when(boardAccess.operation()).thenReturn(Operation.READ);
+        when(boardAccess.operation()).thenReturn(OperationType.READ);
         when(boardAccess.needCategory()).thenReturn(false);
 
         when(joinPoint.getSignature()).thenReturn(methodSignature);
@@ -176,7 +176,7 @@ public class BoardAccessAspectTest {
         when(boardAccess.hasPostId()).thenReturn(false);
         when(boardAccess.hasBoardType()).thenReturn(false);
         when(boardAccess.boardType()).thenReturn(BoardType.FREE);
-        when(boardAccess.operation()).thenReturn(Operation.READ);
+        when(boardAccess.operation()).thenReturn(OperationType.READ);
         when(boardAccess.needCategory()).thenReturn(false);
 
         // when & then
@@ -194,7 +194,7 @@ public class BoardAccessAspectTest {
         when(boardAccess.hasPostId()).thenReturn(false);
         when(boardAccess.hasBoardType()).thenReturn(false);
         when(boardAccess.boardType()).thenReturn(BoardType.FREE);
-        when(boardAccess.operation()).thenReturn(Operation.READ);
+        when(boardAccess.operation()).thenReturn(OperationType.READ);
         when(boardAccess.needCategory()).thenReturn(true);
         when(boardAccess.category()).thenReturn(BoardCategory.COMMUNITY);
 
@@ -232,7 +232,7 @@ public class BoardAccessAspectTest {
         when(boardAccess.hasPostId()).thenReturn(false);
         when(boardAccess.hasBoardType()).thenReturn(false);
         when(boardAccess.boardType()).thenReturn(BoardType.INFO);
-        when(boardAccess.operation()).thenReturn(Operation.WRITE);
+        when(boardAccess.operation()).thenReturn(OperationType.WRITE);
         when(boardAccess.needCategory()).thenReturn(false);
 
         // when & then
@@ -251,7 +251,7 @@ public class BoardAccessAspectTest {
         when(boardAccess.hasPostId()).thenReturn(false);
         when(boardAccess.hasBoardType()).thenReturn(false);
         when(boardAccess.boardType()).thenReturn(BoardType.REVIEW);
-        when(boardAccess.operation()).thenReturn(Operation.READ);
+        when(boardAccess.operation()).thenReturn(OperationType.READ);
         when(boardAccess.needCategory()).thenReturn(false);
 
         // when & then
