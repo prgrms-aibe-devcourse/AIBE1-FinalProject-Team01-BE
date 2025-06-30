@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.controller.comment;
 
+import jakarta.validation.Valid;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
@@ -35,10 +36,10 @@ public class CommentController {
     public ResponseEntity<CommentPageDTO> getReplies(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam(required = false) Long cursor,  // 대댓글 커서
+            @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "5") int size
     ) {
-        CommentPageDTO replies = commentService.getReplies(postId,commentId, cursor, size);
+        CommentPageDTO replies = commentService.getReplies(commentId, cursor, size);
         return ResponseEntity.ok(replies);
     }
 
@@ -46,7 +47,7 @@ public class CommentController {
     @PostMapping("/{postId}/comments")
     public ResponseEntity<CommentResponseDTO> createComment(
             @PathVariable Long postId,
-            @RequestBody CommentRequestDTO requestDTO
+            @Valid @RequestBody CommentRequestDTO requestDTO
             ){
         CommentResponseDTO comment = commentService.createComment(postId, requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
@@ -59,7 +60,7 @@ public class CommentController {
             @PathVariable Long commentId,
             @RequestBody CommentRequestDTO requestDTO
     ){
-        commentService.updateComment(postId, commentId, requestDTO);
+        commentService.updateComment(commentId, requestDTO);
         return ResponseEntity.noContent().build();
     }
 
@@ -69,7 +70,7 @@ public class CommentController {
         @PathVariable Long postId,
         @PathVariable Long commentId
     ){
-        commentService.deleteComment(postId,commentId);
+        commentService.deleteComment(commentId);
         return ResponseEntity.noContent().build();
     }
 }
