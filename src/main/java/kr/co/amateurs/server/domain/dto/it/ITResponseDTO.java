@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.domain.dto.it;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import kr.co.amateurs.server.domain.entity.post.ITPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
@@ -8,6 +9,9 @@ import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import java.time.LocalDateTime;
 
 public record ITResponseDTO(
+        @Schema(description = "IT ID", example = "1")
+        Long itId,
+
         @Schema(description = "게시글 ID", example = "1")
         Long postId,
 
@@ -59,8 +63,10 @@ public record ITResponseDTO(
         @Schema(description = "현재 사용자가 북마크했는지 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static ITResponseDTO from(Post post, boolean hasLiked, boolean hasBookmarked) {
+    public static ITResponseDTO from(ITPost itPost, boolean hasLiked, boolean hasBookmarked) {
+        Post post = itPost.getPost();
         return new ITResponseDTO(
+                itPost.getId(),
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),

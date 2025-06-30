@@ -1,16 +1,23 @@
 package kr.co.amateurs.server.service.it;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.CommunityPost;
+import kr.co.amateurs.server.domain.entity.post.ITPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
+import kr.co.amateurs.server.repository.it.ITRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.bookmark.BookmarkService;
+import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,44 +29,49 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ITService {
+    private final ITRepository itRepository;
     private final PostRepository postRepository;
     private final BookmarkRepository bookmarkRepository;
     private final LikeRepository likeRepository;
 
+    private final BookmarkService bookmarkService;
+    private final LikeService likeService;
+
     private final UserService userService;
 
-    public Page<ITResponseDTO> searchPosts(String keyword, int page, BoardType boardType, SortType sortType, int pageSize) {
-        // Community와 코드와 현재는 동일 이후에 뉴스가 나오면 뉴스 종류나 카테고리 필드가 추가 될 수도 있어서 서비스 레이어 생성
+    public PageResponseDTO<ITResponseDTO> searchPosts(BoardType boardType, PostPaginationParam paginationParam) {
+        Pageable pageable = paginationParam.toPageable();
+        String keyword = paginationParam.getKeyword();
+        Page<ITPost> itPage;
 
-        Pageable pageable = createPageable(page, sortType, pageSize);
-
-        Page<Post> itPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            itPage = postRepository.findByContentAndBoardType(keyword.trim(), boardType, pageable);
+            itPage = itRepository.findByContentAndBoardType(keyword.trim(), boardType, pageable);
         } else {
-            itPage = postRepository.findByBoardType(boardType, pageable);
+            itPage = itRepository.findByBoardType(boardType, pageable);
         }
 
-        return itPage.map(post -> ITResponseDTO.from(post, false, false));
+        return convertPageToDTO(itPage.map(itPost -> ITResponseDTO.from(itPost, false, false)));
     }
 
-    public ITResponseDTO getPost(Long postId) {
+    public ITResponseDTO getPost(Long itId) {
         User user = userService.getCurrentUser().orElse(null);
 
-        Post post = postRepository.findById(postId).orElseThrow(ErrorCode.POST_NOT_FOUND);
+        ITPost itPost = findById(itId);
 
         boolean hasBookmarked = false;
         boolean hasLiked = false;
         if (user != null) {
-            hasBookmarked = checkHasBookmarked(postId, user);
-            hasLiked = checkHasLiked(postId, user);
+            hasBookmarked = bookmarkService.checkHasBookmarked(itPost.getPost().getId());
+            hasLiked = likeService.checkHasLiked(itPost.getPost().getId());
         }
 
-        return ITResponseDTO.from(post, hasLiked, hasBookmarked);
+        return ITResponseDTO.from(itPost, hasLiked, hasBookmarked);
     }
 
     @Transactional
@@ -68,40 +80,33 @@ public class ITService {
 
         Post post = Post.from(requestDTO, user, boardType);
 
-        postRepository.save(post);
+        Post savedPost = postRepository.save(post);
 
-        return ITResponseDTO.from(post, false, false);
+        ITPost itPost = ITPost.from(savedPost);
+        ITPost savedITPost = itRepository.save(itPost);
+
+
+        return ITResponseDTO.from(savedITPost, false, false);
     }
 
     @Transactional
     public void updatePost(ITRequestDTO requestDTO, Long postId) {
-        Post post = postRepository.findById(postId).orElseThrow(ErrorCode.POST_NOT_FOUND);
+        ITPost itPost = findById(postId);
 
+        Post post = itPost.getPost();
         validatePost(post);
 
         post.update(requestDTO);
-
-        postRepository.save(post);
     }
 
     @Transactional
     public void deletePost(Long postId) {
-        Post post = postRepository.findById(postId).orElseThrow(ErrorCode.POST_NOT_FOUND);
+        ITPost itPost = findById(postId);
 
+        Post post = itPost.getPost();
         validatePost(post);
 
-        // TODO soft delete 구현 시 변경 >> deletedAT??
         postRepository.delete(post);
-    }
-
-    private boolean checkHasLiked(Long postId, User user) {
-        return likeRepository
-                .existsByPost_IdAndUser_Id(postId, user.getId());
-    }
-
-    private boolean checkHasBookmarked(Long postId, User user) {
-        return bookmarkRepository
-                .existsByPost_IdAndUser_Id(postId, user.getId());
     }
 
     private void validatePost(Post post) {
@@ -110,6 +115,11 @@ public class ITService {
         if (!Objects.equals(post.getUser().getId(), user.getId())) {
             throw ErrorCode.ACCESS_DENIED.get();
         }
+    }
+
+    private ITPost findById(Long itId) {
+        return itRepository.findById(itId)
+                .orElseThrow(ErrorCode.NOT_FOUND);
     }
 
     private Pageable createPageable(int page, SortType sortType, int pageSize) {
