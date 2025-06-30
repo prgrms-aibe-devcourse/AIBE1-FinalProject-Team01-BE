@@ -93,9 +93,10 @@ public class UserControllerTest extends AbstractControllerTest {
     @Test
     void 인증된_사용자가_기본_정보_수정_요청_시_정상적으로_업데이트된다() {
         // given
+        String uniqueNickname = UserTestFixture.generateUniqueNickname();
         UserBasicProfileEditRequestDto updateRequest = UserBasicProfileEditRequestDto.builder()
                 .name("변경된이름")
-                .nickname("changedNick")
+                .nickname(uniqueNickname)
                 .imageUrl("https://example.com/new-profile.jpg")
                 .build();
 
@@ -109,12 +110,12 @@ public class UserControllerTest extends AbstractControllerTest {
                 .then()
                 .statusCode(200)
                 .body("name", equalTo("변경된이름"))
-                .body("nickname", equalTo("changedNick"))
+                .body("nickname", equalTo(uniqueNickname))
                 .body("imageUrl", equalTo("https://example.com/new-profile.jpg"));
     }
 
     @Test
-    void 인증_토큰_없이_기본_정보_수정_요청_시_401_에러가_발생한다() {
+    void 인증_토큰_없이_기본_정보_수정_요청_시_403_에러가_발생한다() {
         // given
         UserBasicProfileEditRequestDto updateRequest = UserBasicProfileEditRequestDto.builder()
                 .name("변경된이름")
@@ -127,7 +128,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .when()
                 .put("/users/profile/basic")
                 .then()
-                .statusCode(401);
+                .statusCode(403);
     }
 
     @Test
