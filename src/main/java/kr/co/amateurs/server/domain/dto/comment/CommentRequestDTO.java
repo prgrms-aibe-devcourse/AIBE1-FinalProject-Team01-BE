@@ -18,6 +18,5 @@ public record CommentRequestDTO(
                 example = "좋은 글 감사합니다!",
                 maxLength = 500
         )
-        @NotBlank(message = "댓글은 빈 내용일 수 없습니다.")
     String content
 ) {}

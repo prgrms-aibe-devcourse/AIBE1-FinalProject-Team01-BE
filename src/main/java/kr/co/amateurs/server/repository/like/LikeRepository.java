@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.repository.like;
 
+import kr.co.amateurs.server.domain.dto.like.CommentLikeStatusDTO;
 import kr.co.amateurs.server.domain.entity.like.Like;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
