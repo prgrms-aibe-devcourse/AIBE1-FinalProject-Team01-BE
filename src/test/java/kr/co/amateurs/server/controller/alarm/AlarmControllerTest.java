@@ -209,7 +209,7 @@ class AlarmControllerTest extends AbstractControllerTest {
         class 실패 {
 
             @Test
-            void 음수_페이지_번호로_요청하면_500_에러가_발생한다() {
+            void 음수_페이지_번호로_요청하면_400_에러가_발생한다() {
                 // when & then
                 given()
                         .header("Authorization", "Bearer " + accessToken)
@@ -220,11 +220,11 @@ class AlarmControllerTest extends AbstractControllerTest {
                         .get("/alarms")
                         .then()
                         .log().all()
-                        .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+                        .statusCode(HttpStatus.BAD_REQUEST.value());
             }
 
             @Test
-            void 페이지_크기가_0_이하면_500_에러가_발생한다() {
+            void 페이지_크기가_0_이하면_400_에러가_발생한다() {
                 // when & then
                 given()
                         .header("Authorization", "Bearer " + accessToken)
@@ -235,7 +235,7 @@ class AlarmControllerTest extends AbstractControllerTest {
                         .get("/alarms")
                         .then()
                         .log().all()
-                        .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+                        .statusCode(HttpStatus.BAD_REQUEST.value());
             }
         }
     }
