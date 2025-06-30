@@ -34,9 +34,9 @@ import static org.mockito.BDDMockito.given;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class CommunityPostServiceTest {
+class CommunityServiceTest {
     @Autowired
-    private CommunityPostService communityPostService;
+    private CommunityService communityService;
 
     @Autowired
     private UserRepository userRepository;
@@ -83,7 +83,7 @@ class CommunityPostServiceTest {
                 .build();
 
         // when
-        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
@@ -111,7 +111,7 @@ class CommunityPostServiceTest {
                 .build();
 
         // when
-        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
@@ -136,7 +136,7 @@ class CommunityPostServiceTest {
                 .build();
 
         // when
-        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
@@ -159,7 +159,7 @@ class CommunityPostServiceTest {
                 .build();
 
         // when
-        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityService.searchPosts(boardType, param);
 
         // then
         assertThat(result.content()).hasSize(2);
@@ -185,7 +185,7 @@ class CommunityPostServiceTest {
                 .build();
 
         // when
-        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityService.searchPosts(boardType, param);
 
         // then
         assertThat(result.content()).hasSize(2);
@@ -201,7 +201,7 @@ class CommunityPostServiceTest {
         Long postId = testFreePost.getId();
 
         // when
-        CommunityResponseDTO result = communityPostService.getPost(postId);
+        CommunityResponseDTO result = communityService.getPost(postId);
 
         // then
         assertThat(result).isNotNull();
@@ -222,7 +222,7 @@ class CommunityPostServiceTest {
         Long nonExistentPostId = 999L;
 
         // when & then
-        assertThatThrownBy(() -> communityPostService.getPost(nonExistentPostId))
+        assertThatThrownBy(() -> communityService.getPost(nonExistentPostId))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -235,7 +235,7 @@ class CommunityPostServiceTest {
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when
-        CommunityResponseDTO result = communityPostService.createPost(requestDTO, boardType);
+        CommunityResponseDTO result = communityService.createPost(requestDTO, boardType);
 
         // then
         assertThat(result).isNotNull();
@@ -255,7 +255,7 @@ class CommunityPostServiceTest {
         given(userService.getCurrentUser()).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> communityPostService.createPost(requestDTO, boardType))
+        assertThatThrownBy(() -> communityService.createPost(requestDTO, boardType))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -268,10 +268,10 @@ class CommunityPostServiceTest {
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when
-        communityPostService.updatePost(requestDTO, postId);
+        communityService.updatePost(requestDTO, postId);
 
         // then
-        CommunityResponseDTO result = communityPostService.getPost(postId);
+        CommunityResponseDTO result = communityService.getPost(postId);
         assertThat(result.title()).isEqualTo("수정된 제목");
         assertThat(result.tags()).isEqualTo("수정 태그");
         assertThat(result.content()).isEqualTo("수정된 내용");
@@ -286,7 +286,7 @@ class CommunityPostServiceTest {
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when & then
-        assertThatThrownBy(() -> communityPostService.updatePost(requestDTO, nonExistentPostId))
+        assertThatThrownBy(() -> communityService.updatePost(requestDTO, nonExistentPostId))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -299,7 +299,7 @@ class CommunityPostServiceTest {
         given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
 
         // when & then
-        assertThatThrownBy(() -> communityPostService.updatePost(requestDTO, postId))
+        assertThatThrownBy(() -> communityService.updatePost(requestDTO, postId))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -311,10 +311,10 @@ class CommunityPostServiceTest {
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when
-        communityPostService.deletePost(postId);
+        communityService.deletePost(postId);
 
         // then
-        assertThatThrownBy(() -> communityPostService.getPost(postId))
+        assertThatThrownBy(() -> communityService.getPost(postId))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -326,7 +326,7 @@ class CommunityPostServiceTest {
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when & then
-        assertThatThrownBy(() -> communityPostService.deletePost(nonExistentPostId))
+        assertThatThrownBy(() -> communityService.deletePost(nonExistentPostId))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -338,7 +338,7 @@ class CommunityPostServiceTest {
         given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
 
         // when & then
-        assertThatThrownBy(() -> communityPostService.deletePost(postId))
+        assertThatThrownBy(() -> communityService.deletePost(postId))
                 .isInstanceOf(CustomException.class);
     }
 }
