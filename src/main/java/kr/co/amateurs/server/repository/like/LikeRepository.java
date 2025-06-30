@@ -1,7 +1,6 @@
 package kr.co.amateurs.server.repository.like;
 
 import kr.co.amateurs.server.domain.entity.like.Like;
-import kr.co.amateurs.server.domain.entity.post.Post;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -28,4 +27,6 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
 
     @Query("SELECT l.comment.id FROM Like l WHERE l.comment.id IN :commentIds AND l.user.id = :userId")
     Set<Long> findByCommentIdsAndUserId(@Param("commentIds") List<Long> commentIds, @Param("userId") Long userId);
+
+    boolean existsByPost_IdAndUser_Id(Long postId, Long id);
 }
