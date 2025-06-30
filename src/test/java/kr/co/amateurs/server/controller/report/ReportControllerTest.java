@@ -17,8 +17,6 @@ import kr.co.amateurs.server.service.report.ReportTestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.security.test.context.support.WithMockUser;
 
 
 import static io.restassured.RestAssured.given;
@@ -52,6 +50,7 @@ public class ReportControllerTest extends AbstractControllerTest {
 
     @BeforeEach
     void setUp() {
+        bookmarkRepository.deleteAll();
         reportRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();
