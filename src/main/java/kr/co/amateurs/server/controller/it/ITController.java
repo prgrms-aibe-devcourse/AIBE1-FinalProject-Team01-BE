@@ -1,5 +1,8 @@
 package kr.co.amateurs.server.controller.it;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
@@ -7,7 +10,7 @@ import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.Operation;
+import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.it.ITService;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +24,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/IT")
 @RequiredArgsConstructor
+@Tag(name="IT", description = "IT 게시판 관련 API")
 public class ITController {
     private final ITService itService;
-    // TODO ITResponseDTO 와 CommunityResponseDTO 가 현재 같음 나중에 리팩토링 예쩡
 
+    @Operation(
+            summary = "IT 게시글 목록 조회",
+            description = "IT 게시판의 게시글 목록을 페이지네이션으로 조회합니다. 키워드 검색을 지원합니다."
+    )
     @BoardAccess(needCategory = true, category = BoardCategory.IT)
     @GetMapping("/{boardType}")
     public ResponseEntity<Page<ITResponseDTO>> searchPosts(
@@ -39,6 +46,10 @@ public class ITController {
         return ResponseEntity.ok(postsPage);
     }
 
+    @Operation(
+            summary = "IT 게시글 상세 조회",
+            description = "특정 IT 게시글의 상세 정보를 조회합니다."
+    )
     @BoardAccess(needCategory = true, category = BoardCategory.IT, hasPostId = true)
     @GetMapping("/{boardType}/{postId}")
     public ResponseEntity<ITResponseDTO> getPost(
@@ -49,18 +60,26 @@ public class ITController {
         return ResponseEntity.ok(post);
     }
 
-    @BoardAccess(needCategory = true, category = BoardCategory.IT, operation = Operation.WRITE)
+    @BoardAccess(needCategory = true, category = BoardCategory.IT, operation = OperationType.WRITE)
     @PostMapping("/{boardType}")
+    @Operation(
+            summary = "IT 게시글 작성",
+            description = "새로운 IT 게시글을 작성합니다. 해당 게시판의 쓰기 권한이 있어야 합니다."
+    )
     public ResponseEntity<ITResponseDTO> createPost(
             @PathVariable BoardType boardType,
-            @RequestBody ITRequestDTO requestDTO
+            @Valid @RequestBody ITRequestDTO requestDTO
     ){
         ITResponseDTO post = itService.createPost(requestDTO, boardType);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @Operation(
+            summary = "IT 게시글 수정",
+            description = "기존 IT 게시글을 수정합니다. 게시글 작성자만 수정할 수 있습니다."
+    )
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @PutMapping("/{boardType}/{postId}")
     public ResponseEntity<Void> updatePost(
             @PathVariable BoardType boardType,
@@ -72,7 +91,11 @@ public class ITController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = Operation.WRITE)
+    @Operation(
+            summary = "IT 게시글 삭제",
+            description = "IT 게시글을 삭제합니다. 게시글 작성자만 삭제할 수 있습니다."
+    )
+    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @DeleteMapping("/{boardType}/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable BoardType boardType,

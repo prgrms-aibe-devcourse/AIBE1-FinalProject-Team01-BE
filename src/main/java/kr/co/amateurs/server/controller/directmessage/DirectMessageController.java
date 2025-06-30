@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "DM API")
+@Tag(name = "DM", description = "DM 관련 API")
 @RestController
 @RequestMapping("api/v1/dm")
 @RequiredArgsConstructor
