@@ -127,7 +127,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .when()
                 .put("/users/profile/basic")
                 .then()
-                .statusCode(401);
+                .statusCode(403);
     }
 
     @Test
