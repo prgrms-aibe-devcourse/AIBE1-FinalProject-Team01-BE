@@ -3,9 +3,12 @@ package kr.co.amateurs.server.service;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.user.*;
+import kr.co.amateurs.server.domain.dto.user.UserProfileResponseDto;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -15,7 +18,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.Set;
 
 @Service
@@ -37,7 +42,7 @@ public class UserService {
         }
     }
 
-    public User saveUser(User user) {
+    public User saveUser (User user) {
         return userRepository.save(user);
     }
 
@@ -179,5 +184,24 @@ public class UserService {
         if (topics.size() > 3) {
             throw ErrorCode.TOPICS_TOO_MANY.get();
         }
+    }
+
+    public String getDevcourseName(Long userId) {
+        return userRepository.findById(userId)
+                .map(User::getDevcourseName)
+                .map(DevCourseTrack::getDescription)
+                .orElse("정보 없음");
+    }
+
+    public String getUserTopics(Long userId) {
+        List<Topic> topics = userRepository.findTopicDisplayNamesByUserId(userId);
+        return topics.stream()
+                .map(Topic::getDisplayName)
+                .collect(Collectors.joining(", "));
+    }
+
+    public User findById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
     }
 }

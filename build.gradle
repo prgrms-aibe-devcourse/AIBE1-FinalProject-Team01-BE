@@ -19,7 +19,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-//		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(17)
 	}
 }
 
@@ -33,78 +33,72 @@ repositories {
 	mavenCentral()
 }
 
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.ai:spring-ai-bom:1.0.0"
-	}
-}
-
 sourceSets {
-	main {
-		java {
-			srcDirs = ["src/main/java", "src/generated"]
-		}
-	}
+    main {
+        java {
+            srcDirs = ["src/main/java", "src/generated"]
+        }
+    }
 }
 
 jooq {
-	version = "${jooqVersion}"
+    version = "${jooqVersion}"
 
-	withContainer {
-		image {
-			name = "mysql:8.0.41"
-			envVars = [
-					MYSQL_ROOT_PASSWORD: "passwd",
-					MYSQL_DATABASE     : "amateurs_db"
-			]
-		}
+    withContainer {
+        image {
+            name = "mysql:8.0.41"
+            envVars = [
+                    MYSQL_ROOT_PASSWORD: "passwd",
+                    MYSQL_DATABASE     : "amateurs_db"
+            ]
+        }
 
-		db {
-			username = "root"
-			password = "passwd"
-			name = "amateurs_db"
-			port = 3306
-			jdbc {
-				schema = "jdbc:mysql"
-				driverClassName = "com.mysql.cj.jdbc.Driver"
-			}
-		}
-	}
+        db {
+            username = "root"
+            password = "passwd"
+            name = "amateurs_db"
+            port = 3306
+            jdbc {
+                schema = "jdbc:mysql"
+                driverClassName = "com.mysql.cj.jdbc.Driver"
+            }
+        }
+    }
 }
 
 tasks {
-	generateJooqClasses {
-		schemas.set(["amateurs_db"])
-		outputDirectory.set(project.layout.projectDirectory.dir("src/generated"))
-		includeFlywayTable.set(false)
+    generateJooqClasses {
+        schemas.set(["amateurs_db"])
+        outputDirectory.set(project.layout.projectDirectory.dir("src/generated"))
+        includeFlywayTable.set(false)
 
-		usingJavaConfig {
-			generate = new Generate()
-					.withJavaTimeTypes(true)
-					.withDeprecated(false)
-					.withDaos(false)
-					.withFluentSetters(true)
-					.withRecords(true)
-					.withPojos(true)
-					.withSpringAnnotations(true)
-					.withValidationAnnotations(true)
+        usingJavaConfig {
+            generate = new Generate()
+                    .withJavaTimeTypes(true)
+                    .withDeprecated(false)
+                    .withDaos(false)
+                    .withFluentSetters(true)
+                    .withRecords(true)
+                    .withPojos(true)
+                    .withSpringAnnotations(true)
+                    .withValidationAnnotations(true)
 
-			database.withForcedTypes(
-					new ForcedType()
-							.withUserType("java.lang.Long")
-							.withTypes("int unsigned"),
-					new ForcedType()
-							.withUserType("java.lang.Integer")
-							.withTypes("tinyint unsigned"),
-					new ForcedType()
-							.withUserType("java.lang.Integer")
-							.withTypes("smallint unsigned"),
-					new ForcedType()
-							.withUserType("java.lang.Boolean")
-							.withTypes("tinyint\\(1\\)")
-			)
-		}
-	}
+            database.withForcedTypes(
+                    new ForcedType()
+                            .withUserType("java.lang.Long")
+                            .withTypes("int unsigned"),
+                    new ForcedType()
+                            .withUserType("java.lang.Integer")
+                            .withTypes("tinyint unsigned"),
+                    new ForcedType()
+                            .withUserType("java.lang.Integer")
+                            .withTypes("smallint unsigned"),
+                    new ForcedType()
+                            .withUserType("java.lang.Boolean")
+                            .withTypes("tinyint\\(1\\)")
+            )
+        }
+    }
 }
 
 dependencies {
@@ -125,25 +119,28 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-	// AI 관련 의존성
-//	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
-//	implementation 'org.springframework.ai:spring-ai-starter-vector-store-qdrant'
+	//AI
+	implementation 'dev.langchain4j:langchain4j:1.0.0-alpha1'
+	implementation 'dev.langchain4j:langchain4j-google-ai-gemini:1.0.0-alpha1'
+	implementation 'dev.langchain4j:langchain4j-spring-boot-starter:1.0.0-alpha1'
+	implementation 'dev.langchain4j:langchain4j-open-ai:1.0.0-alpha1'
+	implementation 'dev.langchain4j:langchain4j-qdrant:1.0.0-alpha1'
 
-	// AWS S3 관련 의존성
-	implementation 'software.amazon.awssdk:s3:2.31.68'
-	implementation 'software.amazon.awssdk:auth:2.31.68'
+    // AWS S3 관련 의존성
+    implementation 'software.amazon.awssdk:s3:2.31.68'
+    implementation 'software.amazon.awssdk:auth:2.31.68'
 
-	implementation "org.jooq:jooq:${jooqVersion}"
-	implementation('org.springframework.boot:spring-boot-starter-jooq') {
-		exclude group: 'org.jooq'
-	}
+    implementation "org.jooq:jooq:${jooqVersion}"
+    implementation('org.springframework.boot:spring-boot-starter-jooq') {
+        exclude group: 'org.jooq'
+    }
 
-	jooqCodegen "org.jooq:jooq:${jooqVersion}"
-	jooqCodegen "org.jooq:jooq-meta:${jooqVersion}"
-	jooqCodegen "org.jooq:jooq-codegen:${jooqVersion}"
-	jooqCodegen 'com.mysql:mysql-connector-j'
-	jooqCodegen 'org.flywaydb:flyway-core'
-	jooqCodegen 'org.flywaydb:flyway-mysql'
+    jooqCodegen "org.jooq:jooq:${jooqVersion}"
+    jooqCodegen "org.jooq:jooq-meta:${jooqVersion}"
+    jooqCodegen "org.jooq:jooq-codegen:${jooqVersion}"
+    jooqCodegen 'com.mysql:mysql-connector-j'
+    jooqCodegen 'org.flywaydb:flyway-core'
+    jooqCodegen 'org.flywaydb:flyway-mysql'
 
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'

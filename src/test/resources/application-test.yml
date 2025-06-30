@@ -23,13 +23,20 @@ spring:
     console:
       enabled: true
 
-  ai:
-    openai:
-      api-key: sk-test-dummy12345678901234567890123456789012345678 # dummy key for testing
-    vectorstore:
-      qdrant:
-        url: http://localhost:6333
-        collection-name: test-collection
+langchain4j:
+  google-ai-gemini:
+    api-key: dummy-api-key # Replace with a dummy or test API key
+    model-name: gemini-1.5-flash
+
+openai:
+  api-key: sk-test-key-do-not-use-in-dev-or-prod # Replace with a dummy or test API key
+  embedding-model: text-embedding-3-small
+
+qdrant:
+  host: dummy-qdrant-url # Replace with a dummy or test Qdrant URL
+  port: 6334
+  api-key: dummy-api-key
+  collection-name: amateurs
 
   data:
     mongodb:

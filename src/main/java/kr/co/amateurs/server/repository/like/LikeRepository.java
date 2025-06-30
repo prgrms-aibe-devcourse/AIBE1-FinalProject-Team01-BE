@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import java.time.LocalDateTime;
+
 public interface LikeRepository extends JpaRepository<Like, Long> {
 
     Optional<Like> findByPostIdAndUserId(Long postId, Long id);
@@ -41,4 +43,8 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     );
 
     boolean existsByPost_IdAndUser_Id(Long postId, Long id);
+
+    boolean existsByUserIdAndUpdatedAtAfter(Long userId, LocalDateTime since);
+
+    List<Like> findTop3ByUserIdAndPostIsNotNullOrderByCreatedAtDesc(Long userId);
 }
