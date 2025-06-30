@@ -45,7 +45,7 @@ public class ReportService {
 
     @Transactional
     public ReportResponseDTO createReport(ReportRequestDTO requestDTO) {
-        User user = userService.getCurrentUser().orElseThrow(ErrorCode.NOT_FOUND);
+        User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
 
         Report report = createReportEntity(requestDTO, user);
         Report savedReport = reportRepository.save(report);
@@ -55,14 +55,14 @@ public class ReportService {
 
     @Transactional
     public void updateStatusReport(Long reportId, ReportStatus status) {
-        Report report = reportRepository.findById(reportId).orElseThrow(ErrorCode.NOT_FOUND);
+        Report report = reportRepository.findById(reportId).orElseThrow(ErrorCode.REPORT_NOT_FOUND);
 
         report.updateStatusReport(status);
     }
 
     @Transactional
     public void deleteReport(Long reportId) {
-        Report report = reportRepository.findById(reportId).orElseThrow(ErrorCode.NOT_FOUND);
+        Report report = reportRepository.findById(reportId).orElseThrow(ErrorCode.REPORT_NOT_FOUND);
 
         reportRepository.delete(report);
     }
