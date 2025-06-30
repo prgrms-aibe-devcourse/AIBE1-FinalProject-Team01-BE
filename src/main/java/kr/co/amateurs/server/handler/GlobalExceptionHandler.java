@@ -8,11 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @Slf4j
@@ -69,6 +69,17 @@ public class GlobalExceptionHandler {
         ErrorResponse error = ErrorResponse.from(e, HttpStatus.BAD_REQUEST);
         return ResponseEntity.badRequest().body(error);
     }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    protected ResponseEntity<ErrorResponse> handleAuthorizationDenied(
+            final AuthorizationDeniedException e,
+            HttpServletRequest request) {
+
+        logError(request, e, "AuthorizationDeniedException");
+        ErrorResponse error = ErrorResponse.from(e, HttpStatus.FORBIDDEN);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
 
     private void logError(HttpServletRequest request, Exception e, String errorMessage) {
         String method = request.getMethod();
