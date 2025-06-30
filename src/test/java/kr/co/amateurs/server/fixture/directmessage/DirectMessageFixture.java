@@ -4,9 +4,11 @@ import kr.co.amateurs.server.domain.entity.directmessage.DirectMessage;
 import kr.co.amateurs.server.domain.entity.directmessage.enums.MessageType;
 import kr.co.amateurs.server.fixture.common.TestConstants;
 import kr.co.amateurs.server.repository.directmessage.DirectMessageRepository;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+@Component
 public class DirectMessageFixture {
 
     // 메시지 내용 상수

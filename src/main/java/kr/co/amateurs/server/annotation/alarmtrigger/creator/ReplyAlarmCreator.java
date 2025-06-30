@@ -51,7 +51,7 @@ public class ReplyAlarmCreator implements AlarmCreator {
         }
 
         if (response.parentCommentId() == null) {
-            throw new CustomException(ErrorCode.NOT_FOUND_ROOM);
+            throw new CustomException(ErrorCode.NOT_FOUND);
         }
 
         Comment comment = commentService.findCommentById(response.parentCommentId());
