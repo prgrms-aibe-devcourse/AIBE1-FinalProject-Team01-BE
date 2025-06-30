@@ -1,5 +1,8 @@
 package kr.co.amateurs.server.service.bookmark;
 
+import kr.co.amateurs.server.domain.dto.ai.PostContentData;
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.config.jwt.CustomUserDetailsService;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.bookmark.*;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
@@ -27,6 +30,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+
+import java.util.Collections;
+import java.util.List;
 
 import static kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO.*;
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
@@ -113,4 +119,14 @@ public class BookmarkService {
             throw new CustomException(ErrorCode.ACCESS_DENIED, "본인의 북마크에만 접근할 수 있습니다.");
         }
     }
+    public List<PostContentData> getBookmarkedPosts(Long userId) {
+        try {
+            List<Bookmark> bookmarks = bookmarkRepository.findTop3ByUserIdOrderByCreatedAtDesc(userId);
+            return bookmarks.stream().map(bookmark
+                    -> new PostContentData(bookmark.getPost().getId(), bookmark.getPost().getTitle(), bookmark.getPost().getContent(), "북마크")).toList();
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
 }

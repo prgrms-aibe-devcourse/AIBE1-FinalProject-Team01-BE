@@ -300,7 +300,7 @@ public class MatchControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/v1/matches/{matchId}", nonExistentId))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -316,7 +316,7 @@ public class MatchControllerTest {
         mockMvc.perform(put("/api/v1/matches/{matchId}", nonExistentId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test

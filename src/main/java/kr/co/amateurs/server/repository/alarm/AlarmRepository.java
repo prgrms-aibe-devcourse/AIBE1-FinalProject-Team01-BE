@@ -15,7 +15,7 @@ public interface AlarmRepository extends MongoRepository<Alarm, String> {
     void markAllAsReadByUserId(long userId);
 
     @Modifying
-    @Query("{ 'userId': ?0, 'alarmId': ?1 }")
+    @Query("{ 'userId': ?0, '_id': ?1 }")
     @Update("{ '$set': { 'isRead': true } }")
     void markAsReadByUserIdAndId(long userId, String alarmId);
 

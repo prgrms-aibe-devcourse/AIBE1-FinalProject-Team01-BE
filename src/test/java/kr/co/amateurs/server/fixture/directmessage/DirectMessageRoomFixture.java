@@ -4,9 +4,11 @@ import kr.co.amateurs.server.domain.entity.directmessage.DirectMessageRoom;
 import kr.co.amateurs.server.domain.entity.directmessage.Participant;
 import kr.co.amateurs.server.fixture.common.TestConstants;
 import kr.co.amateurs.server.repository.directmessage.DirectMessageRoomRepository;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class DirectMessageRoomFixture {
 
     // Room ID 상수들

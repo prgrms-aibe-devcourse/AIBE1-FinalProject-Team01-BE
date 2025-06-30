@@ -21,17 +21,25 @@ public enum ErrorCode implements Supplier<CustomException> {
 
     // 알람 관련 에러
     ALARM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 알림입니다."),
-    ILLEGAL_ALARM_EXTRACTOR(HttpStatus.INTERNAL_SERVER_ERROR, "지원하지 않는 알림 수신자 타입입니다."),
+    ILLEGAL_ALARM_CREATOR(HttpStatus.INTERNAL_SERVER_ERROR, "지원하지 않는 알림 생성자 타입입니다."),
     UNSUPPORTED_RESULT_TYPE(HttpStatus.INTERNAL_SERVER_ERROR, "지원하지 않는 결과 타입입니다."),
 
     // 회원가입 관련 에러
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "이미 사용 중인 이메일입니다."),
     DUPLICATE_NICKNAME(HttpStatus.BAD_REQUEST, "이미 사용 중인 닉네임입니다."),
 
+    // 회원 정보 수정 관련 에러
+    EMPTY_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호를 입력해주세요."),
+    INVALID_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다."),
+
     // 로그인 관련 에러
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 사용자입니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     ANONYMOUS_USER(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
+
+    // 토픽 관련 에러
+    TOPICS_REQUIRED(HttpStatus.BAD_REQUEST, "관심 주제를 최소 1개 이상 선택해주세요."),
+    TOPICS_TOO_MANY(HttpStatus.BAD_REQUEST, "관심 주제는 최대 3개까지 선택할 수 있습니다."),
 
     // 토큰 관련 에러
     EMPTY_EMAIL(HttpStatus.BAD_REQUEST, "이메일은 필수입니다."),
@@ -51,11 +59,29 @@ public enum ErrorCode implements Supplier<CustomException> {
 
     // POST
     POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시글을 찾을 수 없습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 정보입니다."),
 
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 정보입니다.");
+    // REPORT
+    REPORT_NOT_FOUND(HttpStatus.BAD_REQUEST, "신고 글을 찾을 수 없습니다."),
 
+    // 댓글
+    INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "자식 댓글에는 댓글을 달 수 없습니다."),
 
-   ;
+    // AI 프로필 관련
+    ERROR_SUMMARIZE(HttpStatus.INTERNAL_SERVER_ERROR, "활동 요약 생성 중 오류가 발생했습니다."),
+    ERROR_AI_PROFILE_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "AI 프로필 생성 중 오류가 발생했습니다."),
+    ERROR_AI_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "AI 프로필을 찾을 수 없습니다."),
+    ERROR_USER_ACTIVITY_INSUFFICIENT(HttpStatus.BAD_REQUEST, "사용자 활동이 부족하여 AI 프로필을 생성할 수 없습니다."),
+
+    // 추천 시스템 관련
+    ERROR_AI_RECOMMENDATION_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "추천 생성 중 오류가 발생했습니다."),
+    ERROR_AI_RECOMMENDATION_SAVE(HttpStatus.INTERNAL_SERVER_ERROR, "추천 게시글 저장 중 오류가 발생했습니다."),
+    ERROR_AI_RECOMMENDATION_NOT_FOUND(HttpStatus.NOT_FOUND, "저장된 추천 게시글을 찾을 수 없습니다."),
+
+    // 임베딩 관련
+    ERROR_AI_EMBEDDING_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 생성 중 오류가 발생했습니다."),
+    ERROR_AI_EMBEDDING_SEARCH(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 검색 중 오류가 발생했습니다."),
+    ERROR_AI_EMBEDDING_INITIALIZE(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 초기화 중 오류가 발생했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

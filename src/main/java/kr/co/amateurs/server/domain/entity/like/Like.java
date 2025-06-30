@@ -14,7 +14,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class Like extends BaseEntity {
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     private Post post;

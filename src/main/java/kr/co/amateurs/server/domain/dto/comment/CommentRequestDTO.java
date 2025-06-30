@@ -1,5 +1,7 @@
 package kr.co.amateurs.server.domain.dto.comment;
 
+import jakarta.validation.constraints.NotBlank;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
@@ -10,11 +12,11 @@ public record CommentRequestDTO(
                 nullable = true
         )
     Long parentCommentId,
+    @NotBlank(message = "댓글에 빈 내용을 넣을 수 없습니다.")
         @Schema(
                 description = "댓글 내용",
                 example = "좋은 글 감사합니다!",
                 maxLength = 500
         )
-        @NotBlank(message = "댓글은 빈 내용일 수 없습니다.")
     String content
 ) {}

@@ -3,6 +3,7 @@ package kr.co.amateurs.server.controller.comment;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.Valid;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
@@ -50,7 +51,7 @@ public class CommentController {
             @RequestParam(required = false) Long cursor,  // 대댓글 커서
             @RequestParam(defaultValue = "5") int size
     ) {
-        CommentPageDTO replies = commentService.getReplies(postId,commentId, cursor, size);
+        CommentPageDTO replies = commentService.getReplies(commentId, cursor, size);
         return ResponseEntity.ok(replies);
     }
 
@@ -79,7 +80,7 @@ public class CommentController {
             @PathVariable Long commentId,
             @Valid @RequestBody CommentRequestDTO requestDTO
     ){
-        commentService.updateComment(postId, commentId, requestDTO);
+        commentService.updateComment(commentId, requestDTO);
         return ResponseEntity.noContent().build();
     }
 
@@ -93,7 +94,7 @@ public class CommentController {
         @PathVariable Long postId,
         @PathVariable Long commentId
     ){
-        commentService.deleteComment(postId,commentId);
+        commentService.deleteComment(commentId);
         return ResponseEntity.noContent().build();
     }
 }

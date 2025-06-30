@@ -21,7 +21,4 @@ public class RecommendedPost extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
-
-    @Column(name = "recommendation_reason", nullable = false, length = 500)
-    private String recommendationReason;
 }

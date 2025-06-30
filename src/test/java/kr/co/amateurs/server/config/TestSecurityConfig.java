@@ -5,6 +5,7 @@ import kr.co.amateurs.server.config.jwt.JwtProvider;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,6 +15,7 @@ import static org.mockito.Mockito.mock;
 
 @TestConfiguration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class TestSecurityConfig {
 
     @Bean

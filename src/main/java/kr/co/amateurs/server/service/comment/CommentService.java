@@ -5,23 +5,23 @@ import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
+import kr.co.amateurs.server.domain.dto.like.CommentLikeStatusDTO;
 import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
+import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,8 +32,9 @@ public class CommentService {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
 
-    // TODO 사용자가 댓글을 좋아요를 눌렀는지 확인하는 로직 구현 필요
+    private final UserService userService;
 
     public CommentPageDTO getCommentsByPostId(Long postId, Long cursor, int size) {
         Post post = findPostById(postId);
@@ -44,7 +45,7 @@ public class CommentService {
         return createCommentPageDTO(commentDTOs, size);
     }
 
-    public CommentPageDTO getReplies(Long postId, Long parentCommentId, Long cursor, int size) {
+    public CommentPageDTO getReplies(Long parentCommentId, Long cursor, int size) {
         Comment parentComment = findCommentById(parentCommentId);
 
         List<Comment> comments = fetchReplies(parentComment, cursor, size + CURSOR_OFFSET);
@@ -56,8 +57,7 @@ public class CommentService {
     @Transactional
     @AlarmTrigger(type = AlarmType.COMMENT)
     public CommentResponseDTO createComment(Long postId, CommentRequestDTO requestDTO) {
-        // TODO 유저 검증, 게시판 권한 로직
-        User user = null;
+        User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
 
         Post post = findPostById(postId);
 
@@ -70,31 +70,29 @@ public class CommentService {
     }
 
     @Transactional
-    public void updateComment(Long postId, Long commentId, CommentRequestDTO requestDTO) {
-        // TODO 유저 검증, 게시판 검증 로직
-        User user = null;
-        Post post = findPostById(postId);
-
+    public void updateComment(Long commentId, CommentRequestDTO requestDTO) {
         Comment comment = findCommentById(commentId);
-        // TODO 댓글 유저 같은지 확인 로직 수정 예정
-//        if (!comment.getUser().equals(user)) {
-//            throw new CustomException(ErrorCode.ACCESS_DENIED);
-//        }
+
+        validateCommentAccess(comment.getUser().getId());
 
         comment.updateContent(requestDTO.content());
     }
 
     @Transactional
-    public void deleteComment(Long postId, Long commentId) {
-        // TODO 유저 검증, 게시판 검증 로직
-        User user = null;
-        Post post = findPostById(postId);
-
+    public void deleteComment(Long commentId) {
         Comment comment = findCommentById(commentId);
-        // TODO 댓글 유저 같은지 확인 로직 수정 예정
 
-        // TODO soft delete 구현 시 변경
+        validateCommentAccess(comment.getUser().getId());
+
         commentRepository.delete(comment);
+    }
+
+    private void validateCommentAccess(Long commentUserId) {
+        User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        if (!commentUserId.equals(user.getId())) {
+            throw new CustomException(ErrorCode.ACCESS_DENIED);
+        }
     }
 
     private CommentPageDTO createCommentPageDTO(List<CommentResponseDTO> commentDTOs, int size) {
@@ -115,7 +113,7 @@ public class CommentService {
 
         Comment parentComment = findCommentById(parentCommentId);
         if (parentComment.getParentComment() != null) {
-            throw new CustomException(ErrorCode.NOT_FOUND); // ErrorCode > 답글에는 답글을 달 수 없습니다.
+            throw new CustomException(ErrorCode.INVALID_PARENT_COMMENT);
         }
 
         return Optional.of(parentComment);
@@ -126,7 +124,7 @@ public class CommentService {
                 .orElseThrow(ErrorCode.NOT_FOUND);
     }
 
-    private Comment findCommentById(Long commentId) {
+    public Comment findCommentById(Long commentId) {
         return commentRepository.findById(commentId)
                 .orElseThrow(ErrorCode.NOT_FOUND);
     }
@@ -153,19 +151,31 @@ public class CommentService {
         }
 
         Map<Long, Integer> replyCountMap = getReplyCountMap(comments);
+        Map<Long, Boolean> likeStatusMap = getUserLikeStatusMap(comments);
+
 
         return comments.stream()
                 .map(comment -> CommentResponseDTO.from(
                         comment,
                         replyCountMap.getOrDefault(comment.getId(), 0),
-                        false
+                        likeStatusMap.getOrDefault(comment.getId(), false)
                 ))
                 .toList();
     }
 
     private List<CommentResponseDTO> convertToReplyDTOs(List<Comment> comments) {
+        if (comments.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Long, Boolean> likeStatusMap = getUserLikeStatusMap(comments);
+
         return comments.stream()
-                .map(comment -> CommentResponseDTO.from(comment, 0, true))
+                .map(comment -> CommentResponseDTO.from(
+                        comment,
+                        0,
+                        likeStatusMap.getOrDefault(comment.getId(), false)
+                ))
                 .toList();
     }
 
@@ -179,6 +189,27 @@ public class CommentService {
                 .collect(Collectors.toMap(
                         replyCount -> replyCount.getParentCommentId(),
                         replyCount -> replyCount.getCount().intValue()
+                ));
+    }
+
+    private Map<Long, Boolean> getUserLikeStatusMap(List<Comment> comments) {
+        User user = userService.getCurrentUser().orElse(null);
+
+        if (user == null) {
+            return comments.stream()
+                    .collect(Collectors.toMap(Comment::getId, comment -> false));
+        }
+
+        List<Long> commentIds = comments.stream()
+                .map(Comment::getId)
+                .toList();
+
+        List<CommentLikeStatusDTO> commentLikeStatus = likeRepository.findCommentLikeStatusByCommentIdsAndUserId(commentIds, user.getId());
+
+        return commentLikeStatus.stream()
+                .collect(Collectors.toMap(
+                        CommentLikeStatusDTO::commentId,
+                        CommentLikeStatusDTO::isLiked
                 ));
     }
 }

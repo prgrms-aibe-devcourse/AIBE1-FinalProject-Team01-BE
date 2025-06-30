@@ -295,7 +295,7 @@ public class MarketControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/v1/market/{marketId}", nonExistentId))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -311,7 +311,7 @@ public class MarketControllerTest {
         mockMvc.perform(put("/api/v1/market/{marketId}", nonExistentId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test

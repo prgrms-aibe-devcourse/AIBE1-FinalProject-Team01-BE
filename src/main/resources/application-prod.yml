@@ -12,7 +12,7 @@ spring:
       connection-timeout: 30000
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
     properties:
@@ -20,6 +20,12 @@ spring:
         show_sql: false
         format_sql: false
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+  flyway:
+    enabled: false
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+    validate-on-migrate: true
 
   data:
     mongodb:
@@ -31,22 +37,26 @@ spring:
   springdoc:
     swagger-ui:
       enabled: false
+    enable-kotlin: false
 
   output:
     ansi:
       enabled: always
 
-  ai:
-    openai:
-      api-key: ${OPENAI_API_KEY}
-      chat:
-        options:
-          model: ${OPENA_CHAT_MODEL}
-    vectorstore:
-      qdrant:
-        url: ${QDRANT_URL}
-        api-key: ${QDRANT_API_KEY}
-        collection-name: ${QDRANT_COLLECTION_NAME}
+langchain4j:
+  google-ai-gemini:
+    api-key: ${GEMINI_API_KEY}
+    model-name: ${GEMINI_MODEL}
+
+openai:
+  api-key: ${OPENAI_API_KEY}
+  embedding-model: ${OPENAI_MODEL}
+
+qdrant:
+  host: ${QDRANT_URL}
+  port: 6334
+  api-key: ${QDRANT_API_KEY}
+  collection-name: amateurs
 
 jwt:
   secret: ${JWT_SECRET}

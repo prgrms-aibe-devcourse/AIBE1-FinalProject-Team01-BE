@@ -1,7 +1,9 @@
 package kr.co.amateurs.server.service.like;
 
+import kr.co.amateurs.server.domain.dto.ai.PostContentData;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.like.LikeResponseDTO;
+import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.like.Like;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -18,6 +20,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 import java.util.Optional;
+
+import java.util.Collections;
+import java.util.List;
 
 import static kr.co.amateurs.server.domain.dto.like.LikeResponseDTO.convertToDTO;
 
@@ -88,6 +93,16 @@ public class LikeService {
         Role currentRole = currentUser.getRole();
         if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
             throw new CustomException(ErrorCode.ACCESS_DENIED, "본인의 북마크에만 접근할 수 있습니다.");
+        }
+    }
+
+    public List<PostContentData> getLikedPosts(Long userId) {
+        try {
+            List<Like> likes = likeRepository.findTop3ByUserIdAndPostIsNotNullOrderByCreatedAtDesc(userId);
+            return likes.stream().map(like ->
+                    new PostContentData(like.getPost().getId(), like.getPost().getTitle(), like.getPost().getContent(), "좋아요")).toList();
+        } catch (Exception e) {
+            return Collections.emptyList();
         }
     }
 }

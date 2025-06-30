@@ -34,7 +34,7 @@ public class PaginationParam {
     @Builder.Default
     protected Sort.Direction sortDirection = Sort.Direction.DESC;
     @Builder.Default
-    protected PaginationSortType field = PaginationSortType.EMPTY;
+    protected PaginationSortType field = PaginationSortType.ID;
 
     public Pageable toPageable() {
         return PageRequest.of(page, size, sortDirection, field.getField());
