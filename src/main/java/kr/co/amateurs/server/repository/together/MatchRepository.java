@@ -59,4 +59,5 @@ public interface MatchRepository extends JpaRepository<MatchingPost, Long> {
 //            Pageable pageable
 //    );
 
+    MatchingPost findByPostId(Long postId);
 }

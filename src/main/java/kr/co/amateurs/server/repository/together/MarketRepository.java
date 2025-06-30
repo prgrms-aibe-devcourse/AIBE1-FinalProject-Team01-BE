@@ -59,4 +59,6 @@ public interface MarketRepository extends JpaRepository<MarketItem, Long> {
 //            @Param("keyword") String keyword,
 //            Pageable pageable
 //    );
+
+    MarketItem findByPostId(Long postId);
 }

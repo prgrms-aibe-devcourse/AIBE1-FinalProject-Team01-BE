@@ -60,4 +60,6 @@ public interface GatheringRepository extends JpaRepository<GatheringPost, Long> 
 //            Pageable pageable
 //    );
 
+    GatheringPost findByPostId(Long postId);
+
 }
