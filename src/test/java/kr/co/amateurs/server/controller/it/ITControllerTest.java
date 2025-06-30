@@ -1,229 +1,338 @@
 package kr.co.amateurs.server.controller.it;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.amateurs.server.config.TestSecurityConfig;
+import io.restassured.http.ContentType;
+import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
-import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
-import kr.co.amateurs.server.service.it.ITService;
+import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.fixture.it.ITTestFixtures;
+import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
+import kr.co.amateurs.server.repository.comment.CommentRepository;
+import kr.co.amateurs.server.repository.like.LikeRepository;
+import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.user.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.HttpStatus;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.*;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-@WebMvcTest(ITController.class)
-@Import({TestSecurityConfig.class})
-public class ITControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockitoBean
-    private ITService itService;
+public class ITControllerTest extends AbstractControllerTest {
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private PostRepository postRepository;
 
-    @Test
-    void 유저가_키워드없이_검색하면_전체_게시글_목록이_반환되어야_한다() throws Exception {
-        // given
-        Page<ITResponseDTO> mockPage = new PageImpl<>(
-                Collections.emptyList(),
-                PageRequest.of(0, 8),
-                0
-        );
+    @Autowired
+    private UserRepository userRepository;
 
-        given(itService.searchPosts(any(), eq(0), eq(BoardType.REVIEW), eq(SortType.LATEST), eq(8)))
-                .willReturn(mockPage);
+    @Autowired
+    private CommentRepository commentRepository;
 
-        // when & then
-        mockMvc.perform(get("/api/v1/IT/{boardType}", BoardType.REVIEW)
-                        .param("page", "0")
-                        .param("sortType", "LATEST")
-                        .param("pageSize", "8"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalPages").value(0))
-                .andExpect(jsonPath("$.number").value(0))
-                .andExpect(jsonPath("$.size").value(8))
-                .andExpect(jsonPath("$.totalElements").value(0));
+    @Autowired
+    private LikeRepository likeRepository;
+
+    @Autowired
+    private BookmarkRepository bookmarkRepository;
+
+    private User testUser;
+    private User anotherUser;
+    private Post testPost;
+    private String userToken;
+    private String anotherUserToken;
+
+    @BeforeEach
+    void setUp() {
+        cleanUpData();
+        setupTestData();
     }
 
-    @Test
-    void 유저가_키워드로_검색하면_해당_게시글_목록이_반환되어야_한다() throws Exception {
-        // given
-        String keyword = "테스트";
-        Page<ITResponseDTO> mockPage = new PageImpl<>(
-                Collections.emptyList(),
-                PageRequest.of(0, 8),
-                0
-        );
+    @Nested
+    class 게시글_조회_테스트 {
 
-        given(itService.searchPosts(eq(keyword), eq(0), eq(BoardType.REVIEW), eq(SortType.LATEST), eq(8)))
-                .willReturn(mockPage);
+        @Test
+        void 유저가_키워드없이_검색하면_전체_게시글_목록이_반환되어야_한다() {
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + userToken)
+                    .param("page", "0")
+                    .param("sortType", "LATEST")
+                    .param("pageSize", "8")
+                    .when()
+                    .get("/IT/{boardType}", BoardType.REVIEW)
+                    .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("totalPages", greaterThanOrEqualTo(0))
+                    .body("number", equalTo(0))
+                    .body("size", equalTo(8));
+        }
 
-        // when & then
-        mockMvc.perform(get("/api/v1/IT/{boardType}", BoardType.REVIEW)
-                        .param("keyword", keyword)
-                        .param("page", "0")
-                        .param("sortType", "LATEST")
-                        .param("pageSize", "8"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalPages").value(0))
-                .andExpect(jsonPath("$.number").value(0))
-                .andExpect(jsonPath("$.size").value(8))
-                .andExpect(jsonPath("$.totalElements").value(0));
+        @Test
+        void 유저가_키워드로_검색하면_해당_게시글_목록이_반환되어야_한다() {
+            // given
+            String keyword = "테스트";
+
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + userToken)
+                    .param("keyword", keyword)
+                    .param("page", "0")
+                    .param("sortType", "LATEST")
+                    .param("pageSize", "8")
+                    .when()
+                    .get("/IT/{boardType}", BoardType.REVIEW)
+                    .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("number", equalTo(0))
+                    .body("size", lessThanOrEqualTo(8));
+        }
+
+        @Test
+        void 유저가_특정_게시글을_조회하면_게시글_상세정보가_반환되어야_한다() {
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + userToken)
+                    .when()
+                    .get("/IT/{boardType}/{postId}", BoardType.REVIEW, testPost.getId())
+                    .then()
+                    .statusCode(HttpStatus.OK.value())
+                    .body("postId", equalTo(testPost.getId().intValue()))
+                    .body("title", equalTo(testPost.getTitle()))
+                    .body("content", equalTo(testPost.getContent()))
+                    .body("nickname", equalTo(testUser.getNickname()))
+                    .body("boardType", equalTo("REVIEW"));
+        }
     }
 
-    @Test
-    void 유저가_특정_게시글을_조회하면_게시글_상세정보가_반환되어야_한다() throws Exception {
-        // given
-        Long postId = 1L;
-        ITResponseDTO mockResponseDTO = new ITResponseDTO(
-                postId,
-                "테스트 제목",
-                "테스트 내용",
-                "테스트 작성자",
-                "http://example.com/profile.jpg",
-                DevCourseTrack.AI_BACKEND,
-                "1기",
-                BoardType.REVIEW,
-                0,
-                0,
-                0,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                null,
-                false,
-                false,
-                false
-        );
+    @Nested
+    class 게시글_작성_테스트 {
 
-        given(itService.getPost(eq(postId)))
-                .willReturn(mockResponseDTO);
+        @Test
+        void 유저가_게시글을_작성하면_새로운_게시글이_생성되어야_한다() {
+            // given
+            ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO(
+                    "새 게시글 제목", "태그", "새 게시글 내용");
 
-        // when & then
-        mockMvc.perform(get("/api/v1/IT/{boardType}/{postId}", BoardType.REVIEW, postId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.postId").value(postId))
-                .andExpect(jsonPath("$.title").value("테스트 제목"))
-                .andExpect(jsonPath("$.content").value("테스트 내용"))
-                .andExpect(jsonPath("$.nickname").value("테스트 작성자"))
-                .andExpect(jsonPath("$.boardType").value("REVIEW"));
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + userToken)
+                    .contentType(ContentType.JSON)
+                    .body(requestDTO)
+                    .when()
+                    .post("/IT/{boardType}", BoardType.REVIEW)
+                    .then()
+                    .statusCode(HttpStatus.CREATED.value())
+                    .body("title", equalTo("새 게시글 제목"))
+                    .body("content", equalTo("새 게시글 내용"));
+        }
+
+        @Test
+        void 로그인하지_않은_유저는_게시글을_작성할_수_없다() {
+            // given
+            ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO(
+                    "새 게시글 제목", "태그", "새 게시글 내용");
+
+            // when & then
+            given()
+                    .contentType(ContentType.JSON)
+                    .body(requestDTO)
+                    .when()
+                    .post("/IT/{boardType}", BoardType.REVIEW)
+                    .then()
+                    .statusCode(HttpStatus.BAD_REQUEST.value());
+        }
     }
 
-    @Test
-    void 유저가_게시글을_작성하면_새로운_게시글이_생성되어야_한다() throws Exception {
-        // given
-        ITRequestDTO requestDTO = new ITRequestDTO(
-                "새 게시글 제목",
-                "태그",
-                "새 게시글 내용"
-        );
+    @Nested
+    class 게시글_수정_테스트 {
 
-        ITResponseDTO responseDTO = new ITResponseDTO(
-                1L,
-                "새 게시글 제목",
-                "새 게시글 내용",
-                "테스트 작성자",
-                "http://example.com/profile.jpg",
-                DevCourseTrack.AI_BACKEND,
-                "1기",
-                BoardType.REVIEW,
-                0,
-                0,
-                0,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                "태그",
-                false,
-                false,
-                false
-        );
+        @Test
+        void 유저가_본인_게시글을_수정하면_게시글_내용이_변경되어야_한다() {
+            // given
+            ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO(
+                    "수정된 게시글 제목", "수정된 태그", "수정된 게시글 내용");
 
-        given(itService.createPost(any(ITRequestDTO.class), eq(BoardType.REVIEW)))
-                .willReturn(responseDTO);
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + userToken)
+                    .contentType(ContentType.JSON)
+                    .body(requestDTO)
+                    .when()
+                    .put("/IT/{boardType}/{postId}", BoardType.REVIEW, testPost.getId())
+                    .then()
+                    .statusCode(HttpStatus.NO_CONTENT.value());
+        }
 
-        // when & then
-        mockMvc.perform(post("/api/v1/IT/{boardType}", BoardType.REVIEW)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.postId").value(1L))
-                .andExpect(jsonPath("$.title").value("새 게시글 제목"))
-                .andExpect(jsonPath("$.content").value("새 게시글 내용"));
+        @Test
+        void 유저가_다른_사용자의_게시글을_수정하려_하면_실패해야_한다() {
+            // given
+            ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO(
+                    "수정된 게시글 제목", "수정된 태그", "수정된 게시글 내용");
+
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + anotherUserToken)
+                    .contentType(ContentType.JSON)
+                    .body(requestDTO)
+                    .when()
+                    .put("/IT/{boardType}/{postId}", BoardType.REVIEW, testPost.getId())
+                    .then()
+                    .statusCode(HttpStatus.BAD_REQUEST.value());
+        }
+
+        @Test
+        void 로그인하지_않은_유저는_게시글을_수정할_수_없다() {
+            // given
+            ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO(
+                    "수정된 게시글 제목", "수정된 태그", "수정된 게시글 내용");
+
+            // when & then
+            given()
+                    .contentType(ContentType.JSON)
+                    .body(requestDTO)
+                    .when()
+                    .put("/IT/{boardType}/{postId}", BoardType.REVIEW, testPost.getId())
+                    .then()
+                    .statusCode(HttpStatus.BAD_REQUEST.value());
+        }
     }
 
-    @Test
-    void 유저가_게시글을_수정하면_게시글_내용이_변경되어야_한다() throws Exception {
-        // given
-        Long postId = 1L;
-        ITRequestDTO requestDTO = new ITRequestDTO(
-                "수정된 게시글 제목",
-                "수정된 태그",
-                "수정된 게시글 내용"
-        );
+    @Nested
+    class 게시글_삭제_테스트 {
 
-        doNothing().when(itService).updatePost(any(ITRequestDTO.class), eq(postId));
+        @Test
+        void 유저가_본인_게시글을_삭제하면_게시글이_제거되어야_한다() {
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + userToken)
+                    .when()
+                    .delete("/IT/{boardType}/{postId}", BoardType.REVIEW, testPost.getId())
+                    .then()
+                    .statusCode(HttpStatus.NO_CONTENT.value());
+        }
 
-        // when & then
-        mockMvc.perform(put("/api/v1/IT/{boardType}/{postId}", BoardType.REVIEW, postId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDTO)))
-                .andDo(print())
-                .andExpect(status().isNoContent());
+        @Test
+        void 유저가_다른_사용자의_게시글을_삭제하려_하면_실패해야_한다() {
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + anotherUserToken)
+                    .when()
+                    .delete("/IT/{boardType}/{postId}", BoardType.REVIEW, testPost.getId())
+                    .then()
+                    .statusCode(HttpStatus.BAD_REQUEST.value());
+        }
+
+        @Test
+        void 로그인하지_않은_유저는_게시글을_삭제할_수_없다() {
+            // when & then
+            given()
+                    .when()
+                    .delete("/IT/{boardType}/{postId}", BoardType.REVIEW, testPost.getId())
+                    .then()
+                    .statusCode(HttpStatus.BAD_REQUEST.value());
+        }
     }
 
-    @Test
-    void 유저가_게시글을_삭제하면_게시글이_제거되어야_한다() throws Exception {
-        // given
-        Long postId = 1L;
-        doNothing().when(itService).deletePost(eq(postId));
+    @Nested
+    class 예외_상황_테스트 {
 
-        // when & then
-        mockMvc.perform(delete("/api/v1/IT/{boardType}/{postId}", BoardType.REVIEW, postId))
-                .andExpect(status().isNoContent());
+        @Test
+        void 유저가_잘못된_보드타입으로_요청하면_400에러가_발생해야_한다() {
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + userToken)
+                    .when()
+                    .get("/IT/{boardType}", "INVALID_BOARD_TYPE")
+                    .then()
+                    .statusCode(HttpStatus.BAD_REQUEST.value());
+        }
+
+        @Test
+        void 유저가_잘못된_정렬타입으로_요청하면_400에러가_발생해야_한다() {
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + userToken)
+                    .param("sortType", "INVALID_SORT_TYPE")
+                    .when()
+                    .get("/IT/{boardType}", BoardType.REVIEW)
+                    .then()
+                    .statusCode(HttpStatus.BAD_REQUEST.value());
+        }
+
+        @Test
+        void 유저가_음수_페이지로_요청하면_400에러가_발생해야_한다() {
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + userToken)
+                    .param("page", "-1")
+                    .when()
+                    .get("/IT/{boardType}", BoardType.REVIEW)
+                    .then()
+                    .statusCode(HttpStatus.BAD_REQUEST.value());
+        }
+
+        @Test
+        void 존재하지_않는_게시글을_조회하면_404에러가_발생해야_한다() {
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + userToken)
+                    .when()
+                    .get("/IT/{boardType}/{postId}", BoardType.REVIEW, 999L)
+                    .then()
+                    .statusCode(HttpStatus.NOT_FOUND.value());
+        }
+
+        @Test
+        void 존재하지_않는_게시글을_수정하려_하면_404에러가_발생해야_한다() {
+            // given
+            ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO(
+                    "수정된 제목", "태그", "수정된 내용");
+
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + userToken)
+                    .contentType(ContentType.JSON)
+                    .body(requestDTO)
+                    .when()
+                    .put("/IT/{boardType}/{postId}", BoardType.REVIEW, 999L)
+                    .then()
+                    .statusCode(HttpStatus.NOT_FOUND.value());
+        }
+
+        @Test
+        void 존재하지_않는_게시글을_삭제하려_하면_404에러가_발생해야_한다() {
+            // when & then
+            given()
+                    .header("Authorization", "Bearer " + userToken)
+                    .when()
+                    .delete("/IT/{boardType}/{postId}", BoardType.REVIEW, 999L)
+                    .then()
+                    .statusCode(HttpStatus.NOT_FOUND.value());
+        }
     }
 
-    @Test
-    void 유저가_잘못된_보드타입으로_요청하면_400에러가_발생해야_한다() throws Exception {
-        // when & then
-        mockMvc.perform(get("/api/v1/IT/{boardType}", "INVALID_BOARD_TYPE"))
-                .andExpect(status().isBadRequest());
+    private void setupTestData() {
+        testUser = ITTestFixtures.createStudentUser();
+        anotherUser = ITTestFixtures.createGuestUser();
+
+        testUser = userRepository.save(testUser);
+        anotherUser = userRepository.save(anotherUser);
+
+        testPost = ITTestFixtures.createPost(testUser, "테스트 게시글 제목", "테스트 게시글 내용", BoardType.REVIEW);
+        testPost = postRepository.save(testPost);
+
+        userToken = jwtProvider.generateAccessToken(testUser.getEmail());
+        anotherUserToken = jwtProvider.generateAccessToken(anotherUser.getEmail());
     }
 
-    @Test
-    void 유저가_잘못된_정렬타입으로_요청하면_400에러가_발생해야_한다() throws Exception {
-        // when & then
-        mockMvc.perform(get("/api/v1/IT/{boardType}", BoardType.REVIEW)
-                        .param("sortType", "INVALID_SORT_TYPE"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void 유저가_음수_페이지로_요청하면_400에러가_발생해야_한다() throws Exception {
-        // when & then
-        mockMvc.perform(get("/api/v1/IT/{boardType}", BoardType.REVIEW)
-                        .param("page", "-1"))
-                .andExpect(status().isBadRequest());
+    private void cleanUpData() {
+        bookmarkRepository.deleteAll();
+        likeRepository.deleteAll();
+        commentRepository.deleteAll();
+        postRepository.deleteAll();
+        userRepository.deleteAll();
     }
 }

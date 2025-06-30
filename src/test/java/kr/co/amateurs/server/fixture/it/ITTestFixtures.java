@@ -1,4 +1,4 @@
-package kr.co.amateurs.server.service.it;
+package kr.co.amateurs.server.fixture.it;
 
 import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
