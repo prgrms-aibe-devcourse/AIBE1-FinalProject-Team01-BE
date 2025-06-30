@@ -34,10 +34,21 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-  springdoc:
-    swagger-ui:
-      enabled: false
-    enable-kotlin: false
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: user:email
+            redirect-uri: ${GITHUB_REDIRECT_URI}
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  enable-kotlin: false
 
   output:
     ansi:
