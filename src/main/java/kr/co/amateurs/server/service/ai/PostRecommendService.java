@@ -4,13 +4,16 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.ai.PostRecommendationResponse;
+import kr.co.amateurs.server.domain.dto.post.PopularPostResponse;
 import kr.co.amateurs.server.domain.entity.ai.AiProfile;
 import kr.co.amateurs.server.domain.entity.ai.RecommendedPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.ai.AiProfileRepository;
 import kr.co.amateurs.server.repository.ai.AiRecommendPostRepository;
+import kr.co.amateurs.server.repository.post.PopularPostRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.post.PopularPostService;
 import kr.co.amateurs.server.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +33,7 @@ public class PostRecommendService {
     private final AiProfileRepository aiProfileRepository;
     private final UserService userService;
     private final AiRecommendPostRepository aiRecommendPostRepository;
+    private final PopularPostService popularPostService;
 
 
     /**
@@ -130,13 +134,15 @@ public class PostRecommendService {
     }
 
     private List<Post> getGuestPost(Long userId, int limit) {
-        return postService.findPopularPosts(limit);
+        return popularPostService.getPopularPostsAsEntity(limit);
     }
 
     private List<PostRecommendationResponse> getGuestPostAsResponse(Long userId, int limit) {
         log.info("게스트 사용자 인기글 추천: userId={}, limit={}", userId, limit);
-        return postService.findPopularPosts(limit).stream()
-                .map(PostRecommendationResponse::from)
+
+        List<PopularPostResponse> popularPosts = popularPostService.getPopularPosts(limit);
+        return popularPosts.stream()
+                .map(PopularPostResponse::toRecommendationResponse)
                 .collect(Collectors.toList());
     }
 

@@ -77,4 +77,10 @@ public class PopularPostService {
                 calculatedDate
         );
     }
+
+    // PostRecommendService 에서 사용
+    @Transactional(readOnly = true)
+    public List<Post> getPopularPostsAsEntity(int limit) {
+        return popularPostRepository.findLatestPopularPosts(limit);
+    }
 }

@@ -9,6 +9,7 @@ public record PostRecommendationResponse(
         String title,
         String authorNickname,
         Integer likeCount,
+        Integer viewCount,
         Integer commentCount,
         String boardType,
         LocalDateTime createdAt
@@ -19,6 +20,7 @@ public record PostRecommendationResponse(
                 post.getTitle(),
                 post.getUser().getNickname(),
                 post.getLikeCount(),
+                post.getViewCount(),
                 post.getComments().size(),
                 post.getBoardType().toString(),
                 post.getCreatedAt()

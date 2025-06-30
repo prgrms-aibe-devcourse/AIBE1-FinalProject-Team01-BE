@@ -5,11 +5,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.ai.AiProfileResponse;
 import kr.co.amateurs.server.domain.dto.ai.PostRecommendationResponse;
+import kr.co.amateurs.server.domain.dto.post.PopularPostResponse;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.service.ai.AiProfileService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingManageService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.ai.PostRecommendService;
+import kr.co.amateurs.server.service.post.PopularPostService;
 import kr.co.amateurs.server.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +33,7 @@ public class AiController {
     private final PostRecommendService postRecommendService;
     private final PostEmbeddingManageService postEmbeddingManageService;
     private final PostEmbeddingService postEmbeddingService;
-    private final PostService postService;
+    private final PopularPostService popularPostService;
 
     @GetMapping("/posts/recommendations")
     @Operation(summary = "AI 개인화 게시글 추천", description = "사용자의 AI 프로필을 기반으로 맞춤 게시글을 추천합니다")
@@ -45,11 +47,11 @@ public class AiController {
     }
 
     @GetMapping("/posts/popular")
-    @Operation(summary="일반 인기글 추천", description= "인기 게시글을 추천합니다. (좋아요 기반)")
-    public ResponseEntity<List<Post>> getPopularPosts(
+    @Operation(summary="일반 인기글 추천", description= "인기 게시글을 추천합니다. (조회수 + 좋아요 + 댓글 기반)")
+    public ResponseEntity<List<PopularPostResponse>> getPopularPosts(
             @RequestParam(defaultValue = "10") int limit) {
 
-        List<Post> popularPosts = postService.findPopularPosts(limit);
+        List<PopularPostResponse> popularPosts = popularPostService.getPopularPosts(limit);
         return ResponseEntity.ok(popularPosts);
     }
 
