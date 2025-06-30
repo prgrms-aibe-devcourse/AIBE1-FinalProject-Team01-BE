@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.domain.entity.ai;
 
 import jakarta.persistence.*;
+import kr.co.amateurs.server.domain.dto.ai.AiProfileResponse;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.user.User;
 import lombok.*;
@@ -23,4 +24,9 @@ public class AiProfile extends BaseEntity {
 
     @Column(name = "interest_keywords", nullable = false, length = 1024)
     private String interestKeywords;
+
+    public void updateProfile(AiProfileResponse response) {
+        this.personaDescription = response.personaDescription();
+        this.interestKeywords = response.interestKeywords();
+    }
 }

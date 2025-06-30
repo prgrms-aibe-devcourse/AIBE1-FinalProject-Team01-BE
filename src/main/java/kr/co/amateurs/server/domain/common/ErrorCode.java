@@ -59,6 +59,7 @@ public enum ErrorCode implements Supplier<CustomException> {
 
     // POST
     POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시글을 찾을 수 없습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 정보입니다."),
 
     // REPORT
     REPORT_NOT_FOUND(HttpStatus.BAD_REQUEST, "신고 글을 찾을 수 없습니다."),
@@ -66,10 +67,21 @@ public enum ErrorCode implements Supplier<CustomException> {
     // 댓글
     INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "자식 댓글에는 댓글을 달 수 없습니다."),
 
-    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 정보입니다.");
+    // AI 프로필 관련
+    ERROR_SUMMARIZE(HttpStatus.INTERNAL_SERVER_ERROR, "활동 요약 생성 중 오류가 발생했습니다."),
+    ERROR_AI_PROFILE_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "AI 프로필 생성 중 오류가 발생했습니다."),
+    ERROR_AI_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "AI 프로필을 찾을 수 없습니다."),
+    ERROR_USER_ACTIVITY_INSUFFICIENT(HttpStatus.BAD_REQUEST, "사용자 활동이 부족하여 AI 프로필을 생성할 수 없습니다."),
 
+    // 추천 시스템 관련
+    ERROR_AI_RECOMMENDATION_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "추천 생성 중 오류가 발생했습니다."),
+    ERROR_AI_RECOMMENDATION_SAVE(HttpStatus.INTERNAL_SERVER_ERROR, "추천 게시글 저장 중 오류가 발생했습니다."),
+    ERROR_AI_RECOMMENDATION_NOT_FOUND(HttpStatus.NOT_FOUND, "저장된 추천 게시글을 찾을 수 없습니다."),
 
-   ;
+    // 임베딩 관련
+    ERROR_AI_EMBEDDING_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 생성 중 오류가 발생했습니다."),
+    ERROR_AI_EMBEDDING_SEARCH(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 검색 중 오류가 발생했습니다."),
+    ERROR_AI_EMBEDDING_INITIALIZE(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 초기화 중 오류가 발생했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
