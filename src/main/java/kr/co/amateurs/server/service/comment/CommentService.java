@@ -44,6 +44,11 @@ public class CommentService {
         return createCommentPageDTO(commentDTOs, size);
     }
 
+    public Comment findById(long commentId) {
+        return commentRepository.findById(commentId)
+                .orElseThrow(ErrorCode.NOT_FOUND);
+    }
+
     public CommentPageDTO getReplies(Long postId, Long parentCommentId, Long cursor, int size) {
         Comment parentComment = findCommentById(parentCommentId);
 
@@ -126,7 +131,7 @@ public class CommentService {
                 .orElseThrow(ErrorCode.NOT_FOUND);
     }
 
-    private Comment findCommentById(Long commentId) {
+    public Comment findCommentById(Long commentId) {
         return commentRepository.findById(commentId)
                 .orElseThrow(ErrorCode.NOT_FOUND);
     }
