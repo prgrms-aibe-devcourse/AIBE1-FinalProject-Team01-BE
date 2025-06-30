@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface LikeRepository extends JpaRepository<Like, Long> {
 
@@ -28,6 +30,14 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     @Modifying
     @Query("UPDATE Comment c SET c.likeCount = c.likeCount + 1 WHERE c.id = :commentId")
     void increaseCommentLikeCount(@Param("commentId") Long commentId);
+    @Query("SELECT new kr.co.amateurs.server.domain.dto.like.CommentLikeStatusDTO(c.id, " +
+            "CASE WHEN l.id IS NOT NULL THEN true ELSE false END) " +
+            "FROM Comment c LEFT JOIN Like l ON c.id = l.comment.id AND l.user.id = :userId " +
+            "WHERE c.id IN :commentIds")
+    List<CommentLikeStatusDTO> findCommentLikeStatusByCommentIdsAndUserId(
+            @Param("commentIds") List<Long> commentIds,
+            @Param("userId") Long userId
+    );
 
     boolean existsByPost_IdAndUser_Id(Long postId, Long id);
 }

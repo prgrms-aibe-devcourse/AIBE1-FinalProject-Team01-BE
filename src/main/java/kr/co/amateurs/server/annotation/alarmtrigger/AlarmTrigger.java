@@ -14,18 +14,23 @@ import java.lang.annotation.Target;
  * 자동으로 지정된 타입의 알람을 생성하여 해당 수신자에게 전송합니다.
  * 
  * 사용 예시:
- * @AlarmTrigger(type = AlarmType.COMMENT)
- * public CommentResponse createComment(Long postId, CommentRequest request) {
- *     // 댓글 생성 로직
- *     return response;
- * }
+ * - 댓글 생성: AlarmTrigger(type = AlarmType.COMMENT)
+ * - 직접 메시지 전송: AlarmTrigger(type = AlarmType.DIRECT_MESSAGE)
  * 
- * 위의 경우 댓글 생성이 성공하면 게시글 작성자에게 댓글 알람이 자동으로 전송됩니다.
+ * 동작 방식:
+ * 1. 메서드 실행 완료 후 AlarmAspect가 실행
+ * 2. 어노테이션의 type 값으로 해당 AlarmCreator 조회
+ * 3. 메서드 반환값을 이용해 알람 생성 및 저장
  * 
  * 주의사항:
  * - 메서드가 예외 없이 정상 완료되어야 알람이 발생합니다
- * - 메서드의 반환값은 해당 AlarmProcessor가 처리할 수 있는 타입이어야 합니다
+ * - 메서드의 반환값은 해당 AlarmCreator가 처리할 수 있는 타입이어야 합니다
  * - 별도 트랜잭션으로 실행되므로 알람 생성 실패가 메인 로직에 영향을 주지 않습니다
+ * 
+ * 지원되는 알람 타입:
+ * - COMMENT: 댓글 알람 (CommentAlarmCreator)
+ * - REPLY: 대댓글 알람 (ReplyAlarmCreator)
+ * - DIRECT_MESSAGE: 직접 메시지 알람 (DirectMessageAlarmCreator)
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
