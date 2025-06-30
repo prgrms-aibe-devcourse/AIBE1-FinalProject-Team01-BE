@@ -19,45 +19,45 @@ public interface MatchRepository extends JpaRepository<MatchingPost, Long> {
                or :keyword = ''
                or p.title   like concat('%', :keyword, '%')
                or p.content like concat('%', :keyword, '%')
-             )
-        order by p.createdAt desc
+               )
     """)
     Page<MatchingPost> findAllByKeyword(
             @Param("keyword") String keyword,
             Pageable pageable
     );
 
-    @Query("""
-        select g
-        from MatchingPost g
-        join fetch g.post p
-        where (:keyword is null
-               or :keyword = ''
-               or p.title   like concat('%', :keyword, '%')
-               or p.content like concat('%', :keyword, '%')
-             )
-        order by p.likeCount desc
-    """)
-    Page<MatchingPost> findAllByKeywordOrderByLikeCountDesc(
-            @Param("keyword") String keyword,
-            Pageable pageable
-    );
-
-    @Query("""
-        select g
-        from MatchingPost g
-        join fetch g.post p
-        where (:keyword is null
-               or :keyword = ''
-               or p.title   like concat('%', :keyword, '%')
-               or p.content like concat('%', :keyword, '%')
-             )
-        order by p.viewCount desc
-    """)
-    Page<MatchingPost> findAllByKeywordOrderByViewCountDesc(
-            @Param("keyword") String keyword,
-            Pageable pageable
-    );
+    // TODO - 테스트 코드 수정 후 통과 시 삭제 예정
+//    @Query("""
+//        select g
+//        from MatchingPost g
+//        join fetch g.post p
+//        where (:keyword is null
+//               or :keyword = ''
+//               or p.title   like concat('%', :keyword, '%')
+//               or p.content like concat('%', :keyword, '%')
+//             )
+//        order by p.likeCount desc
+//    """)
+//    Page<MatchingPost> findAllByKeywordOrderByLikeCountDesc(
+//            @Param("keyword") String keyword,
+//            Pageable pageable
+//    );
+//
+//    @Query("""
+//        select g
+//        from MatchingPost g
+//        join fetch g.post p
+//        where (:keyword is null
+//               or :keyword = ''
+//               or p.title   like concat('%', :keyword, '%')
+//               or p.content like concat('%', :keyword, '%')
+//             )
+//        order by p.viewCount desc
+//    """)
+//    Page<MatchingPost> findAllByKeywordOrderByViewCountDesc(
+//            @Param("keyword") String keyword,
+//            Pageable pageable
+//    );
 
     MatchingPost findByPostId(Long postId);
 }

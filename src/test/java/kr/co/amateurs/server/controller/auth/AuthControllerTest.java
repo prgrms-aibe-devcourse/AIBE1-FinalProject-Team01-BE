@@ -20,19 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
-@Transactional
 @Import(EmbeddedRedisConfig.class)
 public class AuthControllerTest extends AbstractControllerTest {
-
-    @LocalServerPort
-    private int port;
-
-    @BeforeEach
-    void setUp() {
-        RestAssured.port = port;
-    }
 
     @Test
     void 정상적인_로그인_요청_시_JWT_토큰이_반환되어야_한다() {

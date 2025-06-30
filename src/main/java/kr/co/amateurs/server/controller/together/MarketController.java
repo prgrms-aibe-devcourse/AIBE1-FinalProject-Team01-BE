@@ -2,25 +2,19 @@ package kr.co.amateurs.server.controller.together;
 
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
-import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
+import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.Operation;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.together.MarketService;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -34,7 +28,7 @@ public class MarketController {
     @BoardAccess(hasBoardType = false, boardType = BoardType.MARKET)
     @GetMapping
     public ResponseEntity<PageResponseDTO<MarketPostResponseDTO>> getMarketPostList(
-            @ParameterObject @Valid TogetherPaginationParam paginationParam
+            @ParameterObject @Valid PostPaginationParam paginationParam
             ){
         PageResponseDTO<MarketPostResponseDTO> marketList = marketService.getMarketPostList(paginationParam);
         return ResponseEntity.ok(marketList);
