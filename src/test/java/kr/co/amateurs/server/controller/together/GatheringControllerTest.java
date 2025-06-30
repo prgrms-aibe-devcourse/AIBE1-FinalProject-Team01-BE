@@ -298,7 +298,7 @@ public class GatheringControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/v1/gatherings/{gatheringId}", nonExistentId))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -314,7 +314,7 @@ public class GatheringControllerTest {
         mockMvc.perform(put("/api/v1/gatherings/{gatheringId}", nonExistentId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
