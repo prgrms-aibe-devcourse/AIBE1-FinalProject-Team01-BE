@@ -2,10 +2,12 @@ package kr.co.amateurs.server.controller.community;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.amateurs.server.config.TestSecurityConfig;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.service.community.CommunityPostService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,13 +16,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -49,20 +54,26 @@ class CommunityControllerTest {
                 PageRequest.of(0, 8),
                 0
         );
-
-        given(communityPostService.searchPosts(any(), eq(0), eq(BoardType.FREE), eq(SortType.LATEST), eq(8)))
-                .willReturn(mockPage);
+        PostPaginationParam param = PostPaginationParam.builder()
+                .keyword(null)
+                .page(0)
+                .size(8)
+                .sortDirection(Sort.Direction.DESC)
+                .field(PaginationSortType.LATEST)
+                .build();
+        given(communityPostService.searchPosts(eq(BoardType.FREE), eq(param)))
+                .willReturn(convertPageToDTO(mockPage));
 
         // when & then
         mockMvc.perform(get("/api/v1/community/{boardType}", BoardType.FREE)
                         .param("page", "0")
-                        .param("sortType", "LATEST")
-                        .param("pageSize", "8"))
+                        .param("size", "8")
+                        .param("field", "LATEST"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalPages").value(0))
-                .andExpect(jsonPath("$.number").value(0))
-                .andExpect(jsonPath("$.size").value(8))
-                .andExpect(jsonPath("$.totalElements").value(0));
+                .andExpect(jsonPath("$.pageInfo.totalPages").value(0))
+                .andExpect(jsonPath("$.pageInfo.pageNumber").value(0))
+                .andExpect(jsonPath("$.pageInfo.pageSize").value(8))
+                .andExpect(jsonPath("$.pageInfo.totalElements").value(0));
     }
 
     @Test
@@ -74,21 +85,32 @@ class CommunityControllerTest {
                 PageRequest.of(0, 8),
                 0
         );
+        PageResponseDTO<CommunityResponseDTO> expectedResponse =
+                PageResponseDTO.convertPageToDTO(mockPage);
+        PostPaginationParam param = PostPaginationParam.builder()
+                .keyword(keyword)
+                .page(0)
+                .size(8)
+                .sortDirection(Sort.Direction.DESC)
+                .field(PaginationSortType.LATEST)
+                .build();
 
-        given(communityPostService.searchPosts(eq(keyword), eq(0), eq(BoardType.FREE), eq(SortType.LATEST), eq(8)))
-                .willReturn(mockPage);
+        given(communityPostService.searchPosts(eq(BoardType.FREE), eq(param)))
+                .willReturn(expectedResponse);
+
 
         // when & then
         mockMvc.perform(get("/api/v1/community/{boardType}", BoardType.FREE)
                         .param("keyword", keyword)
                         .param("page", "0")
-                        .param("sortType", "LATEST")
-                        .param("pageSize", "8"))
+                        .param("size", "8")
+                        .param("field", "LATEST"))
+                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalPages").value(0))
-                .andExpect(jsonPath("$.number").value(0))
-                .andExpect(jsonPath("$.size").value(8))
-                .andExpect(jsonPath("$.totalElements").value(0));
+                .andExpect(jsonPath("$.pageInfo.totalPages").value(0))
+                .andExpect(jsonPath("$.pageInfo.pageNumber").value(0))
+                .andExpect(jsonPath("$.pageInfo.pageSize").value(8))
+                .andExpect(jsonPath("$.pageInfo.totalElements").value(0));
     }
 
     @Test
@@ -205,10 +227,18 @@ class CommunityControllerTest {
     }
 
     @Test
-    void 유저가_잘못된_정렬타입으로_요청하면_400에러가_발생해야_한다() throws Exception {
+    void 유저가_잘못된_정렬필드로_요청하면_400에러가_발생해야_한다() throws Exception {
         // when & then
         mockMvc.perform(get("/api/v1/community/{boardType}", BoardType.FREE)
-                        .param("sortType", "INVALID_SORT_TYPE"))
+                        .param("field", "INVALID_FIELD"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void 유저가_잘못된_정렬방향으로_요청하면_400에러가_발생해야_한다() throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/v1/community/{boardType}", BoardType.FREE)
+                        .param("sortDirection", "INVALID_DIRECTION"))
                 .andExpect(status().isBadRequest());
     }
 

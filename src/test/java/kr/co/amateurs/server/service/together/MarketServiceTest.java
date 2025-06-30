@@ -1,42 +1,27 @@
 package kr.co.amateurs.server.service.together;
 
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
-import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
-import kr.co.amateurs.server.domain.dto.common.PaginationParam;
-import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
-import kr.co.amateurs.server.domain.dto.together.TogetherPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -84,7 +69,7 @@ public class MarketServiceTest {
 //                createMarketPost("두 번째 물건")
 //        );
 //        Page<MarketItem> page = new PageImpl<>(marketPosts);
-//        TogetherPaginationParam paginationParam = TogetherPaginationParam.builder()
+//        PostPaginationParam paginationParam = PostPaginationParam.builder()
 //                .keyword(null)
 //                .page(0)
 //                .size(10)
@@ -112,7 +97,7 @@ public class MarketServiceTest {
 //                createMarketPost("테스트 물건")
 //        );
 //        Page<MarketItem> page = new PageImpl<>(marketPosts);
-//        TogetherPaginationParam paginationParam = TogetherPaginationParam.builder()
+//        PostPaginationParam paginationParam = PostPaginationParam.builder()
 //                .keyword("")
 //                .page(0)
 //                .size(10)
@@ -139,7 +124,7 @@ public class MarketServiceTest {
 //                createMarketPost("Java 책")
 //        );
 //        Page<MarketItem> page = new PageImpl<>(searchResults);
-//        TogetherPaginationParam paginationParam = TogetherPaginationParam.builder()
+//        PostPaginationParam paginationParam = PostPaginationParam.builder()
 //                .keyword(keyword)
 //                .page(0)
 //                .size(10)
@@ -164,7 +149,7 @@ public class MarketServiceTest {
 //        // given
 //        List<MarketItem> marketPosts = Arrays.asList(createMarketPost("인기 물건"));
 //        Page<MarketItem> page = new PageImpl<>(marketPosts);
-//        TogetherPaginationParam paginationParam = TogetherPaginationParam.builder()
+//        PostPaginationParam paginationParam = PostPaginationParam.builder()
 //                .keyword(null)
 //                .page(0)
 //                .size(10)
@@ -189,7 +174,7 @@ public class MarketServiceTest {
 //        // given
 //        List<MarketItem> marketPosts = Arrays.asList(createMarketPost("조회 많은 물건"));
 //        Page<MarketItem> page = new PageImpl<>(marketPosts);
-//        TogetherPaginationParam paginationParam = TogetherPaginationParam.builder()
+//        PostPaginationParam paginationParam = PostPaginationParam.builder()
 //                .keyword(null)
 //                .page(0)
 //                .size(10)
