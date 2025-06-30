@@ -19,7 +19,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+//		languageVersion = JavaLanguageVersion.of(17)
 	}
 }
 
@@ -126,8 +126,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	// AI 관련 의존성
-	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
-	implementation 'org.springframework.ai:spring-ai-starter-vector-store-qdrant'
+//	implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+//	implementation 'org.springframework.ai:spring-ai-starter-vector-store-qdrant'
 
 	// AWS S3 관련 의존성
 	implementation 'software.amazon.awssdk:s3:2.31.68'

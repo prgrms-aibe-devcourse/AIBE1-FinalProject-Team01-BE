@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.domain.dto.bookmark;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -22,8 +23,11 @@ public record MatchingBookmarkDTO(
         MatchingPostInfo matchingPostInfo
 ) implements BookmarkResponseDTO {
     public record MatchingPostInfo(
+            @Schema(description = "커피챗/멘토링 종류", example = "COFFEE CHAT")
             MatchingType matchingType,
+            @Schema(description = "모집 상태", example = "OPEN")
             MatchingStatus status,
+            @Schema(description = "마감 기한", example = "250628")
             String expertiseAreas
     ) {}
     public static MatchingBookmarkDTO convertToDTO(MatchingPost mp) {

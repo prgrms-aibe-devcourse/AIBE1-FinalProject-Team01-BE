@@ -1,6 +1,8 @@
 package kr.co.amateurs.server.controller.bookmark;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
@@ -13,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-
+@Tag(name = "Bookmark", description = "북마크 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
@@ -22,6 +24,7 @@ public class BookmarkController {
 
     @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
     @GetMapping("/users/{userId}/bookmarks")
+    @Operation(summary = "북마크한 게시글 리스트", description = "북마크한 게시글 리스트를 가져옵니다.")
     public ResponseEntity<PageResponseDTO<BookmarkResponseDTO>> getBookmarkPostList(
             @PathVariable Long userId,
             @ParameterObject @Valid PaginationParam paginationParam
@@ -33,6 +36,7 @@ public class BookmarkController {
 
     @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
     @PostMapping("/users/{userId}/bookmarks/{postId}")
+    @Operation(summary = "북마크 등록", description = "특정 게시글을 북마크에 등록합니다.")
     public ResponseEntity<BookmarkResponseDTO> addBookmarkPost(
             @PathVariable Long userId,
             @PathVariable Long postId
@@ -43,6 +47,7 @@ public class BookmarkController {
 
     @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
     @DeleteMapping("/users/{userId}/bookmarks/{postId}")
+    @Operation(summary = "북마크 제거", description = "북마크 해둔 특정 게시글의 북마크를 해제합니다.")
     public ResponseEntity<Void> removeBookmarkPost(
             @PathVariable Long userId,
             @PathVariable Long postId

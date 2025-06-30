@@ -10,7 +10,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "ALARM API")
+@Tag(name = "Alarm", description = "실시간 알림 관련 API")
 @RestController
 @RequestMapping("api/v1/alarms")
 @RequiredArgsConstructor

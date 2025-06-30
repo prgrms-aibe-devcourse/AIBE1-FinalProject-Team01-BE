@@ -1,6 +1,8 @@
 package kr.co.amateurs.server.controller.file;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.amateurs.server.domain.dto.file.FileResponseDTO;
 import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +22,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/upload")
 @RequiredArgsConstructor
+@Tag(name="File Upload", description = "이미지 파일 업로드 API")
 public class FileController {
     private final FileService fileService;
 
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "이미지 파일 업로드", description = "이미지 파일을 S3에 업로드합니다.")
     public ResponseEntity<FileResponseDTO> uploadImage(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "directory", defaultValue = "post-images") String directory
