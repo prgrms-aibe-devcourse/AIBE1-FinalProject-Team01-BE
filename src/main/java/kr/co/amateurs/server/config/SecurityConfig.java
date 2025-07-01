@@ -4,6 +4,8 @@ import kr.co.amateurs.server.config.auth.CustomAuthorizeHttpRequestsConfigurer;
 import kr.co.amateurs.server.config.jwt.JwtAccessDeniedHandler;
 import kr.co.amateurs.server.config.jwt.JwtAuthenticationEntryPoint;
 import kr.co.amateurs.server.config.jwt.JwtAuthenticationFilter;
+import kr.co.amateurs.server.service.auth.CustomOAuth2UserService;
+import kr.co.amateurs.server.service.auth.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +30,9 @@ public class SecurityConfig {
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final List<CustomAuthorizeHttpRequestsConfigurer> customAuthorizeHttpRequestsConfigurers;
 
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -44,6 +49,13 @@ public class SecurityConfig {
                     auth.requestMatchers("/**").permitAll();
                 })
 
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(oAuth2LoginSuccessHandler)
+                )
+
                 // TODO: 개발 완료 후 아래 설정으로 변경할 예정
 //                .authorizeHttpRequests(auth -> auth
 //                        // 인증 없이 접근 가능
@@ -52,7 +64,9 @@ public class SecurityConfig {
 //                                "/swagger-ui/**",
 //                                "/v3/api-docs/**",
 //                                "/swagger-ui.html",
-//                                "/actuator/**"
+//                                "/actuator/**",
+//                                "/oauth2/**",
+//                                "/login/oauth2/**"
 //                        ).permitAll()
 //
 //                        // 비로그인 사용자

@@ -41,7 +41,7 @@ spring:
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
             scope: user:email
-            redirect-uri: ${GITHUB_REDIRECT_URI}
+            redirect-uri: ${GITHUB_REDIRECT_URI:http://localhost:8080/api/v1/auth/github/callback}
 
 springdoc:
   swagger-ui:
@@ -82,3 +82,6 @@ cloud:
       bucket: ${S3_BUCKET_NAME}
     cloudfront:
       domain: ${CLOUD_FRONT_DOMAIN_NAME}
+
+oauth:
+  success-redirect-url: ${FRONTEND_URL:http://localhost:3000}
