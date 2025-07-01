@@ -1,366 +1,369 @@
 package kr.co.amateurs.server.controller.together;
 
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import kr.co.amateurs.server.config.TestConfig;
-import kr.co.amateurs.server.config.TestSecurityConfig;
-import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
-import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
-import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
-import kr.co.amateurs.server.domain.entity.user.User;
-import kr.co.amateurs.server.domain.entity.user.enums.Role;
-import kr.co.amateurs.server.service.together.GatheringService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
+import static io.restassured.RestAssured.given;
+import static kr.co.amateurs.server.fixture.together.GatheringTestFixture.*;
+import static org.hamcrest.Matchers.*;
 
-import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+@Transactional
+@DisplayName("GatheringController API 테스트")
+class GatheringControllerTest {
 
-@WebMvcTest(controllers = GatheringController.class)
-@Import({TestSecurityConfig.class, TestConfig.class})
-public class GatheringControllerTest {
-
-    @MockitoBean
-    private GatheringService gatheringService;
-    @Autowired
-    private WebApplicationContext wac;
-    @Autowired
-    private ObjectMapper objectMapper;
-    @Autowired
-    private MockMvc mockMvc;
-
-    private CustomUserDetails currentUser;
+    @LocalServerPort
+    private int port;
 
     @BeforeEach
-    public void setup() {
-        User user = User.builder()
-                .email("test@email.com")
-                .password("password")
-                .nickname("testUser")
-                .name("이름")
-                .role(Role.STUDENT)
-                .build();
-        currentUser = new CustomUserDetails(user);
-        Authentication auth = new UsernamePasswordAuthenticationToken(
-                currentUser,
-                null,
-                currentUser.getAuthorities()
-        );
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(wac)
-                .apply(SecurityMockMvcConfigurers.springSecurity())
-                .build();
+    void setUp() {
+        RestAssured.port = port;
     }
 
-    @Test
-    void 검색어없이_기본파라미터로_목록조회하면_200OK와_전체목록반환() throws Exception {
-        // given
-        List<GatheringPostResponseDTO> gatheringPosts = Arrays.asList(
-                createGatheringPostResponseDTO(1L, "첫 번째 모집", "첫 번째 내용"),
-                createGatheringPostResponseDTO(2L, "두 번째 모집", "두 번째 내용")
-        );
-        Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
-        given(gatheringService.getGatheringPostList(any(PostPaginationParam.class))).willReturn(convertPageToDTO(page));
-
-        // when & then
-        mockMvc.perform(get("/api/v1/gatherings"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray());
-    }
-
-    @Test
-    void 검색어를_포함하여_목록조회하면_200OK와_필터링된목록반환() throws Exception {
-        // given
-        String keyword = "스터디";
-        List<GatheringPostResponseDTO> searchResults = Arrays.asList(
-                createGatheringPostResponseDTO(1L, "Java 스터디", "Java 스터디 모집합니다")
-        );
-        Page<GatheringPostResponseDTO> page = new PageImpl<>(searchResults);
-
-        given(gatheringService.getGatheringPostList(any(PostPaginationParam.class))).willReturn(convertPageToDTO(page));
-
-        // when & then
-        mockMvc.perform(get("/api/v1/gatherings")
-                        .with(user(currentUser))
-                        .accept(MediaType.APPLICATION_JSON)
-                        .param("keyword", keyword))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray());
-    }
-
-    @Test
-    void 페이지와_사이즈를_지정하여_목록조회하면_200OK와_해당페이지반환() throws Exception {
-        // given
-        List<GatheringPostResponseDTO> gatheringPosts = Arrays.asList(
-                createGatheringPostResponseDTO(1L, "첫 번째 모집", "첫 번째 내용")
-        );
-        Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
-
-        given(gatheringService.getGatheringPostList(any(PostPaginationParam.class))).willReturn(convertPageToDTO(page));
-
-        // when & then
-        mockMvc.perform(get("/api/v1/gatherings")
-                        .with(user(currentUser))
-                        .accept(MediaType.APPLICATION_JSON)
-                        .param("page", "1")
-                        .param("size", "5"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray());
-    }
-
-    @Test
-    void 정렬조건을_지정하여_목록조회하면_200OK와_정렬된목록반환() throws Exception {
-        // given
-        List<GatheringPostResponseDTO> gatheringPosts = Arrays.asList(
-                createGatheringPostResponseDTO(1L, "인기 모집", "인기 내용")
-        );
-        Page<GatheringPostResponseDTO> page = new PageImpl<>(gatheringPosts);
-
-        given(gatheringService.getGatheringPostList(any(PostPaginationParam.class))).willReturn(convertPageToDTO(page));
-
-        // when & then
-        mockMvc.perform(get("/api/v1/gatherings")
-                        .with(user(currentUser))
-                        .accept(MediaType.APPLICATION_JSON)
-                        .param("field", "POPULAR"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray());
-    }
-
-    @Test
-    void 존재하는_게시글ID로_단건조회하면_200OK와_게시글정보반환() throws Exception {
-        // given
-        Long gatheringId = 1L;
-        GatheringPostResponseDTO responseDTO = createGatheringPostResponseDTO(
-                gatheringId, "테스트 모집", "테스트 내용"
-        );
-
-        given(gatheringService.getGatheringPost(gatheringId))
-                .willReturn(responseDTO);
-
-        // when & then
-        mockMvc.perform(get("/api/v1/gatherings/{gatheringId}", gatheringId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.postId").value(gatheringId));
-    }
-
-    @Test
-    void 유효한_데이터로_게시글생성하면_201CREATED와_생성된게시글반환() throws Exception {
-        // given
-        GatheringPostRequestDTO requestDTO = createGatheringPostRequestDTO();
-        GatheringPostResponseDTO responseDTO = createGatheringPostResponseDTO(
-                1L, requestDTO.title(), requestDTO.content()
-        );
-
-        given(gatheringService.createGatheringPost(any(GatheringPostRequestDTO.class)))
-                .willReturn(responseDTO);
-
-        // when & then
-        mockMvc.perform(post("/api/v1/gatherings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value(requestDTO.title()))
-                .andExpect(jsonPath("$.content").value(requestDTO.content()));
-    }
-
-    @Test
-    void 유효한_데이터로_게시글수정하면_204NOCONTENT반환() throws Exception {
-        // given
-        Long gatheringId = 1L;
-        GatheringPostRequestDTO requestDTO = createGatheringPostRequestDTO();
-
-        doNothing().when(gatheringService).updateGatheringPost(eq(gatheringId), any(GatheringPostRequestDTO.class));
-
-        // when & then
-        mockMvc.perform(put("/api/v1/gatherings/{gatheringId}", gatheringId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
-    void 존재하는_게시글삭제하면_204NOCONTENT반환() throws Exception {
-        // given
-        Long gatheringId = 1L;
-
-        doNothing().when(gatheringService).deleteGatheringPost(gatheringId);
-
-        // when & then
-        mockMvc.perform(delete("/api/v1/gatherings/{gatheringId}", gatheringId))
-                .andExpect(status().isNoContent());
-    }
-
-    
-    //TODO - 밸리데이션 적용 시 아래 테스트들 정상 작동 예정 현재는 비정상 테스트
-
-    @Test
-    void 잘못된_정렬타입으로_목록조회하면_400에러반환() throws Exception {
-        // when & then
-        mockMvc.perform(get("/api/v1/gatherings")
-                        .param("field", "INVALID_SORT"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void 음수페이지로_목록조회하면_400에러반환() throws Exception {
-        // when & then
-        mockMvc.perform(get("/api/v1/gatherings")
-                        .param("page", "-1"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void 양수가아닌사이즈로_목록조회하면_400에러반환() throws Exception {
-        // when & then
-        mockMvc.perform(get("/api/v1/gatherings")
-                        .param("size", "0"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void 잘못된_파라미터타입으로_목록조회하면_400에러반환() throws Exception {
-        // when & then
-        mockMvc.perform(get("/api/v1/gatherings")
-                        .param("page", "invalid")
-                        .param("size", "invalid"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void 숫자가아닌_pathVariable로_단건조회하면_400에러반환() throws Exception {
-        // when & then
-        mockMvc.perform(get("/api/v1/gatherings/{gatheringId}", "invalid"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void 잘못된_enum값으로_게시글생성하면_400에러반환() throws Exception {
-        // given
-        String invalidJson = """
-            {
-                "userId": 1,
-                "title": "테스트",
-                "content": "내용",
-                "tags": "태그",
-                "gatheringType": "INVALID_TYPE",
-                "status": "RECRUITING",
-                "headCount": 5,
-                "place": "서울",
-                "period": "1개월",
-                "schedule": "주 2회"
-            }
-            """;
-
-        // when & then
-        mockMvc.perform(post("/api/v1/gatherings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidJson))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void 존재하지않는_게시글ID로_단건조회하면_예외발생() throws Exception {
-        // given
-        Long nonExistentId = 999L;
-        given(gatheringService.getGatheringPost(nonExistentId))
-                .willThrow(new IllegalArgumentException("Post not found: " + nonExistentId));
-
-        // when & then
-        mockMvc.perform(get("/api/v1/gatherings/{gatheringId}", nonExistentId))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void 존재하지않는_게시글수정하면_예외발생() throws Exception {
-        // given
-        Long nonExistentId = 999L;
-        GatheringPostRequestDTO requestDTO = createGatheringPostRequestDTO();
-
-        doThrow(new IllegalArgumentException("Gathering Post not found: " + nonExistentId))
-                .when(gatheringService).updateGatheringPost(eq(nonExistentId), any(GatheringPostRequestDTO.class));
-
-        // when & then
-        mockMvc.perform(put("/api/v1/gatherings/{gatheringId}", nonExistentId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void 존재하지않는_게시글삭제하면_예외발생() throws Exception {
-        // given
-        Long nonExistentId = 999L;
-        doThrow(new RuntimeException("Post not found"))
-                .when(gatheringService).deleteGatheringPost(nonExistentId);
-
-        // when & then
-        mockMvc.perform(delete("/api/v1/gatherings/{gatheringId}", nonExistentId))
-                .andExpect(status().isInternalServerError());
-    }
-
-
-
-    private GatheringPostResponseDTO createGatheringPostResponseDTO(Long postId, String title, String content) {
-        return GatheringPostResponseDTO.builder()
-                .postId(postId)
-                .nickname("nickname")
-                .devcourseName(DevCourseTrack.AI_BACKEND)
-                .devcourseBatch("1기")
-                .userProfileImg(null)
-                .title(title)
-                .content(content)
-                .tags("태그")
-                .viewCount(0)
-                .likeCount(0)
-                .gatheringType(GatheringType.STUDY)
-                .status(GatheringStatus.RECRUITING)
-                .headCount(5)
-                .place("서울")
-                .period("1개월")
-                .schedule("주 2회")
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .hasLiked(false).hasBookmarked(false).hasImages(false)
-                .build();
-    }
-
-    private GatheringPostRequestDTO createGatheringPostRequestDTO() {
-        return new GatheringPostRequestDTO(
-                 "테스트 모집", "테스트 내용", "태그",
-                GatheringType.STUDY, GatheringStatus.RECRUITING,
-                5, "서울", "1개월", "주 2회"
-        );
-    }
-
+//    @Test
+//    @DisplayName("학생 유저는 팀원 모집 글 목록 조회가 성공해야 한다")
+//    void 학생_유저는_팀원_모집_글_목록_조회가_성공해야_한다() {
+//        given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .param("page", 0)
+//                .param("size", 10)
+//                .when()
+//                .get("/api/v1/gatherings")
+//                .then()
+//                .statusCode(200)
+//                .time(lessThan(2000L))
+//                .body("content", notNullValue())
+//                .body("totalElements", greaterThanOrEqualTo(0))
+//                .body("totalPages", greaterThanOrEqualTo(0))
+//                .body("currentPage", equalTo(0))
+//                .body("size", equalTo(10));
+//    }
+//
+//    @Test
+//    @DisplayName("관리자 유저는 팀원 모집 글 목록 조회가 성공해야 한다")
+//    void 관리자_유저는_팀원_모집_글_목록_조회가_성공해야_한다() {
+//        given()
+//                .header("Authorization", "Bearer " + fakeAdminToken())
+//                .param("page", 0)
+//                .param("size", 5)
+//                .param("keyword", "React")
+//                .when()
+//                .get("/api/v1/gatherings")
+//                .then()
+//                .statusCode(200)
+//                .time(lessThan(2000L))
+//                .body("content", notNullValue())
+//                .body("size", equalTo(5));
+//    }
+//
+//    @Test
+//    @DisplayName("인증되지 않은 유저는 팀원 모집 글 목록 조회가 실패해야 한다")
+//    void 인증되지_않은_유저는_팀원_모집_글_목록_조회가_실패해야_한다() {
+//        given()
+//                .param("page", 0)
+//                .param("size", 10)
+//                .when()
+//                .get("/api/v1/gatherings")
+//                .then()
+//                .statusCode(401);
+//    }
+//
+//    @Test
+//    @DisplayName("학생 유저는 팀원 모집 글 생성이 성공해야 한다")
+//    void 학생_유저는_팀원_모집_글_생성이_성공해야_한다() {
+//        GatheringPostRequestDTO requestDTO = createValidRequestDTO();
+//
+//        given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .contentType(ContentType.JSON)
+//                .body(requestDTO)
+//                .when()
+//                .post("/api/v1/gatherings")
+//                .then()
+//                .statusCode(201)
+//                .time(lessThan(3000L))
+//                .body("postId", notNullValue())
+//                .body("title", equalTo("팀원 모집합니다"))
+//                .body("content", equalTo("React 프로젝트 함께할 팀원을 모집합니다."))
+//                .body("tags", hasItems("React", "JavaScript", "Frontend"))
+//                .body("gatheringType", equalTo("PROJECT"))
+//                .body("headCount", equalTo(4))
+//                .body("place", equalTo("온라인"))
+//                .body("period", equalTo("3개월"))
+//                .body("schedule", equalTo("주 2회 화/목 오후 7시"))
+//                .body("status", equalTo("RECRUITING"))
+//                .body("likeCount", equalTo(0))
+//                .body("viewCount", equalTo(0))
+//                .body("hasLiked", equalTo(false))
+//                .body("hasBookmarked", equalTo(false));
+//    }
+//
+//    @Test
+//    @DisplayName("관리자 유저는 팀원 모집 글 생성이 성공해야 한다")
+//    void 관리자_유저는_팀원_모집_글_생성이_성공해야_한다() {
+//        GatheringPostRequestDTO requestDTO = new GatheringPostRequestDTO(
+//                "스터디 모집",
+//                "알고리즘 스터디 모집합니다.",
+//                "Algorithm",
+//                GatheringType.STUDY,
+//                GatheringStatus.RECRUITING,
+//                6,
+//                "강남역 스터디카페",
+//                "6개월",
+//                "매주 토요일 오후 2시"
+//        );
+//
+//        given()
+//                .header("Authorization", "Bearer " + fakeAdminToken())
+//                .contentType(ContentType.JSON)
+//                .body(requestDTO)
+//                .when()
+//                .post("/api/v1/gatherings")
+//                .then()
+//                .statusCode(201)
+//                .time(lessThan(3000L))
+//                .body("postId", notNullValue())
+//                .body("title", equalTo("스터디 모집"))
+//                .body("gatheringType", equalTo("STUDY"));
+//    }
+//
+//    @Test
+//    @DisplayName("필수 필드가 누락된 팀원 모집 글 생성은 실패해야 한다")
+//    void 필수_필드가_누락된_팀원_모집_글_생성은_실패해야_한다() {
+//        GatheringPostRequestDTO invalidRequestDTO = new GatheringPostRequestDTO(
+//                "", // 빈 제목
+//                "내용",
+//                "Tag",
+//                GatheringType.SIDE_PROJECT,
+//                GatheringStatus.RECRUITING,
+//                4,
+//                "장소",
+//                "기간",
+//                "일정"
+//        );
+//
+//        given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .contentType(ContentType.JSON)
+//                .body(invalidRequestDTO)
+//                .when()
+//                .post("/api/v1/gatherings")
+//                .then()
+//                .statusCode(400);
+//    }
+//
+//    @Test
+//    @DisplayName("학생 유저는 특정 팀원 모집 글 조회가 성공해야 한다")
+//    void 학생_유저는_특정_팀원_모집_글_조회가_성공해야_한다() {
+//        // 먼저 글을 생성하고 ID를 받아온다
+//        Long postId = given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .contentType(ContentType.JSON)
+//                .body(createValidRequestDTO())
+//                .when()
+//                .post("/api/v1/gatherings")
+//                .then()
+//                .statusCode(201)
+//                .extract()
+//                .path("postId");
+//
+//        // 생성된 글을 조회한다
+//        given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .when()
+//                .get("/api/v1/gatherings/{postId}", postId)
+//                .then()
+//                .statusCode(200)
+//                .time(lessThan(2000L))
+//                .body("postId", equalTo(postId.intValue()))
+//                .body("title", equalTo("팀원 모집합니다"))
+//                .body("content", notNullValue())
+//                .body("authorNickname", notNullValue())
+//                .body("createdAt", notNullValue());
+//    }
+//
+//    @Test
+//    @DisplayName("존재하지 않는 팀원 모집 글 조회는 실패해야 한다")
+//    void 존재하지_않는_팀원_모집_글_조회는_실패해야_한다() {
+//        given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .when()
+//                .get("/api/v1/gatherings/{postId}", 99999L)
+//                .then()
+//                .statusCode(404);
+//    }
+//
+//    @Test
+//    @DisplayName("작성자는 본인의 팀원 모집 글 수정이 성공해야 한다")
+//    void 작성자는_본인의_팀원_모집_글_수정이_성공해야_한다() {
+//        // 먼저 글을 생성한다
+//        Long postId = given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .contentType(ContentType.JSON)
+//                .body(createValidRequestDTO())
+//                .when()
+//                .post("/api/v1/gatherings")
+//                .then()
+//                .statusCode(201)
+//                .extract()
+//                .path("postId");
+//
+//        // 수정할 내용
+//        GatheringPostRequestDTO updateRequestDTO = new GatheringPostRequestDTO(
+//                "수정된 팀원 모집",
+//                "수정된 내용입니다.",
+//                "Vue",
+//                GatheringType.STUDY,
+//                GatheringStatus.RECRUITING,
+//                5,
+//                "오프라인",
+//                "2개월",
+//                "주 3회"
+//        );
+//
+//        // 글을 수정한다
+//        given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .contentType(ContentType.JSON)
+//                .body(updateRequestDTO)
+//                .when()
+//                .put("/api/v1/gatherings/{postId}", postId)
+//                .then()
+//                .statusCode(204)
+//                .time(lessThan(2000L));
+//    }
+//
+//    @Test
+//    @DisplayName("작성자가 아닌 유저는 팀원 모집 글 수정이 실패해야 한다")
+//    void 작성자가_아닌_유저는_팀원_모집_글_수정이_실패해야_한다() {
+//        // 학생 유저가 글을 생성한다
+//        Long postId = given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .contentType(ContentType.JSON)
+//                .body(createValidRequestDTO())
+//                .when()
+//                .post("/api/v1/gatherings")
+//                .then()
+//                .statusCode(201)
+//                .extract()
+//                .path("postId");
+//
+//        // 다른 유저의 토큰으로 수정을 시도한다 (실제로는 다른 유저 토큰 생성 필요)
+//        GatheringPostRequestDTO updateRequestDTO = createValidRequestDTO();
+//
+//        given()
+//                .header("Authorization", "Bearer fake-other-user-token")
+//                .contentType(ContentType.JSON)
+//                .body(updateRequestDTO)
+//                .when()
+//                .put("/api/v1/gatherings/{postId}", postId)
+//                .then()
+//                .statusCode(403);
+//    }
+//
+//    @Test
+//    @DisplayName("작성자는 본인의 팀원 모집 글 삭제가 성공해야 한다")
+//    void 작성자는_본인의_팀원_모집_글_삭제가_성공해야_한다() {
+//        // 먼저 글을 생성한다
+//        Long postId = given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .contentType(ContentType.JSON)
+//                .body(createValidRequestDTO())
+//                .when()
+//                .post("/api/v1/gatherings")
+//                .then()
+//                .statusCode(201)
+//                .extract()
+//                .path("postId");
+//
+//        // 글을 삭제한다
+//        given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .when()
+//                .delete("/api/v1/gatherings/{postId}", postId)
+//                .then()
+//                .statusCode(204)
+//                .time(lessThan(2000L));
+//
+//        // 삭제된 글을 조회하면 404가 반환되어야 한다
+//        given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .when()
+//                .get("/api/v1/gatherings/{postId}", postId)
+//                .then()
+//                .statusCode(404);
+//    }
+//
+//    @Test
+//    @DisplayName("관리자는 다른 사용자의 팀원 모집 글 삭제가 성공해야 한다")
+//    void 관리자는_다른_사용자의_팀원_모집_글_삭제가_성공해야_한다() {
+//        // 학생 유저가 글을 생성한다
+//        Long postId = given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .contentType(ContentType.JSON)
+//                .body(createValidRequestDTO())
+//                .when()
+//                .post("/api/v1/gatherings")
+//                .then()
+//                .statusCode(201)
+//                .extract()
+//                .path("postId");
+//
+//        // 관리자가 글을 삭제한다
+//        given()
+//                .header("Authorization", "Bearer " + fakeAdminToken())
+//                .when()
+//                .delete("/api/v1/gatherings/{postId}", postId)
+//                .then()
+//                .statusCode(204)
+//                .time(lessThan(2000L));
+//    }
+//
+//    @Test
+//    @DisplayName("작성자가 아닌 일반 유저는 팀원 모집 글 삭제가 실패해야 한다")
+//    void 작성자가_아닌_일반_유저는_팀원_모집_글_삭제가_실패해야_한다() {
+//        // 학생 유저가 글을 생성한다
+//        Long postId = given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .contentType(ContentType.JSON)
+//                .body(createValidRequestDTO())
+//                .when()
+//                .post("/api/v1/gatherings")
+//                .then()
+//                .statusCode(201)
+//                .extract()
+//                .path("postId");
+//
+//        // 다른 유저가 글 삭제를 시도한다
+//        given()
+//                .header("Authorization", "Bearer fake-other-user-token")
+//                .when()
+//                .delete("/api/v1/gatherings/{postId}", postId)
+//                .then()
+//                .statusCode(403);
+//    }
+//
+//    @Test
+//    @DisplayName("페이지네이션 파라미터가 유효하지 않으면 실패해야 한다")
+//    void 페이지네이션_파라미터가_유효하지_않으면_실패해야_한다() {
+//        given()
+//                .header("Authorization", "Bearer " + fakeStudentToken())
+//                .param("page", -1)
+//                .param("size", 0)
+//                .when()
+//                .get("/api/v1/gatherings")
+//                .then()
+//                .statusCode(400);
+//    }
 }

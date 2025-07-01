@@ -37,8 +37,8 @@ public class DirectMessageAlarmCreator implements AlarmCreator {
                 .userId(userId)
                 .type(AlarmType.DIRECT_MESSAGE)
                 .title(AlarmType.DIRECT_MESSAGE.getTitle())
-                .content(getContent(result))
-                .metaData(getMetaData(result))
+                .content(getContent(response))
+                .metaData(getMetaData(response))
                 .build();
 
         alarmService.saveAlarm(alarm);
@@ -49,11 +49,7 @@ public class DirectMessageAlarmCreator implements AlarmCreator {
         return AlarmType.DIRECT_MESSAGE;
     }
 
-    public String getContent(Object result) {
-        if (!(result instanceof DirectMessageResponse response)) {
-            throw new CustomException(ErrorCode.UNSUPPORTED_RESULT_TYPE);
-        }
-
+    public String getContent(DirectMessageResponse response) {
         return switch (response.messageType()) {
             case TEXT -> response.senderNickname() + "님으로부터 새로운 메시지가 도착했습니다.";
             case IMAGE -> response.senderNickname() + "님이 이미지를 보냈습니다.";
@@ -61,10 +57,7 @@ public class DirectMessageAlarmCreator implements AlarmCreator {
         };
     }
 
-    public AlarmMetaData getMetaData(Object result) {
-        if (!(result instanceof DirectMessageResponse response)) {
-            throw new CustomException(ErrorCode.UNSUPPORTED_RESULT_TYPE);
-        }
+    public AlarmMetaData getMetaData(DirectMessageResponse response) {
         return new DirectMessageMetaData(response.roomId(), response.id());
     }
 }

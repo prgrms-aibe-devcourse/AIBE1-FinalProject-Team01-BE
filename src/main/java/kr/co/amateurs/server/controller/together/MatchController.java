@@ -40,11 +40,11 @@ public class MatchController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @BoardAccess(hasPostId = true)
-    @GetMapping("/{postId}")
+    @GetMapping("/{matchId}")
     @Operation(summary = "커피챗/멘토링 글 정보", description = "커피챗/멘토링 탭의 특정 게시글의 정보를 불러옵니다.")
     public ResponseEntity<MatchPostResponseDTO> getMatchPost(
-            @PathVariable("postId") Long postId){
-        MatchPostResponseDTO gatherPost = matchService.getMatchPost(postId);
+            @PathVariable("matchId") Long matchId){
+        MatchPostResponseDTO gatherPost = matchService.getMatchPost(matchId);
         return ResponseEntity.ok(gatherPost);
     }
 
@@ -60,23 +60,23 @@ public class MatchController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
-    @PutMapping("/{postId}")
+    @PutMapping("/{matchId}")
     @Operation(summary = "커피챗/멘토링 글 수정", description = "커피챗/멘토링 탭의 본인이 작성한 게시글을 수정합니다.")
     public ResponseEntity<Void> updateMatchPost(
-            @PathVariable("postId") Long postId,
+            @PathVariable("matchId") Long matchId,
             @RequestBody @Valid MatchPostRequestDTO dto){
-        matchService.updateMatchPost(postId, dto);
+        matchService.updateMatchPost(matchId, dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
-    @DeleteMapping("/{postId}")
+    @DeleteMapping("/{matchId}")
     @Operation(summary = "커피챗/멘토링 글 삭제", description = "커피챗/멘토링 탭의 본인이 작성한 게시글을 삭제합니다.")
     public ResponseEntity<Void> deleteMatchPost(
-            @PathVariable("postId") Long postId){
-        matchService.deleteMatchPost(postId);
+            @PathVariable("matchId") Long matchId){
+        matchService.deleteMatchPost(matchId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

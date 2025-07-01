@@ -94,9 +94,10 @@ public class UserServiceTest {
     @Test
     void 기본_정보_수정_요청_시_정상적으로_업데이트된다() {
         // given
+        String uniqueNickname = UserTestFixture.generateUniqueNickname();
         UserBasicProfileEditRequestDto request = UserBasicProfileEditRequestDto.builder()
                 .name("변경된이름")
-                .nickname("changedNick")
+                .nickname(uniqueNickname)
                 .imageUrl("https://example.com/new-profile.jpg")
                 .build();
 
@@ -105,12 +106,12 @@ public class UserServiceTest {
 
         // then
         assertThat(response.name()).isEqualTo("변경된이름");
-        assertThat(response.nickname()).isEqualTo("changedNick");
+        assertThat(response.nickname()).isEqualTo(uniqueNickname);
         assertThat(response.imageUrl()).isEqualTo("https://example.com/new-profile.jpg");
 
         User updatedUser = userRepository.findByEmail(testUser.getEmail()).orElseThrow();
         assertThat(updatedUser.getName()).isEqualTo("변경된이름");
-        assertThat(updatedUser.getNickname()).isEqualTo("changedNick");
+        assertThat(updatedUser.getNickname()).isEqualTo(uniqueNickname);
         assertThat(updatedUser.getImageUrl()).isEqualTo("https://example.com/new-profile.jpg");
     }
 

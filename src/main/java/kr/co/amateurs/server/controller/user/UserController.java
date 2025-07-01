@@ -26,7 +26,7 @@ public class UserController {
     }
 
     @Operation(summary = "기본 정보 수정", description = "현재 로그인 한 사용자의 기본 프로필을 수정합니다")
-    @PutMapping("/profile/basic")
+    @PutMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserBasicProfileEditResponseDto> updateBasicProfile(
             @Valid @RequestBody UserBasicProfileEditRequestDto request) {
@@ -35,7 +35,7 @@ public class UserController {
     }
 
     @Operation(summary = "비밀번호 변경", description = "현재 비밀번호 확인 후 새로운 비밀번호로 변경합니다")
-    @PutMapping("/profile/password")
+    @PutMapping("/me/password")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserPasswordEditResponseDto> updatePassword(
             @Valid @RequestBody UserPasswordEditRequestDto request) {
@@ -44,7 +44,7 @@ public class UserController {
     }
 
     @Operation(summary = "관심 주제 변경", description = "사용자의 관심 주제를 변경합니다")
-    @PutMapping("/profile/topics")
+    @PutMapping("/me/topics")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserTopicsEditResponseDto> updateTopics(
             @Valid @RequestBody UserTopicsEditRequestDto request) {

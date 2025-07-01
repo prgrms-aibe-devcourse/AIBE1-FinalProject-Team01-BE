@@ -40,10 +40,10 @@ public class MarketController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @BoardAccess(hasPostId = true)
-    @GetMapping("/{postId}")
+    @GetMapping("/{marketId}")
     @Operation(summary = "장터 글 정보", description = "장터 탭의 특정 게시글의 정보를 불러옵니다.")
-    public ResponseEntity<MarketPostResponseDTO> getMarketPost(@PathVariable("postId") Long postId){
-        MarketPostResponseDTO gatherPost = marketService.getMarketPost(postId);
+    public ResponseEntity<MarketPostResponseDTO> getMarketPost(@PathVariable("marketId") Long marketId){
+        MarketPostResponseDTO gatherPost = marketService.getMarketPost(marketId);
         return ResponseEntity.ok(gatherPost);
     }
 
@@ -59,23 +59,23 @@ public class MarketController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
-    @PutMapping("/{postId}")
+    @PutMapping("/{marketId}")
     @Operation(summary = "장터 글 수정", description = "장터 탭의 본인이 작성한 게시글을 수정합니다.")
     public ResponseEntity<Void> updateMarketPost(
-            @PathVariable("postId") Long postId,
+            @PathVariable("marketId") Long marketId,
             @RequestBody @Valid MarketPostRequestDTO dto){
-        marketService.updateMarketPost(postId, dto);
+        marketService.updateMarketPost(marketId, dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
-    @DeleteMapping("/{postId}")
+    @DeleteMapping("/{marketId}")
     @Operation(summary = "장터 글 삭제", description = "장터 탭의 본인이 작성한 게시글을 삭제합니다.")
     public ResponseEntity<Void> deleteMarketPost(
-            @PathVariable("postId") Long postId){
-        marketService.deleteMarketPost(postId);
+            @PathVariable("marketId") Long marketId){
+        marketService.deleteMarketPost(marketId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
