@@ -59,10 +59,7 @@ public class MatchService {
 
 
     public MatchPostResponseDTO getMatchPost(Long id) {
-        MatchingPost mp = matchRepository.findByPostId(id);
-        if(mp == null) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+        MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
         return convertToDTO(mp, post, likeService.checkHasLiked(post.getId()), bookmarkService.checkHasBookmarked(post.getId()));
     }
@@ -92,11 +89,8 @@ public class MatchService {
     }
 
     @Transactional
-    public void updateMatchPost(Long postId, MatchPostRequestDTO dto) {
-        MatchingPost mp = matchRepository.findByPostId(postId);
-        if(mp == null) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+    public void updateMatchPost(Long id, MatchPostRequestDTO dto) {
+        MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
         validateUser(post.getUser().getId());
         CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
@@ -105,11 +99,8 @@ public class MatchService {
     }
 
     @Transactional
-    public void deleteMatchPost(Long postId) {
-        MatchingPost mp = matchRepository.findByPostId(postId);
-        if(mp == null) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+    public void deleteMatchPost(Long id) {
+        MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
         validateUser(post.getUser().getId());
         matchRepository.deleteById(mp.getId());

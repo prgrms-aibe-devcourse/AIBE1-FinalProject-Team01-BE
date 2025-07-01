@@ -26,6 +26,7 @@ public interface GatheringRepository extends JpaRepository<GatheringPost, Long> 
             Pageable pageable
     );
 
+
     // TODO - 테스트 코드 수정 후 통과 시 삭제 예정
 //    @Query("""
 //        select g
@@ -60,4 +61,5 @@ public interface GatheringRepository extends JpaRepository<GatheringPost, Long> 
 //    );
 
     GatheringPost findByPostId(Long postId);
+
 }
