@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.ai.AiProfileResponse;
+import kr.co.amateurs.server.domain.dto.ai.PostRecommendationResponse;
 import kr.co.amateurs.server.domain.entity.ai.AiProfile;
 import kr.co.amateurs.server.service.ai.AiProfileService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingManageService;
@@ -19,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/ai/dev")
@@ -75,7 +78,6 @@ public class AiDevController {
         return ResponseEntity.ok().build();
     }
 
-
     @PostMapping("/recommendations/save")
     @Operation(summary = "특정 사용자 추천 게시글 생성", description = "개별 사용자 추천 생성 및 저장")
     public ResponseEntity<Void> saveUserRecommendations(
@@ -83,6 +85,18 @@ public class AiDevController {
             @RequestParam(defaultValue = "10") int limit) {
         postRecommendService.saveRecommendationsToDB(userId, limit);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/recommendations")
+    @Operation(summary = "특정 사용자 추천 게시글 조회", description = "저장된 추천 게시글을 조회합니다 (개발용)")
+    public ResponseEntity<List<PostRecommendationResponse>> getUserRecommendations(
+            @RequestParam Long userId,
+            @RequestParam(defaultValue = "10") int limit) {
+        long startTime = System.currentTimeMillis();
+        List<PostRecommendationResponse> recommendations = postRecommendService.getStoredRecommendations(userId, limit);
+        long endTime = System.currentTimeMillis();
+        log.info("추천 게시글 조회 완료: userId={}, limit={}, 소요시간={}ms", userId, limit, (endTime - startTime));
+        return ResponseEntity.ok(recommendations);
     }
 
 

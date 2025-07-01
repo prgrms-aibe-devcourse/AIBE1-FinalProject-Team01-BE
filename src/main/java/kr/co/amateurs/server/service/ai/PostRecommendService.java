@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -116,12 +117,20 @@ public class PostRecommendService {
      * @return 추천 게시글 목록
      */
     public List<PostRecommendationResponse> getStoredRecommendations(Long userId, int limit) {
-        List<RecommendedPost> recommendedPosts = aiRecommendPostRepository
-                .findByUserIdOrderById(userId);
+        List<Object[]> data = aiRecommendPostRepository.findRecommendationDataByUserId(userId);
 
-        return recommendedPosts.stream()
+        return data.stream()
                 .limit(limit)
-                .map(rp -> PostRecommendationResponse.from(rp.getPost()))
+                .map(row -> new PostRecommendationResponse(
+                        (Long) row[0],
+                        (String) row[1],
+                        (String) row[2],
+                        (Integer) row[3],
+                        (Integer) row[4],
+                        ((Long) row[5]).intValue(),
+                        row[6].toString(),
+                        (LocalDateTime) row[7]
+                ))
                 .collect(Collectors.toList());
     }
 
