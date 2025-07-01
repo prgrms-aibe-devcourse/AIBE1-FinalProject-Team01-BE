@@ -3,6 +3,7 @@ package kr.co.amateurs.server.service.auth;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,11 +35,15 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         String provider = userRequest.getClientRegistration().getRegistrationId();
         log.info("OAuth2 로그인 시도: provider={}", provider);
 
+        log.info("GitHub에서 받아온 모든 속성: {}", oAuth2User.getAttributes());
+
         String providerId = getProviderId(oAuth2User, provider);
         String email = getEmail(oAuth2User, provider);
         String nickname = getNickname(oAuth2User, provider);
         String name = getName(oAuth2User, provider);
         String imageUrl = getImageUrl(oAuth2User, provider);
+
+        log.info("파싱된 정보 - email: '{}', nickname: '{}', name: '{}'", email, nickname, name);
 
         try {
             saveOrUpdateUser(provider, providerId, email, nickname, name, imageUrl);
@@ -78,6 +83,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 .nickname(uniqueNickname)
                 .name(name)
                 .imageUrl(imageUrl)
+                .role(Role.GUEST)
                 .build();
 
         userRepository.save(newUser);
