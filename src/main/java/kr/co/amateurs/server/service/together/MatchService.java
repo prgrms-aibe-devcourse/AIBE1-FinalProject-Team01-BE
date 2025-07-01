@@ -25,6 +25,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 
+import java.util.Objects;
+
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO.convertToDTO;
 
@@ -91,7 +93,7 @@ public class MatchService {
     public void updateMatchPost(Long id, MatchPostRequestDTO dto) {
         MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
-        validateUser(post.getUser().getId());
+        validateUser(post);
         CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
         mp.update(dto);
         post.update(updatePostDTO);
@@ -101,17 +103,19 @@ public class MatchService {
     public void deleteMatchPost(Long id) {
         MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
-        validateUser(post.getUser().getId());
-        matchRepository.deleteById(mp.getId());
-        postRepository.deleteById(post.getId());
+        validateUser(post);
+        matchRepository.delete(mp);
     }
 
-    private void validateUser(Long userId) {
+    private void validateUser(Post post) {
         User currentUser = userService.getCurrentLoginUser();
-        Long currentId = currentUser.getId();
-        Role currentRole = currentUser.getRole();
-        if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
-            throw new CustomException(ErrorCode.ACCESS_DENIED, "해당 게시글에 접근할 수 없습니다.");
+
+        if (!canEditOrDelete(post, currentUser)) {
+            throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
+    }
+
+    private boolean canEditOrDelete(Post post, User user) {
+        return Objects.equals(post.getUser().getId(), user.getId()) || user.getRole() == Role.ADMIN;
     }
 }

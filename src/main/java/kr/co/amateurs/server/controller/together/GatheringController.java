@@ -55,7 +55,7 @@ public class GatheringController {
     public ResponseEntity<Void> updateGatheringPost(
 
             @PathVariable("gatheringId") Long gatheringId,
-            @RequestBody GatheringPostRequestDTO dto){
+            @RequestBody @Valid GatheringPostRequestDTO dto){
         gatheringService.updateGatheringPost(gatheringId, dto);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

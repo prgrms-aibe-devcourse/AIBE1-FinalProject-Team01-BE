@@ -24,6 +24,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO.convertToDTO;
 
@@ -85,7 +87,7 @@ public class GatheringService {
     public void updateGatheringPost(Long id, GatheringPostRequestDTO dto) {
         GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
-        validateUser(post.getUser().getId());
+        validateUser(post);
         CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
         post.update(updatePostDTO);
         gp.update(dto);
@@ -95,18 +97,20 @@ public class GatheringService {
     public void deleteGatheringPost(Long id) {
         GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
-        validateUser(post.getUser().getId());
-        gatheringRepository.deleteById(gp.getId());
-        postRepository.deleteById(post.getId());
+        validateUser(post);
+        gatheringRepository.delete(gp);
     }
 
-    private void validateUser(Long userId) {
+    private void validateUser(Post post) {
         User currentUser = userService.getCurrentLoginUser();
-        Long currentId = currentUser.getId();
-        Role currentRole = currentUser.getRole();
-        if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
-            throw new CustomException(ErrorCode.ACCESS_DENIED, "해당 게시글에 접근할 수 없습니다.");
+
+        if (!canEditOrDelete(post, currentUser)) {
+            throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
+    }
+
+    private boolean canEditOrDelete(Post post, User user) {
+        return Objects.equals(post.getUser().getId(), user.getId()) || user.getRole() == Role.ADMIN;
     }
 }
 
