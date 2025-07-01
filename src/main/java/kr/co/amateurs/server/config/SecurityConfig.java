@@ -7,8 +7,10 @@ import kr.co.amateurs.server.config.jwt.JwtAuthenticationFilter;
 import kr.co.amateurs.server.service.auth.CustomOAuth2UserService;
 import kr.co.amateurs.server.service.auth.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -17,6 +19,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -30,12 +33,17 @@ public class SecurityConfig {
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final List<CustomAuthorizeHttpRequestsConfigurer> customAuthorizeHttpRequestsConfigurers;
 
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final Environment environment;
+
+    @Autowired(required = false)
+    private CustomOAuth2UserService customOAuth2UserService;
+
+    @Autowired(required = false)
+    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
+        HttpSecurity httpSecurity = http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -47,14 +55,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     customAuthorizeHttpRequestsConfigurers.forEach(configurer -> configurer.configure(auth));
                     auth.requestMatchers("/**").permitAll();
-                })
+                });
 
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)
-                        )
-                        .successHandler(oAuth2LoginSuccessHandler)
-                )
+        if (!Arrays.asList(environment.getActiveProfiles()).contains("test")) {
+            httpSecurity.oauth2Login(oauth2 -> oauth2
+                    .userInfoEndpoint(userInfo -> userInfo
+                            .userService(customOAuth2UserService))
+                    .successHandler(oAuth2LoginSuccessHandler));
+        }
 
                 // TODO: 개발 완료 후 아래 설정으로 변경할 예정
 //                .authorizeHttpRequests(auth -> auth
@@ -106,8 +114,8 @@ public class SecurityConfig {
 //                        .anyRequest().authenticated()
 //                )
 
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+        return httpSecurity
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 }
