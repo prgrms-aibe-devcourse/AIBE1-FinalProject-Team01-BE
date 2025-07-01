@@ -11,7 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class ITPost extends BaseEntity {
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne
     @JoinColumn(nullable = false)
     private Post post;
 
