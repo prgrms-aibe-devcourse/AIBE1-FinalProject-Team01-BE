@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public enum ErrorCode implements Supplier<CustomException> {
     NOT_FOUND(HttpStatus.NOT_FOUND, "조회할 대상을 찾을 수 없습니다."),
-    ACCESS_DENIED(HttpStatus.BAD_REQUEST, "해당 작업을 수행할 권한이 없습니다."),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 작업을 수행할 권한이 없습니다."),
 
     // dm 관련 에러
     USER_NOT_IN_ROOM(HttpStatus.BAD_REQUEST, "해당 채팅방의 참여자가 아닙니다."),
@@ -37,7 +37,7 @@ public enum ErrorCode implements Supplier<CustomException> {
     INVALID_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다."),
 
     // 로그인 관련 에러
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 사용자입니다."),
+    USER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "존재하지 않는 사용자입니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     ANONYMOUS_USER(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
 

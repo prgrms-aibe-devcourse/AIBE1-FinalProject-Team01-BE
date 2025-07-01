@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.domain.dto.community;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import kr.co.amateurs.server.domain.entity.post.CommunityPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
@@ -8,6 +9,9 @@ import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import java.time.LocalDateTime;
 
 public record CommunityResponseDTO(
+        @Schema(description = "커뮤니티 ID", example = "1")
+        Long communityId,
+
         @Schema(description = "게시글 ID", example = "1")
         Long postId,
 
@@ -59,8 +63,10 @@ public record CommunityResponseDTO(
         @Schema(description = "현재 사용자가 북마크했는지 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static CommunityResponseDTO from(Post post, boolean hasLiked, boolean hasBookmarked) {
-        return new CommunityResponseDTO(
+    public static CommunityResponseDTO from(CommunityPost communityPost, boolean hasLiked, boolean hasBookmarked) {
+                Post post = communityPost.getPost();
+            return new CommunityResponseDTO(
+                communityPost.getId(),
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),

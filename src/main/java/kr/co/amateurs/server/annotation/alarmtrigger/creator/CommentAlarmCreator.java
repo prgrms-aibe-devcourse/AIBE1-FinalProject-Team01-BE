@@ -13,8 +13,8 @@ import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.alarm.AlarmService;
 import kr.co.amateurs.server.service.comment.CommentService;
-import kr.co.amateurs.server.service.community.CommunityPostService;
 import lombok.RequiredArgsConstructor;
+import kr.co.amateurs.server.service.post.PostService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -38,7 +38,7 @@ public class CommentAlarmCreator implements AlarmCreator {
     private final AlarmService alarmService;
     private final UserService userService;
     private final CommentService commentService;
-    private final CommunityPostService postService;
+    private final PostService postService;
 
     /**
      * 댓글 생성 결과를 기반으로 알람을 생성합니다.
