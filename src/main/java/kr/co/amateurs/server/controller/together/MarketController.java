@@ -28,7 +28,6 @@ public class MarketController {
     private final MarketService marketService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasBoardType = false, boardType = BoardType.MARKET)
     @GetMapping
     @Operation(summary = "장터 글 리스트", description = "장터 탭의 모든 게시글을 검색어, 정렬기준에 따라 불러옵니다.")
     public ResponseEntity<PageResponseDTO<MarketPostResponseDTO>> getMarketPostList(
@@ -39,7 +38,6 @@ public class MarketController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true)
     @GetMapping("/{marketId}")
     @Operation(summary = "장터 글 정보", description = "장터 탭의 특정 게시글의 정보를 불러옵니다.")
     public ResponseEntity<MarketPostResponseDTO> getMarketPost(@PathVariable("marketId") Long marketId){
@@ -48,7 +46,6 @@ public class MarketController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasBoardType = false, boardType = BoardType.MARKET, operation = OperationType.WRITE)
     @PostMapping
     @Operation(summary = "장터 글쓰기", description = "장터 탭에 새로운 게시글을 등록합니다.")
     public ResponseEntity<MarketPostResponseDTO> createMarketPost(
@@ -58,7 +55,6 @@ public class MarketController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @PutMapping("/{marketId}")
     @Operation(summary = "장터 글 수정", description = "장터 탭의 본인이 작성한 게시글을 수정합니다.")
     public ResponseEntity<Void> updateMarketPost(
@@ -70,7 +66,6 @@ public class MarketController {
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @DeleteMapping("/{marketId}")
     @Operation(summary = "장터 글 삭제", description = "장터 탭의 본인이 작성한 게시글을 삭제합니다.")
     public ResponseEntity<Void> deleteMarketPost(

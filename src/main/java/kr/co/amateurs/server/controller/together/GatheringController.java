@@ -41,7 +41,6 @@ public class GatheringController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true)
     @GetMapping("/{gatheringId}")
     @Operation(summary = "팀원 모집 글 정보", description = "팀원 모집 탭의 특정 게시글의 정보를 불러옵니다.")
     public ResponseEntity<GatheringPostResponseDTO> getGatheringPost(
@@ -51,7 +50,6 @@ public class GatheringController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasBoardType = false, boardType = BoardType.GATHER, operation = OperationType.WRITE)
     @PostMapping
     @Operation(summary = "팀원 모집 글쓰기", description = "팀원 모집 탭에 새로운 게시글을 등록합니다.")
     public ResponseEntity<GatheringPostResponseDTO> createGatheringPost(
@@ -61,7 +59,6 @@ public class GatheringController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @PutMapping("/{gatheringId}")
     @Operation(summary = "팀원 모집 글 수정", description = "팀원 모집 탭의 본인이 작성한 게시글을 수정합니다.")
     public ResponseEntity<Void> updateGatheringPost(
@@ -74,7 +71,6 @@ public class GatheringController {
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @DeleteMapping("/{gatheringId}")
     @Operation(summary = "팀원 모집 글 삭제", description = "팀원 모집 탭의 본인이 작성한 게시글을 삭제합니다.")
     public ResponseEntity<Void> deleteGatheringPost(

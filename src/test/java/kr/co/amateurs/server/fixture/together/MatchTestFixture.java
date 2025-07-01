@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MatchTestFixture {
-    public static MatchPostRequestDTO getMatchPostRequestDTO() {
+    public static MatchPostRequestDTO createMatchPostRequestDTO() {
         return new MatchPostRequestDTO(
                 "Spring 멘토링 모집",
                 "Spring 멘토링 해주실 분 구합니다.",

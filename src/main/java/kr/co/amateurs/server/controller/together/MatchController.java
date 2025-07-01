@@ -28,7 +28,6 @@ public class MatchController {
     private final MatchService matchService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasBoardType = false, boardType = BoardType.MATCH)
     @GetMapping
     @Operation(summary = "커피챗/멘토링 글 리스트", description = "커피챗/멘토링 탭의 모든 게시글을 검색어, 정렬기준에 따라 불러옵니다.")
     public ResponseEntity<PageResponseDTO<MatchPostResponseDTO>> getMatchPostList(
@@ -39,7 +38,6 @@ public class MatchController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true)
     @GetMapping("/{matchId}")
     @Operation(summary = "커피챗/멘토링 글 정보", description = "커피챗/멘토링 탭의 특정 게시글의 정보를 불러옵니다.")
     public ResponseEntity<MatchPostResponseDTO> getMatchPost(
@@ -49,7 +47,6 @@ public class MatchController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasBoardType = false, boardType = BoardType.MATCH, operation = OperationType.WRITE)
     @PostMapping
     @Operation(summary = "커피챗/멘토링 글쓰기", description = "커피챗/멘토링 탭에 새로운 게시글을 등록합니다.")
     public ResponseEntity<MatchPostResponseDTO> createMatchPost(
@@ -59,7 +56,6 @@ public class MatchController {
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @PutMapping("/{matchId}")
     @Operation(summary = "커피챗/멘토링 글 수정", description = "커피챗/멘토링 탭의 본인이 작성한 게시글을 수정합니다.")
     public ResponseEntity<Void> updateMatchPost(
@@ -71,7 +67,6 @@ public class MatchController {
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @DeleteMapping("/{matchId}")
     @Operation(summary = "커피챗/멘토링 글 삭제", description = "커피챗/멘토링 탭의 본인이 작성한 게시글을 삭제합니다.")
     public ResponseEntity<Void> deleteMatchPost(

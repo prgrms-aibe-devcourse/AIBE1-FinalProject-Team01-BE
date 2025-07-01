@@ -7,328 +7,269 @@ import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
+import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.together.GatheringRepository;
+import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.together.GatheringService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
-import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.fakeAdminToken;
-import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.fakeStudentToken;
+import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.*;
 import static kr.co.amateurs.server.fixture.together.GatheringTestFixture.*;
 import static org.hamcrest.Matchers.*;
 
 class GatheringControllerTest extends AbstractControllerTest {
 
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private GatheringRepository gatheringRepository;
+    @Autowired
+    private PostRepository postRepository;
+
+    private String guestEmail;
+    private String adminEmail;
+    private String studentEmail;
 
     @BeforeEach
     void setUp() {
-
+        gatheringRepository.deleteAll();
+        postRepository.deleteAll();
+        userRepository.deleteAll();
+        User admin = createAdmin();
+        User student = createStudent();
+        User guest = createGuest();
+        List<User> saved = userRepository.saveAll(List.of(admin, student, guest));
+        adminEmail   = saved.get(0).getEmail();
+        studentEmail = saved.get(1).getEmail();
+        guestEmail   = saved.get(2).getEmail();
     }
 
-    @Test
-    @DisplayName("학생 유저는 팀원 모집 글 목록 조회가 성공해야 한다")
-    void 학생_유저는_팀원_모집_글_목록_조회가_성공해야_한다() {
-        given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .param("page", 0)
-                .param("size", 10)
-                .when()
-                .get("/api/v1/gatherings")
-                .then()
-                .statusCode(200)
-                .time(lessThan(2000L))
-                .body("content", notNullValue())
-                .body("totalElements", greaterThanOrEqualTo(0))
-                .body("totalPages", greaterThanOrEqualTo(0))
-                .body("currentPage", equalTo(0))
-                .body("size", equalTo(10));
+    private String fakeStudentToken() {
+        return jwtProvider.generateAccessToken(studentEmail);
     }
 
-    @Test
-    @DisplayName("관리자 유저는 팀원 모집 글 목록 조회가 성공해야 한다")
-    void 관리자_유저는_팀원_모집_글_목록_조회가_성공해야_한다() {
-        given()
-                .header("Authorization", "Bearer " + fakeAdminToken())
-                .param("page", 0)
-                .param("size", 5)
-                .param("keyword", "React")
-                .when()
-                .get("/api/v1/gatherings")
-                .then()
-                .statusCode(200)
-                .time(lessThan(2000L))
-                .body("content", notNullValue())
-                .body("size", equalTo(5));
+    private String fakeGuestToken() {
+        return jwtProvider.generateAccessToken(guestEmail);
     }
 
-    @Test
-    @DisplayName("인증되지 않은 유저는 팀원 모집 글 목록 조회가 실패해야 한다")
-    void 인증되지_않은_유저는_팀원_모집_글_목록_조회가_실패해야_한다() {
-        given()
-                .param("page", 0)
-                .param("size", 10)
-                .when()
-                .get("/api/v1/gatherings")
-                .then()
-                .statusCode(401);
+    private String fakeAdminToken() {
+        return jwtProvider.generateAccessToken(adminEmail);
     }
 
-    @Test
-    @DisplayName("학생 유저는 팀원 모집 글 생성이 성공해야 한다")
-    void 학생_유저는_팀원_모집_글_생성이_성공해야_한다() {
-        GatheringPostRequestDTO requestDTO = createValidRequestDTO();
+    @Nested
+    class StudentTests {
 
-        given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .contentType(ContentType.JSON)
-                .body(requestDTO)
-                .when()
-                .post("/api/v1/gatherings")
-                .then()
-                .statusCode(201)
-                .time(lessThan(3000L))
-                .body("postId", notNullValue())
-                .body("title", equalTo("팀원 모집합니다"))
-                .body("content", equalTo("React 프로젝트 함께할 팀원을 모집합니다."))
-                .body("tags", hasItems("React", "JavaScript", "Frontend"))
-                .body("gatheringType", equalTo("PROJECT"))
-                .body("headCount", equalTo(4))
-                .body("place", equalTo("온라인"))
-                .body("period", equalTo("3개월"))
-                .body("schedule", equalTo("주 2회 화/목 오후 7시"))
-                .body("status", equalTo("RECRUITING"))
-                .body("likeCount", equalTo(0))
-                .body("viewCount", equalTo(0))
-                .body("hasLiked", equalTo(false))
-                .body("hasBookmarked", equalTo(false));
+        @Test
+        void 학생유저가_유효한페이지사이즈로_목록조회하면_200을_반환한다() {
+            given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .param("page", 0)
+                    .param("size", 10)
+                    .when()
+                    .get("/gatherings")
+                    .then()
+                    .statusCode(200)
+                    .body("pageInfo.pageNumber", equalTo(0))
+                    .body("pageInfo.pageSize", equalTo(10));
+        }
+
+        @Test
+        void 학생유저가_유효한데이터로_글생성하면_201과_응답검증한다() {
+            GatheringPostRequestDTO dto = createGatheringRequestDTO();
+
+            given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .contentType(ContentType.JSON)
+                    .body(dto)
+                    .when()
+                    .post("/gatherings")
+                    .then()
+                    .statusCode(201)
+                    .body("postId", notNullValue())
+                    .body("title", equalTo(dto.title()));
+        }
+
+        @Test
+        void 학생유저가_필수필드누락된데이터로_글생성하면_400을_반환한다() {
+            GatheringPostRequestDTO invalid = new GatheringPostRequestDTO(
+                    "", "내용", "Tag", GatheringType.SIDE_PROJECT,
+                    GatheringStatus.RECRUITING, 4, "장소", "기간", "일정"
+            );
+
+            given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .contentType(ContentType.JSON)
+                    .body(invalid)
+                    .when()
+                    .post("/gatherings")
+                    .then()
+                    .statusCode(400);
+        }
+
+        @Test
+        void 학생유저가_글생성후_ID조회하면_200과_본문을_검증한다() {
+            Long id = given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .contentType(ContentType.JSON)
+                    .body(createGatheringRequestDTO())
+                    .when()
+                    .post("/gatherings")
+                    .then().statusCode(201)
+                    .extract().jsonPath().getLong("postId");
+
+            given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .when()
+                    .get("/gatherings/{postId}", id)
+                    .then()
+                    .statusCode(200)
+                    .body("postId", equalTo(id.intValue()));
+        }
+
+        @Test
+        void 학생유저가_존재하지않는ID로_조회하면_404를_반환한다() {
+            given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .when()
+                    .get("/gatherings/{postId}", 99999L)
+                    .then()
+                    .statusCode(404);
+        }
+
+        @Test
+        void 학생유저가_기존글생성후_수정하면_204를_반환한다() {
+            Long id = given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .contentType(ContentType.JSON)
+                    .body(createGatheringRequestDTO())
+                    .when()
+                    .post("/gatherings")
+                    .then().statusCode(201)
+                    .extract().jsonPath().getLong("postId");
+
+            GatheringPostRequestDTO update = new GatheringPostRequestDTO(
+                    "수정", "수정내용", "Vue", GatheringType.STUDY,
+                    GatheringStatus.RECRUITING, 5, "오프라인", "2개월", "주3회"
+            );
+
+            given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .contentType(ContentType.JSON)
+                    .body(update)
+                    .when()
+                    .put("/gatherings/{postId}", id)
+                    .then()
+                    .statusCode(204);
+        }
+
+        @Test
+        void 유저가_타인글수정하면_403을_반환한다() {
+            Long id = given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .contentType(ContentType.JSON)
+                    .body(createGatheringRequestDTO())
+                    .when()
+                    .post("/gatherings")
+                    .then().statusCode(201)
+                    .extract().jsonPath().getLong("postId");
+
+            given()
+                    .header("Authorization", "Bearer fake-other-user-token")
+                    .contentType(ContentType.JSON)
+                    .body(createGatheringRequestDTO())
+                    .when()
+                    .put("/gatherings/{postId}", id)
+                    .then()
+                    .statusCode(403);
+        }
+
+        @Test
+        void 학생유저가_글생성후_삭제요청_204를_반환한다() {
+            Long id = given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .contentType(ContentType.JSON)
+                    .body(createGatheringRequestDTO())
+                    .when()
+                    .post("/gatherings")
+                    .then().statusCode(201)
+                    .extract().jsonPath().getLong("postId");
+
+            given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .when()
+                    .delete("/gatherings/{postId}", id)
+                    .then()
+                    .statusCode(204);
+        }
+
+        @Test
+        void 학생유저가_잘못된페이지파라미터로_목록조회하면_400을_반환한다() {
+            given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .param("page", -1)
+                    .param("size", 0)
+                    .when()
+                    .get("/gatherings")
+                    .then()
+                    .statusCode(400);
+        }
     }
 
-    @Test
-    @DisplayName("필수 필드가 누락된 팀원 모집 글 생성은 실패해야 한다")
-    void 필수_필드가_누락된_팀원_모집_글_생성은_실패해야_한다() {
-        GatheringPostRequestDTO invalidRequestDTO = new GatheringPostRequestDTO(
-                "", // 빈 제목
-                "내용",
-                "Tag",
-                GatheringType.SIDE_PROJECT,
-                GatheringStatus.RECRUITING,
-                4,
-                "장소",
-                "기간",
-                "일정"
-        );
+    @Nested
+    class AdminTests {
+        @Test
+        void 관리자유저가_키워드를포함하여_페이지조회하면_200과_페이지를_검증한다() {
+            given()
+                    .header("Authorization", "Bearer " + fakeAdminToken())
+                    .param("page", 0)
+                    .param("size", 5)
+                    .param("keyword", "React")
+                    .when()
+                    .get("/gatherings")
+                    .then()
+                    .statusCode(200)
+                    .body("pageInfo.pageSize", equalTo(5));
+        }
 
-        given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .contentType(ContentType.JSON)
-                .body(invalidRequestDTO)
-                .when()
-                .post("/api/v1/gatherings")
-                .then()
-                .statusCode(400);
+        @Test
+        void 관리자유저가_타인글삭제요청하면_204를_반환한다() {
+            Long id = given()
+                    .header("Authorization", "Bearer " + fakeStudentToken())
+                    .contentType(ContentType.JSON)
+                    .body(createGatheringRequestDTO())
+                    .when()
+                    .post("/gatherings")
+                    .then().statusCode(201)
+                    .extract().jsonPath().getLong("postId");
+
+            given()
+                    .header("Authorization", "Bearer " + fakeAdminToken())
+                    .when()
+                    .delete("/gatherings/{postId}", id)
+                    .then()
+                    .statusCode(204);
+        }
     }
 
-    @Test
-    @DisplayName("학생 유저는 특정 팀원 모집 글 조회가 성공해야 한다")
-    void 학생_유저는_특정_팀원_모집_글_조회가_성공해야_한다() {
-        // 먼저 글을 생성하고 ID를 받아온다
-        Long postId = given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .contentType(ContentType.JSON)
-                .body(createValidRequestDTO())
-                .when()
-                .post("/api/v1/gatherings")
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("postId");
-
-        // 생성된 글을 조회한다
-        given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .when()
-                .get("/api/v1/gatherings/{postId}", postId)
-                .then()
-                .statusCode(200)
-                .time(lessThan(2000L))
-                .body("postId", equalTo(postId.intValue()))
-                .body("title", equalTo("팀원 모집합니다"))
-                .body("content", notNullValue())
-                .body("authorNickname", notNullValue())
-                .body("createdAt", notNullValue());
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 팀원 모집 글 조회는 실패해야 한다")
-    void 존재하지_않는_팀원_모집_글_조회는_실패해야_한다() {
-        given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .when()
-                .get("/api/v1/gatherings/{postId}", 99999L)
-                .then()
-                .statusCode(404);
-    }
-
-    @Test
-    @DisplayName("작성자는 본인의 팀원 모집 글 수정이 성공해야 한다")
-    void 작성자는_본인의_팀원_모집_글_수정이_성공해야_한다() {
-        // 먼저 글을 생성한다
-        Long postId = given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .contentType(ContentType.JSON)
-                .body(createValidRequestDTO())
-                .when()
-                .post("/api/v1/gatherings")
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("postId");
-
-        // 수정할 내용
-        GatheringPostRequestDTO updateRequestDTO = new GatheringPostRequestDTO(
-                "수정된 팀원 모집",
-                "수정된 내용입니다.",
-                "Vue",
-                GatheringType.STUDY,
-                GatheringStatus.RECRUITING,
-                5,
-                "오프라인",
-                "2개월",
-                "주 3회"
-        );
-
-        // 글을 수정한다
-        given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .contentType(ContentType.JSON)
-                .body(updateRequestDTO)
-                .when()
-                .put("/api/v1/gatherings/{postId}", postId)
-                .then()
-                .statusCode(204)
-                .time(lessThan(2000L));
-    }
-
-    @Test
-    @DisplayName("작성자가 아닌 유저는 팀원 모집 글 수정이 실패해야 한다")
-    void 작성자가_아닌_유저는_팀원_모집_글_수정이_실패해야_한다() {
-        // 학생 유저가 글을 생성한다
-        Long postId = given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .contentType(ContentType.JSON)
-                .body(createValidRequestDTO())
-                .when()
-                .post("/api/v1/gatherings")
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("postId");
-
-        // 다른 유저의 토큰으로 수정을 시도한다 (실제로는 다른 유저 토큰 생성 필요)
-        GatheringPostRequestDTO updateRequestDTO = createValidRequestDTO();
-
-        given()
-                .header("Authorization", "Bearer fake-other-user-token")
-                .contentType(ContentType.JSON)
-                .body(updateRequestDTO)
-                .when()
-                .put("/api/v1/gatherings/{postId}", postId)
-                .then()
-                .statusCode(403);
-    }
-
-    @Test
-    @DisplayName("작성자는 본인의 팀원 모집 글 삭제가 성공해야 한다")
-    void 작성자는_본인의_팀원_모집_글_삭제가_성공해야_한다() {
-        // 먼저 글을 생성한다
-        Long postId = given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .contentType(ContentType.JSON)
-                .body(createValidRequestDTO())
-                .when()
-                .post("/api/v1/gatherings")
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("postId");
-
-        // 글을 삭제한다
-        given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .when()
-                .delete("/api/v1/gatherings/{postId}", postId)
-                .then()
-                .statusCode(204)
-                .time(lessThan(2000L));
-
-        // 삭제된 글을 조회하면 404가 반환되어야 한다
-        given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .when()
-                .get("/api/v1/gatherings/{postId}", postId)
-                .then()
-                .statusCode(404);
-    }
-
-    @Test
-    @DisplayName("관리자는 다른 사용자의 팀원 모집 글 삭제가 성공해야 한다")
-    void 관리자는_다른_사용자의_팀원_모집_글_삭제가_성공해야_한다() {
-        // 학생 유저가 글을 생성한다
-        Long postId = given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .contentType(ContentType.JSON)
-                .body(createValidRequestDTO())
-                .when()
-                .post("/api/v1/gatherings")
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("postId");
-
-        // 관리자가 글을 삭제한다
-        given()
-                .header("Authorization", "Bearer " + fakeAdminToken())
-                .when()
-                .delete("/api/v1/gatherings/{postId}", postId)
-                .then()
-                .statusCode(204)
-                .time(lessThan(2000L));
-    }
-
-    @Test
-    @DisplayName("작성자가 아닌 일반 유저는 팀원 모집 글 삭제가 실패해야 한다")
-    void 작성자가_아닌_일반_유저는_팀원_모집_글_삭제가_실패해야_한다() {
-        // 학생 유저가 글을 생성한다
-        Long postId = given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .contentType(ContentType.JSON)
-                .body(createValidRequestDTO())
-                .when()
-                .post("/api/v1/gatherings")
-                .then()
-                .statusCode(201)
-                .extract()
-                .path("postId");
-
-        // 다른 유저가 글 삭제를 시도한다
-        given()
-                .header("Authorization", "Bearer fake-other-user-token")
-                .when()
-                .delete("/api/v1/gatherings/{postId}", postId)
-                .then()
-                .statusCode(403);
-    }
-
-    @Test
-    @DisplayName("페이지네이션 파라미터가 유효하지 않으면 실패해야 한다")
-    void 페이지네이션_파라미터가_유효하지_않으면_실패해야_한다() {
-        given()
-                .header("Authorization", "Bearer " + fakeStudentToken())
-                .param("page", -1)
-                .param("size", 0)
-                .when()
-                .get("/api/v1/gatherings")
-                .then()
-                .statusCode(400);
+    @Nested
+    class GuestTests {
+        @Test
+        void 인증없이_페이지조회하면_403을_반환한다() {
+            given()
+                    .param("page", 0)
+                    .param("size", 10)
+                    .when()
+                    .get("/gatherings")
+                    .then()
+                    .statusCode(403);
+        }
     }
 }

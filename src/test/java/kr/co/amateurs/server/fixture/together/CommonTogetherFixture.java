@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.fixture.together;
 
+import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -10,6 +11,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import org.springframework.data.domain.Sort;
 
 public class CommonTogetherFixture {
+    private static int seq = 0;
     public static Post createPost(User user, String title, String content, String tags, BoardType boardType) {
         return Post.builder()
                 .user(user)
@@ -24,43 +26,36 @@ public class CommonTogetherFixture {
     }
 
     public static User createStudent() {
+        seq = seq + 1;
         return User.builder()
                 .role(Role.STUDENT)
                 .devcourseName(DevCourseTrack.AI_BACKEND)
                 .devcourseBatch("1기")
-                .email("student@test.com")
-                .name("student_name")
-                .nickname("student_nickname")
+                .email("student"+ seq + "@test.com")
+                .name("student_name"+ seq)
+                .nickname("student_nickname"+ seq)
                 .build();
     }
 
     public static User createAdmin() {
+        seq = seq + 1;
         return User.builder()
                 .role(Role.ADMIN)
-                .email("admin@test.com")
-                .name("admin_name")
-                .nickname("admin_nickname")
+                .email("admin"+seq+"@test.com")
+                .name("admin_name"+ seq)
+                .nickname("admin_nickname"+ seq)
                 .build();
     }
 
     public static User createGuest() {
+        seq = seq + 1;
         return User.builder()
                 .role(Role.GUEST)
-                .email("guest@test.com")
-                .name("guest_name")
-                .nickname("guest_nickname")
+                .email("guest"+seq+"@test.com")
+                .name("guest_name"+seq)
+                .nickname("guest_nickname"+seq)
                 .build();
     }
-
-    public static String fakeStudentToken() {
-        return "fake-student-token";
-    }
-
-    public static String fakeAdminToken() {
-        return "fake-admin-token";
-    }
-
-    public static String fakeGuestToken() { return "fake-guest-token"; }
 
     public static PostPaginationParam createPaginationParam(String keyword, PaginationSortType sortType) {
         return PostPaginationParam.builder()
