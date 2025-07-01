@@ -53,7 +53,7 @@ public class MatchService {
 //            default -> matchRepository.findAllByKeyword(keyword, pageable);
 //        };
         Page<MatchingPost> mpPage = matchRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
-        Page<MatchPostResponseDTO> response = mpPage.map(mp-> convertToDTO(mp, mp.getPost(), likeService.checkHasLiked(mp.getPost().getId()), bookmarkService.checkHasBookmarked(mp.getPost().getId())));
+        Page<MatchPostResponseDTO> response = mpPage.map(mp-> convertToDTO(mp, mp.getPost(), false,false));
         return convertPageToDTO(response);
     }
 
@@ -61,7 +61,7 @@ public class MatchService {
     public MatchPostResponseDTO getMatchPost(Long id) {
         MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
-        return convertToDTO(mp, post, likeService.checkHasLiked(post.getId()), bookmarkService.checkHasBookmarked(post.getId()));
+        return convertToDTO(mp, post, false,false);
     }
 
 
@@ -85,7 +85,7 @@ public class MatchService {
                 .build();
         MatchingPost savedMp = matchRepository.save(mp);
 
-        return convertToDTO(savedMp, savedPost, likeService.checkHasLiked(savedPost.getId()), bookmarkService.checkHasBookmarked(savedPost.getId()));
+        return convertToDTO(savedMp, savedPost, false, false);
     }
 
     @Transactional
