@@ -30,7 +30,7 @@ public class PopularPostService {
 
     @Transactional
     public void calculateAndSavePopularPosts() {
-        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(7);
+        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
         LocalDate today = LocalDate.now();
 
         log.info("인기글 계산 시작: 기준일자={}, 대상기간=3일", today);
@@ -45,6 +45,7 @@ public class PopularPostService {
         List<PopularPostRequest> popularPosts = recentPosts.stream()
                 .map(post -> calculatePopularityScore(post, today))
                 .sorted((p1, p2) -> Double.compare(p2.popularityScore(), p1.popularityScore()))
+                .limit(10)
                 .collect(Collectors.toList());
 
         popularPostRepository.savePopularPosts(popularPosts);
