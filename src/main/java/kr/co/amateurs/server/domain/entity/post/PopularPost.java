@@ -6,6 +6,7 @@ import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "popular_posts")
@@ -33,4 +34,18 @@ public class PopularPost extends BaseEntity {
 
     @Column(nullable = false)
     private Integer commentCount;
+
+    @Column(nullable = false)
+    private String authorNickname;
+
+    private String authorDevcourseName;
+
+    @Column(nullable = false)
+    private LocalDateTime postCreatedAt;
+
+    @Column(nullable = false)
+    private String title;
+
+    @Column(nullable = false)
+    private String boardType;
 }

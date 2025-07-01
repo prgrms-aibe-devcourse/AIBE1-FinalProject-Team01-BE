@@ -15,16 +15,16 @@ public record PopularPostResponse(
         String boardType,
         LocalDateTime createdAt
 ) {
-    public static PopularPostResponse from(Post post) {
+    public static PopularPostResponse from(PopularPostRequest request) {
         return new PopularPostResponse(
-                post.getId(),
-                post.getTitle(),
-                post.getUser().getNickname(),
-                post.getLikeCount(),
-                post.getViewCount(),
-                post.getComments().size(),
-                post.getBoardType().toString(),
-                post.getCreatedAt()
+                request.postId(),
+                request.title(),
+                request.authorNickname(),
+                request.likeCount(),
+                request.viewCount(),
+                request.commentCount(),
+                request.boardType(),
+                request.postCreatedAt()
         );
     }
 

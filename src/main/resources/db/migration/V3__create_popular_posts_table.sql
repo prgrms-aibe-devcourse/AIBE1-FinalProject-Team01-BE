@@ -6,6 +6,12 @@ CREATE TABLE popular_posts (
                                view_count INT NOT NULL,
                                like_count INT NOT NULL,
                                comment_count INT NOT NULL,
+                               author_nickname VARCHAR(255) NOT NULL,
+                               author_devcourse_name VARCHAR(255),
+                               post_created_at TIMESTAMP NOT NULL,
+                               title VARCHAR(500) NOT NULL,
+                               board_type VARCHAR(50) NOT NULL,
+
                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PopularPostService {
     private final PopularPostRepository popularPostRepository;
+    private final PostService postService;
 
     private static final double VIEW_WEIGHT = 0.4;
     private static final double LIKE_WEIGHT = 0.4;
@@ -29,7 +30,7 @@ public class PopularPostService {
 
     @Transactional
     public void calculateAndSavePopularPosts() {
-        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(7);
         LocalDate today = LocalDate.now();
 
         log.info("인기글 계산 시작: 기준일자={}, 대상기간=3일", today);
@@ -52,15 +53,6 @@ public class PopularPostService {
         popularPostRepository.deleteBeforeDate(today);
     }
 
-
-    @Transactional(readOnly = true)
-    public List<PopularPostResponse> getPopularPosts(int limit) {
-        List<Post> posts = popularPostRepository.findLatestPopularPosts(limit);
-        return posts.stream()
-                .map(PopularPostResponse::from)
-                .collect(Collectors.toList());
-    }
-
     private PopularPostRequest calculatePopularityScore(PopularPostRequest post, LocalDate calculatedDate) {
         double viewScore = Math.sqrt(post.viewCount());
         double likeScore = Math.sqrt(post.likeCount() * LIKE_MULTIPLIER);
@@ -70,19 +62,19 @@ public class PopularPostService {
                 (likeScore * LIKE_WEIGHT) +
                 (commentScore * COMMENT_WEIGHT);
 
-        return PopularPostRequest.of(
-                post.postId(),
-                post.viewCount(),
-                post.likeCount(),
-                post.commentCount(),
+        return PopularPostRequest.withScore(
+                post,
                 popularityScore,
                 calculatedDate
         );
     }
 
-    // PostRecommendService 에서 사용
     @Transactional(readOnly = true)
-    public List<Post> getPopularPostsAsEntity(int limit) {
-        return popularPostRepository.findLatestPopularPosts(limit);
+    public List<PopularPostResponse> getPopularPosts(int limit) {
+        List<PopularPostRequest> requests = popularPostRepository.findLatestPopularPosts(limit);
+        return requests.stream()
+                .map(PopularPostResponse::from)
+                .collect(Collectors.toList());
     }
 }
+

@@ -22,17 +22,38 @@ public class PopularPostRepository {
 
     public List<PopularPostRequest> findRecentPostsWithCounts(LocalDateTime threeDaysAgo) {
         return dsl.select(
-                        POSTS.ID.as("postId"),
-                        POSTS.VIEW_COUNT.as("viewCount"),
-                        POSTS.LIKE_COUNT.as("likeCount"),
-                        DSL.count(COMMENTS.ID).as("commentCount")
+                        POSTS.ID,
+                        POSTS.VIEW_COUNT,
+                        POSTS.LIKE_COUNT,
+                        DSL.count(COMMENTS.ID).as("commentCount"),
+                        USERS.NICKNAME,
+                        USERS.DEVCOURSE_NAME,
+                        POSTS.CREATED_AT,
+                        POSTS.TITLE,
+                        POSTS.BOARD_TYPE
                 )
                 .from(POSTS)
+                .join(USERS).on(USERS.ID.eq(POSTS.USER_ID))  // User JOIN 추가
                 .leftJoin(COMMENTS).on(COMMENTS.POST_ID.eq(POSTS.ID))
                 .where(POSTS.IS_DELETED.eq(false))
                 .and(POSTS.CREATED_AT.ge(threeDaysAgo))
-                .groupBy(POSTS.ID, POSTS.VIEW_COUNT, POSTS.LIKE_COUNT)
-                .fetchInto(PopularPostRequest.class);
+                .groupBy(POSTS.ID, POSTS.VIEW_COUNT, POSTS.LIKE_COUNT,
+                        USERS.NICKNAME, USERS.DEVCOURSE_NAME, POSTS.CREATED_AT,
+                        POSTS.TITLE, POSTS.BOARD_TYPE)
+                .fetch()
+                .map(record -> new PopularPostRequest(
+                        record.get(POSTS.ID),
+                        record.get(POSTS.VIEW_COUNT),
+                        record.get(POSTS.LIKE_COUNT),
+                        record.get("commentCount", Integer.class),
+                        null,
+                        null,
+                        record.get(USERS.NICKNAME),
+                        record.get(USERS.DEVCOURSE_NAME),
+                        record.get(POSTS.CREATED_AT),
+                        record.get(POSTS.TITLE),
+                        record.get(POSTS.BOARD_TYPE, String.class)
+                ));
     }
 
     public void savePopularPosts(List<PopularPostRequest> requests) {
@@ -46,9 +67,15 @@ public class PopularPostRepository {
                                 POPULAR_POSTS.CALCULATED_DATE,
                                 POPULAR_POSTS.VIEW_COUNT,
                                 POPULAR_POSTS.LIKE_COUNT,
-                                POPULAR_POSTS.COMMENT_COUNT
+                                POPULAR_POSTS.COMMENT_COUNT,
+                                POPULAR_POSTS.AUTHOR_NICKNAME,
+                                POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME,
+                                POPULAR_POSTS.POST_CREATED_AT,
+                                POPULAR_POSTS.TITLE,
+                                POPULAR_POSTS.BOARD_TYPE
                         )
-                        .values((Long) null, null, null, null, null, null)
+                        .values((Long) null, null, null, null, null, null,
+                                null, null, null, null, null)
         );
 
         for (PopularPostRequest request : requests) {
@@ -58,7 +85,12 @@ public class PopularPostRepository {
                     request.calculatedDate(),
                     request.viewCount(),
                     request.likeCount(),
-                    request.commentCount()
+                    request.commentCount(),
+                    request.authorNickname(),
+                    request.authorDevcourseName(),
+                    request.postCreatedAt(),
+                    request.title(),
+                    request.boardType()
             );
         }
 
@@ -73,31 +105,44 @@ public class PopularPostRepository {
         log.info("날짜 {} 인기글 {}개 삭제", date, count);
     }
 
-    public List<Post> findLatestPopularPosts(int limit) {
+    public List<PopularPostRequest> findLatestPopularPosts(int limit) {
         var latestDate = dsl.select(DSL.max(POPULAR_POSTS.CALCULATED_DATE))
                 .from(POPULAR_POSTS)
                 .fetchOneInto(LocalDate.class);
 
         if (latestDate == null) return List.of();
 
-        var postIds = dsl.select(POPULAR_POSTS.POST_ID)
+        return dsl.select(
+                        POPULAR_POSTS.POST_ID,
+                        POPULAR_POSTS.VIEW_COUNT,
+                        POPULAR_POSTS.LIKE_COUNT,
+                        POPULAR_POSTS.COMMENT_COUNT,
+                        POPULAR_POSTS.POPULARITY_SCORE,
+                        POPULAR_POSTS.CALCULATED_DATE,
+                        POPULAR_POSTS.AUTHOR_NICKNAME,
+                        POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME,
+                        POPULAR_POSTS.POST_CREATED_AT,
+                        POPULAR_POSTS.TITLE,
+                        POPULAR_POSTS.BOARD_TYPE
+                )
                 .from(POPULAR_POSTS)
                 .where(POPULAR_POSTS.CALCULATED_DATE.eq(latestDate))
                 .orderBy(POPULAR_POSTS.POPULARITY_SCORE.desc())
                 .limit(limit)
-                .fetch(POPULAR_POSTS.POST_ID);
-
-        if (postIds.isEmpty()) return List.of();
-
-        var postsMap = dsl.selectFrom(POSTS)
-                .where(POSTS.ID.in(postIds))
-                .and(POSTS.IS_DELETED.eq(false))
-                .fetchMap(POSTS.ID, Post.class);
-
-        return postIds.stream()
-                .map(postsMap::get)
-                .filter(post -> post != null)
-                .toList();
+                .fetch()
+                .map(record -> new PopularPostRequest(
+                        record.get(POPULAR_POSTS.POST_ID),
+                        record.get(POPULAR_POSTS.VIEW_COUNT),
+                        record.get(POPULAR_POSTS.LIKE_COUNT),
+                        record.get(POPULAR_POSTS.COMMENT_COUNT),
+                        record.get(POPULAR_POSTS.POPULARITY_SCORE),
+                        record.get(POPULAR_POSTS.CALCULATED_DATE),
+                        record.get(POPULAR_POSTS.AUTHOR_NICKNAME),
+                        record.get(POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME),
+                        record.get(POPULAR_POSTS.POST_CREATED_AT),
+                        record.get(POPULAR_POSTS.TITLE),
+                        record.get(POPULAR_POSTS.BOARD_TYPE)
+                ));
     }
 
     public boolean existsByDate(LocalDate date) {
