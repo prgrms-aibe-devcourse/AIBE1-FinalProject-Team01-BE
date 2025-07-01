@@ -18,6 +18,7 @@ import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -103,6 +104,15 @@ public class LikeService {
                     new PostContentData(like.getPost().getId(), like.getPost().getTitle(), like.getPost().getContent(), "좋아요")).toList();
         } catch (Exception e) {
             return Collections.emptyList();
+        }
+    }
+
+    public boolean hasRecentLikeActivity(Long userId, int days) {
+        try {
+            LocalDateTime since = LocalDateTime.now().minusDays(days);
+            return likeRepository.existsByUserIdAndPostIsNotNullAndCreatedAtAfter(userId, since);
+        } catch (Exception e) {
+            return false;
         }
     }
 }

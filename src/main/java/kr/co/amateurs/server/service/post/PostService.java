@@ -42,4 +42,13 @@ public class PostService {
     public List<Post> findAllPosts() {
         return postRepository.findAll();
     }
+
+    public boolean hasRecentPostActivity(Long userId, int days) {
+        try {
+            LocalDateTime since = LocalDateTime.now().minusDays(days);
+            return postRepository.existsByUserIdAndCreatedAtAfter(userId, since);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

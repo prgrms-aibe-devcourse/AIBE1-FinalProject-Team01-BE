@@ -147,4 +147,19 @@ public class AiProfileService {
 
         return aiProfileRepository.save(aiProfile);
     }
+
+    /**
+     * 최근 활동 여부 체크 (북마크 OR 좋아요 OR 작성글)
+     */
+    public boolean hasRecentActivity(Long userId, int days) {
+        try {
+            return bookmarkService.hasRecentBookmarkActivity(userId, days) ||
+                    likeService.hasRecentLikeActivity(userId, days) ||
+                    postService.hasRecentPostActivity(userId, days);
+        } catch (Exception e) {
+            log.warn("활동 체크 실패: userId={}", userId, e);
+            return false;
+        }
+    }
+
 }

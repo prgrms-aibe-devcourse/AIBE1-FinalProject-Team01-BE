@@ -29,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import java.util.Collections;
@@ -126,6 +127,15 @@ public class BookmarkService {
                     -> new PostContentData(bookmark.getPost().getId(), bookmark.getPost().getTitle(), bookmark.getPost().getContent(), "북마크")).toList();
         } catch (Exception e) {
             return Collections.emptyList();
+        }
+    }
+
+    public boolean hasRecentBookmarkActivity(Long userId, int days) {
+        try {
+            LocalDateTime since = LocalDateTime.now().minusDays(days);
+            return bookmarkRepository.existsByUserIdAndCreatedAtAfter(userId, since);
+        } catch (Exception e) {
+            return false;
         }
     }
 
