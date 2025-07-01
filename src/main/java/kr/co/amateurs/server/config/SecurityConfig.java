@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.config;
 
+import kr.co.amateurs.server.config.auth.CustomAuthorizeHttpRequestsConfigurer;
 import kr.co.amateurs.server.config.jwt.JwtAccessDeniedHandler;
 import kr.co.amateurs.server.config.jwt.JwtAuthenticationEntryPoint;
 import kr.co.amateurs.server.config.jwt.JwtAuthenticationFilter;
@@ -9,9 +10,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -22,20 +26,23 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final List<CustomAuthorizeHttpRequestsConfigurer> customAuthorizeHttpRequestsConfigurers;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**").permitAll()
-                )
+
+                .authorizeHttpRequests(auth -> {
+                    customAuthorizeHttpRequestsConfigurers.forEach(configurer -> configurer.configure(auth));
+                    auth.requestMatchers("/**").permitAll();
+                })
 
                 // TODO: 개발 완료 후 아래 설정으로 변경할 예정
 //                .authorizeHttpRequests(auth -> auth

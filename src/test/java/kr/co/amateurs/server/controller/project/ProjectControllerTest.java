@@ -244,7 +244,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
-                    .statusCode(HttpStatus.BAD_REQUEST.value());
+                    .statusCode(HttpStatus.FORBIDDEN.value());
         }
 
         @Test
@@ -258,7 +258,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
-                    .statusCode(HttpStatus.BAD_REQUEST.value());
+                    .statusCode(HttpStatus.FORBIDDEN.value());
         }
 
         @Test
@@ -272,7 +272,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
-                    .statusCode(HttpStatus.BAD_REQUEST.value());
+                    .statusCode(HttpStatus.FORBIDDEN.value());
         }
     }
 
@@ -389,31 +389,54 @@ public class ProjectControllerTest extends AbstractControllerTest {
     }
 
     @Nested
-    class 익명의_유저는 {
+    class 비로그인_유저는 {
         @Test
-        void 프로젝트_생성_요청을_하면_생성을_할_수_없어야_한다() {
+        void 프로젝트_생성_요청을_하면_생성을_할_수_없어야_한다() throws JsonProcessingException {
+            // given
+            ProjectRequestDTO requestDTO = ProjectRequestDTO.builder()
+                    .title("새로운 프로젝트")
+                    .content("프로젝트 내용")
+                    .startedAt(LocalDateTime.of(2025, 1, 1, 13, 20))
+                    .endedAt(LocalDateTime.of(2025, 1, 31, 13, 20))
+                    .githubUrl("https://github.com/example/project")
+                    .simpleContent("간단한 프로젝트 설명")
+                    .demoUrl("https://demo.example.com")
+                    .projectMembers(objectMapper.writeValueAsString(List.of("김개발", "이디자인", "박프론트")))
+                    .build();
+
             // when & then
             given()
                     .header("content-type", "application/json")
+                    .body(requestDTO)
                     .when()
                     .post("/projects")
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
-                    .statusCode(HttpStatus.BAD_REQUEST.value());
+                    .statusCode(HttpStatus.UNAUTHORIZED.value());
         }
 
         @Test
         void 프로젝트_수정_요청을_하면_수정을_할_수_없어야_한다() {
+            // given
+            ProjectRequestDTO requestDTO = ProjectRequestDTO.builder()
+                    .title("수정된 프로젝트")
+                    .content("수정된 내용")
+                    .startedAt(LocalDateTime.of(2020, 1, 1, 13, 20))
+                    .endedAt(LocalDateTime.of(2020, 1, 31, 13, 20))
+                    .projectMembers("[\"홍길동\", \"박길동\", \"김길동\"]")
+                    .build();
+
             // when & then
             given()
                     .header("content-type", "application/json")
+                    .body(requestDTO)
                     .when()
                     .put("/projects/{postId}", backendProjectId)
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
-                    .statusCode(HttpStatus.BAD_REQUEST.value());
+                    .statusCode(HttpStatus.UNAUTHORIZED.value());
         }
 
         @Test
@@ -426,7 +449,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
-                    .statusCode(HttpStatus.BAD_REQUEST.value());
+                    .statusCode(HttpStatus.UNAUTHORIZED.value());
         }
     }
 
