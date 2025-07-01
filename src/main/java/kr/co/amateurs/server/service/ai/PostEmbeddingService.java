@@ -14,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 
@@ -34,11 +37,16 @@ public class PostEmbeddingService {
         try {
             String content = formatPostContent(post);
 
+            String createdDate = post.getCreatedAt()
+                    .toLocalDate()
+                    .toString();
+
             Metadata metadata = Metadata.from(Map.of(
                     "userId", post.getUser().getId().toString(),
                     "postId", post.getId().toString(),
                     "title", post.getTitle(),
-                    "boardType", post.getBoardType().name()
+                    "boardType", post.getBoardType().name(),
+                    "createdDate", createdDate
             ));
 
             TextSegment segment = TextSegment.from(content, metadata);
@@ -77,6 +85,7 @@ public class PostEmbeddingService {
      */
     public List<EmbeddingMatch<TextSegment>> findSimilarPosts(String query, int limit) {
         Embedding queryEmbedding = embeddingModel.embed(query).content();
+
         EmbeddingSearchRequest request = EmbeddingSearchRequest.builder()
                 .queryEmbedding(queryEmbedding)
                 .maxResults(limit)
