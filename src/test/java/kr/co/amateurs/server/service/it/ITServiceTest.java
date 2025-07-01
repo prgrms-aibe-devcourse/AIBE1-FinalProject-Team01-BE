@@ -1,13 +1,19 @@
 package kr.co.amateurs.server.service.it;
 
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
+import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.ITPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.fixture.it.ITTestFixtures;
+import kr.co.amateurs.server.repository.it.ITRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
@@ -16,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,24 +46,31 @@ class ITServiceTest {
     @Autowired
     private PostRepository postRepository;
 
+    @Autowired
+    private ITRepository itRepository;
+
     @MockitoBean
     private UserService userService;
 
     private User testStudentUser;
     private User testOtherUser;
-    private Post testReviewPost;
-    private Post testReviewPost2;
-    private Post testInfoPost;
-
+    private ITPost testReviewITPost;
+    private ITPost testReviewITPost2;
+    private ITPost testInfoITPost;
 
     @BeforeEach
     void setUp() throws InterruptedException {
         testStudentUser = userRepository.save(ITTestFixtures.createStudentUser());
         testOtherUser = userRepository.save(ITTestFixtures.createCustomUser("other@other.com", "other", "other", Role.STUDENT));
-        testReviewPost = postRepository.save(ITTestFixtures.createPostWithCounts(testStudentUser, "리뷰1", "리뷰1", BoardType.REVIEW, 10, 10));
+
+        Post testReviewPost = postRepository.save(ITTestFixtures.createPostWithCounts(testStudentUser, "리뷰1", "리뷰1", BoardType.REVIEW, 10, 10));
         Thread.sleep(10);
-        testReviewPost2 = postRepository.save(ITTestFixtures.createPost(testStudentUser, "리뷰2", "리뷰2", BoardType.REVIEW));
-        testInfoPost = postRepository.save(ITTestFixtures.createPost(testStudentUser, "정보1", "정보2", BoardType.INFO));
+        Post testReviewPost2 = postRepository.save(ITTestFixtures.createPost(testStudentUser, "리뷰2", "리뷰2", BoardType.REVIEW));
+        Post testInfoPost = postRepository.save(ITTestFixtures.createPost(testStudentUser, "정보1", "정보2", BoardType.INFO));
+
+        testReviewITPost = itRepository.save(ITTestFixtures.createITPost(testReviewPost));
+        testReviewITPost2 = itRepository.save(ITTestFixtures.createITPost(testReviewPost2));
+        testInfoITPost = itRepository.save(ITTestFixtures.createITPost(testInfoPost));
     }
 
     @Test
@@ -65,18 +79,24 @@ class ITServiceTest {
         int page = 0;
         int pageSize = 10;
         BoardType boardType = BoardType.REVIEW;
-        SortType sortType = SortType.LATEST;
+        PostPaginationParam param = PostPaginationParam.builder()
+                .keyword(null)
+                .page(page)
+                .size(pageSize)
+                .sortDirection(Sort.Direction.DESC)
+                .field(PaginationSortType.POST_LATEST)
+                .build();
 
         // when
-        Page<ITResponseDTO> result = itService.searchPosts(null, page, boardType, sortType, pageSize);
+        PageResponseDTO<ITResponseDTO> result = itService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getNumber()).isEqualTo(page);
-        assertThat(result.getSize()).isEqualTo(pageSize);
-        assertThat(result.getTotalPages()).isEqualTo(1);
-        assertThat(result.getContent().get(0).title()).isEqualTo("리뷰2");
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.pageInfo().getPageNumber()).isEqualTo(page);
+        assertThat(result.pageInfo().getPageSize()).isEqualTo(pageSize);
+        assertThat(result.pageInfo().getTotalPages()).isEqualTo(1);
+        assertThat(result.content().get(0).title()).isEqualTo("리뷰2");
     }
 
     @Test
@@ -86,15 +106,21 @@ class ITServiceTest {
         int page = 0;
         int pageSize = 10;
         BoardType boardType = BoardType.REVIEW;
-        SortType sortType = SortType.LATEST;
+        PostPaginationParam param = PostPaginationParam.builder()
+                .keyword(keyword)
+                .page(page)
+                .size(pageSize)
+                .sortDirection(Sort.Direction.DESC)
+                .field(PaginationSortType.POST_LATEST)
+                .build();
 
         // when
-        Page<ITResponseDTO> result = itService.searchPosts(keyword, page, boardType, sortType, pageSize);
+        PageResponseDTO<ITResponseDTO> result = itService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).title()).contains("리뷰2");
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.content().get(0).title()).contains("리뷰2");
     }
 
     @Test
@@ -104,14 +130,20 @@ class ITServiceTest {
         int page = 0;
         int pageSize = 10;
         BoardType boardType = BoardType.REVIEW;
-        SortType sortType = SortType.LATEST;
+        PostPaginationParam param = PostPaginationParam.builder()
+                .keyword(keyword)
+                .page(page)
+                .size(pageSize)
+                .sortDirection(Sort.Direction.DESC)
+                .field(PaginationSortType.POST_LATEST)
+                .build();
 
         // when
-        Page<ITResponseDTO> result = itService.searchPosts(keyword, page, boardType, sortType, pageSize);
+        PageResponseDTO<ITResponseDTO> result = itService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
+        assertThat(result.content()).isEmpty();
     }
 
     @Test
@@ -120,17 +152,23 @@ class ITServiceTest {
         int page = 0;
         int pageSize = 10;
         BoardType boardType = BoardType.REVIEW;
-        SortType sortType = SortType.POPULAR;
+        PostPaginationParam param = PostPaginationParam.builder()
+                .keyword(null)
+                .page(page)
+                .size(pageSize)
+                .sortDirection(Sort.Direction.DESC)
+                .field(PaginationSortType.POST_POPULAR)
+                .build();
 
         // when
-        Page<ITResponseDTO> result = itService.searchPosts(null, page, boardType, sortType, pageSize);
+        PageResponseDTO<ITResponseDTO> result = itService.searchPosts(boardType, param);
 
         // then
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).likeCount()).isGreaterThanOrEqualTo(
-                result.getContent().get(1).likeCount()
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.content().get(0).likeCount()).isGreaterThanOrEqualTo(
+                result.content().get(1).likeCount()
         );
-        assertThat(result.getContent().get(0).title()).contains("리뷰1");
+        assertThat(result.content().get(0).title()).contains("리뷰1");
     }
 
     @Test
@@ -139,26 +177,32 @@ class ITServiceTest {
         int page = 0;
         int pageSize = 10;
         BoardType boardType = BoardType.REVIEW;
-        SortType sortType = SortType.VIEW_COUNT;
+        PostPaginationParam param = PostPaginationParam.builder()
+                .keyword(null)
+                .page(page)
+                .size(pageSize)
+                .sortDirection(Sort.Direction.DESC)
+                .field(PaginationSortType.POST_MOST_VIEW)
+                .build();
 
         // when
-        Page<ITResponseDTO> result = itService.searchPosts(null, page, boardType, sortType, pageSize);
+        PageResponseDTO<ITResponseDTO> result = itService.searchPosts(boardType, param);
 
         // then
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).viewCount()).isGreaterThanOrEqualTo(
-                result.getContent().get(1).viewCount()
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.content().get(0).viewCount()).isGreaterThanOrEqualTo(
+                result.content().get(1).viewCount()
         );
-        assertThat(result.getContent().get(0).title()).contains("리뷰1");
+        assertThat(result.content().get(0).title()).contains("리뷰1");
     }
 
     @Test
-    void 유저가_유효한_postId로_조회하면_게시글상세가_반환되어야_한다() {
+    void 유저가_유효한_itId로_조회하면_게시글상세가_반환되어야_한다() {
         // given
-        Long postId = testReviewPost.getId();
+        Long itId = testReviewITPost.getId();
 
         // when
-        ITResponseDTO result = itService.getPost(postId);
+        ITResponseDTO result = itService.getPost(itId);
 
         // then
         assertThat(result).isNotNull();
@@ -174,12 +218,12 @@ class ITServiceTest {
     }
 
     @Test
-    void 유저가_존재하지_않는_postId로_조회하면_예외가_발생해야_한다() {
+    void 유저가_존재하지_않는_itId로_조회하면_예외가_발생해야_한다() {
         // given
-        Long nonExistentPostId = 999L;
+        Long nonExistentItId = 999L;
 
         // when & then
-        assertThatThrownBy(() -> itService.getPost(nonExistentPostId))
+        assertThatThrownBy(() -> itService.getPost(nonExistentItId))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -220,30 +264,30 @@ class ITServiceTest {
     void 유저가_본인_게시글을_수정하면_게시글이_수정되어야_한다() {
         // given
         ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO("수정된 제목","수정 태그", "수정된 내용");
-        Long postId = testReviewPost.getId();
+        Long itId = testReviewITPost.getId();
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when
-        itService.updatePost(requestDTO, postId);
+        itService.updatePost(requestDTO, itId);
 
         // then
-        ITResponseDTO result = itService.getPost(postId);
+        ITResponseDTO result = itService.getPost(itId);
         assertThat(result.title()).isEqualTo("수정된 제목");
         assertThat(result.tags()).isEqualTo("수정 태그");
         assertThat(result.content()).isEqualTo("수정된 내용");
     }
 
     @Test
-    void 유저가_존재하지_않는_postId로_수정하면_예외가_발생해야_한다() {
+    void 유저가_존재하지_않는_itId로_수정하면_예외가_발생해야_한다() {
         // given
         ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO("수정된 제목","수정 태그","수정된 내용");
-        Long nonExistentPostId = 999L;
+        Long nonExistentItId = 999L;
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when & then
-        assertThatThrownBy(() -> itService.updatePost(requestDTO, nonExistentPostId))
+        assertThatThrownBy(() -> itService.updatePost(requestDTO, nonExistentItId))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -251,51 +295,51 @@ class ITServiceTest {
     void 유저가_다른_게시글을_수정하면_게시글이_예외가_발생해야_한다() {
         // given
         ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO("수정된 제목","수정 태그", "수정된 내용");
-        Long postId = testReviewPost.getId();
+        Long itId = testReviewITPost.getId();
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
 
         // when & then
-        assertThatThrownBy(() -> itService.updatePost(requestDTO, postId))
+        assertThatThrownBy(() -> itService.updatePost(requestDTO, itId))
                 .isInstanceOf(CustomException.class);
     }
 
     @Test
     void 유저가_본인_게시글을_삭제하면_게시글이_삭제되어야_한다() {
         // given
-        Long postId = testReviewPost.getId();
+        Long itId = testReviewITPost.getId();
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when
-        itService.deletePost(postId);
+        itService.deletePost(itId);
 
         // then
-        assertThatThrownBy(() -> itService.getPost(postId))
+        assertThatThrownBy(() -> itService.getPost(itId))
                 .isInstanceOf(CustomException.class);
     }
 
     @Test
-    void 유저가_존재하지_않는_postId로_삭제하면_예외가_발생해야_한다() {
+    void 유저가_존재하지_않는_itId로_삭제하면_예외가_발생해야_한다() {
         // given
-        Long nonExistentPostId = 999L;
+        Long nonExistentItId = 999L;
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when & then
-        assertThatThrownBy(() -> itService.deletePost(nonExistentPostId))
+        assertThatThrownBy(() -> itService.deletePost(nonExistentItId))
                 .isInstanceOf(CustomException.class);
     }
 
     @Test
     void 유저가_다른_게시글을_삭제하면_예외가_발생해야_한다() {
         // given
-        Long postId = testReviewPost.getId();
+        Long itId = testReviewITPost.getId();
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
 
         // when & then
-        assertThatThrownBy(() -> itService.deletePost(postId))
+        assertThatThrownBy(() -> itService.deletePost(itId))
                 .isInstanceOf(CustomException.class);
     }
 }

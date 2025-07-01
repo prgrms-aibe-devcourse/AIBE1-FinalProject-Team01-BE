@@ -5,13 +5,16 @@ import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
+import kr.co.amateurs.server.domain.entity.post.CommunityPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.fixture.community.CommunityTestFixtures;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
+import kr.co.amateurs.server.repository.community.CommunityRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
@@ -34,15 +37,18 @@ import static org.mockito.BDDMockito.given;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class CommunityPostServiceTest {
+class CommunityServiceTest {
     @Autowired
-    private CommunityPostService communityPostService;
+    private CommunityService communityService;
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private CommunityRepository communityRepository;
 
     @Autowired
     private CommentRepository commentRepository;
@@ -52,19 +58,26 @@ class CommunityPostServiceTest {
 
     private User testStudentUser;
     private User testOtherUser;
-    private Post testFreePost;
-    private Post testFreePost2;
-    private Post testGatherPost;
-
+    private CommunityPost testFreeCommunityPost;
+    private CommunityPost testFreeCommunityPost2;
+    private CommunityPost testGatherCommunityPost;
 
     @BeforeEach
     void setUp() throws InterruptedException {
+        // 사용자 생성
         testStudentUser = userRepository.save(CommunityTestFixtures.createStudentUser());
         testOtherUser = userRepository.save(CommunityTestFixtures.createCustomUser("other@other.com", "other", "other", Role.STUDENT));
-        testFreePost = postRepository.save(CommunityTestFixtures.createPostWithCounts(testStudentUser, "자유1", "자유1", BoardType.FREE, 10, 10));
+
+        // Post 생성
+        Post testFreePost = postRepository.save(CommunityTestFixtures.createPostWithCounts(testStudentUser, "자유1", "자유1", BoardType.FREE, 10, 10));
         Thread.sleep(10);
-        testFreePost2 = postRepository.save(CommunityTestFixtures.createPost(testStudentUser, "자유2", "자유2", BoardType.FREE));
-        testGatherPost = postRepository.save(CommunityTestFixtures.createPost(testStudentUser, "게더1", "게더2", BoardType.GATHER));
+        Post testFreePost2 = postRepository.save(CommunityTestFixtures.createPost(testStudentUser, "자유2", "자유2", BoardType.FREE));
+        Post testGatherPost = postRepository.save(CommunityTestFixtures.createPost(testStudentUser, "게더1", "게더2", BoardType.GATHER));
+
+        // CommunityPost 생성
+        testFreeCommunityPost = communityRepository.save(CommunityTestFixtures.createCommunityPost(testFreePost));
+        testFreeCommunityPost2 = communityRepository.save(CommunityTestFixtures.createCommunityPost(testFreePost2));
+        testGatherCommunityPost = communityRepository.save(CommunityTestFixtures.createCommunityPost(testGatherPost));
     }
 
     @Test
@@ -73,17 +86,16 @@ class CommunityPostServiceTest {
         int page = 0;
         int pageSize = 10;
         BoardType boardType = BoardType.FREE;
-        SortType sortType = SortType.LATEST;
         PostPaginationParam param = PostPaginationParam.builder()
                 .keyword(null)
                 .page(page)
                 .size(pageSize)
                 .sortDirection(Sort.Direction.DESC)
-                .field(PaginationSortType.LATEST)
+                .field(PaginationSortType.POST_LATEST)
                 .build();
 
         // when
-        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
@@ -101,17 +113,16 @@ class CommunityPostServiceTest {
         int page = 0;
         int pageSize = 10;
         BoardType boardType = BoardType.FREE;
-        SortType sortType = SortType.LATEST;
         PostPaginationParam param = PostPaginationParam.builder()
                 .keyword(keyword)
                 .page(page)
                 .size(pageSize)
                 .sortDirection(Sort.Direction.DESC)
-                .field(PaginationSortType.LATEST)
+                .field(PaginationSortType.POST_LATEST)
                 .build();
 
         // when
-        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
@@ -126,17 +137,16 @@ class CommunityPostServiceTest {
         int page = 0;
         int pageSize = 10;
         BoardType boardType = BoardType.FREE;
-        SortType sortType = SortType.LATEST;
         PostPaginationParam param = PostPaginationParam.builder()
                 .keyword(keyword)
                 .page(page)
                 .size(pageSize)
                 .sortDirection(Sort.Direction.DESC)
-                .field(PaginationSortType.LATEST)
+                .field(PaginationSortType.POST_LATEST)
                 .build();
 
         // when
-        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityService.searchPosts(boardType, param);
 
         // then
         assertThat(result).isNotNull();
@@ -149,17 +159,16 @@ class CommunityPostServiceTest {
         int page = 0;
         int pageSize = 10;
         BoardType boardType = BoardType.FREE;
-        SortType sortType = SortType.POPULAR;
         PostPaginationParam param = PostPaginationParam.builder()
                 .keyword(null)
                 .page(page)
                 .size(pageSize)
                 .sortDirection(Sort.Direction.DESC)
-                .field(PaginationSortType.POPULAR)
+                .field(PaginationSortType.POST_POPULAR)
                 .build();
 
         // when
-        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityService.searchPosts(boardType, param);
 
         // then
         assertThat(result.content()).hasSize(2);
@@ -175,17 +184,16 @@ class CommunityPostServiceTest {
         int page = 0;
         int pageSize = 10;
         BoardType boardType = BoardType.FREE;
-        SortType sortType = SortType.VIEW_COUNT;
         PostPaginationParam param = PostPaginationParam.builder()
                 .keyword(null)
                 .page(page)
                 .size(pageSize)
                 .sortDirection(Sort.Direction.DESC)
-                .field(PaginationSortType.MOST_VIEW)
+                .field(PaginationSortType.POST_MOST_VIEW)
                 .build();
 
         // when
-        PageResponseDTO<CommunityResponseDTO> result = communityPostService.searchPosts(boardType, param);
+        PageResponseDTO<CommunityResponseDTO> result = communityService.searchPosts(boardType, param);
 
         // then
         assertThat(result.content()).hasSize(2);
@@ -196,12 +204,12 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_유효한_postId로_조회하면_게시글상세가_반환되어야_한다() {
+    void 유저가_유효한_communityId로_조회하면_게시글상세가_반환되어야_한다() {
         // given
-        Long postId = testFreePost.getId();
+        Long communityId = testFreeCommunityPost.getId();
 
         // when
-        CommunityResponseDTO result = communityPostService.getPost(postId);
+        CommunityResponseDTO result = communityService.getPost(communityId);
 
         // then
         assertThat(result).isNotNull();
@@ -217,12 +225,12 @@ class CommunityPostServiceTest {
     }
 
     @Test
-    void 유저가_존재하지_않는_postId로_조회하면_예외가_발생해야_한다() {
+    void 유저가_존재하지_않는_communityId로_조회하면_예외가_발생해야_한다() {
         // given
-        Long nonExistentPostId = 999L;
+        Long nonExistentCommunityId = 999L;
 
         // when & then
-        assertThatThrownBy(() -> communityPostService.getPost(nonExistentPostId))
+        assertThatThrownBy(() -> communityService.getPost(nonExistentCommunityId))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -235,7 +243,7 @@ class CommunityPostServiceTest {
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when
-        CommunityResponseDTO result = communityPostService.createPost(requestDTO, boardType);
+        CommunityResponseDTO result = communityService.createPost(requestDTO, boardType);
 
         // then
         assertThat(result).isNotNull();
@@ -255,7 +263,7 @@ class CommunityPostServiceTest {
         given(userService.getCurrentUser()).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> communityPostService.createPost(requestDTO, boardType))
+        assertThatThrownBy(() -> communityService.createPost(requestDTO, boardType))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -263,30 +271,30 @@ class CommunityPostServiceTest {
     void 유저가_본인_게시글을_수정하면_게시글이_수정되어야_한다() {
         // given
         CommunityRequestDTO requestDTO = CommunityTestFixtures.createRequestDTO("수정된 제목","수정 태그", "수정된 내용");
-        Long postId = testFreePost.getId();
+        Long communityId = testFreeCommunityPost.getId();
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when
-        communityPostService.updatePost(requestDTO, postId);
+        communityService.updatePost(requestDTO, communityId);
 
         // then
-        CommunityResponseDTO result = communityPostService.getPost(postId);
+        CommunityResponseDTO result = communityService.getPost(communityId);
         assertThat(result.title()).isEqualTo("수정된 제목");
         assertThat(result.tags()).isEqualTo("수정 태그");
         assertThat(result.content()).isEqualTo("수정된 내용");
     }
 
     @Test
-    void 유저가_존재하지_않는_postId로_수정하면_예외가_발생해야_한다() {
+    void 유저가_존재하지_않는_communityId로_수정하면_예외가_발생해야_한다() {
         // given
         CommunityRequestDTO requestDTO = CommunityTestFixtures.createRequestDTO("수정된 제목","수정 태그","수정된 내용");
-        Long nonExistentPostId = 999L;
+        Long nonExistentCommunityId = 999L;
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when & then
-        assertThatThrownBy(() -> communityPostService.updatePost(requestDTO, nonExistentPostId))
+        assertThatThrownBy(() -> communityService.updatePost(requestDTO, nonExistentCommunityId))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -294,51 +302,80 @@ class CommunityPostServiceTest {
     void 유저가_다른_게시글을_수정하면_게시글이_예외가_발생해야_한다() {
         // given
         CommunityRequestDTO requestDTO = CommunityTestFixtures.createRequestDTO("수정된 제목","수정 태그", "수정된 내용");
-        Long postId = testFreePost.getId();
+        Long communityId = testFreeCommunityPost.getId();
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
 
         // when & then
-        assertThatThrownBy(() -> communityPostService.updatePost(requestDTO, postId))
+        assertThatThrownBy(() -> communityService.updatePost(requestDTO, communityId))
                 .isInstanceOf(CustomException.class);
     }
 
     @Test
     void 유저가_본인_게시글을_삭제하면_게시글이_삭제되어야_한다() {
         // given
-        Long postId = testFreePost.getId();
+        Long communityId = testFreeCommunityPost.getId();
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when
-        communityPostService.deletePost(postId);
+        communityService.deletePost(communityId);
 
         // then
-        assertThatThrownBy(() -> communityPostService.getPost(postId))
+        assertThatThrownBy(() -> communityService.getPost(communityId))
                 .isInstanceOf(CustomException.class);
     }
 
     @Test
-    void 유저가_존재하지_않는_postId로_삭제하면_예외가_발생해야_한다() {
+    void 유저가_존재하지_않는_communityId로_삭제하면_예외가_발생해야_한다() {
         // given
-        Long nonExistentPostId = 999L;
+        Long nonExistentCommunityId = 999L;
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when & then
-        assertThatThrownBy(() -> communityPostService.deletePost(nonExistentPostId))
+        assertThatThrownBy(() -> communityService.deletePost(nonExistentCommunityId))
                 .isInstanceOf(CustomException.class);
     }
 
     @Test
     void 유저가_다른_게시글을_삭제하면_예외가_발생해야_한다() {
         // given
-        Long postId = testFreePost.getId();
+        Long communityId = testFreeCommunityPost.getId();
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
 
         // when & then
-        assertThatThrownBy(() -> communityPostService.deletePost(postId))
+        assertThatThrownBy(() -> communityService.deletePost(communityId))
                 .isInstanceOf(CustomException.class);
     }
+
+    @Test
+    void findById로_CommunityPost를_조회할_수_있어야_한다() {
+        // given
+        Long communityId = testFreeCommunityPost.getId();
+
+        // when
+        CommunityPost result = communityService.findById(communityId);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(communityId);
+        assertThat(result.getPost().getTitle()).isEqualTo("자유1");
+    }
+
+    //현재 미구현
+//    @Test
+//    void increaseViewCount로_조회수가_증가해야_한다() {
+//        // given
+//        Long communityId = testFreeCommunityPost.getId();
+//        int originalViewCount = testFreeCommunityPost.getPost().getViewCount();
+//
+//        // when
+//        communityService.increaseViewCount(communityId);
+//
+//        // then
+//        CommunityResponseDTO result = communityService.getPost(communityId);
+//        assertThat(result.viewCount()).isEqualTo(originalViewCount + 1);
+//    }
 }
