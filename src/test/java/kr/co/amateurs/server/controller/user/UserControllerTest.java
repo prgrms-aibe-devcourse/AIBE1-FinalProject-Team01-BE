@@ -67,17 +67,17 @@ public class UserControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void 인증_토큰_없이_프로필_조회_시_404_에러가_발생한다() {
+    void 인증_토큰_없이_프로필_조회_시_401_에러가_발생한다() {
         // when & then
         given()
                 .when()
                 .get("/users/me")
                 .then()
-                .statusCode(404);
+                .statusCode(401);
     }
 
     @Test
-    void 잘못된_토큰으로_프로필_조회_시_404_에러가_발생한다() {
+    void 잘못된_토큰으로_프로필_조회_시_401_에러가_발생한다() {
         // given
         String invalidToken = TokenTestFixture.INVALID_TOKEN;
 
@@ -87,7 +87,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .when()
                 .get("/users/me")
                 .then()
-                .statusCode(404);
+                .statusCode(401);
     }
 
     @Test
