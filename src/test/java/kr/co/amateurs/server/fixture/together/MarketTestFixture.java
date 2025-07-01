@@ -9,5 +9,15 @@ import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import java.time.LocalDateTime;
 
 public class MarketTestFixture {
+    public static MarketPostRequestDTO createMarketPostRequestDTO() {
+        return new MarketPostRequestDTO(
+                "Java 책",
+                "Java 책 중고로 팝니다.",
+                "책",
+                MarketStatus.SELLING,
+                10000,
+                "서울"
+        );
+    }
 
 }
