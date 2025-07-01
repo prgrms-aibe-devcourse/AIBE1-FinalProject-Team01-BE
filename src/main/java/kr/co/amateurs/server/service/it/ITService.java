@@ -11,9 +11,7 @@ import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
-import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.it.ITRepository;
-import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
@@ -38,8 +36,6 @@ import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPag
 public class ITService {
     private final ITRepository itRepository;
     private final PostRepository postRepository;
-    private final BookmarkRepository bookmarkRepository;
-    private final LikeRepository likeRepository;
 
     private final BookmarkService bookmarkService;
     private final LikeService likeService;
@@ -68,8 +64,8 @@ public class ITService {
         boolean hasBookmarked = false;
         boolean hasLiked = false;
         if (user.isPresent()) {
-            hasBookmarked = bookmarkService.checkHasBookmarked(itPost.getPost().getId());
-            hasLiked = likeService.checkHasLiked(itPost.getPost().getId());
+            hasBookmarked = bookmarkService.checkHasBookmarked(itPost.getPost().getId(), user.get().getId());
+            hasLiked = likeService.checkHasLiked(itPost.getPost().getId(), user.get().getId());
         }
 
         return ITResponseDTO.from(itPost, hasLiked, hasBookmarked);

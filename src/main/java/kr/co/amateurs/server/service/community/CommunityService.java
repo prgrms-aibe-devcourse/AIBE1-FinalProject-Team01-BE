@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
@@ -55,15 +56,15 @@ public class CommunityService {
     }
 
     public CommunityResponseDTO getPost(Long communityId) {
-        User user = userService.getCurrentUser().orElse(null);
+        Optional<User> user = userService.getCurrentUser();
 
         CommunityPost communityPost = findById(communityId);
 
         boolean hasBookmarked = false;
         boolean hasLiked = false;
-        if (user != null) {
-            hasBookmarked = bookmarkService.checkHasBookmarked(communityPost.getPost().getId());
-            hasLiked = likeService.checkHasLiked(communityPost.getPost().getId());
+        if (user.isPresent()) {
+            hasBookmarked = bookmarkService.checkHasBookmarked(communityPost.getPost().getId(), user.get().getId());
+            hasLiked = likeService.checkHasLiked(communityPost.getPost().getId(), user.get().getId());
         }
 
         return CommunityResponseDTO.from(communityPost, hasLiked, hasBookmarked);
