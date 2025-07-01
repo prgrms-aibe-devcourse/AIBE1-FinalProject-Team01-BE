@@ -4,9 +4,11 @@ import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -14,7 +16,13 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -38,7 +46,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         log.info("GitHub에서 받아온 모든 속성: {}", oAuth2User.getAttributes());
 
         String providerId = getProviderId(oAuth2User, provider);
-        String email = getEmail(oAuth2User, provider);
+        String email = getEmailWithFallback(userRequest, oAuth2User, provider, providerId);
         String nickname = getNickname(oAuth2User, provider);
         String name = getName(oAuth2User, provider);
         String imageUrl = getImageUrl(oAuth2User, provider);
@@ -74,12 +82,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         }
 
         String uniqueNickname = generateUniqueNickname(nickname);
-        String finalEmail = email != null ? email : generateFakeEmail(providerId);
 
         User newUser = User.builder()
                 .providerId(providerId)
                 .providerType(ProviderType.valueOf(provider.toUpperCase()))
-                .email(finalEmail)
+                .email(email)
                 .nickname(uniqueNickname)
                 .name(name)
                 .imageUrl(imageUrl)
@@ -87,7 +94,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 .build();
 
         userRepository.save(newUser);
-        log.info("신규 사용자 등록: userId={}, 닉네임={}, 이메일={}", newUser.getId(), uniqueNickname, finalEmail);
+        log.info("신규 사용자 등록: userId={}, 닉네임={}, 이메일={}", newUser.getId(), uniqueNickname, email);
     }
 
 
@@ -133,9 +140,76 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         return String.valueOf(id);
     }
 
-    private String getEmail(OAuth2User oAuth2User, String provider) {
+    private String getEmailWithFallback(OAuth2UserRequest userRequest, OAuth2User oAuth2User, String provider, String providerId) {
         Map<String, Object> attributes = validateAndGetAttributes(oAuth2User, provider);
-        return (String) attributes.get("email");
+
+        String attributeEmail = (String) attributes.get("email");
+        if (attributeEmail != null && !attributeEmail.isEmpty()) {
+            log.info("GitHub attributes에서 이메일 획득: {}", attributeEmail);
+            return attributeEmail;
+        }
+
+        log.info("GitHub attributes에 이메일이 없어 AccessToken으로 조회 시도");
+        try {
+            String accessToken = userRequest.getAccessToken().getTokenValue();
+            String emailFromApi = fetchEmailWithAccessToken(accessToken);
+            log.info("GitHub API에서 이메일 획득: {}", emailFromApi);
+            return emailFromApi;
+        } catch (CustomException e) {
+            log.warn("GitHub API로 이메일 조회 실패: {}", e.getMessage());
+        }
+
+        log.info("이메일 조회 실패, generateFakeEmail 사용");
+        return generateFakeEmail(providerId);
+    }
+
+    private String fetchEmailWithAccessToken(String accessToken) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + accessToken);
+            headers.set("Accept", "application/vnd.github.v3+json");
+            headers.set("User-Agent", "amateurs-oauth-app");
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
+                    "https://api.github.com/user/emails",
+                    HttpMethod.GET,
+                    entity,
+                    new ParameterizedTypeReference<List<Map<String, Object>>>() {}
+            );
+
+            List<Map<String, Object>> emails = response.getBody();
+            if (emails == null || emails.isEmpty()) {
+                log.warn("GitHub API에서 이메일 목록이 비어있음");
+                throw ErrorCode.OAUTH_EMAIL_API_CALL_FAILED.get();
+            }
+
+            for (Map<String, Object> emailEntry : emails) {
+                Boolean isPrimary = (Boolean) emailEntry.get("primary");
+                Boolean isVerified = (Boolean) emailEntry.get("verified");
+
+                if (Boolean.TRUE.equals(isPrimary) && Boolean.TRUE.equals(isVerified)) {
+                    return (String) emailEntry.get("email");
+                }
+            }
+
+            for (Map<String, Object> emailEntry : emails) {
+                Boolean isVerified = (Boolean) emailEntry.get("verified");
+
+                if (Boolean.TRUE.equals(isVerified)) {
+                    return (String) emailEntry.get("email");
+                }
+            }
+
+            log.warn("GitHub API에서 verified된 이메일을 찾을 수 없음");
+            throw ErrorCode.OAUTH_EMAIL_API_CALL_FAILED.get();
+
+        } catch (Exception e) {
+            log.error("GitHub API 호출 중 오류: {}", e.getMessage());
+            throw ErrorCode.OAUTH_EMAIL_API_CALL_FAILED.get();
+        }
     }
 
     private String getNickname(OAuth2User oAuth2User, String provider) {

@@ -31,6 +31,7 @@ public enum ErrorCode implements Supplier<CustomException> {
     OAUTH_EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 다른 소셜 계정으로 가입된 이메일입니다."),
     OAUTH_USER_REGISTRATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 사용자 등록 중 오류가 발생했습니다."),
     OAUTH_PROVIDER_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 로그인 제공업체입니다."),
+    OAUTH_EMAIL_API_CALL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "GitHub 이메일 정보 조회 중 오류가 발생했습니다."),
 
     // 회원 정보 수정 관련 에러
     EMPTY_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호를 입력해주세요."),
