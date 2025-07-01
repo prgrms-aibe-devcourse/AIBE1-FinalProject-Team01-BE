@@ -5,7 +5,6 @@ import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
-import kr.co.amateurs.server.domain.entity.post.CommunityPost;
 import kr.co.amateurs.server.domain.entity.post.ITPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -29,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 
@@ -61,13 +61,13 @@ public class ITService {
     }
 
     public ITResponseDTO getPost(Long itId) {
-        User user = userService.getCurrentUser().orElse(null);
+        Optional<User> user = userService.getCurrentUser();
 
         ITPost itPost = findById(itId);
 
         boolean hasBookmarked = false;
         boolean hasLiked = false;
-        if (user != null) {
+        if (user.isPresent()) {
             hasBookmarked = bookmarkService.checkHasBookmarked(itPost.getPost().getId());
             hasLiked = likeService.checkHasLiked(itPost.getPost().getId());
         }
