@@ -19,12 +19,14 @@ import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
+import kr.co.amateurs.server.service.file.FileService;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -41,6 +43,8 @@ public class MatchService {
     private final UserService userService;
     private final LikeService likeService;
     private final BookmarkService bookmarkService;
+
+    private final FileService fileService;
 
     public PageResponseDTO<MatchPostResponseDTO> getMatchPostList(PostPaginationParam paginationParam) {
         //TODO - 테스트 코드 수정 후 통과 시 삭제 예정
@@ -84,6 +88,9 @@ public class MatchService {
                 .expertiseAreas(dto.expertiseArea())
                 .build();
         MatchingPost savedMp = matchRepository.save(mp);
+
+        List<String> imgUrls = fileService.extractImageUrls(dto.content());
+        fileService.savePostImage(savedPost, imgUrls);
 
         return convertToDTO(savedMp, savedPost, likeService.checkHasLiked(savedPost.getId()), bookmarkService.checkHasBookmarked(savedPost.getId()));
     }

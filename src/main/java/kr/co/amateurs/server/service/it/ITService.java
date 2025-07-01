@@ -11,6 +11,7 @@ import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -31,6 +33,7 @@ public class ITService {
     private final LikeRepository likeRepository;
 
     private final UserService userService;
+    private final FileService fileService;
 
     public Page<ITResponseDTO> searchPosts(String keyword, int page, BoardType boardType, SortType sortType, int pageSize) {
         // Community와 코드와 현재는 동일 이후에 뉴스가 나오면 뉴스 종류나 카테고리 필드가 추가 될 수도 있어서 서비스 레이어 생성
@@ -68,7 +71,9 @@ public class ITService {
 
         Post post = Post.from(requestDTO, user, boardType);
 
-        postRepository.save(post);
+        Post savedPost = postRepository.save(post);
+        List<String> imgUrls = fileService.extractImageUrls(requestDTO.content());
+        fileService.savePostImage(savedPost, imgUrls);
 
         return ITResponseDTO.from(post, false, false);
     }
