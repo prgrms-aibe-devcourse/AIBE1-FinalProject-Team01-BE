@@ -26,8 +26,4 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
     Page<ITPost> findByContentAndBoardType(@Param("keyword") String keyword,
                                            @Param("boardType") BoardType boardType,
                                            Pageable pageable);
-
-    @Modifying
-    @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = (SELECT ip.post.id FROM ITPost ip WHERE ip.id = :itId)")
-    void increaseViewCount(@Param("itId") Long itId);
 }
