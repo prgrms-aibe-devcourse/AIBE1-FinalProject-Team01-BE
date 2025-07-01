@@ -49,10 +49,7 @@ public class MarketService {
 
 
     public MarketPostResponseDTO getMarketPost(Long id) {
-        MarketItem mi = marketRepository.findByPostId(id);
-        if(mi==null) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+        MarketItem mi = marketRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mi.getPost();
         return convertToDTO(mi, post, likeService.checkHasLiked(post.getId()), bookmarkService.checkHasBookmarked(post.getId()));
     }
@@ -82,11 +79,8 @@ public class MarketService {
     }
 
     @Transactional
-    public void updateMarketPost(Long postId, MarketPostRequestDTO dto) {
-        MarketItem mi = marketRepository.findByPostId(postId);
-        if (mi == null) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+    public void updateMarketPost(Long id, MarketPostRequestDTO dto) {
+        MarketItem mi = marketRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mi.getPost();
         validateUser(post.getUser().getId());
         CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
@@ -97,10 +91,7 @@ public class MarketService {
 
     @Transactional
     public void deleteMarketPost(Long marketId) {
-        MarketItem mi = marketRepository.findByPostId(marketId);
-        if (mi == null) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+        MarketItem mi = marketRepository.findById(marketId).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mi.getPost();
         validateUser(post.getUser().getId());
         marketRepository.deleteById(mi.getId());
