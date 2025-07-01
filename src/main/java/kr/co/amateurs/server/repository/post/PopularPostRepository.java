@@ -66,9 +66,9 @@ public class PopularPostRepository {
         log.info("인기글 {}개 저장 완료", requests.size());
     }
 
-    public void deleteByDate(LocalDate date) {
+    public void deleteBeforeDate(LocalDate date) {
         int count = dsl.deleteFrom(POPULAR_POSTS)
-                .where(POPULAR_POSTS.CALCULATED_DATE.eq(date))
+                .where(POPULAR_POSTS.CALCULATED_DATE.lt(date))
                 .execute();
         log.info("날짜 {} 인기글 {}개 삭제", date, count);
     }

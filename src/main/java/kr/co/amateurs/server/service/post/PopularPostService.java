@@ -48,6 +48,8 @@ public class PopularPostService {
 
         popularPostRepository.savePopularPosts(popularPosts);
         log.info("인기글 계산 완료: 총 {}개 게시글 처리", popularPosts.size());
+
+        popularPostRepository.deleteBeforeDate(today);
     }
 
 
