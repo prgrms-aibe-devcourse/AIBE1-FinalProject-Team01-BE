@@ -115,9 +115,13 @@ public class CommunityService {
     private void validatePost(Post post) {
         User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
 
-        if (!Objects.equals(post.getUser().getId(), user.getId()) && user.getRole() != Role.ADMIN) {
+        if (!canEditOrDelete(post, user)) {
             throw ErrorCode.ACCESS_DENIED.get();
         }
+    }
+
+    private boolean canEditOrDelete(Post post, User user) {
+        return Objects.equals(post.getUser().getId(), user.getId()) || user.getRole() == Role.ADMIN;
     }
 
     public CommunityPost findById(Long communityId) {

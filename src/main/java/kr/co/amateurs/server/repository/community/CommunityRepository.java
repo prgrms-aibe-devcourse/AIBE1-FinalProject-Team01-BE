@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Optional;
 
 
 public interface CommunityRepository extends JpaRepository<CommunityPost, Long> {
@@ -18,7 +17,7 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
     @Query("""
             select cp
             from CommunityPost cp
-            join fetch cp.post p
+            join cp.post p
             where p.boardType = :boardType
               and (:keyword is null
                    or :keyword = ''
