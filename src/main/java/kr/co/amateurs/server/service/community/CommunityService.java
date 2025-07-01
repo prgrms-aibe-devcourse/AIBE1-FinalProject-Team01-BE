@@ -9,6 +9,7 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.repository.community.CommunityRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
@@ -107,18 +108,18 @@ public class CommunityService {
         Post post = communityPost.getPost();
         validatePost(post);
 
-        postRepository.delete(post);
+        communityRepository.delete(communityPost);
     }
 
     private void validatePost(Post post) {
         User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
 
-        if (!Objects.equals(post.getUser().getId(), user.getId())) {
+        if (!Objects.equals(post.getUser().getId(), user.getId()) && user.getRole() != Role.ADMIN) {
             throw ErrorCode.ACCESS_DENIED.get();
         }
     }
 
-    private CommunityPost findById(Long communityId) {
+    public CommunityPost findById(Long communityId) {
         return communityRepository.findById(communityId)
                 .orElseThrow(ErrorCode.NOT_FOUND);
     }

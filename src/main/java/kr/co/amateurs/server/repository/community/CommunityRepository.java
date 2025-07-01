@@ -12,12 +12,19 @@ import java.util.Optional;
 
 
 public interface CommunityRepository extends JpaRepository<CommunityPost, Long> {
-    @Query("SELECT cp FROM CommunityPost cp JOIN cp.post p WHERE p.boardType = :boardType AND p.isDeleted = false ORDER BY p.createdAt DESC")
+    @Query("SELECT cp FROM CommunityPost cp JOIN cp.post p WHERE p.boardType = :boardType")
     Page<CommunityPost> findByBoardType(@Param("boardType") BoardType boardType, Pageable pageable);
 
-    @Query("SELECT cp FROM CommunityPost cp JOIN cp.post p WHERE p.boardType = :boardType AND p.isDeleted = false AND " +
-            "(LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "ORDER BY p.createdAt DESC")
+    @Query("""
+            select cp
+            from CommunityPost cp
+            join fetch cp.post p
+            where p.boardType = :boardType
+              and (:keyword is null
+                   or :keyword = ''
+                   or p.title like concat('%', :keyword, '%')
+                   or p.content like concat('%', :keyword, '%'))
+            """)
     Page<CommunityPost> findByContentAndBoardType(@Param("keyword") String keyword,
                                                   @Param("boardType") BoardType boardType,
                                                   Pageable pageable);

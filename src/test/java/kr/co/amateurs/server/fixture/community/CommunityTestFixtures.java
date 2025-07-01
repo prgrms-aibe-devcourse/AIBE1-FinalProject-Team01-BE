@@ -1,7 +1,8 @@
-package kr.co.amateurs.server.service.community;
+package kr.co.amateurs.server.fixture.community;
 
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
+import kr.co.amateurs.server.domain.entity.post.CommunityPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -9,7 +10,6 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class CommunityTestFixtures {
     public static User createAdminUser() {
@@ -75,6 +75,23 @@ public class CommunityTestFixtures {
                 .comments(new ArrayList<>())
                 .postImages(new ArrayList<>())
                 .build();
+    }
+
+    public static CommunityPost createCommunityPost(Post post) {
+        return CommunityPost.builder()
+                .post(post)
+                .build();
+    }
+
+    public static CommunityPost createCommunityPostWithPost(User user, String title, String content, BoardType boardType) {
+        Post post = createPost(user, title, content, boardType);
+        return createCommunityPost(post);
+    }
+
+    public static CommunityPost createCommunityPostWithPostAndCounts(User user, String title, String content,
+                                                                     BoardType boardType, int viewCount, int likeCount) {
+        Post post = createPostWithCounts(user, title, content, boardType, viewCount, likeCount);
+        return createCommunityPost(post);
     }
 
     public static Comment createComment(Post post, User user, String content) {

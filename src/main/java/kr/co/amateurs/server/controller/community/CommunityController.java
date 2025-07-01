@@ -3,14 +3,11 @@ package kr.co.amateurs.server.controller.community;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
-import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.service.community.CommunityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +21,9 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/community")
 @RequiredArgsConstructor
-public class CommunityPostController {
+public class CommunityController {
     private final CommunityService communityService;
 
-    @BoardAccess(needCategory = true, category = BoardCategory.COMMUNITY)
     @GetMapping("/{boardType}")
     @Operation(
             summary = "커뮤니티 게시글 목록 조회",
@@ -43,7 +39,6 @@ public class CommunityPostController {
         return ResponseEntity.ok(postsPage);
     }
 
-    @BoardAccess(needCategory = true, category = BoardCategory.COMMUNITY, hasPostId = true)
     @GetMapping("/{boardType}/{communityId}")
     @Operation(
             summary = "커뮤니티 게시글 상세 조회",
@@ -62,7 +57,6 @@ public class CommunityPostController {
             summary = "커뮤니티 게시글 작성",
             description = "새로운 커뮤니티 게시글을 작성합니다. 해당 게시판의 쓰기 권한이 있어야 합니다."
     )
-    @BoardAccess(needCategory = true,category = BoardCategory.COMMUNITY, operation = OperationType.WRITE)
     @PostMapping("/{boardType}")
     public ResponseEntity<CommunityResponseDTO> createPost(
             @PathVariable BoardType boardType,
@@ -77,7 +71,6 @@ public class CommunityPostController {
             summary = "커뮤니티 게시글 수정",
             description = "기존 게시글을 수정합니다. 게시글 작성자만 수정할 수 있습니다."
     )
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @PutMapping("/{boardType}/{communityId}")
     public ResponseEntity<Void> updatePost(
             @PathVariable BoardType boardType,
@@ -93,7 +86,6 @@ public class CommunityPostController {
             summary = "커뮤니티 게시글 삭제",
             description = "게시글을 삭제합니다. 게시글 작성자만 삭제할 수 있습니다."
     )
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE)
     @DeleteMapping("/{boardType}/{communityId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable BoardType boardType,
