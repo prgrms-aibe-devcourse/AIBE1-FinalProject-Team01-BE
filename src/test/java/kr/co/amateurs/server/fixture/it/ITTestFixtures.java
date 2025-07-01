@@ -1,7 +1,8 @@
-package kr.co.amateurs.server.service.it;
+package kr.co.amateurs.server.fixture.it;
 
 import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
+import kr.co.amateurs.server.domain.entity.post.ITPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -74,6 +75,25 @@ public class ITTestFixtures {
                 .comments(new ArrayList<>())
                 .postImages(new ArrayList<>())
                 .build();
+    }
+
+    // ITPost 생성 메서드 추가
+    public static ITPost createITPost(Post post) {
+        return ITPost.builder()
+                .post(post)
+                .build();
+    }
+
+    // Post + ITPost를 함께 생성하는 편의 메서드
+    public static ITPost createITPostWithPost(User user, String title, String content, BoardType boardType) {
+        Post post = createPost(user, title, content, boardType);
+        return createITPost(post);
+    }
+
+    public static ITPost createITPostWithPostAndCounts(User user, String title, String content,
+                                                       BoardType boardType, int viewCount, int likeCount) {
+        Post post = createPostWithCounts(user, title, content, boardType, viewCount, likeCount);
+        return createITPost(post);
     }
 
     public static Comment createComment(Post post, User user, String content) {

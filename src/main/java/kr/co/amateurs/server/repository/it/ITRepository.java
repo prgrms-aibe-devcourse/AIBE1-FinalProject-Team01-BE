@@ -10,12 +10,19 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Query;
 
 public interface ITRepository extends JpaRepository<ITPost, Long> {
-    @Query("SELECT ip FROM ITPost ip JOIN ip.post p WHERE p.boardType = :boardType AND p.isDeleted = false ORDER BY p.createdAt DESC")
+    @Query("SELECT ip FROM ITPost ip JOIN ip.post p WHERE p.boardType = :boardType")
     Page<ITPost> findByBoardType(@Param("boardType") BoardType boardType, Pageable pageable);
 
-    @Query("SELECT ip FROM ITPost ip JOIN ip.post p WHERE p.boardType = :boardType AND p.isDeleted = false AND " +
-            "(LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "ORDER BY p.createdAt DESC")
+    @Query("""
+        select ip
+        from ITPost ip
+        join fetch ip.post p
+        where p.boardType = :boardType
+          and (:keyword is null
+               or :keyword = ''
+               or p.title like concat('%', :keyword, '%')
+               or p.content like concat('%', :keyword, '%'))
+        """)
     Page<ITPost> findByContentAndBoardType(@Param("keyword") String keyword,
                                            @Param("boardType") BoardType boardType,
                                            Pageable pageable);

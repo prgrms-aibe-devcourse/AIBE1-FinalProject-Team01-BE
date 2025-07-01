@@ -11,6 +11,7 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.it.ITRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
@@ -106,13 +107,13 @@ public class ITService {
         Post post = itPost.getPost();
         validatePost(post);
 
-        postRepository.delete(post);
+        itRepository.delete(itPost);
     }
 
     private void validatePost(Post post) {
         User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
 
-        if (!Objects.equals(post.getUser().getId(), user.getId())) {
+        if (!Objects.equals(post.getUser().getId(), user.getId()) && user.getRole() != Role.ADMIN) {
             throw ErrorCode.ACCESS_DENIED.get();
         }
     }

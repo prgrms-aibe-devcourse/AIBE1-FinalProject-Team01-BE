@@ -64,7 +64,6 @@ public class ITController {
             summary = "IT 게시글 작성",
             description = "새로운 IT 게시글을 작성합니다. 해당 게시판의 쓰기 권한이 있어야 합니다."
     )
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @PostMapping("/{boardType}")
     public ResponseEntity<ITResponseDTO> createPost(
             @PathVariable BoardType boardType,
@@ -79,7 +78,6 @@ public class ITController {
             summary = "IT 게시글 수정",
             description = "기존 IT 게시글을 수정합니다. 게시글 작성자만 수정할 수 있습니다."
     )
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @PutMapping("/{boardType}/{itId}")
     public ResponseEntity<Void> updatePost(
             @PathVariable BoardType boardType,
@@ -95,7 +93,6 @@ public class ITController {
             summary = "IT 게시글 삭제",
             description = "IT 게시글을 삭제합니다. 게시글 작성자만 삭제할 수 있습니다."
     )
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @DeleteMapping("/{boardType}/{itId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable BoardType boardType,
