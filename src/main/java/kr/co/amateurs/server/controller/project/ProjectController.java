@@ -3,20 +3,17 @@ package kr.co.amateurs.server.controller.project;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.project.ProjectPageResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
-import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
-import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.service.project.ProjectService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,11 +32,10 @@ public class ProjectController {
         return ResponseEntity.ok(projectPageResponseDTO);
     }
 
-    @GetMapping("/{postId}")
-    @BoardAccess(needCategory = true, category = BoardCategory.PROJECT, hasPostId = true)
+    @GetMapping("/{projectId}")
     @Operation(summary = "프로젝트 글 정보", description = "특정 프로젝트 글의 세부 정보를 불러옵니다.")
-    public ResponseEntity<?> getProjectDetails(@PathVariable(name = "postId") Long postId) {
-        ProjectResponseDTO projectResponseDTO = projectService.getProjectDetails(postId);
+    public ResponseEntity<?> getProjectDetails(@PathVariable(name = "projectId") Long projectId) {
+        ProjectResponseDTO projectResponseDTO = projectService.getProjectDetails(projectId);
         return ResponseEntity.ok(projectResponseDTO);
     }
 
@@ -51,8 +47,6 @@ public class ProjectController {
 //    }
 
     @PostMapping
-    @BoardAccess(needCategory = true, category = BoardCategory.PROJECT, operation = OperationType.WRITE,
-            boardType = BoardType.PROJECT_HUB, hasBoardType = false)
     @Operation(summary = "프로젝트 글쓰기", description = "프로젝트 허브 게시판의 새 글을 생성합니다.")
     public ResponseEntity<?> createProject(@AuthenticationPrincipal CustomUserDetails userDetails,
                                            @RequestBody ProjectRequestDTO projectRequestDTO) {
@@ -60,24 +54,20 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.CREATED).body(projectResponseDTO);
     }
 
-    @PutMapping("/{postId}")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE,
-            boardType = BoardType.PROJECT_HUB, hasBoardType = false)
+    @PutMapping("/{projectId}")
     @Operation(summary = "프로젝트 글 수정", description = "프로젝트 허브 게시판의 특정 글을 수정합니다.")
-    public ResponseEntity<Void> updateProject(@PathVariable Long postId,
+    public ResponseEntity<Void> updateProject(@PathVariable Long projectId,
                                               @AuthenticationPrincipal CustomUserDetails userDetails,
                                               @RequestBody ProjectRequestDTO projectRequestDTO) {
-        projectService.updateProject(userDetails.getUsername(), postId, projectRequestDTO);
+        projectService.updateProject(userDetails.getUsername(), projectId, projectRequestDTO);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{postId}")
-    @BoardAccess(hasPostId = true, checkAuthor = true, operation = OperationType.WRITE,
-            boardType = BoardType.PROJECT_HUB, hasBoardType = false)
+    @DeleteMapping("/{projectId}")
     @Operation(summary = "프로젝트 글 수정", description = "프로젝트 허브 게시판의 특정 글을 삭제합니다.")
-    public ResponseEntity<Void> deleteProject(@PathVariable Long postId,
+    public ResponseEntity<Void> deleteProject(@PathVariable Long projectId,
                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
-        projectService.deleteProject(userDetails.getUsername(), postId);
+        projectService.deleteProject(userDetails.getUsername(), projectId);
         return ResponseEntity.noContent().build();
     }
 }
