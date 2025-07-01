@@ -15,18 +15,14 @@ import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
-import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
-import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.bookmark.BookmarkService;
+import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
-import java.util.Optional;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO.convertToDTO;
@@ -37,28 +33,30 @@ public class GatheringService {
 
     private final GatheringRepository gatheringRepository;
     private final PostRepository postRepository;
-    private final LikeRepository likeRepository;
-    private final BookmarkRepository bookmarkRepository;
+    private final LikeService likeService;
+    private final BookmarkService bookmarkService;
 
     private final UserService userService;
 
     public PageResponseDTO<GatheringPostResponseDTO> getGatheringPostList(PostPaginationParam paginationParam) {
         Page<GatheringPost> gpPage = gatheringRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
-        Page<GatheringPostResponseDTO> response = gpPage.map(gp->convertToDTO(gp, gp.getPost(), checkHasLiked(gp.getPost().getId()), checkHasBookmarked(gp.getPost().getId())));
+        Page<GatheringPostResponseDTO> response = gpPage.map(gp->convertToDTO(gp, gp.getPost(), false, false));
         return convertPageToDTO(response);
     }
 
 
     public GatheringPostResponseDTO getGatheringPost(Long id) {
+        User user = userService.getCurrentLoginUser();
+
         GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
-        return convertToDTO(gp, post, checkHasLiked(post.getId()), checkHasBookmarked(post.getId()));
+        return convertToDTO(gp, post, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()));
     }
 
 
     @Transactional
     public GatheringPostResponseDTO createGatheringPost(GatheringPostRequestDTO dto) {
-        User currentUser = getCurrentUser();
+        User currentUser = userService.getCurrentLoginUser();
         Post post = Post.builder()
                 .user(currentUser)
                 .boardType(BoardType.GATHER)
@@ -79,7 +77,7 @@ public class GatheringService {
                 .build();
         GatheringPost savedGp = gatheringRepository.save(gp);
 
-        return convertToDTO(savedGp, savedPost, checkHasLiked(savedPost.getId()), checkHasBookmarked(savedPost.getId()));
+        return convertToDTO(savedGp, savedPost, false, false);
     }
 
 
@@ -102,32 +100,13 @@ public class GatheringService {
         postRepository.deleteById(post.getId());
     }
 
-    private User getCurrentUser() {
-        Optional<User> user = Objects.requireNonNull(userService).getCurrentUser();
-        if (user.isEmpty()) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        }
-        return user.get();
-    }
     private void validateUser(Long userId) {
-        User currentUser = getCurrentUser();
+        User currentUser = userService.getCurrentLoginUser();
         Long currentId = currentUser.getId();
         Role currentRole = currentUser.getRole();
         if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
             throw new CustomException(ErrorCode.ACCESS_DENIED, "해당 게시글에 접근할 수 없습니다.");
         }
-    }
-    private boolean checkHasLiked(Long postId) {
-        User user = getCurrentUser();
-        return likeRepository
-                .findByPostIdAndUserId(postId, user.getId())
-                .isPresent();
-    }
-    private boolean checkHasBookmarked(Long postId) {
-        User user = getCurrentUser();
-        return bookmarkRepository
-                .findByPostIdAndUserId(postId, user.getId())
-                .isPresent();
     }
 }
 
