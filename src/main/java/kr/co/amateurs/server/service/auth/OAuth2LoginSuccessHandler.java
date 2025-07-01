@@ -29,6 +29,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtProvider jwtProvider;
     private final UserRepository userRepository;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${oauth.success-redirect-url:http://localhost:3000}")
     private String successRedirectUrl;
@@ -48,8 +49,18 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             log.info("GitHub 로그인 성공: userId={}, providerId={}", user.getId(), providerId);
 
             String accessToken = jwtProvider.generateAccessToken(user.getEmail());
+            Long accessExpiresIn = jwtProvider.getAccessTokenExpirationMs();
 
-            String redirectUrl = successRedirectUrl + "?token=" + accessToken;
+            String refreshToken = jwtProvider.generateRefreshToken(user.getEmail());
+            Long refreshExpiresIn = jwtProvider.getRefreshTokenExpirationMs() / 1000;
+
+            refreshTokenService.saveRefreshToken(user.getEmail(), refreshToken, refreshExpiresIn);
+
+            String redirectUrl = successRedirectUrl +
+                    "?accessToken=" + accessToken +
+                    "&refreshToken=" + refreshToken +
+                    "&expiresIn=" + accessExpiresIn;
+
             log.info("GitHub 로그인 리다이렉트: {}", redirectUrl);
 
             response.sendRedirect(redirectUrl);
