@@ -112,4 +112,7 @@ cloud:
       domain: ${CLOUD_FRONT_DOMAIN_NAME}
 
 oauth:
-  success-redirect-url: ${FRONTEND_URL:http://localhost:3000}
+  success-redirect-url: https://dev.amateurs.co.kr
+
+cookie:
+  domain: .amateurs.co.kr

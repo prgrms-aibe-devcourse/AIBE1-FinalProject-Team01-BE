@@ -37,6 +37,10 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     @Value("${oauth.success-redirect-url:http://localhost:3000}")
     private String successRedirectUrl;
 
+    @Value("${cookie.domain:localhost}")
+    private String cookieDomain;
+
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
@@ -61,6 +65,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
             accessTokenCookie.setMaxAge(Math.toIntExact(accessExpiresIn / 1000));
+            accessTokenCookie.setDomain(cookieDomain);
             accessTokenCookie.setPath("/");
             accessTokenCookie.setSecure(true);
             accessTokenCookie.setHttpOnly(true);
@@ -68,6 +73,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
             refreshTokenCookie.setMaxAge(Math.toIntExact(refreshExpiresIn));
+            refreshTokenCookie.setDomain(cookieDomain);
             refreshTokenCookie.setPath("/");
             refreshTokenCookie.setSecure(true);
             refreshTokenCookie.setHttpOnly(true);
