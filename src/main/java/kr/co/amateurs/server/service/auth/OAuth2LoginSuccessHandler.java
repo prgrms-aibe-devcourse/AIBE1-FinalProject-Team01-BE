@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.service.auth;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
@@ -56,13 +57,19 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             refreshTokenService.saveRefreshToken(user.getEmail(), refreshToken, refreshExpiresIn);
 
-            String redirectUrl = successRedirectUrl +
-                    "?accessToken=" + accessToken +
-                    "&refreshToken=" + refreshToken +
-                    "&expiresIn=" + accessExpiresIn;
+            Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+            accessTokenCookie.setMaxAge(Math.toIntExact(accessExpiresIn / 1000));
+            accessTokenCookie.setPath("/");
+            accessTokenCookie.setSecure(false);
+            response.addCookie(accessTokenCookie);
 
-            log.info("GitHub 로그인 리다이렉트: {}", redirectUrl);
+            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+            refreshTokenCookie.setMaxAge(Math.toIntExact(refreshExpiresIn));
+            refreshTokenCookie.setPath("/");
+            refreshTokenCookie.setSecure(false);
+            response.addCookie(refreshTokenCookie);
 
+            String redirectUrl = successRedirectUrl + "/oauth/callback";
             response.sendRedirect(redirectUrl);
         } catch (Exception e) {
             log.error("GitHub OAuth 로그인 처리 중 오류: {}", e.getMessage(), e);
