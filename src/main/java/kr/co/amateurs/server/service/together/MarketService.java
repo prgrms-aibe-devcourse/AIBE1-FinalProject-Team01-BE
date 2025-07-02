@@ -21,11 +21,10 @@ import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+
 import java.util.Objects;
-import java.util.Optional;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO.convertToDTO;
@@ -43,21 +42,23 @@ public class MarketService {
 
     public PageResponseDTO<MarketPostResponseDTO> getMarketPostList(PostPaginationParam paginationParam) {
         Page<MarketItem> miPage = marketRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
-        Page<MarketPostResponseDTO> response = miPage.map(mi-> convertToDTO(mi, mi.getPost(), likeService.checkHasLiked(mi.getPost().getId()), bookmarkService.checkHasBookmarked(mi.getPost().getId())));
+        Page<MarketPostResponseDTO> response = miPage.map(mi-> convertToDTO(mi, mi.getPost(), false, false));
         return convertPageToDTO(response);
     }
 
 
     public MarketPostResponseDTO getMarketPost(Long id) {
+        User user = userService.getCurrentLoginUser();
+
         MarketItem mi = marketRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mi.getPost();
-        return convertToDTO(mi, post, likeService.checkHasLiked(post.getId()), bookmarkService.checkHasBookmarked(post.getId()));
+        return convertToDTO(mi, post, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()));
     }
 
 
     @Transactional
     public MarketPostResponseDTO createMarketPost(MarketPostRequestDTO dto) {
-        User currentUser = getCurrentUser();
+        User currentUser = userService.getCurrentLoginUser();
         Post post = Post.builder()
                 .user(currentUser)
                 .boardType(BoardType.MARKET)
@@ -75,14 +76,14 @@ public class MarketService {
                 .build();
         MarketItem savedMp = marketRepository.save(mi);
 
-        return convertToDTO(savedMp, savedPost, likeService.checkHasLiked(savedPost.getId()), bookmarkService.checkHasBookmarked(savedPost.getId()));
+        return convertToDTO(savedMp, savedPost, false, false);
     }
 
     @Transactional
     public void updateMarketPost(Long id, MarketPostRequestDTO dto) {
         MarketItem mi = marketRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mi.getPost();
-        validateUser(post.getUser().getId());
+        validateUser(post);
         CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
         post.update(updatePostDTO);
         mi.update(dto);
@@ -93,25 +94,20 @@ public class MarketService {
     public void deleteMarketPost(Long marketId) {
         MarketItem mi = marketRepository.findById(marketId).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mi.getPost();
-        validateUser(post.getUser().getId());
-        marketRepository.deleteById(mi.getId());
-        postRepository.deleteById(post.getId());
-
+        validateUser(post);
+        postRepository.delete(post);
     }
 
-    private User getCurrentUser() {
-        Optional<User> user = Objects.requireNonNull(userService).getCurrentUser();
-        if (user.isEmpty()) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+    private void validateUser(Post post) {
+        User currentUser = userService.getCurrentLoginUser();
+
+        if (!canEditOrDelete(post, currentUser)) {
+            throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
-        return user.get();
     }
-    private void validateUser(Long userId) {
-        User currentUser = getCurrentUser();
-        Long currentId = currentUser.getId();
-        Role currentRole = currentUser.getRole();
-        if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
-            throw new CustomException(ErrorCode.ACCESS_DENIED, "해당 게시글에 접근할 수 없습니다.");
-        }
+
+
+    private boolean canEditOrDelete(Post post, User user) {
+        return Objects.equals(post.getUser().getId(), user.getId()) || user.getRole() == Role.ADMIN;
     }
 }
