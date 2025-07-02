@@ -7,6 +7,7 @@ import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,8 @@ class MatchControllerTest extends AbstractControllerTest {
     private MatchRepository matchRepository;
     @Autowired
     private PostRepository postRepository;
+    @Autowired
+    private ReportRepository reportRepository;
 
     private String guestEmail;
     private String adminEmail;
@@ -36,9 +39,11 @@ class MatchControllerTest extends AbstractControllerTest {
 
     @BeforeEach
     void setUp() {
+        reportRepository.deleteAll();
         matchRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();
+
         User admin = createAdmin();
         User student = createStudent();
         User guest = createGuest();
@@ -120,11 +125,12 @@ class MatchControllerTest extends AbstractControllerTest {
                     .post("/matches")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long matchId = matchRepository.findByPostId(id).getId();
 
             given()
                     .header("Authorization", "Bearer " + fakeStudentToken())
                     .when()
-                    .get("/matches/{postId}", id)
+                    .get("/matches/{matchId}", matchId)
                     .then()
                     .statusCode(200)
                     .body("postId", equalTo(id.intValue()));
@@ -150,6 +156,7 @@ class MatchControllerTest extends AbstractControllerTest {
                     .post("/matches")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long matchId = matchRepository.findByPostId(id).getId();
 
             MatchPostRequestDTO update = new MatchPostRequestDTO(
                     "수정", "수정내용", "Vue", MatchingType.COFFEE_CHAT,
@@ -161,13 +168,13 @@ class MatchControllerTest extends AbstractControllerTest {
                     .contentType(ContentType.JSON)
                     .body(update)
                     .when()
-                    .put("/matches/{postId}", id)
+                    .put("/matches/{matchId}", matchId)
                     .then()
                     .statusCode(204);
         }
 
         @Test
-        void 유저가_타인글수정하면_403을_반환한다() {
+        void 유저가_타인글수정하면_401을_반환한다() {
             Long id = given()
                     .header("Authorization", "Bearer " + fakeStudentToken())
                     .contentType(ContentType.JSON)
@@ -176,15 +183,16 @@ class MatchControllerTest extends AbstractControllerTest {
                     .post("/matches")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long matchId = matchRepository.findByPostId(id).getId();
 
             given()
                     .header("Authorization", "Bearer fake-other-user-token")
                     .contentType(ContentType.JSON)
                     .body(createMatchPostRequestDTO())
                     .when()
-                    .put("/matches/{postId}", id)
+                    .put("/matches/{matchId}", matchId)
                     .then()
-                    .statusCode(403);
+                    .statusCode(401);
         }
 
         @Test
@@ -197,11 +205,12 @@ class MatchControllerTest extends AbstractControllerTest {
                     .post("/matches")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long matchId = matchRepository.findByPostId(id).getId();
 
             given()
                     .header("Authorization", "Bearer " + fakeStudentToken())
                     .when()
-                    .delete("/matches/{postId}", id)
+                    .delete("/matches/{matchId}", matchId)
                     .then()
                     .statusCode(204);
         }
@@ -245,11 +254,12 @@ class MatchControllerTest extends AbstractControllerTest {
                     .post("/matches")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long matchId = matchRepository.findByPostId(id).getId();
 
             given()
                     .header("Authorization", "Bearer " + fakeAdminToken())
                     .when()
-                    .delete("/matches/{postId}", id)
+                    .delete("/matches/{matchId}", matchId)
                     .then()
                     .statusCode(204);
         }
@@ -258,14 +268,14 @@ class MatchControllerTest extends AbstractControllerTest {
     @Nested
     class GuestTests {
         @Test
-        void 인증없이_페이지조회하면_403을_반환한다() {
+        void 인증없이_페이지조회하면_401을_반환한다() {
             given()
                     .param("page", 0)
                     .param("size", 10)
                     .when()
                     .get("/matches")
                     .then()
-                    .statusCode(403);
+                    .statusCode(401);
         }
     }
 }

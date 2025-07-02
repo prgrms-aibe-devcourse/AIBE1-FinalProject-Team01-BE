@@ -9,6 +9,7 @@ import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.together.GatheringService;
@@ -33,6 +34,8 @@ class GatheringControllerTest extends AbstractControllerTest {
     private GatheringRepository gatheringRepository;
     @Autowired
     private PostRepository postRepository;
+    @Autowired
+    private ReportRepository reportRepository;
 
     private String guestEmail;
     private String adminEmail;
@@ -40,6 +43,7 @@ class GatheringControllerTest extends AbstractControllerTest {
 
     @BeforeEach
     void setUp() {
+        reportRepository.deleteAll();
         gatheringRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();
@@ -124,11 +128,12 @@ class GatheringControllerTest extends AbstractControllerTest {
                     .post("/gatherings")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long gatheringId = gatheringRepository.findByPostId(id).getId();
 
             given()
                     .header("Authorization", "Bearer " + fakeStudentToken())
                     .when()
-                    .get("/gatherings/{postId}", id)
+                    .get("/gatherings/{gatheringId}", gatheringId)
                     .then()
                     .statusCode(200)
                     .body("postId", equalTo(id.intValue()));
@@ -154,6 +159,7 @@ class GatheringControllerTest extends AbstractControllerTest {
                     .post("/gatherings")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long gatheringId = gatheringRepository.findByPostId(id).getId();
 
             GatheringPostRequestDTO update = new GatheringPostRequestDTO(
                     "수정", "수정내용", "Vue", GatheringType.STUDY,
@@ -165,13 +171,13 @@ class GatheringControllerTest extends AbstractControllerTest {
                     .contentType(ContentType.JSON)
                     .body(update)
                     .when()
-                    .put("/gatherings/{postId}", id)
+                    .put("/gatherings/{gatheringId}", gatheringId)
                     .then()
                     .statusCode(204);
         }
 
         @Test
-        void 유저가_타인글수정하면_403을_반환한다() {
+        void 유저가_타인글수정하면_401을_반환한다() {
             Long id = given()
                     .header("Authorization", "Bearer " + fakeStudentToken())
                     .contentType(ContentType.JSON)
@@ -188,7 +194,7 @@ class GatheringControllerTest extends AbstractControllerTest {
                     .when()
                     .put("/gatherings/{postId}", id)
                     .then()
-                    .statusCode(403);
+                    .statusCode(401);
         }
 
         @Test
@@ -201,11 +207,12 @@ class GatheringControllerTest extends AbstractControllerTest {
                     .post("/gatherings")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long gatheringId = gatheringRepository.findByPostId(id).getId();
 
             given()
                     .header("Authorization", "Bearer " + fakeStudentToken())
                     .when()
-                    .delete("/gatherings/{postId}", id)
+                    .delete("/gatherings/{gatheringId}", gatheringId)
                     .then()
                     .statusCode(204);
         }
@@ -249,11 +256,12 @@ class GatheringControllerTest extends AbstractControllerTest {
                     .post("/gatherings")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long gatheringId = gatheringRepository.findByPostId(id).getId();
 
             given()
                     .header("Authorization", "Bearer " + fakeAdminToken())
                     .when()
-                    .delete("/gatherings/{postId}", id)
+                    .delete("/gatherings/{gatheringId}", gatheringId)
                     .then()
                     .statusCode(204);
         }
@@ -262,14 +270,14 @@ class GatheringControllerTest extends AbstractControllerTest {
     @Nested
     class GuestTests {
         @Test
-        void 인증없이_페이지조회하면_403을_반환한다() {
+        void 인증없이_페이지조회하면_401을_반환한다() {
             given()
                     .param("page", 0)
                     .param("size", 10)
                     .when()
                     .get("/gatherings")
                     .then()
-                    .statusCode(403);
+                    .statusCode(401);
         }
     }
 }

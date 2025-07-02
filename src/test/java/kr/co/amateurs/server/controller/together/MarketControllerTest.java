@@ -6,6 +6,7 @@ import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,8 @@ class MarketControllerTest extends AbstractControllerTest {
     private MarketRepository marketRepository;
     @Autowired
     private PostRepository postRepository;
+    @Autowired
+    private ReportRepository reportRepository;
 
     private String guestEmail;
     private String adminEmail;
@@ -35,6 +38,7 @@ class MarketControllerTest extends AbstractControllerTest {
 
     @BeforeEach
     void setUp() {
+        reportRepository.deleteAll();
         marketRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();
@@ -117,11 +121,12 @@ class MarketControllerTest extends AbstractControllerTest {
                     .post("/market")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long marketId = marketRepository.findByPostId(id).getId();
 
             given()
                     .header("Authorization", "Bearer " + fakeStudentToken())
                     .when()
-                    .get("/market/{postId}", id)
+                    .get("/market/{marketId}", marketId)
                     .then()
                     .statusCode(200)
                     .body("postId", equalTo(id.intValue()));
@@ -147,6 +152,7 @@ class MarketControllerTest extends AbstractControllerTest {
                     .post("/market")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long marketId = marketRepository.findByPostId(id).getId();
 
             MarketPostRequestDTO update = new MarketPostRequestDTO(
                     "수정", "수정내용", "Vue",
@@ -158,13 +164,13 @@ class MarketControllerTest extends AbstractControllerTest {
                     .contentType(ContentType.JSON)
                     .body(update)
                     .when()
-                    .put("/market/{postId}", id)
+                    .put("/market/{marketId}", marketId)
                     .then()
                     .statusCode(204);
         }
 
         @Test
-        void 유저가_타인글수정하면_403을_반환한다() {
+        void 유저가_타인글수정하면_401을_반환한다() {
             Long id = given()
                     .header("Authorization", "Bearer " + fakeStudentToken())
                     .contentType(ContentType.JSON)
@@ -181,7 +187,7 @@ class MarketControllerTest extends AbstractControllerTest {
                     .when()
                     .put("/market/{postId}", id)
                     .then()
-                    .statusCode(403);
+                    .statusCode(401);
         }
 
         @Test
@@ -194,11 +200,12 @@ class MarketControllerTest extends AbstractControllerTest {
                     .post("/market")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long marketId = marketRepository.findByPostId(id).getId();
 
             given()
                     .header("Authorization", "Bearer " + fakeStudentToken())
                     .when()
-                    .delete("/market/{postId}", id)
+                    .delete("/market/{marketId}", marketId)
                     .then()
                     .statusCode(204);
         }
@@ -242,11 +249,12 @@ class MarketControllerTest extends AbstractControllerTest {
                     .post("/market")
                     .then().statusCode(201)
                     .extract().jsonPath().getLong("postId");
+            Long marketId = marketRepository.findByPostId(id).getId();
 
             given()
                     .header("Authorization", "Bearer " + fakeAdminToken())
                     .when()
-                    .delete("/market/{postId}", id)
+                    .delete("/market/{marketId}", marketId)
                     .then()
                     .statusCode(204);
         }
@@ -255,14 +263,14 @@ class MarketControllerTest extends AbstractControllerTest {
     @Nested
     class GuestTests {
         @Test
-        void 인증없이_페이지조회하면_403을_반환한다() {
+        void 인증없이_페이지조회하면_401을_반환한다() {
             given()
                     .param("page", 0)
                     .param("size", 10)
                     .when()
                     .get("/market")
                     .then()
-                    .statusCode(403);
+                    .statusCode(401);
         }
     }
 }
