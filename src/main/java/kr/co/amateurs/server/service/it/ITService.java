@@ -14,6 +14,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.repository.it.ITRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.file.FileService;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -41,6 +43,7 @@ public class ITService {
     private final LikeService likeService;
 
     private final UserService userService;
+    private final FileService fileService;
 
     public PageResponseDTO<ITResponseDTO> searchPosts(BoardType boardType, PostPaginationParam paginationParam) {
         Pageable pageable = paginationParam.toPageable();
@@ -81,6 +84,9 @@ public class ITService {
 
         ITPost itPost = ITPost.from(savedPost);
         ITPost savedITPost = itRepository.save(itPost);
+
+        List<String> imgUrls = fileService.extractImageUrls(requestDTO.content());
+        fileService.savePostImage(savedPost, imgUrls);
 
 
         return ITResponseDTO.from(savedITPost, false, false);
