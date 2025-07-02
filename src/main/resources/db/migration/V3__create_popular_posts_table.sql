@@ -7,7 +7,7 @@ CREATE TABLE popular_posts (
                                like_count INT NOT NULL,
                                comment_count INT NOT NULL,
                                author_nickname VARCHAR(255) NOT NULL,
-                               author_devcourse_name VARCHAR(255),
+                               author_devcourse_name VARCHAR(50),
                                post_created_at TIMESTAMP NOT NULL,
                                title VARCHAR(500) NOT NULL,
                                board_type VARCHAR(50) NOT NULL,

@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.domain.dto.ai;
 
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 
 import java.time.LocalDateTime;
 
@@ -11,7 +12,7 @@ public record PostRecommendationResponse(
         Integer likeCount,
         Integer viewCount,
         Integer commentCount,
-        String boardType,
+        BoardType boardType,
         LocalDateTime createdAt
 ) {
     public static PostRecommendationResponse from(Post post) {
@@ -22,7 +23,7 @@ public record PostRecommendationResponse(
                 post.getLikeCount(),
                 post.getViewCount(),
                 post.getComments().size(),
-                post.getBoardType().toString(),
+                post.getBoardType(),
                 post.getCreatedAt()
         );
     }

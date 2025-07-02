@@ -117,20 +117,10 @@ public class PostRecommendService {
      * @return 추천 게시글 목록
      */
     public List<PostRecommendationResponse> getStoredRecommendations(Long userId, int limit) {
-        List<Object[]> data = aiRecommendPostRepository.findRecommendationDataByUserId(userId);
+        List<PostRecommendationResponse> data = aiRecommendPostRepository.findRecommendationDataByUserId(userId);
 
         return data.stream()
                 .limit(limit)
-                .map(row -> new PostRecommendationResponse(
-                        (Long) row[0],
-                        (String) row[1],
-                        (String) row[2],
-                        (Integer) row[3],
-                        (Integer) row[4],
-                        ((Long) row[5]).intValue(),
-                        row[6].toString(),
-                        (LocalDateTime) row[7]
-                ))
                 .collect(Collectors.toList());
     }
 

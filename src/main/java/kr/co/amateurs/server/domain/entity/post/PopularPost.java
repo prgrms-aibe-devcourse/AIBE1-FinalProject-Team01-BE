@@ -3,6 +3,7 @@ package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
+import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import lombok.*;
 
@@ -48,6 +49,7 @@ public class PopularPost extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String boardType;
+    private BoardType boardType;
 }

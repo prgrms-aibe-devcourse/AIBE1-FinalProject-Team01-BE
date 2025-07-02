@@ -2,6 +2,7 @@ package kr.co.amateurs.server.domain.dto.post;
 
 import kr.co.amateurs.server.domain.dto.ai.PostRecommendationResponse;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +13,7 @@ public record PopularPostResponse(
         Integer likeCount,
         Integer viewCount,
         Integer commentCount,
-        String boardType,
+        BoardType boardType,
         LocalDateTime createdAt
 ) {
     public static PopularPostResponse from(PopularPostRequest request) {
