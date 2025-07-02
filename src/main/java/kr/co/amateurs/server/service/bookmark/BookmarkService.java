@@ -1,8 +1,6 @@
 package kr.co.amateurs.server.service.bookmark;
 
 import kr.co.amateurs.server.domain.dto.ai.PostContentData;
-import kr.co.amateurs.server.config.jwt.CustomUserDetails;
-import kr.co.amateurs.server.config.jwt.CustomUserDetailsService;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.bookmark.*;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
@@ -34,7 +32,6 @@ import java.util.Optional;
 import java.util.Collections;
 import java.util.List;
 
-import static kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO.*;
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 
 @Service
@@ -100,10 +97,9 @@ public class BookmarkService {
             default -> PostBookmarkDTO.convertToDTO(p);
         };
     }
-    public boolean checkHasBookmarked(Long postId) {
-        User user = userService.getCurrentUser().get();
+    public boolean checkHasBookmarked(Long postId, Long userId) {
         return bookmarkRepository
-                .findByPostIdAndUserId(postId, user.getId())
+                .findByPostIdAndUserId(postId, userId)
                 .isPresent();
     }
 

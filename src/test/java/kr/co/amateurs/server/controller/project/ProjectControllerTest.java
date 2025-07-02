@@ -370,7 +370,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
-                    .statusCode(HttpStatus.BAD_REQUEST.value());
+                    .statusCode(HttpStatus.FORBIDDEN.value());
         }
 
         @Test
@@ -384,7 +384,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
-                    .statusCode(HttpStatus.BAD_REQUEST.value());
+                    .statusCode(HttpStatus.FORBIDDEN.value());
         }
     }
 
