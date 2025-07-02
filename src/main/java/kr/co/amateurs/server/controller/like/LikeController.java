@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class LikeController {
     private final LikeService likeService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
+    @BoardAccess
     @PostMapping("/posts/{postId}/likes")
     @Operation(summary = "게시글 좋아요", description = "게시글에 좋아요를 누릅니다.")
     public ResponseEntity<LikeResponseDTO> addLikeToPost(
@@ -33,18 +33,18 @@ public class LikeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
-    @PostMapping("/comments/{commentId}/likes")
+    @BoardAccess
+    @PostMapping("/posts/{postId}/comments/{commentId}/likes")
     @Operation(summary = "댓글 좋아요", description = "댓글에 좋아요를 누릅니다.")
     public ResponseEntity<LikeResponseDTO> addLikeToComment(
+            @PathVariable Long postId,
             @PathVariable Long commentId
     ){
-        LikeResponseDTO result = likeService.addLikeToComment(commentId);
+        LikeResponseDTO result = likeService.addLikeToComment(postId, commentId);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
-    @BoardAccess(operation = OperationType.WRITE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
+    @BoardAccess
     @DeleteMapping("/posts/{postId}/likes")
     @Operation(summary = "게시글 좋아요 제거", description = "좋아요를 눌렀던 게시글에 좋아요를 제거합니다.")
     public ResponseEntity<Void> removeLikeToPost(
@@ -54,14 +54,14 @@ public class LikeController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    @BoardAccess(operation = OperationType.WRITE)
-    @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
-    @DeleteMapping("/comments/{commentId}/likes")
+    @BoardAccess
+    @DeleteMapping("/posts/{postId}/comments/{commentId}/likes")
     @Operation(summary = "댓글 좋아요 제거", description = "좋아요를 눌렀던 댓글에 좋아요를 제거합니다.")
     public ResponseEntity<Void> removeLikeToComment(
+            @PathVariable Long postId,
             @PathVariable Long commentId
     ){
-        likeService.removeLikeFromComment(commentId);
+        likeService.removeLikeFromComment(postId, commentId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }
