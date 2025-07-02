@@ -122,7 +122,7 @@ public class CommentControllerTest extends AbstractControllerTest {
                 .when()
                 .get("/posts/{postId}/comments?size={size}", testPost.getId(), 8)
                 .then()
-                .statusCode(400);
+                .statusCode(403);
     }
 
     @Test
@@ -271,7 +271,7 @@ public class CommentControllerTest extends AbstractControllerTest {
                 .when()
                 .post("/posts/{postId}/comments", testPost.getId())
                 .then()
-                .statusCode(400);
+                .statusCode(403);
     }
 
     @Test
@@ -312,7 +312,7 @@ public class CommentControllerTest extends AbstractControllerTest {
                 .put("/posts/{postId}/comments/{commentId}",
                         testPost.getId(), comment.getId())
                 .then()
-                .statusCode(400);
+                .statusCode(403);
     }
 
     @Test
@@ -346,7 +346,7 @@ public class CommentControllerTest extends AbstractControllerTest {
                 .delete("/posts/{postId}/comments/{commentId}",
                         testPost.getId(), comment.getId())
                 .then()
-                .statusCode(400);
+                .statusCode(403);
     }
 
     @Test

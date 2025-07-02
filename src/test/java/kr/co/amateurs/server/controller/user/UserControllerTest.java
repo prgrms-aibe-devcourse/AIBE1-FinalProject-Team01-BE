@@ -67,17 +67,17 @@ public class UserControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void 인증_토큰_없이_프로필_조회_시_404_에러가_발생한다() {
+    void 인증_토큰_없이_프로필_조회_시_401_에러가_발생한다() {
         // when & then
         given()
                 .when()
                 .get("/users/me")
                 .then()
-                .statusCode(404);
+                .statusCode(401);
     }
 
     @Test
-    void 잘못된_토큰으로_프로필_조회_시_404_에러가_발생한다() {
+    void 잘못된_토큰으로_프로필_조회_시_401_에러가_발생한다() {
         // given
         String invalidToken = TokenTestFixture.INVALID_TOKEN;
 
@@ -87,15 +87,16 @@ public class UserControllerTest extends AbstractControllerTest {
                 .when()
                 .get("/users/me")
                 .then()
-                .statusCode(404);
+                .statusCode(401);
     }
 
     @Test
     void 인증된_사용자가_기본_정보_수정_요청_시_정상적으로_업데이트된다() {
         // given
+        String uniqueNickname = UserTestFixture.generateUniqueNickname();
         UserBasicProfileEditRequestDto updateRequest = UserBasicProfileEditRequestDto.builder()
                 .name("변경된이름")
-                .nickname("changedNick")
+                .nickname(uniqueNickname)
                 .imageUrl("https://example.com/new-profile.jpg")
                 .build();
 
@@ -105,16 +106,16 @@ public class UserControllerTest extends AbstractControllerTest {
                 .contentType(ContentType.JSON)
                 .body(updateRequest)
                 .when()
-                .put("/users/profile/basic")
+                .put("/users/me")
                 .then()
                 .statusCode(200)
                 .body("name", equalTo("변경된이름"))
-                .body("nickname", equalTo("changedNick"))
+                .body("nickname", equalTo(uniqueNickname))
                 .body("imageUrl", equalTo("https://example.com/new-profile.jpg"));
     }
 
     @Test
-    void 인증_토큰_없이_기본_정보_수정_요청_시_401_에러가_발생한다() {
+    void 인증_토큰_없이_기본_정보_수정_요청_시_403_에러가_발생한다() {
         // given
         UserBasicProfileEditRequestDto updateRequest = UserBasicProfileEditRequestDto.builder()
                 .name("변경된이름")
@@ -125,9 +126,9 @@ public class UserControllerTest extends AbstractControllerTest {
                 .contentType(ContentType.JSON)
                 .body(updateRequest)
                 .when()
-                .put("/users/profile/basic")
+                .put("/users/me")
                 .then()
-                .statusCode(401);
+                .statusCode(403);
     }
 
     @Test
@@ -144,7 +145,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .contentType(ContentType.JSON)
                 .body(passwordRequest)
                 .when()
-                .put("/users/profile/password")
+                .put("/users/me/password")
                 .then()
                 .statusCode(200)
                 .body("message", equalTo("비밀번호가 성공적으로 변경되었습니다"));
@@ -164,7 +165,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .contentType(ContentType.JSON)
                 .body(passwordRequest)
                 .when()
-                .put("/users/profile/password")
+                .put("/users/me/password")
                 .then()
                 .statusCode(400);
     }
@@ -182,7 +183,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .contentType(ContentType.JSON)
                 .body(topicsRequest)
                 .when()
-                .put("/users/profile/topics")
+                .put("/users/me/topics")
                 .then()
                 .statusCode(200)
                 .body("topics", hasSize(3))
@@ -202,7 +203,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .contentType(ContentType.JSON)
                 .body(topicsRequest)
                 .when()
-                .put("/users/profile/topics")
+                .put("/users/me/topics")
                 .then()
                 .statusCode(400);
     }
@@ -220,7 +221,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .contentType(ContentType.JSON)
                 .body(topicsRequest)
                 .when()
-                .put("/users/profile/topics")
+                .put("/users/me/topics")
                 .then()
                 .statusCode(400);
     }

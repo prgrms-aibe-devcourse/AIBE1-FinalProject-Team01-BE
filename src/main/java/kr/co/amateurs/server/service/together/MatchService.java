@@ -22,11 +22,10 @@ import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+
 import java.util.Objects;
-import java.util.Optional;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO.convertToDTO;
@@ -53,24 +52,23 @@ public class MatchService {
 //            default -> matchRepository.findAllByKeyword(keyword, pageable);
 //        };
         Page<MatchingPost> mpPage = matchRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
-        Page<MatchPostResponseDTO> response = mpPage.map(mp-> convertToDTO(mp, mp.getPost(), likeService.checkHasLiked(mp.getPost().getId()), bookmarkService.checkHasBookmarked(mp.getPost().getId())));
+        Page<MatchPostResponseDTO> response = mpPage.map(mp-> convertToDTO(mp, mp.getPost(), false, false));
         return convertPageToDTO(response);
     }
 
 
     public MatchPostResponseDTO getMatchPost(Long id) {
-        MatchingPost mp = matchRepository.findByPostId(id);
-        if(mp == null) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+        User user = userService.getCurrentLoginUser();
+        MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
-        return convertToDTO(mp, post, likeService.checkHasLiked(post.getId()), bookmarkService.checkHasBookmarked(post.getId()));
+        return convertToDTO(mp, post, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()));
     }
 
 
     @Transactional
     public MatchPostResponseDTO createMatchPost(MatchPostRequestDTO dto) {
-        User currentUser = getCurrentUser();
+        User currentUser = userService.getCurrentLoginUser();
+
         Post post = Post.builder()
                 .user(currentUser)
                 .boardType(BoardType.MATCH)
@@ -88,47 +86,36 @@ public class MatchService {
                 .build();
         MatchingPost savedMp = matchRepository.save(mp);
 
-        return convertToDTO(savedMp, savedPost, likeService.checkHasLiked(savedPost.getId()), bookmarkService.checkHasBookmarked(savedPost.getId()));
+        return convertToDTO(savedMp, savedPost, false, false);
     }
 
     @Transactional
-    public void updateMatchPost(Long postId, MatchPostRequestDTO dto) {
-        MatchingPost mp = matchRepository.findByPostId(postId);
-        if(mp == null) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+    public void updateMatchPost(Long id, MatchPostRequestDTO dto) {
+        MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
-        validateUser(post.getUser().getId());
+        validateUser(post);
         CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
         mp.update(dto);
         post.update(updatePostDTO);
     }
 
     @Transactional
-    public void deleteMatchPost(Long postId) {
-        MatchingPost mp = matchRepository.findByPostId(postId);
-        if(mp == null) {
-            throw new CustomException(ErrorCode.POST_NOT_FOUND);
-        }
+    public void deleteMatchPost(Long id) {
+        MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
-        validateUser(post.getUser().getId());
-        matchRepository.deleteById(mp.getId());
-        postRepository.deleteById(post.getId());
+        validateUser(post);
+        postRepository.delete(post);
     }
 
-    private User getCurrentUser() {
-        Optional<User> user = Objects.requireNonNull(userService).getCurrentUser();
-        if (user.isEmpty()) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
+    private void validateUser(Post post) {
+        User currentUser = userService.getCurrentLoginUser();
+
+        if (!canEditOrDelete(post, currentUser)) {
+            throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
-        return user.get();
     }
-    private void validateUser(Long userId) {
-        User currentUser = getCurrentUser();
-        Long currentId = currentUser.getId();
-        Role currentRole = currentUser.getRole();
-        if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
-            throw new CustomException(ErrorCode.ACCESS_DENIED, "해당 게시글에 접근할 수 없습니다.");
-        }
+
+    private boolean canEditOrDelete(Post post, User user) {
+        return Objects.equals(post.getUser().getId(), user.getId()) || user.getRole() == Role.ADMIN;
     }
 }
