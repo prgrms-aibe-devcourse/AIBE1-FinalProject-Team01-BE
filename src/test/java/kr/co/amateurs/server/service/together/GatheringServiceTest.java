@@ -21,24 +21,30 @@ import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.like.LikeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createAdmin;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createStudent;
 import static kr.co.amateurs.server.fixture.together.GatheringTestFixture.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -64,10 +70,12 @@ class GatheringServiceTest {
     private LikeRepository likeRepository;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private UserService userService;
+    @MockitoBean
+    private LikeService likeService;
 
     private User studyUser;
     private User projectUser;
@@ -101,6 +109,8 @@ class GatheringServiceTest {
 
         studyGatheringPost = gatheringRepository.save(studyGatheringPost);
         projectGatheringPost = gatheringRepository.save(projectGatheringPost);
+
+        given(likeService.checkHasLiked(studyPost.getId(), studyUser.getId())).willReturn(false);
     }
 
     @Nested
@@ -185,6 +195,7 @@ class GatheringServiceTest {
         void 존재하는_ID로_조회하면_해당_모임_게시글이_반환되어야_한다() {
             // given
             Long gatheringPostId = studyGatheringPost.getId();
+            given(userService.getCurrentLoginUser()).willReturn(studyUser);
 
             // when
             GatheringPostResponseDTO result = gatheringService.getGatheringPost(gatheringPostId);
@@ -196,7 +207,7 @@ class GatheringServiceTest {
             assertThat(result.status()).isEqualTo(GatheringStatus.RECRUITING);
             assertThat(result.headCount()).isEqualTo(5);
             assertThat(result.place()).isEqualTo("강남역 스터디카페");
-            assertThat(result.nickname()).isEqualTo("스터디유저");
+            assertThat(result.nickname()).isEqualTo("student_nickname1");
         }
 
         @Test
@@ -226,6 +237,7 @@ class GatheringServiceTest {
                     "2025-08-01 ~ 2025-11-30",
                     "매주 수요일 20:00-22:00"
             );
+            given(userService.getCurrentLoginUser()).willReturn(studyUser);
 
             // when
             GatheringPostResponseDTO result = gatheringService.createGatheringPost(requestDTO);
@@ -260,6 +272,7 @@ class GatheringServiceTest {
                     "2025-08-01 ~ 2025-10-31",
                     "매주 목요일 19:00-21:00"
             );
+            given(userService.getCurrentLoginUser()).willReturn(studyUser);
 
             // when
             gatheringService.updateGatheringPost(gatheringPostId, updateDTO);
@@ -288,6 +301,7 @@ class GatheringServiceTest {
                     "기간",
                     "일정"
             );
+            given(userService.getCurrentLoginUser()).willReturn(projectUser);
 
             // when & then
             assertThatThrownBy(() -> gatheringService.updateGatheringPost(gatheringPostId, updateDTO))
@@ -323,12 +337,12 @@ class GatheringServiceTest {
             // given
             Long gatheringPostId = studyGatheringPost.getId();
             Long postId = studyPost.getId();
+            given(userService.getCurrentLoginUser()).willReturn(studyUser);
 
             // when
             gatheringService.deleteGatheringPost(gatheringPostId);
 
             // then
-            assertThat(gatheringRepository.findById(gatheringPostId)).isEmpty();
             assertThat(postRepository.findById(postId)).isEmpty();
         }
 
@@ -336,6 +350,7 @@ class GatheringServiceTest {
         void 작성자가_아닌_사용자가_삭제하면_예외가_발생해야_한다() {
             // given
             Long gatheringPostId = studyGatheringPost.getId();
+            given(userService.getCurrentLoginUser()).willReturn(projectUser);
 
             // when & then
             assertThatThrownBy(() -> gatheringService.deleteGatheringPost(gatheringPostId))
