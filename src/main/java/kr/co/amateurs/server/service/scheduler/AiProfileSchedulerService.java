@@ -22,7 +22,7 @@ public class AiProfileSchedulerService {
     private final AiProfileService aiProfileService;
     private final UserRepository userRepository;
 
-    private static final int BATCH_SIZE = 50;
+    private static final int BATCH_SIZE = 20;
     private static final int ACTIVITY_CHECK_DAYS = 3;
 
     @Scheduled(cron = "0 0 4 */3 * *")

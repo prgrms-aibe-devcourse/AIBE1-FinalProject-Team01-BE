@@ -37,9 +37,7 @@ public class PopularPostRepository {
                 .leftJoin(COMMENTS).on(COMMENTS.POST_ID.eq(POSTS.ID))
                 .where(POSTS.IS_DELETED.eq(false))
                 .and(POSTS.CREATED_AT.ge(threeDaysAgo))
-                .groupBy(POSTS.ID, POSTS.VIEW_COUNT, POSTS.LIKE_COUNT,
-                        USERS.NICKNAME, USERS.DEVCOURSE_NAME, POSTS.CREATED_AT,
-                        POSTS.TITLE, POSTS.BOARD_TYPE)
+                .groupBy(POSTS.ID)
                 .fetch()
                 .map(record -> new PopularPostRequest(
                         record.get(POSTS.ID),
