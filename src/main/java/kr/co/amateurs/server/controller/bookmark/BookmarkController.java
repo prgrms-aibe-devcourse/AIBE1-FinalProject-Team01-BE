@@ -35,7 +35,7 @@ public class BookmarkController {
         return ResponseEntity.ok(bookmarkList);
     }
 
-    @BoardAccess(operation = OperationType.WRITE)
+    @BoardAccess
     @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
     @PostMapping("/users/{userId}/bookmarks/{postId}")
     @Operation(summary = "북마크 등록", description = "특정 게시글을 북마크에 등록합니다.")
@@ -47,7 +47,7 @@ public class BookmarkController {
          return ResponseEntity.status(HttpStatus.CREATED).body(bookmarkPost);
     }
 
-    @BoardAccess(operation = OperationType.WRITE)
+    @BoardAccess
     @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
     @DeleteMapping("/users/{userId}/bookmarks/{postId}")
     @Operation(summary = "북마크 제거", description = "북마크 해둔 특정 게시글의 북마크를 해제합니다.")

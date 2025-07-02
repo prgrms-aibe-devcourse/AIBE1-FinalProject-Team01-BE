@@ -59,10 +59,15 @@ public class BookmarkService {
         return convertPageToDTO(bookmarkList.map(this::convertToDTO));
     }
 
+    @Transactional
     public BookmarkResponseDTO addBookmarkPost(Long userId, Long postId) {
         validateUser(userId);
         User currentUser = userRepository.findById(userId).orElseThrow();
         Post post = postRepository.findById(postId).orElseThrow();
+        if (checkHasBookmarked(postId, userId)) {
+            throw ErrorCode.DUPLICATE_BOOKMARK.get();
+        }
+
         Bookmark newBookmark = Bookmark.builder()
                 .user(currentUser)
                 .post(post)
@@ -99,8 +104,7 @@ public class BookmarkService {
     }
     public boolean checkHasBookmarked(Long postId, Long userId) {
         return bookmarkRepository
-                .findByPostIdAndUserId(postId, userId)
-                .isPresent();
+                .existsByPost_IdAndUser_Id(postId, userId);
     }
 
     private void validateUser(Long userId) {
