@@ -60,13 +60,15 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
             accessTokenCookie.setMaxAge(Math.toIntExact(accessExpiresIn / 1000));
             accessTokenCookie.setPath("/");
-            accessTokenCookie.setSecure(false);
+            accessTokenCookie.setSecure(true);
+            accessTokenCookie.setHttpOnly(true);
             response.addCookie(accessTokenCookie);
 
             Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
             refreshTokenCookie.setMaxAge(Math.toIntExact(refreshExpiresIn));
             refreshTokenCookie.setPath("/");
-            refreshTokenCookie.setSecure(false);
+            refreshTokenCookie.setSecure(true);
+            refreshTokenCookie.setHttpOnly(true);
             response.addCookie(refreshTokenCookie);
 
             String redirectUrl = successRedirectUrl + "/oauth/callback";
