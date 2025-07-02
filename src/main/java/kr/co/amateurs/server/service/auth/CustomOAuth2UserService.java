@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.service.auth;
 
+import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
@@ -68,7 +69,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     ErrorCode.OAUTH_USER_REGISTRATION_FAILED.getMessage());
         }
 
-        return oAuth2User;
+        User user = userRepository.findByProviderIdAndProviderType(
+                providerId, ProviderType.valueOf(provider.toUpperCase()))
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        return new CustomUserDetails(user, oAuth2User.getAttributes());
     }
 
     private void saveOrUpdateUser(String provider, String providerId, String email, String nickname, String name, String imageUrl) {
