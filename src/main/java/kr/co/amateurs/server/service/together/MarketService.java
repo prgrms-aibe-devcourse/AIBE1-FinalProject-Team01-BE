@@ -18,11 +18,13 @@ import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
+import kr.co.amateurs.server.service.file.FileService;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 
 import java.util.Objects;
 
@@ -38,6 +40,8 @@ public class MarketService {
     private final UserService userService;
     private final LikeService likeService;
     private final BookmarkService bookmarkService;
+
+    private final FileService fileService;
 
 
     public PageResponseDTO<MarketPostResponseDTO> getMarketPostList(PostPaginationParam paginationParam) {
@@ -75,6 +79,10 @@ public class MarketService {
                 .place(dto.place())
                 .build();
         MarketItem savedMp = marketRepository.save(mi);
+
+
+        List<String> imgUrls = fileService.extractImageUrls(dto.content());
+        fileService.savePostImage(savedPost, imgUrls);
 
         return convertToDTO(savedMp, savedPost, false, false);
     }
