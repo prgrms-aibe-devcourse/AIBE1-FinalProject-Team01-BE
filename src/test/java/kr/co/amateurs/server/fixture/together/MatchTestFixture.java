@@ -1,20 +1,13 @@
 package kr.co.amateurs.server.fixture.together;
 
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 import kr.co.amateurs.server.domain.entity.user.User;
-import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
-import kr.co.amateurs.server.domain.entity.user.enums.Role;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 
 public class MatchTestFixture {
     public static MatchPostRequestDTO createMatchPostRequestDTO() {
@@ -26,5 +19,43 @@ public class MatchTestFixture {
                 MatchingStatus.OPEN,
                 "백엔드"
         );
+    }
+
+    public static Post createCoffeeChatPost(User user) {
+        return Post.builder()
+                .user(user)
+                .boardType(BoardType.MATCH)
+                .title("커피챗 참가자 모집")
+                .content("커피챗 진행할 멘티를 모집합니다.")
+                .tags("커피챗,멘토링")
+                .build();
+    }
+
+    public static Post createMentoringPost(User user) {
+        return Post.builder()
+                .user(user)
+                .boardType(BoardType.MATCH)
+                .title("멘토링 신청")
+                .content("백엔드 멘토링 받고 싶어요.")
+                .tags("멘토링,백엔드")
+                .build();
+    }
+
+    public static MatchingPost createCoffeeChatMatchingPost(Post post) {
+        return MatchingPost.builder()
+                .post(post)
+                .matchingType(MatchingType.COFFEE_CHAT)
+                .status(MatchingStatus.OPEN)
+                .expertiseAreas("백엔드")
+                .build();
+    }
+
+    public static MatchingPost createMentoringMatchingPost(Post post) {
+        return MatchingPost.builder()
+                .post(post)
+                .matchingType(MatchingType.MENTORING)
+                .status(MatchingStatus.OPEN)
+                .expertiseAreas("프론트엔드")
+                .build();
     }
 }

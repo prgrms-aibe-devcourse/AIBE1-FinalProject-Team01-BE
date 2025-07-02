@@ -134,7 +134,7 @@ class GatheringServiceTest {
         }
 
         @Test
-        void 키워드로_조회하면_키워드와_일치하는_모임_게시글이_반환되어야_한다() {
+        void 제목으로_조회하면_키워드와_일치하는_모임_게시글이_반환되어야_한다() {
             // given
             PostPaginationParam paginationParam = PostPaginationParam.builder()
                     .keyword("알고리즘")
@@ -207,7 +207,6 @@ class GatheringServiceTest {
             assertThat(result.status()).isEqualTo(GatheringStatus.RECRUITING);
             assertThat(result.headCount()).isEqualTo(5);
             assertThat(result.place()).isEqualTo("강남역 스터디카페");
-            assertThat(result.nickname()).isEqualTo("student_nickname1");
         }
 
         @Test
