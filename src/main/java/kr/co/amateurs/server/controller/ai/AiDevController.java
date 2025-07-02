@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -101,10 +102,14 @@ public class AiDevController {
     public ResponseEntity<List<PostRecommendationResponse>> getUserRecommendations(
             @RequestParam Long userId,
             @RequestParam(defaultValue = "10") int limit) {
-        long startTime = System.currentTimeMillis();
+        StopWatch stopWatch = new StopWatch("추천 게시글 조회");
+        stopWatch.start();
+
         List<PostRecommendationResponse> recommendations = postRecommendService.getStoredRecommendations(userId, limit);
-        long endTime = System.currentTimeMillis();
-        log.info("추천 게시글 조회 완료: userId={}, limit={}, 소요시간={}ms", userId, limit, (endTime - startTime));
+
+        stopWatch.stop();
+        log.info("추천 게시글 조회 완료: userId={}, limit={}, 소요시간={}ms",
+                userId, limit, stopWatch.getTotalTimeMillis());
         return ResponseEntity.ok(recommendations);
     }
 
