@@ -18,13 +18,9 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.security.SecureRandom;
 import java.util.List;
@@ -40,7 +36,7 @@ import java.util.UUID;
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
     private final UserRepository userRepository;
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -163,21 +159,14 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     private String fetchEmailWithAccessToken(String accessToken) {
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + accessToken);
-            headers.set("Accept", "application/vnd.github.v3+json");
-            headers.set("User-Agent", "amateurs-oauth-app");
+            List<Map<String, Object>> emails = restClient.get()
+                    .uri("https://api.github.com/user/emails")
+                    .header("Authorization", "Bearer " + accessToken)
+                    .header("Accept", "application/vnd.github.v3+json")
+                    .header("User-Agent", "amateurs-oauth-app")
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<Map<String, Object>>>() {});
 
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
-                    "https://api.github.com/user/emails",
-                    HttpMethod.GET,
-                    entity,
-                    new ParameterizedTypeReference<List<Map<String, Object>>>() {}
-            );
-
-            List<Map<String, Object>> emails = response.getBody();
             if (emails == null || emails.isEmpty()) {
                 log.warn("GitHub API에서 이메일 목록이 비어있음");
                 throw ErrorCode.OAUTH_EMAIL_API_CALL_FAILED.get();
