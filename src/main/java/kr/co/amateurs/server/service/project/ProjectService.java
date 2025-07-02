@@ -16,6 +16,7 @@ import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class ProjectService {
     private final PostRepository postRepository;
 
     private final UserService userService;
+    private final FileService fileService;
 
     public ProjectPageResponseDTO getProjects(ProjectSearchParam params) {
         Page<Project> projects = projectRepository.findAllByFilterOptionsOrderByLikeCountDesc(
@@ -71,7 +73,7 @@ public class ProjectService {
         );
 
         Post post = Post.from(postRequestDto, user, BoardType.PROJECT_HUB);
-        postRepository.save(post);
+        Post savedPost = postRepository.save(post);
 
         Project project = Project.builder()
                 .post(post)
@@ -84,6 +86,9 @@ public class ProjectService {
                 .build();
 
         projectRepository.save(project);
+
+        List<String> imgUrls = fileService.extractImageUrls(projectRequestDTO.content());
+        fileService.savePostImage(savedPost, imgUrls);
 
         return ProjectResponseDTO.from(project);
     }
