@@ -18,12 +18,14 @@ import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.file.FileService;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
@@ -39,6 +41,7 @@ public class GatheringService {
     private final BookmarkService bookmarkService;
 
     private final UserService userService;
+    private final FileService fileService;
 
     public PageResponseDTO<GatheringPostResponseDTO> getGatheringPostList(PostPaginationParam paginationParam) {
         Page<GatheringPost> gpPage = gatheringRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
@@ -78,6 +81,9 @@ public class GatheringService {
                 .schedule(dto.schedule())
                 .build();
         GatheringPost savedGp = gatheringRepository.save(gp);
+
+        List<String> imgUrls = fileService.extractImageUrls(dto.content());
+        fileService.savePostImage(savedPost, imgUrls);
 
         return convertToDTO(savedGp, savedPost, false, false);
     }
