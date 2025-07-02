@@ -173,7 +173,9 @@ tasks.named('test') {
 
 tasks.named('compileJava') {
 	options.encoding = 'UTF-8'
-	dependsOn('generateJooqClasses')
+	if (!System.getenv('DOCKER_BUILD')) {
+		dependsOn('generateJooqClasses')
+	}
 }
 
 clean {
