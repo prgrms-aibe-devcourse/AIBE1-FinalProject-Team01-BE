@@ -12,6 +12,7 @@ import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.ai.PostRecommendService;
 import kr.co.amateurs.server.service.scheduler.AiPostRecommendScehdularService;
 import kr.co.amateurs.server.service.scheduler.AiProfileSchedulerService;
+import kr.co.amateurs.server.service.scheduler.EmbeddingCleanupSchedulerService;
 import kr.co.amateurs.server.service.scheduler.PopularPostSchedulerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class AiDevController {
     private final AiProfileSchedulerService aiProfileSchedulerService;
     private final PopularPostSchedulerService popularPostSchedulerService;
     private final AiPostRecommendScehdularService aiPostRecommendScehdularService;
+    private final EmbeddingCleanupSchedulerService embeddingCleanupSchedulerService;
 
 
     @PostMapping("/profiles/initial")
@@ -78,6 +80,13 @@ public class AiDevController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/scheduler/embeddings/cleanup")
+    @Operation(summary = "오래된 임베딩 데이터 정리", description = "스케줄러와 동일한 로직 실행 (7일 이전 데이터 삭제)")
+    public ResponseEntity<Void> cleanupOldEmbeddings() {
+        embeddingCleanupSchedulerService.cleanupOldEmbeddings();
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/recommendations/save")
     @Operation(summary = "특정 사용자 추천 게시글 생성", description = "개별 사용자 추천 생성 및 저장")
     public ResponseEntity<Void> saveUserRecommendations(
@@ -106,6 +115,7 @@ public class AiDevController {
         String result = postEmbeddingService.createSpecificPostEmbedding(postId);
         return ResponseEntity.ok(result);
     }
+
 
     @PostMapping("/embeddings/initialize")
     @Operation(summary = "게시글 임베딩 초기화", description = "모든 게시글의 임베딩을 생성하고 저장합니다")

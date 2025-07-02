@@ -7,6 +7,8 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.filter.Filter;
+import dev.langchain4j.store.embedding.filter.comparison.IsLessThan;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.service.post.PostService;
@@ -37,16 +39,16 @@ public class PostEmbeddingService {
         try {
             String content = formatPostContent(post);
 
-            String createdDate = post.getCreatedAt()
-                    .toLocalDate()
-                    .toString();
+            long createdTimestamp = post.getCreatedAt()
+                    .atZone(ZoneId.of("Asia/Seoul"))
+                    .toEpochSecond();
 
             Metadata metadata = Metadata.from(Map.of(
                     "userId", post.getUser().getId().toString(),
                     "postId", post.getId().toString(),
                     "title", post.getTitle(),
                     "boardType", post.getBoardType().name(),
-                    "createdDate", createdDate
+                    "createdDate", createdTimestamp
             ));
 
             TextSegment segment = TextSegment.from(content, metadata);
@@ -100,5 +102,27 @@ public class PostEmbeddingService {
                 post.getTitle(),
                 post.getContent() != null ? post.getContent() : ""
         );
+    }
+
+    /**
+     * N일 이전의 임베딩 데이터를 삭제합니다
+     * @param daysBack 며칠 이전 데이터를 삭제할지
+     */
+    public void deleteOldEmbeddings(int daysBack) {
+        try {
+            LocalDateTime cutoffDate = LocalDateTime.now().minusDays(daysBack);
+            long beforeTimestamp = cutoffDate
+                    .atZone(ZoneId.of("Asia/Seoul"))
+                    .toEpochSecond();
+
+            Filter dateFilter = new IsLessThan("createdDate", beforeTimestamp);
+            embeddingStore.removeAll(dateFilter);
+
+            log.info("{}일 이전 임베딩 데이터 삭제 완료 (기준일: {})", daysBack, cutoffDate);
+
+        } catch (Exception e) {
+            log.error("{}일 이전 임베딩 데이터 삭제 실패", daysBack, e);
+            throw new RuntimeException("임베딩 데이터 삭제 실패", e);
+        }
     }
 }
