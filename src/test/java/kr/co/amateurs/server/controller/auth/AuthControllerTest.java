@@ -48,7 +48,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void 존재하지_않는_사용자로_로그인_시_404_에러가_발생해야_한다() {
+    void 존재하지_않는_사용자로_로그인_시_401_에러가_발생해야_한다() {
         // given
         LoginRequestDto request = AuthTestFixture.createNonExistentUserLoginRequest();
 
@@ -59,7 +59,7 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .when()
                 .post("/auth/login")
                 .then()
-                .statusCode(404)
+                .statusCode(401)
                 .body("message", equalTo("존재하지 않는 사용자입니다."));
     }
 

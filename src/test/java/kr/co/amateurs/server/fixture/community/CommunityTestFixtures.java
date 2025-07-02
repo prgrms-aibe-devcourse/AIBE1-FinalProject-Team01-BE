@@ -1,7 +1,8 @@
-package kr.co.amateurs.server.service.it;
+package kr.co.amateurs.server.fixture.community;
 
-import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
+import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
+import kr.co.amateurs.server.domain.entity.post.CommunityPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -10,7 +11,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.Role;
 
 import java.util.ArrayList;
 
-public class ITTestFixtures {
+public class CommunityTestFixtures {
     public static User createAdminUser() {
         return User.builder()
                 .email("admin@test.com")
@@ -76,6 +77,23 @@ public class ITTestFixtures {
                 .build();
     }
 
+    public static CommunityPost createCommunityPost(Post post) {
+        return CommunityPost.builder()
+                .post(post)
+                .build();
+    }
+
+    public static CommunityPost createCommunityPostWithPost(User user, String title, String content, BoardType boardType) {
+        Post post = createPost(user, title, content, boardType);
+        return createCommunityPost(post);
+    }
+
+    public static CommunityPost createCommunityPostWithPostAndCounts(User user, String title, String content,
+                                                                     BoardType boardType, int viewCount, int likeCount) {
+        Post post = createPostWithCounts(user, title, content, boardType, viewCount, likeCount);
+        return createCommunityPost(post);
+    }
+
     public static Comment createComment(Post post, User user, String content) {
         return Comment.builder()
                 .post(post)
@@ -91,7 +109,7 @@ public class ITTestFixtures {
                 .build();
     }
 
-    public static ITRequestDTO createRequestDTO(String title, String tags, String content) {
-        return new ITRequestDTO(title, tags, content);
+    public static CommunityRequestDTO createRequestDTO(String title, String tags, String content) {
+        return new CommunityRequestDTO(title, tags, content);
     }
 }

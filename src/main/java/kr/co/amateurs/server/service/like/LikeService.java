@@ -3,7 +3,6 @@ package kr.co.amateurs.server.service.like;
 import kr.co.amateurs.server.domain.dto.ai.PostContentData;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.like.LikeResponseDTO;
-import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.like.Like;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -74,10 +73,10 @@ public class LikeService {
         validateUser(currentUser.getId());
         likeRepository.deleteByCommentIdAndUserId(commentId, currentUser.getId());
     }
-    public boolean checkHasLiked(Long postId) {
+    public boolean checkHasLiked(Long postId, Long userId) {
         User user = getCurrentUser();
         return likeRepository
-                .findByPostIdAndUserId(postId, user.getId())
+                .findByPostIdAndUserId(postId, userId)
                 .isPresent();
     }
     private User getCurrentUser() {

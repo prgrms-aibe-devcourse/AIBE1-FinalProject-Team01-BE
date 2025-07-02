@@ -5,18 +5,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
-import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
-import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.service.together.MarketService;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -27,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 public class MarketController {
     private final MarketService marketService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @GetMapping
     @Operation(summary = "장터 글 리스트", description = "장터 탭의 모든 게시글을 검색어, 정렬기준에 따라 불러옵니다.")
     public ResponseEntity<PageResponseDTO<MarketPostResponseDTO>> getMarketPostList(
@@ -37,7 +32,6 @@ public class MarketController {
         return ResponseEntity.ok(marketList);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @GetMapping("/{marketId}")
     @Operation(summary = "장터 글 정보", description = "장터 탭의 특정 게시글의 정보를 불러옵니다.")
     public ResponseEntity<MarketPostResponseDTO> getMarketPost(@PathVariable("marketId") Long marketId){
@@ -45,7 +39,6 @@ public class MarketController {
         return ResponseEntity.ok(gatherPost);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @PostMapping
     @Operation(summary = "장터 글쓰기", description = "장터 탭에 새로운 게시글을 등록합니다.")
     public ResponseEntity<MarketPostResponseDTO> createMarketPost(
@@ -54,7 +47,6 @@ public class MarketController {
         return ResponseEntity.status(HttpStatus.CREATED).body(post);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @PutMapping("/{marketId}")
     @Operation(summary = "장터 글 수정", description = "장터 탭의 본인이 작성한 게시글을 수정합니다.")
     public ResponseEntity<Void> updateMarketPost(
@@ -65,7 +57,6 @@ public class MarketController {
     }
 
     //TODO - Soft Delete 로 변경 시 PATCH 요청으로 변경 예정
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @DeleteMapping("/{marketId}")
     @Operation(summary = "장터 글 삭제", description = "장터 탭의 본인이 작성한 게시글을 삭제합니다.")
     public ResponseEntity<Void> deleteMarketPost(
@@ -73,6 +64,4 @@ public class MarketController {
         marketService.deleteMarketPost(marketId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
-
-
 }
