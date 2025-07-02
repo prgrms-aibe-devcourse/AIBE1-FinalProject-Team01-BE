@@ -252,7 +252,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     }
 
     private Map<String, Object> validateAndGetAttributes(OAuth2User oAuth2User, String provider) {
-        if (!"github".equalsIgnoreCase(provider)) {
+        if (!ProviderType.GITHUB.getProviderName().equalsIgnoreCase(provider)) {
             log.error("지원하지 않는 OAuth Provider: {}", provider);
             throw ErrorCode.OAUTH_PROVIDER_NOT_SUPPORTED.get();
         }
