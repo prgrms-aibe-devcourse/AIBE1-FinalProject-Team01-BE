@@ -110,7 +110,7 @@ public class DirectMessageControllerTest {
             @Test
             void 빈_참여자_맵으로_채팅방_생성_시_400_반환() throws Exception {
                 // given
-                String invalidJson = "{\"participantMap\":{}}";
+                String invalidJson = "{\"participantList\":{}}";
 
                 // when & then
                 mockMvc.perform(post("/api/v1/dm")

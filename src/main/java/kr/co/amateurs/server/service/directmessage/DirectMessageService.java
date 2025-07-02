@@ -7,9 +7,11 @@ import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessage;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessageRoom;
 import kr.co.amateurs.server.domain.entity.directmessage.Participant;
+import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.directmessage.DirectMessageRepository;
 import kr.co.amateurs.server.repository.directmessage.DirectMessageRoomRepository;
+import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,8 @@ public class DirectMessageService {
     private final DirectMessageRepository directMessageRepository;
     private final DirectMessageRoomRepository directMessageRoomRepository;
 
+    private final UserService userService;
+
     @AlarmTrigger(type = AlarmType.DIRECT_MESSAGE)
     public DirectMessageResponse saveMessage(String roomId, DirectMessageRequest request) {
         DirectMessageRoom room = validateRoomAccess(roomId, request.senderId());
@@ -32,14 +36,16 @@ public class DirectMessageService {
         return DirectMessageResponse.fromCollection(message);
     }
 
-    public DirectMessageRoomResponse createRoom(DirectMessageRoomCreateRequest request) {
-        List<Long> ids = request.participantMap().keySet().stream().sorted().toList();
+    public DirectMessageRoomResponse createRoom(long partnerId) {
+        User currentUser = userService.getCurrentLoginUser();
+        User partner = userService.findById(partnerId);
+        List<User> participants = List.of(partner, currentUser);
 
-        DirectMessageRoom room = directMessageRoomRepository.findRoomByUserIds(ids.get(0), ids.get(1))
+        DirectMessageRoom room = directMessageRoomRepository.findRoomByUserIds(currentUser.getId(), partnerId)
                 .map(this::reEntryParticipants)
-                .orElseGet(() -> directMessageRoomRepository.save(request.toCollection()));
-        Long currentUserId = 1L;
-        return DirectMessageRoomResponse.fromCollection(room, currentUserId);
+                .orElseGet(() -> directMessageRoomRepository.save(DirectMessageRoom.from(participants)));
+
+        return DirectMessageRoomResponse.fromCollection(room, partner);
     }
 
     public DirectMessageRoom findRoomById(String roomId) {
@@ -49,8 +55,9 @@ public class DirectMessageService {
 
     public List<DirectMessageRoomResponse> getRooms(Long userId) {
         List<DirectMessageRoom> rooms = directMessageRoomRepository.findActiveRoomsByUserId(userId);
+        User currentUser = userService.getCurrentLoginUser();
         return rooms.stream()
-                .map(room -> DirectMessageRoomResponse.fromCollection(room, userId))
+                .map(room -> DirectMessageRoomResponse.fromCollection(room, currentUser))
                 .toList();
     }
 
