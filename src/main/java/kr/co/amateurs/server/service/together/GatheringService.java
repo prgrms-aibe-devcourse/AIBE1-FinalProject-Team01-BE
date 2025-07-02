@@ -98,7 +98,7 @@ public class GatheringService {
         GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
         validateUser(post);
-        gatheringRepository.delete(gp);
+        postRepository.delete(post);
     }
 
     private void validateUser(Post post) {

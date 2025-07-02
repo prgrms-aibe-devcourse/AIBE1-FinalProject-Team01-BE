@@ -95,7 +95,7 @@ public class MarketService {
         MarketItem mi = marketRepository.findById(marketId).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mi.getPost();
         validateUser(post);
-        marketRepository.delete(mi);
+        postRepository.delete(post);
     }
 
     private void validateUser(Post post) {

@@ -104,7 +104,7 @@ public class MatchService {
         MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
         validateUser(post);
-        matchRepository.delete(mp);
+        postRepository.delete(post);
     }
 
     private void validateUser(Post post) {
