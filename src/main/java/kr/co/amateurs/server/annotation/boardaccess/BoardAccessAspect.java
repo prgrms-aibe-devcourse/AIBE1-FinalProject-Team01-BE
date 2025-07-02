@@ -50,12 +50,8 @@ public class BoardAccessAspect {
     }
 
     private BoardType getBoardType(JoinPoint joinPoint, BoardAccess boardAccess) {
-        if (boardAccess.hasPostId()) {
-            Post post = findPostById(joinPoint);
-            return post.getBoardType();
-        }
-
-        throw new CustomException(ErrorCode.NOT_FOUND);
+        Post post = findPostById(joinPoint);
+        return post.getBoardType();
     }
 
     private void validateBoardAccess(Role userRole, BoardType targetBoardType, BoardAccess boardAccess) {

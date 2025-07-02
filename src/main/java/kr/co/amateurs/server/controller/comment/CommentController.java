@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class CommentController {
     private final CommentService commentService;
 
-    @BoardAccess(hasPostId = true)
+    @BoardAccess
     @GetMapping("/{postId}/comments")
     @Operation(
             summary = "댓글 목록 조회",
@@ -39,7 +39,7 @@ public class CommentController {
         return ResponseEntity.ok(comments);
     }
 
-    @BoardAccess(hasPostId = true)
+    @BoardAccess
     @GetMapping("/{postId}/comments/{commentId}/replies")
     @Operation(
             summary = "대댓글 목록 조회",
@@ -55,7 +55,7 @@ public class CommentController {
         return ResponseEntity.ok(replies);
     }
 
-    @BoardAccess(hasPostId = true, operation = OperationType.WRITE)
+    @BoardAccess(operation = OperationType.WRITE)
     @PostMapping("/{postId}/comments")
     @Operation(
             summary = "댓글 작성",
@@ -69,7 +69,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
     }
 
-    @BoardAccess(hasPostId = true, operation = OperationType.WRITE)
+    @BoardAccess(operation = OperationType.WRITE)
     @PutMapping("/{postId}/comments/{commentId}")
     @Operation(
             summary = "댓글 수정",
@@ -84,7 +84,7 @@ public class CommentController {
         return ResponseEntity.noContent().build();
     }
 
-    @BoardAccess(hasPostId = true, operation = OperationType.WRITE)
+    @BoardAccess(operation = OperationType.WRITE)
     @DeleteMapping("/{postId}/comments/{commentId}")
     @Operation(
             summary = "댓글 삭제",

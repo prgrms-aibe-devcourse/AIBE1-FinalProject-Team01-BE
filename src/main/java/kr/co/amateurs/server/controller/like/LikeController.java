@@ -4,8 +4,10 @@ package kr.co.amateurs.server.controller.like;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
+import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.like.LikeResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -41,6 +43,7 @@ public class LikeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
+    @BoardAccess(operation = OperationType.WRITE)
     @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
     @DeleteMapping("/posts/{postId}/likes")
     @Operation(summary = "게시글 좋아요 제거", description = "좋아요를 눌렀던 게시글에 좋아요를 제거합니다.")
@@ -51,6 +54,7 @@ public class LikeController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @BoardAccess(operation = OperationType.WRITE)
     @PreAuthorize("hasAnyRole('ADMIN', 'GUEST', 'STUDENT')")
     @DeleteMapping("/comments/{commentId}/likes")
     @Operation(summary = "댓글 좋아요 제거", description = "좋아요를 눌렀던 댓글에 좋아요를 제거합니다.")

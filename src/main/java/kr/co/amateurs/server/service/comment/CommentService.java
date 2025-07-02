@@ -10,6 +10,7 @@ import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
@@ -93,7 +94,7 @@ public class CommentService {
     private void validateCommentAccess(Long commentUserId) {
         User user = userService.getCurrentLoginUser();
 
-        if (!commentUserId.equals(user.getId())) {
+        if (!(commentUserId.equals(user.getId()) || user.getRole() == Role.ADMIN)) {
             throw new CustomException(ErrorCode.ACCESS_DENIED);
         }
     }
