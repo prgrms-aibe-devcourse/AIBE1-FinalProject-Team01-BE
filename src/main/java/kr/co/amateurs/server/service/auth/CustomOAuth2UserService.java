@@ -114,7 +114,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             originalNickname = "사용자";
         }
 
-        if (originalNickname.length() > 10) {
+        if (originalNickname.length() > 15) {
             originalNickname = originalNickname.substring(0, 10);
         }
 
