@@ -36,8 +36,7 @@ public class LikeService {
 
 
     public LikeResponseDTO addLikeToPost(Long postId) {
-        User currentUser = getCurrentUser();
-        validateUser(currentUser.getId());
+        User currentUser = userService.getCurrentLoginUser();
         Post post = postRepository.findById(postId).orElseThrow();
         Like likeToPost = Like.builder()
                 .user(currentUser)
@@ -49,8 +48,7 @@ public class LikeService {
     }
 
     public LikeResponseDTO addLikeToComment(Long commentId) {
-        User currentUser = getCurrentUser();
-        validateUser(currentUser.getId());
+        User currentUser = userService.getCurrentLoginUser();
         Comment comment = commentRepository.findById(commentId).orElseThrow();
         Like likeToPost = Like.builder()
                 .user(currentUser)
@@ -63,36 +61,19 @@ public class LikeService {
     }
 
     public void removeLikeFromPost(Long postId) {
-        User currentUser = getCurrentUser();
-        validateUser(currentUser.getId());
+        User currentUser = userService.getCurrentLoginUser();
         likeRepository.deleteByPostIdAndUserId(postId, currentUser.getId());
     }
 
     public void removeLikeFromComment(Long commentId) {
-        User currentUser = getCurrentUser();
-        validateUser(currentUser.getId());
+        User currentUser = userService.getCurrentLoginUser();
         likeRepository.deleteByCommentIdAndUserId(commentId, currentUser.getId());
     }
     public boolean checkHasLiked(Long postId, Long userId) {
-        User user = getCurrentUser();
+        User user = userService.getCurrentLoginUser();
         return likeRepository
                 .findByPostIdAndUserId(postId, userId)
                 .isPresent();
-    }
-    private User getCurrentUser() {
-        Optional<User> user = Objects.requireNonNull(userService).getCurrentUser();
-        if (user.isEmpty()) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        }
-        return user.get();
-    }
-    private void validateUser(Long userId) {
-        User currentUser = getCurrentUser();
-        Long currentId = currentUser.getId();
-        Role currentRole = currentUser.getRole();
-        if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
-            throw new CustomException(ErrorCode.ACCESS_DENIED, "본인의 북마크에만 접근할 수 있습니다.");
-        }
     }
 
     public List<PostContentData> getLikedPosts(Long userId) {

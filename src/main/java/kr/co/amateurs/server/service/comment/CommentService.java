@@ -58,7 +58,7 @@ public class CommentService {
     @Transactional
     @AlarmTrigger(type = AlarmType.COMMENT)
     public CommentResponseDTO createComment(Long postId, CommentRequestDTO requestDTO) {
-        User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
+        User user = userService.getCurrentLoginUser();
 
         Post post = findPostById(postId);
 
@@ -91,7 +91,7 @@ public class CommentService {
     }
 
     private void validateCommentAccess(Long commentUserId) {
-        User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
+        User user = userService.getCurrentLoginUser();
 
         if (!commentUserId.equals(user.getId())) {
             throw new CustomException(ErrorCode.ACCESS_DENIED);

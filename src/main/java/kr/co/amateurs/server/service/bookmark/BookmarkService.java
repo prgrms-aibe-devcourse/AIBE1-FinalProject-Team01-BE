@@ -104,12 +104,9 @@ public class BookmarkService {
     }
 
     private void validateUser(Long userId) {
-        Optional<User> user = userService.getCurrentUser();
-        if (user.isEmpty()) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        }
-        Long currentId = user.get().getId();
-        Role currentRole = user.get().getRole();
+        User user = userService.getCurrentLoginUser();
+        Long currentId = user.getId();
+        Role currentRole = user.getRole();
 
         if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
             throw new CustomException(ErrorCode.ACCESS_DENIED, "본인의 북마크에만 접근할 수 있습니다.");

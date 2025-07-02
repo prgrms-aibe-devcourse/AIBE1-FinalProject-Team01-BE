@@ -33,7 +33,7 @@ public enum ErrorCode implements Supplier<CustomException> {
     INVALID_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다."),
 
     // 로그인 관련 에러
-    USER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "존재하지 않는 사용자입니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 사용자입니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     ANONYMOUS_USER(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
 

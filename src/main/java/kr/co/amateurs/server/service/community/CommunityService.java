@@ -72,7 +72,7 @@ public class CommunityService {
 
     @Transactional
     public CommunityResponseDTO createPost(CommunityRequestDTO requestDTO, BoardType boardType) {
-        User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
+        User user = userService.getCurrentLoginUser();
 
         Post post = Post.from(requestDTO, user, boardType);
 
@@ -113,7 +113,7 @@ public class CommunityService {
     }
 
     private void validatePost(Post post) {
-        User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
+        User user = userService.getCurrentLoginUser();
 
         if (!canEditOrDelete(post, user)) {
             throw ErrorCode.ACCESS_DENIED.get();

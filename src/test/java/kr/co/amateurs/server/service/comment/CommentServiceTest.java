@@ -114,12 +114,13 @@ class CommentServiceTest {
     @Test
     void 부모_댓글의_답글목록을_조회할수있다() {
         // given
+        Long postId = testPost.getId();
         Long parentCommentId = testRootComment.getId();
         Long cursor = null;
         int size = 5;
 
         // when
-        CommentPageDTO result = commentService.getReplies(parentCommentId, cursor, size);
+        CommentPageDTO result = commentService.getReplies(postId, parentCommentId, cursor, size);
 
         // then
         assertThat(result.comments()).hasSize(1);
@@ -131,10 +132,11 @@ class CommentServiceTest {
     @Test
     void 존재하지_않는_부모_댓글의_답글을_조회하면_예외가_발생한다() {
         // given
+        Long postId = testPost.getId();
         Long nonExistentParentCommentId = 999L;
 
         // when & then
-        assertThatThrownBy(() -> commentService.getReplies(nonExistentParentCommentId, null, 5))
+        assertThatThrownBy(() -> commentService.getReplies(postId, nonExistentParentCommentId, null, 5))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -144,7 +146,7 @@ class CommentServiceTest {
         Long postId = testPost.getId();
         CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("새로운 루트 댓글");
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when
         CommentResponseDTO result = commentService.createComment(postId, requestDTO);
@@ -162,7 +164,7 @@ class CommentServiceTest {
         Long postId = testPost.getId();
         CommentRequestDTO requestDTO = CommentTestFixtures.createReplyCommentRequestDTO(testRootComment.getId(), "새로운 답글");
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when
         CommentResponseDTO result = commentService.createComment(postId, requestDTO);
@@ -180,7 +182,7 @@ class CommentServiceTest {
         Long postId = testPost.getId();
         CommentRequestDTO requestDTO = CommentTestFixtures.createReplyCommentRequestDTO(testReplyComment.getId(), "답글의 답글");
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when & then
         assertThatThrownBy(() -> commentService.createComment(postId, requestDTO))
@@ -193,7 +195,7 @@ class CommentServiceTest {
         Long nonExistentPostId = 999L;
         CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("댓글");
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when & then
         assertThatThrownBy(() -> commentService.createComment(nonExistentPostId, requestDTO))
@@ -206,7 +208,7 @@ class CommentServiceTest {
         Long postId = testPost.getId();
         CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("댓글");
 
-        given(userService.getCurrentUser()).willReturn(Optional.empty());
+        given(userService.getCurrentLoginUser()).willThrow(CustomException.class);
 
         // when & then
         assertThatThrownBy(() -> commentService.createComment(postId, requestDTO))
@@ -220,7 +222,7 @@ class CommentServiceTest {
         Long commentId = testRootComment.getId();
         CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("수정된 댓글");
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when
         commentService.updateComment(postId, commentId, requestDTO);
@@ -237,7 +239,7 @@ class CommentServiceTest {
         Long nonExistentCommentId = 999L;
         CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("수정된 댓글");
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when & then
         assertThatThrownBy(() -> commentService.updateComment(postId,nonExistentCommentId, requestDTO))
@@ -251,7 +253,7 @@ class CommentServiceTest {
         Long commentId = testRootComment.getId();
         CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("수정된 댓글");
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
+        given(userService.getCurrentLoginUser()).willReturn(testOtherUser);
 
         // when & then
         assertThatThrownBy(() -> commentService.updateComment(postId, commentId, requestDTO))
@@ -265,7 +267,7 @@ class CommentServiceTest {
         Long commentId = testRootComment.getId();
         CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("수정된 댓글");
 
-        given(userService.getCurrentUser()).willReturn(Optional.empty());
+        given(userService.getCurrentLoginUser()).willThrow(CustomException.class);
 
         // when & then
         assertThatThrownBy(() -> commentService.updateComment(postId, commentId, requestDTO))
@@ -278,7 +280,7 @@ class CommentServiceTest {
         Long postId = testPost.getId();
         Long commentId = testRootComment.getId();
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when
         commentService.deleteComment(postId, commentId);
@@ -294,7 +296,7 @@ class CommentServiceTest {
         Long postId = testPost.getId();
         Long nonExistentCommentId = 999L;
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when & then
         assertThatThrownBy(() -> commentService.deleteComment(postId, nonExistentCommentId))
@@ -307,7 +309,7 @@ class CommentServiceTest {
         Long postId = testPost.getId();
         Long commentId = testRootComment.getId();
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
+        given(userService.getCurrentLoginUser()).willReturn(testOtherUser);
 
         // when & then
         assertThatThrownBy(() -> commentService.deleteComment(postId, commentId))
@@ -320,7 +322,7 @@ class CommentServiceTest {
         Long postId = testPost.getId();
         Long commentId = testRootComment.getId();
 
-        given(userService.getCurrentUser()).willReturn(Optional.empty());
+        given(userService.getCurrentLoginUser()).willThrow(CustomException.class);
 
         // when & then
         assertThatThrownBy(() -> commentService.deleteComment(postId, commentId))
