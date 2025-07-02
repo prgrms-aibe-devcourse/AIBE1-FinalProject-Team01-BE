@@ -29,6 +29,7 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -114,26 +115,12 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             originalNickname = "사용자";
         }
 
-        if (originalNickname.length() > 15) {
-            originalNickname = originalNickname.substring(0, 10);
+        if (originalNickname.length() > 8) {
+            originalNickname = originalNickname.substring(0, 8);
         }
 
-        String uniqueNickname;
-        int maxAttempts = 10;
-        int attempts = 0;
-
-        do {
-            int randomNum = SECURE_RANDOM.nextInt(9000) + 1000;
-            uniqueNickname = originalNickname + randomNum;
-            attempts++;
-
-            if (attempts > maxAttempts) {
-                uniqueNickname = originalNickname + System.currentTimeMillis();
-                break;
-            }
-        } while (userRepository.existsByNickname(uniqueNickname));
-
-        return uniqueNickname;
+        String uniqueSuffix = UUID.randomUUID().toString().substring(0, 6);
+        return originalNickname + "_" + uniqueSuffix;
     }
 
     private String generateFakeEmail(String providerId) {
