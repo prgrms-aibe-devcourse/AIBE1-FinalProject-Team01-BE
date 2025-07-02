@@ -130,12 +130,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     private String getProviderId(OAuth2User oAuth2User, String provider) {
         Map<String, Object> attributes = validateAndGetAttributes(oAuth2User, provider);
 
-        Object id = attributes.get("id");
-        if (id == null) {
+        return attributes.computeIfAbsent("id", key -> {
             log.error("GitHub에서 사용자 ID를 받지 못했습니다: {}", attributes);
             throw ErrorCode.OAUTH_USER_REGISTRATION_FAILED.get();
-        }
-        return String.valueOf(id);
+        }).toString();
     }
 
     private String getEmailWithFallback(OAuth2UserRequest userRequest, OAuth2User oAuth2User, String provider, String providerId) {
