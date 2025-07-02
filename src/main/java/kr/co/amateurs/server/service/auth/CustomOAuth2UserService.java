@@ -20,8 +20,11 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,6 +36,9 @@ import java.util.Optional;
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
     private final UserRepository userRepository;
+    private final RestTemplate restTemplate;
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -112,7 +118,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         int attempts = 0;
 
         do {
-            int randomNum = (int) (Math.random() * 9000) + 1000;
+            int randomNum = SECURE_RANDOM.nextInt(9000) + 1000;
             uniqueNickname = originalNickname + randomNum;
             attempts++;
 
@@ -165,7 +171,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     private String fetchEmailWithAccessToken(String accessToken) {
         try {
-            RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + accessToken);
             headers.set("Accept", "application/vnd.github.v3+json");
@@ -206,6 +211,12 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             log.warn("GitHub API에서 verified된 이메일을 찾을 수 없음");
             throw ErrorCode.OAUTH_EMAIL_API_CALL_FAILED.get();
 
+        } catch (HttpClientErrorException e) {
+            log.error("GitHub API 클라이언트 오류 ({}): {}", e.getStatusCode(), e.getMessage());
+            throw e.getStatusCode().value() == 401 ? ErrorCode.UNAUTHORIZED.get() : ErrorCode.ACCESS_DENIED.get();
+        } catch (HttpServerErrorException e) {
+            log.error("GitHub API 서버 오류 ({}): {}", e.getStatusCode(), e.getMessage());
+            throw ErrorCode.OAUTH_EMAIL_API_CALL_FAILED.get();
         } catch (Exception e) {
             log.error("GitHub API 호출 중 오류: {}", e.getMessage());
             throw ErrorCode.OAUTH_EMAIL_API_CALL_FAILED.get();
