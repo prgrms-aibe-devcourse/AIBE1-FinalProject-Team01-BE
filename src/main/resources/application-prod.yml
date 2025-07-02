@@ -34,10 +34,20 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-  springdoc:
-    swagger-ui:
-      enabled: false
-    enable-kotlin: false
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: read:user,user:email
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  enable-kotlin: false
 
   output:
     ansi:
@@ -105,3 +115,9 @@ logging:
     org.springframework: WARN
     org.hibernate.SQL: ERROR
     org.hibernate.type.descriptor.sql.BasicBinder: ERROR
+
+oauth:
+  success-redirect-url: https://dev.amateurs.co.kr
+
+cookie:
+  domain: .amateurs.co.kr
