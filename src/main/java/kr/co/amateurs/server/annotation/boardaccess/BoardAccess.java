@@ -13,63 +13,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface BoardAccess {
     /**
-     * 검증할 게시판 카테고리를 지정합니다.
-     * needCategory가 true일 때만 사용됩니다.
-     * 현재는 COMMUNITY 카테고리만 boardType 비교에 사용하고 있습니다.
-     * 
-     * @return 게시판 카테고리 (기본값: COMMUNITY)
-     */
-    BoardCategory category() default BoardCategory.COMMUNITY;
-
-    /**
-     * 카테고리 검증이 필요한지 여부를 설정합니다.
-     * true로 설정하면 boardType이 지정된 category에 속하는지 검증합니다.
-     *
-     * @return 카테고리 검증 필요 여부 (기본값: false)
-     */
-    boolean needCategory() default false;
-
-    /**
-     * 검증할 게시판 타입을 지정합니다.
-     * hasBoardType이 false이고 hasPostId도 false일 때 이 값이 사용됩니다.
-     *
-     * @return 게시판 타입 (기본값: GATHER)
-     */
-    BoardType boardType() default BoardType.GATHER;
-
-    /**
-     * 메소드 파라미터에서 BoardType을 추출할지 여부를 설정합니다.
-     * true로 설정하면 @PathVariable("boardType") BoardType 파라미터에서 값을 가져옵니다.
-     *
-     * @return BoardType 파라미터 사용 여부 (기본값: true)
-     */
-    boolean hasBoardType() default true;
-
-    /**
      * 메소드 파라미터에서 postId를 추출하여 해당 게시글의 BoardType을 조회할지 여부를 설정합니다.
      * true로 설정하면 @PathVariable("postId") Long 파라미터에서 postId를 가져와
      * 데이터베이스에서 해당 게시글의 BoardType을 조회합니다.
      *
      * @return postId 파라미터 사용 여부 (기본값: false)
      */
-    boolean hasPostId() default false;
-
-    /**
-     * 댓글 인지 여부를 설정합니다.
-     * checkAuthor가 true일 때만 이 값이 필요합니다.
-     *
-     * @return 댓글 여부 (기본값: false)
-     */
-     boolean isComment() default false;
-
-    /**
-     * 작성자 본인인지 검증할지 여부를 설정합니다.
-     * true로 설정하면 현재 로그인한 사용자가 해당 게시글/댓글의 작성자인지 확인합니다.
-     * Update와 Delete 에서 사용하시면 됩니다.
-     *
-     * * @return 작성자 검증 필요 여부 (기본값: false)
-     */
-     boolean checkAuthor() default false;
+    boolean hasPostId() default true;
 
     /**
      * 수행하려는 작업 타입을 지정합니다.

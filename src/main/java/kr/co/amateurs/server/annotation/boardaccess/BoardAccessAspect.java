@@ -46,9 +46,7 @@ public class BoardAccessAspect {
 
         BoardType targetBoardType = getBoardType(joinPoint, boardAccess);
 
-        validateCategoryAccess(boardAccess, targetBoardType);
         validateBoardAccess(userRole, targetBoardType, boardAccess);
-        validateAuthorAccess(joinPoint, boardAccess, user);
     }
 
     private BoardType getBoardType(JoinPoint joinPoint, BoardAccess boardAccess) {
@@ -57,62 +55,17 @@ public class BoardAccessAspect {
             return post.getBoardType();
         }
 
-        if (boardAccess.hasBoardType()) {
-            return extractParameterValue(joinPoint, "boardType", BoardType.class);
-        }
-
-        return boardAccess.boardType();
-    }
-
-    private void validateCategoryAccess(BoardAccess boardAccess, BoardType targetBoardType) {
-        if (boardAccess.needCategory()) {
-            boardAccessPolicy.boardTypeInCategory(targetBoardType, boardAccess.category());
-        }
+        throw new CustomException(ErrorCode.NOT_FOUND);
     }
 
     private void validateBoardAccess(Role userRole, BoardType targetBoardType, BoardAccess boardAccess) {
         boardAccessPolicy.validateAccess(userRole, targetBoardType, boardAccess.operation());
     }
 
-    private void validateAuthorAccess(JoinPoint joinPoint, BoardAccess boardAccess, User user) {
-        if (!boardAccess.checkAuthor()) {
-            return;
-        }
-
-        if (user == null) {
-            throw ErrorCode.USER_NOT_FOUND.get();
-        }
-
-        if (boardAccess.isComment()) {
-            validateCommentAuthor(joinPoint, user);
-        } else {
-            validatePostAuthor(joinPoint, user);
-        }
-    }
-
-    private void validateCommentAuthor(JoinPoint joinPoint, User user) {
-        Comment comment = findCommentById(joinPoint);
-        if (!comment.getUser().getId().equals(user.getId())) {
-            throw ErrorCode.ACCESS_DENIED.get();
-        }
-    }
-
-    private void validatePostAuthor(JoinPoint joinPoint, User user) {
-        Post post = findPostById(joinPoint);
-        if (!post.getUser().getId().equals(user.getId())) {
-            throw ErrorCode.ACCESS_DENIED.get();
-        }
-    }
 
     private Post findPostById(JoinPoint joinPoint) {
         Long postId = extractParameterValue(joinPoint, "postId", Long.class);
         return postRepository.findById(postId)
-                .orElseThrow(ErrorCode.NOT_FOUND);
-    }
-
-    private Comment findCommentById(JoinPoint joinPoint) {
-        Long commentId = extractParameterValue(joinPoint, "commentId", Long.class);
-        return commentRepository.findById(commentId)
                 .orElseThrow(ErrorCode.NOT_FOUND);
     }
 

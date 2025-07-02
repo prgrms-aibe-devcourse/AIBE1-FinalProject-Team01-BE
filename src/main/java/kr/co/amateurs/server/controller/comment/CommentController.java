@@ -51,7 +51,7 @@ public class CommentController {
             @RequestParam(required = false) Long cursor,  // 대댓글 커서
             @RequestParam(defaultValue = "5") int size
     ) {
-        CommentPageDTO replies = commentService.getReplies(commentId, cursor, size);
+        CommentPageDTO replies = commentService.getReplies(postId, commentId, cursor, size);
         return ResponseEntity.ok(replies);
     }
 
@@ -69,7 +69,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
     }
 
-    @BoardAccess(isComment = true, checkAuthor = true, hasPostId = true, operation = OperationType.WRITE)
+    @BoardAccess(hasPostId = true, operation = OperationType.WRITE)
     @PutMapping("/{postId}/comments/{commentId}")
     @Operation(
             summary = "댓글 수정",
@@ -80,11 +80,11 @@ public class CommentController {
             @PathVariable Long commentId,
             @Valid @RequestBody CommentRequestDTO requestDTO
     ){
-        commentService.updateComment(commentId, requestDTO);
+        commentService.updateComment(postId, commentId, requestDTO);
         return ResponseEntity.noContent().build();
     }
 
-    @BoardAccess(isComment = true, checkAuthor = true, hasPostId = true, operation = OperationType.WRITE)
+    @BoardAccess(hasPostId = true, operation = OperationType.WRITE)
     @DeleteMapping("/{postId}/comments/{commentId}")
     @Operation(
             summary = "댓글 삭제",
@@ -94,7 +94,7 @@ public class CommentController {
         @PathVariable Long postId,
         @PathVariable Long commentId
     ){
-        commentService.deleteComment(commentId);
+        commentService.deleteComment(postId, commentId);
         return ResponseEntity.noContent().build();
     }
 }

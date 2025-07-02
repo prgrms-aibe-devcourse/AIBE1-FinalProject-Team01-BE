@@ -216,13 +216,14 @@ class CommentServiceTest {
     @Test
     void 유저가_본인의_댓글_내용을_수정할수있다() {
         // given
+        Long postId = testPost.getId();
         Long commentId = testRootComment.getId();
         CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("수정된 댓글");
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when
-        commentService.updateComment(commentId, requestDTO);
+        commentService.updateComment(postId, commentId, requestDTO);
 
         // then
         Comment updatedComment = commentRepository.findById(commentId).orElseThrow();
@@ -232,51 +233,55 @@ class CommentServiceTest {
     @Test
     void 존재하지_않는_댓글을_수정하려하면_예외가_발생한다() {
         // given
+        Long postId = testPost.getId();
         Long nonExistentCommentId = 999L;
         CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("수정된 댓글");
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when & then
-        assertThatThrownBy(() -> commentService.updateComment(nonExistentCommentId, requestDTO))
+        assertThatThrownBy(() -> commentService.updateComment(postId,nonExistentCommentId, requestDTO))
                 .isInstanceOf(CustomException.class);
     }
 
     @Test
     void 다른_유저의_댓글을_수정하려하면_예외가_발생한다() {
         // given
+        Long postId = testPost.getId();
         Long commentId = testRootComment.getId();
         CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("수정된 댓글");
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
 
         // when & then
-        assertThatThrownBy(() -> commentService.updateComment(commentId, requestDTO))
+        assertThatThrownBy(() -> commentService.updateComment(postId, commentId, requestDTO))
                 .isInstanceOf(CustomException.class);
     }
 
     @Test
     void 로그인하지_않은_상태로_댓글을_수정하려하면_예외가_발생한다() {
         // given
+        Long postId = testPost.getId();
         Long commentId = testRootComment.getId();
         CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("수정된 댓글");
 
         given(userService.getCurrentUser()).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> commentService.updateComment(commentId, requestDTO))
+        assertThatThrownBy(() -> commentService.updateComment(postId, commentId, requestDTO))
                 .isInstanceOf(CustomException.class);
     }
 
     @Test
     void 유저가_본인의_댓글을_삭제할수있다() {
         // given
+        Long postId = testPost.getId();
         Long commentId = testRootComment.getId();
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when
-        commentService.deleteComment(commentId);
+        commentService.deleteComment(postId, commentId);
 
         // then
         Optional<Comment> deletedComment = commentRepository.findById(commentId);
@@ -286,36 +291,39 @@ class CommentServiceTest {
     @Test
     void 존재하지_않는_댓글을_삭제하려하면_예외가_발생한다() {
         // given
+        Long postId = testPost.getId();
         Long nonExistentCommentId = 999L;
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
 
         // when & then
-        assertThatThrownBy(() -> commentService.deleteComment(nonExistentCommentId))
+        assertThatThrownBy(() -> commentService.deleteComment(postId, nonExistentCommentId))
                 .isInstanceOf(CustomException.class);
     }
 
     @Test
     void 다른_유저의_댓글을_삭제하려하면_예외가_발생한다() {
         // given
+        Long postId = testPost.getId();
         Long commentId = testRootComment.getId();
 
         given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
 
         // when & then
-        assertThatThrownBy(() -> commentService.deleteComment(commentId))
+        assertThatThrownBy(() -> commentService.deleteComment(postId, commentId))
                 .isInstanceOf(CustomException.class);
     }
 
     @Test
     void 로그인하지_않은_상태로_댓글을_삭제하려하면_예외가_발생한다() {
         // given
+        Long postId = testPost.getId();
         Long commentId = testRootComment.getId();
 
         given(userService.getCurrentUser()).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> commentService.deleteComment(commentId))
+        assertThatThrownBy(() -> commentService.deleteComment(postId, commentId))
                 .isInstanceOf(CustomException.class);
     }
 }

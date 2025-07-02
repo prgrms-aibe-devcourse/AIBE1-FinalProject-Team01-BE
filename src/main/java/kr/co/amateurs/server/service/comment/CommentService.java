@@ -45,9 +45,10 @@ public class CommentService {
         return createCommentPageDTO(commentDTOs, size);
     }
 
-    public CommentPageDTO getReplies(Long parentCommentId, Long cursor, int size) {
+    public CommentPageDTO getReplies(Long postId, Long parentCommentId, Long cursor, int size) {
         Comment parentComment = findCommentById(parentCommentId);
 
+        validateCommentBelongsToPost(parentComment, postId);
         List<Comment> comments = fetchReplies(parentComment, cursor, size + CURSOR_OFFSET);
         List<CommentResponseDTO> commentDTOs = convertToReplyDTOs(comments);
 
@@ -70,18 +71,20 @@ public class CommentService {
     }
 
     @Transactional
-    public void updateComment(Long commentId, CommentRequestDTO requestDTO) {
+    public void updateComment(Long postId, Long commentId, CommentRequestDTO requestDTO) {
         Comment comment = findCommentById(commentId);
 
+        validateCommentBelongsToPost(comment, postId);
         validateCommentAccess(comment.getUser().getId());
 
         comment.updateContent(requestDTO.content());
     }
 
     @Transactional
-    public void deleteComment(Long commentId) {
+    public void deleteComment(Long postId, Long commentId) {
         Comment comment = findCommentById(commentId);
 
+        validateCommentBelongsToPost(comment, postId);
         validateCommentAccess(comment.getUser().getId());
 
         commentRepository.delete(comment);
@@ -92,6 +95,12 @@ public class CommentService {
 
         if (!commentUserId.equals(user.getId())) {
             throw new CustomException(ErrorCode.ACCESS_DENIED);
+        }
+    }
+
+    private void validateCommentBelongsToPost(Comment comment, Long postId) {
+        if (!comment.getPost().getId().equals(postId)) {
+            throw new CustomException(ErrorCode.INVALID_COMMENT_POST_RELATION);
         }
     }
 
