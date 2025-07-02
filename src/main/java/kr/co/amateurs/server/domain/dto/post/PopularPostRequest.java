@@ -1,5 +1,7 @@
 package kr.co.amateurs.server.domain.dto.post;
 
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -11,7 +13,7 @@ public record PopularPostRequest(
         Double popularityScore,
         LocalDate calculatedDate,
         String authorNickname,
-        String authorDevcourseName,
+        DevCourseTrack authorDevcourseName,
         LocalDateTime postCreatedAt,
         String title,
         String boardType

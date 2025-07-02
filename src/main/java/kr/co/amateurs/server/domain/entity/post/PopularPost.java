@@ -3,6 +3,7 @@ package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -38,7 +39,8 @@ public class PopularPost extends BaseEntity {
     @Column(nullable = false)
     private String authorNickname;
 
-    private String authorDevcourseName;
+    @Enumerated(EnumType.STRING)
+    private DevCourseTrack authorDevcourseName;
 
     @Column(nullable = false)
     private LocalDateTime postCreatedAt;

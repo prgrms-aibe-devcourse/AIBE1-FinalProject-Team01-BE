@@ -2,6 +2,7 @@ package kr.co.amateurs.server.repository.post;
 
 import kr.co.amateurs.server.domain.dto.post.PopularPostRequest;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -47,7 +48,8 @@ public class PopularPostRepository {
                         null,
                         null,
                         record.get(USERS.NICKNAME),
-                        record.get(USERS.DEVCOURSE_NAME),
+                        record.get(USERS.DEVCOURSE_NAME) != null ?
+                                DevCourseTrack.valueOf(record.get(USERS.DEVCOURSE_NAME)) : null,
                         record.get(POSTS.CREATED_AT),
                         record.get(POSTS.TITLE),
                         record.get(POSTS.BOARD_TYPE, String.class)
@@ -85,7 +87,8 @@ public class PopularPostRepository {
                     request.likeCount(),
                     request.commentCount(),
                     request.authorNickname(),
-                    request.authorDevcourseName(),
+                    request.authorDevcourseName() != null ?
+                            request.authorDevcourseName().name() : null,
                     request.postCreatedAt(),
                     request.title(),
                     request.boardType()
@@ -136,7 +139,8 @@ public class PopularPostRepository {
                         record.get(POPULAR_POSTS.POPULARITY_SCORE),
                         record.get(POPULAR_POSTS.CALCULATED_DATE),
                         record.get(POPULAR_POSTS.AUTHOR_NICKNAME),
-                        record.get(POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME),
+                        record.get(POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME) != null ?
+                                DevCourseTrack.valueOf(record.get(POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME)) : null,
                         record.get(POPULAR_POSTS.POST_CREATED_AT),
                         record.get(POPULAR_POSTS.TITLE),
                         record.get(POPULAR_POSTS.BOARD_TYPE)
