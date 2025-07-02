@@ -3,7 +3,9 @@ package kr.co.amateurs.server.controller.project;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
+import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
+import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.Project;
@@ -71,7 +73,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .time(lessThan(2000L))
                     .statusCode(HttpStatus.OK.value())
                     .body("pageInfo.pageNumber", equalTo(0))
-                    .body("pageInfo.pageSize", equalTo(2))
+                    .body("pageInfo.pageSize", equalTo(10))
                     .body("pageInfo.totalPages", equalTo(1))
                     .body("pageInfo.totalElements", equalTo(2));
         }
@@ -91,9 +93,9 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .log().all()
                     .time(lessThan(2000L))
                     .statusCode(HttpStatus.OK.value())
-                    .body("projects.size()", equalTo(1))
+                    .body("content.size()", equalTo(1))
                     .body("pageInfo.pageNumber", equalTo(0))
-                    .body("pageInfo.pageSize", equalTo(1))
+                    .body("pageInfo.pageSize", equalTo(10))
                     .body("pageInfo.totalPages", equalTo(1))
                     .body("pageInfo.totalElements", equalTo(1));
         }
@@ -113,9 +115,9 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .log().all()
                     .time(lessThan(2000L))
                     .statusCode(HttpStatus.OK.value())
-                    .body("projects.size()", equalTo(1))
+                    .body("content.size()", equalTo(1))
                     .body("pageInfo.pageNumber", equalTo(0))
-                    .body("pageInfo.pageSize", equalTo(1))
+                    .body("pageInfo.pageSize", equalTo(10))
                     .body("pageInfo.totalPages", equalTo(1))
                     .body("pageInfo.totalElements", equalTo(1));
         }
@@ -135,9 +137,9 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .log().all()
                     .time(lessThan(2000L))
                     .statusCode(HttpStatus.OK.value())
-                    .body("projects.size()", equalTo(1))
+                    .body("content.size()", equalTo(1))
                     .body("pageInfo.pageNumber", equalTo(0))
-                    .body("pageInfo.pageSize", equalTo(1))
+                    .body("pageInfo.pageSize", equalTo(10))
                     .body("pageInfo.totalPages", equalTo(1))
                     .body("pageInfo.totalElements", equalTo(1));
         }
@@ -159,9 +161,9 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .log().all()
                     .time(lessThan(2000L))
                     .statusCode(HttpStatus.OK.value())
-                    .body("projects.size()", equalTo(1))
+                    .body("content.size()", equalTo(1))
                     .body("pageInfo.pageNumber", equalTo(0))
-                    .body("pageInfo.pageSize", equalTo(1))
+                    .body("pageInfo.pageSize", equalTo(10))
                     .body("pageInfo.totalPages", equalTo(1))
                     .body("pageInfo.totalElements", equalTo(1));
         }
@@ -254,7 +256,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .header("content-type", "application/json")
                     .header("Authorization", "Bearer " + fakeGuestUserToken())
                     .when()
-                    .put("/projects/{postId}", backendProjectId)
+                    .put("/projects/{projectId}", backendProjectId)
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
@@ -268,7 +270,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .header("content-type", "application/json")
                     .header("Authorization", "Bearer " + fakeGuestUserToken())
                     .when()
-                    .delete("/projects/{postId}", backendProjectId)
+                    .delete("/projects/{projectId}", backendProjectId)
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
@@ -276,10 +278,58 @@ public class ProjectControllerTest extends AbstractControllerTest {
         }
     }
 
+
+
     @Nested
     class 학생_유저는 {
         private String fakeBackendUserToken() {
             return jwtProvider.generateAccessToken(backendUserEmail);
+        }
+
+        @Test
+        void 프로젝트_목록조회를_요청하면_게시글의_메타정보를_포함해서_반환되어야_한다() {
+            // given
+            ProjectSearchParam projectSearchParam = ProjectSearchParam.builder()
+                    .keyword("프론트엔드")
+                    .course(DevCourseTrack.FRONTEND)
+                    .field(PaginationSortType.POST_LATEST)
+                    .batch("5")
+                    .build();
+
+            // when & then
+            given()
+                    .header("content-type", "application/json")
+                    .header("Authorization", "Bearer " + fakeBackendUserToken())
+                    .params("keyword", projectSearchParam.getKeyword(), "course", projectSearchParam.getCourse().toString(), "batch", projectSearchParam.getBatch())
+                    .when()
+                    .get("/projects")
+                    .then()
+                    .log().all()
+                    .time(lessThan(2000L))
+                    .statusCode(HttpStatus.OK.value())
+                    .body("content.size()", equalTo(1))
+                    .body("content[0].hasLiked", notNullValue())
+                    .body("content[0].hasBookmarked", notNullValue())
+                    .body("content[0].bookmarkCount", notNullValue())
+                    .body("content[0].likeCount", notNullValue());
+        }
+
+        @Test
+        void 프로젝트_상세조회를_요청하면_게시글의_메타정보를_포함해서_반환되어야_한다() {
+            // when & then
+            given()
+                    .header("content-type", "application/json")
+                    .header("Authorization", "Bearer " + fakeBackendUserToken())
+                    .when()
+                    .get("/projects/%s".formatted(frontendProjectId))
+                    .then()
+                    .log().all()
+                    .time(lessThan(2000L))
+                    .statusCode(HttpStatus.OK.value())
+                    .body("hasLiked", notNullValue())
+                    .body("hasBookmarked", notNullValue())
+                    .body("bookmarkCount", notNullValue())
+                    .body("likeCount", notNullValue());
         }
 
         @Test
@@ -330,7 +380,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .header("Authorization", "Bearer " + fakeBackendUserToken())
                     .body(requestDTO)
                     .when()
-                    .put("/projects/{postId}", backendProjectId)
+                    .put("/projects/{projectId}", backendProjectId)
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
@@ -344,7 +394,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .header("content-type", "application/json")
                     .header("Authorization", "Bearer " + fakeBackendUserToken())
                     .when()
-                    .delete("/projects/{postId}", backendProjectId)
+                    .delete("/projects/{projectId}", backendProjectId)
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
@@ -366,7 +416,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .header("Authorization", "Bearer " + fakeBackendUserToken())
                     .body(requestDTO)
                     .when()
-                    .put("/projects/{postId}", frontendProjectId)
+                    .put("/projects/{projectId}", frontendProjectId)
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
@@ -380,7 +430,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .header("content-type", "application/json")
                     .header("Authorization", "Bearer " + fakeBackendUserToken())
                     .when()
-                    .delete("/projects/{postId}", frontendProjectId)
+                    .delete("/projects/{projectId}", frontendProjectId)
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
@@ -432,7 +482,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .header("content-type", "application/json")
                     .body(requestDTO)
                     .when()
-                    .put("/projects/{postId}", backendProjectId)
+                    .put("/projects/{projectId}", backendProjectId)
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
@@ -445,7 +495,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
             given()
                     .header("content-type", "application/json")
                     .when()
-                    .delete("/projects/{postId}", backendProjectId)
+                    .delete("/projects/{projectId}", backendProjectId)
                     .then()
                     .log().all()
                     .time(lessThan(2000L))
@@ -514,9 +564,12 @@ public class ProjectControllerTest extends AbstractControllerTest {
     private void createBookmarks() {
         User backendUser = userRepository.findByEmail(backendUserEmail).orElseThrow();
         Post backendPost = postRepository.findById(backendPostId).orElseThrow();
+        Post frontendPost = postRepository.findById(frontendPostId).orElseThrow();
 
-        Bookmark bookmark = BookmarkFixture.createBookmark(backendUser, backendPost);
-        bookmarkRepository.save(bookmark);
+        Bookmark backendBookmark = BookmarkFixture.createBookmark(backendUser, backendPost);
+        Bookmark frontendBookmark = BookmarkFixture.createBookmark(backendUser, frontendPost);
+        bookmarkRepository.save(backendBookmark);
+        bookmarkRepository.save(frontendBookmark);
     }
 
     private void cleanUpData() {

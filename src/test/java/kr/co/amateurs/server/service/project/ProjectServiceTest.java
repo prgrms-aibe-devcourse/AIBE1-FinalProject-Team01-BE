@@ -2,9 +2,9 @@ package kr.co.amateurs.server.service.project;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
-import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
-import kr.co.amateurs.server.domain.dto.project.ProjectPageResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
@@ -23,7 +23,7 @@ import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
-import kr.co.amateurs.server.service.community.CommunityPostService;
+import kr.co.amateurs.server.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -38,17 +39,18 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
 class ProjectServiceTest {
 
-    @Autowired
-    private ProjectService projectService;
+    @MockitoBean
+    private UserService userService;
 
     @Autowired
-    private CommunityPostService communityPostService;
+    private ProjectService projectService;
 
     @Autowired
     private ProjectRepository projectRepository;
@@ -85,12 +87,13 @@ class ProjectServiceTest {
         void 필터링없이_조회하면_페이징된_프로젝트_목록이_반환되어야_한다() {
             // given
             ProjectSearchParam searchParam = new ProjectSearchParam();
+            when(userService.getCurrentLoginUser()).thenThrow(new CustomException(ErrorCode.ANONYMOUS_USER));
 
             // when
-            ProjectPageResponseDTO result = projectService.getProjects(searchParam);
+            PageResponseDTO<ProjectResponseDTO> result = projectService.getProjects(searchParam);
 
             // then
-            assertThat(result.projects()).hasSize(2);
+            assertThat(result.content()).hasSize(2);
             assertThat(result.pageInfo().getTotalElements()).isEqualTo(2);
             assertThat(result.pageInfo().getPageNumber()).isEqualTo(0);
         }
@@ -105,13 +108,14 @@ class ProjectServiceTest {
                     .sortDirection(Sort.Direction.DESC)
                     .field(PaginationSortType.ID)
                     .build();
+            when(userService.getCurrentLoginUser()).thenThrow(new CustomException(ErrorCode.ANONYMOUS_USER));
 
             // when
-            ProjectPageResponseDTO result = projectService.getProjects(searchParam);
+            PageResponseDTO<ProjectResponseDTO> result = projectService.getProjects(searchParam);
 
             // then
-            assertThat(result.projects()).hasSize(1);
-            assertThat(result.projects().get(0).title()).contains("백엔드");
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.content().get(0).title()).contains("백엔드");
         }
 
         @Test
@@ -124,13 +128,14 @@ class ProjectServiceTest {
                     .sortDirection(Sort.Direction.DESC)
                     .field(PaginationSortType.ID)
                     .build();
+            when(userService.getCurrentLoginUser()).thenThrow(new CustomException(ErrorCode.ANONYMOUS_USER));
 
             // when
-            ProjectPageResponseDTO result = projectService.getProjects(searchParam);
+            PageResponseDTO<ProjectResponseDTO> result = projectService.getProjects(searchParam);
 
             // then
-            assertThat(result.projects()).hasSize(1);
-            assertThat(result.projects().get(0).devcourseTrack()).isEqualTo(DevCourseTrack.AI_BACKEND.toString());
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.content().get(0).devcourseTrack()).isEqualTo(DevCourseTrack.AI_BACKEND.toString());
         }
 
         @Test
@@ -143,13 +148,14 @@ class ProjectServiceTest {
                     .sortDirection(Sort.Direction.DESC)
                     .field(PaginationSortType.ID)
                     .build();
+            when(userService.getCurrentLoginUser()).thenThrow(new CustomException(ErrorCode.ANONYMOUS_USER));
 
             // when
-            ProjectPageResponseDTO result = projectService.getProjects(searchParam);
+            PageResponseDTO<ProjectResponseDTO> result = projectService.getProjects(searchParam);
 
             // then
-            assertThat(result.projects()).hasSize(1);
-            assertThat(result.projects().get(0).devcourseBatch()).isEqualTo("1");
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.content().get(0).devcourseBatch()).isEqualTo("1");
         }
 
         @Test
@@ -164,15 +170,16 @@ class ProjectServiceTest {
                     .sortDirection(Sort.Direction.DESC)
                     .field(PaginationSortType.ID)
                     .build();
+            when(userService.getCurrentLoginUser()).thenThrow(new CustomException(ErrorCode.ANONYMOUS_USER));
 
             // when
-            ProjectPageResponseDTO result = projectService.getProjects(searchParam);
+            PageResponseDTO<ProjectResponseDTO> result = projectService.getProjects(searchParam);
 
             // then
-            assertThat(result.projects()).hasSize(1);
-            assertThat(result.projects().get(0).title()).contains("프론트엔드");
-            assertThat(result.projects().get(0).devcourseTrack()).isEqualTo(DevCourseTrack.FRONTEND.toString());
-            assertThat(result.projects().get(0).devcourseBatch()).isEqualTo("5");
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.content().get(0).title()).contains("프론트엔드");
+            assertThat(result.content().get(0).devcourseTrack()).isEqualTo(DevCourseTrack.FRONTEND.toString());
+            assertThat(result.content().get(0).devcourseBatch()).isEqualTo("5");
         }
 
         @Test
@@ -182,13 +189,14 @@ class ProjectServiceTest {
             bookmarkRepository.save(bookmark);
 
             ProjectSearchParam searchParam = new ProjectSearchParam();
+            when(userService.getCurrentLoginUser()).thenThrow(new CustomException(ErrorCode.ANONYMOUS_USER));
 
             // when
-            ProjectPageResponseDTO result = projectService.getProjects(searchParam);
+            PageResponseDTO<ProjectResponseDTO> result = projectService.getProjects(searchParam);
 
             // then
-            assertThat(result.projects()).hasSize(2);
-            assertThat(result.projects().stream()
+            assertThat(result.content()).hasSize(2);
+            assertThat(result.content().stream()
                     .filter(p -> p.postId().equals(backendPost.getId()))
                     .findFirst()
                     .orElseThrow()
@@ -203,6 +211,7 @@ class ProjectServiceTest {
         void 존재하는_프로젝트는_정보가_반환되어야_한다() {
             // given
             Long projectId = backendProject.getId();
+            when(userService.getCurrentLoginUser()).thenThrow(new CustomException(ErrorCode.ANONYMOUS_USER));
 
             // when
             ProjectResponseDTO result = projectService.getProjectDetails(projectId);
@@ -223,6 +232,7 @@ class ProjectServiceTest {
         void 존재하지_않는_프로젝트는_조회하면_예외가_발생해야_한다() {
             // given
             Long projectId = 999L;
+            when(userService.getCurrentLoginUser()).thenThrow(new CustomException(ErrorCode.ANONYMOUS_USER));
 
             // when & then
             assertThatThrownBy(() -> projectService.getProjectDetails(projectId))
@@ -235,6 +245,7 @@ class ProjectServiceTest {
             Bookmark bookmark1 = BookmarkFixture.createBookmark(backendUser, backendPost);
             Bookmark bookmark2 = BookmarkFixture.createBookmark(frontendUser, backendPost);
             bookmarkRepository.saveAll(List.of(bookmark1, bookmark2));
+            when(userService.getCurrentLoginUser()).thenReturn(backendUser);
 
             // when
             ProjectResponseDTO result = projectService.getProjectDetails(backendProject.getId());
@@ -249,7 +260,6 @@ class ProjectServiceTest {
         @Test
         void 유효한_데이터로_요청하면_프로젝트가_저장되어야_한다() throws JsonProcessingException {
             // given
-            String username = backendUser.getEmail();
             ProjectRequestDTO requestDTO = ProjectRequestDTO.builder()
                     .title("새로운 프로젝트")
                     .content("프로젝트 내용")
@@ -262,8 +272,10 @@ class ProjectServiceTest {
                     .projectMembers(objectMapper.writeValueAsString(List.of("김개발", "이디자인")))
                     .build();
 
+            when(userService.getCurrentLoginUser()).thenReturn(backendUser);
+
             // when
-            ProjectResponseDTO result = projectService.createProject(username, requestDTO);
+            ProjectResponseDTO result = projectService.createProject(requestDTO);
 
             // then
             assertThat(result.projectId()).isNotNull();
@@ -279,14 +291,15 @@ class ProjectServiceTest {
         @Test
         void 존재하지_않는_사용자로_프로젝트_생성하면_예외가_발생해야_한다() {
             // given
-            String username = "anonymousUser999@example.com";
             ProjectRequestDTO requestDTO = ProjectRequestDTO.builder()
                     .title("새로운 프로젝트")
                     .content("프로젝트 내용")
                     .build();
 
+            when(userService.getCurrentLoginUser()).thenThrow(new CustomException(ErrorCode.ANONYMOUS_USER));
+
             // when & then
-            assertThatThrownBy(() -> projectService.createProject(username, requestDTO))
+            assertThatThrownBy(() -> projectService.createProject(requestDTO))
                     .isInstanceOf(CustomException.class);
         }
     }
@@ -296,7 +309,6 @@ class ProjectServiceTest {
         @Test
         void 존재하는_프로젝트는_본인이라면_수정되어야_한다() throws JsonProcessingException {
             // given
-            String username = backendUser.getEmail();
             Long projectId = backendProject.getId();
             ProjectRequestDTO requestDTO = ProjectRequestDTO.builder()
                     .title("수정된 프로젝트")
@@ -308,43 +320,42 @@ class ProjectServiceTest {
                     .demoUrl("https://updated-demo.example.com")
                     .projectMembers(objectMapper.writeValueAsString(List.of("홍홍홍", "김김김")))
                     .build();
+            when(userService.getCurrentLoginUser()).thenReturn(backendUser);
 
             // when
-            projectService.updateProject(username, projectId, requestDTO);
+            projectService.updateProject(projectId, requestDTO);
+            projectRepository.flush();
 
             // then
             ProjectResponseDTO updatedProjectResponseDTO = projectService.getProjectDetails(projectId);
-            CommunityResponseDTO updatedPostResponseDTO = communityPostService.getPost(updatedProjectResponseDTO.postId());
 
-            assertThat(updatedPostResponseDTO.title()).isEqualTo("수정된 프로젝트");
-            assertThat(updatedPostResponseDTO.content()).isEqualTo("수정된 내용");
+            assertThat(updatedProjectResponseDTO.title()).isEqualTo("수정된 프로젝트");
+            assertThat(updatedProjectResponseDTO.content()).isEqualTo("수정된 내용");
             assertThat(updatedProjectResponseDTO.startedAt()).isEqualTo(LocalDateTime.of(2024, 6, 1, 10, 0));
             assertThat(updatedProjectResponseDTO.endedAt()).isEqualTo(LocalDateTime.of(2024, 6, 30, 18, 0));
             assertThat(updatedProjectResponseDTO.githubUrl()).isEqualTo("https://github.com/example/updated-project");
             assertThat(updatedProjectResponseDTO.simpleContent()).isEqualTo("수정된 심플 소개 쏼라쏼라");
             assertThat(updatedProjectResponseDTO.demoUrl()).isEqualTo("https://updated-demo.example.com");
-
         }
 
         @Test
         void 본인이_아닌_다른_유저가_수정하면_예외가_발생해야_한다() {
             // given
-            String username = "anonymousUser999@example.com";
             Long projectId = backendProject.getId();
             ProjectRequestDTO requestDTO = ProjectRequestDTO.builder()
                     .title("수정된 프로젝트")
                     .content("수정된 내용")
                     .build();
+            when(userService.getCurrentLoginUser()).thenReturn(frontendUser);
 
             // when & then
-            assertThatThrownBy(() -> projectService.updateProject(username, projectId, requestDTO))
+            assertThatThrownBy(() -> projectService.updateProject(projectId, requestDTO))
                     .isInstanceOf(CustomException.class);
         }
 
         @Test
         void 존재하지_않는_프로젝트는_예외가_발생해야_한다() {
             // given
-            String username = backendUser.getEmail();
             Long projectId = 999L;
             ProjectRequestDTO requestDTO = ProjectRequestDTO.builder()
                     .title("수정된 프로젝트")
@@ -352,14 +363,13 @@ class ProjectServiceTest {
                     .build();
 
             // when & then
-            assertThatThrownBy(() -> projectService.updateProject(username, projectId, requestDTO))
+            assertThatThrownBy(() -> projectService.updateProject(projectId, requestDTO))
                     .isInstanceOf(CustomException.class);
         }
 
         @Test
         void 일부_내용만_수정하면_해당_내용만_수정되어야_한다() {
             // given
-            String username = backendUser.getEmail();
             Long projectId = backendProject.getId();
             String originalGithubUrl = backendProject.getGithubUrl();
             String originalSimpleContent = backendProject.getSimpleContent();
@@ -371,19 +381,19 @@ class ProjectServiceTest {
                     .endedAt(LocalDateTime.of(2024, 12, 31, 18, 0))
                     .build();
 
+            when(userService.getCurrentLoginUser()).thenReturn(backendUser);
+
             // when
-            projectService.updateProject(username, projectId, requestDTO);
+            projectService.updateProject(projectId, requestDTO);
+            projectRepository.flush();
 
             // then
             ProjectResponseDTO updatedProjectResponseDTO = projectService.getProjectDetails(projectId);
-            CommunityResponseDTO updatedPostResponseDTO = communityPostService.getPost(updatedProjectResponseDTO.postId());
 
-            assertThat(updatedPostResponseDTO.title()).isEqualTo("제목 수정 어쩌구저쩌구");
-            assertThat(updatedPostResponseDTO.content()).isEqualTo("내용수정 저쩌구어쩌구");
-
+            assertThat(updatedProjectResponseDTO.title()).isEqualTo("제목 수정 어쩌구저쩌구");
+            assertThat(updatedProjectResponseDTO.content()).isEqualTo("내용수정 저쩌구어쩌구");
             assertThat(updatedProjectResponseDTO.startedAt()).isEqualTo(requestDTO.startedAt());
             assertThat(updatedProjectResponseDTO.endedAt()).isEqualTo(requestDTO.endedAt());
-
             assertThat(updatedProjectResponseDTO.githubUrl()).isEqualTo(originalGithubUrl);
             assertThat(updatedProjectResponseDTO.simpleContent()).isEqualTo(originalSimpleContent);
         }
@@ -395,10 +405,10 @@ class ProjectServiceTest {
         void 존재하는_프로젝트는_본인이라면_삭제되어야_한다() {
             // given
             Long projectId = backendProject.getId();
-            String username = backendUser.getEmail();
+            when(userService.getCurrentLoginUser()).thenReturn(backendUser);
 
             // when
-            projectService.deleteProject(username, projectId);
+            projectService.deleteProject(projectId);
 
             // then
             assertThat(projectRepository.findById(projectId)).isEmpty();
@@ -408,21 +418,20 @@ class ProjectServiceTest {
         void 존재하지_않는_프로젝트는_삭제하면_예외가_발생해야_한다() {
             // given
             Long projectId = 999L;
-            String username = backendUser.getEmail();
 
             // when & then
-            assertThatThrownBy(() -> projectService.deleteProject(username, projectId))
+            assertThatThrownBy(() -> projectService.deleteProject(projectId))
                     .isInstanceOf(CustomException.class);
         }
 
         @Test
         void 존재하지_않는_사용자가_삭제하면_예외가_발생해야_한다() {
             // given
-            String username = "anonymousUser999@example.com";
             Long projectId = backendProject.getId();
+            when(userService.getCurrentLoginUser()).thenThrow(new CustomException(ErrorCode.ANONYMOUS_USER));
 
             // when & then
-            assertThatThrownBy(() -> projectService.deleteProject(username, projectId))
+            assertThatThrownBy(() -> projectService.deleteProject(projectId))
                     .isInstanceOf(CustomException.class);
         }
     }
