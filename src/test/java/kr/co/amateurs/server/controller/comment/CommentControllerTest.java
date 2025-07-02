@@ -129,7 +129,7 @@ public class CommentControllerTest extends AbstractControllerTest {
                     .when()
                     .post("/posts/{postId}/comments", itPost.getId())
                     .then()
-                    .statusCode(403);
+                    .statusCode(401);
         }
     }
 

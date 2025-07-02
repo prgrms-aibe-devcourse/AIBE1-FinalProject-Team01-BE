@@ -82,7 +82,14 @@ public enum ErrorCode implements Supplier<CustomException> {
     // 임베딩 관련
     ERROR_AI_EMBEDDING_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 생성 중 오류가 발생했습니다."),
     ERROR_AI_EMBEDDING_SEARCH(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 검색 중 오류가 발생했습니다."),
-    ERROR_AI_EMBEDDING_INITIALIZE(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 초기화 중 오류가 발생했습니다.");
+    ERROR_AI_EMBEDDING_INITIALIZE(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 초기화 중 오류가 발생했습니다."), 
+    
+    // 좋아요 관련
+    INVALID_LIKE(HttpStatus.BAD_REQUEST, "좋아요에는 댓글, 게시글 중 하나만 있어야 됩니다."),
+    DUPLICATE_LIKE(HttpStatus.CONFLICT, "좋아요가 이미 있습니다."), 
+    
+    // 북마크 관련
+    DUPLICATE_BOOKMARK(HttpStatus.CONFLICT, "북마크가 이미 있습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
