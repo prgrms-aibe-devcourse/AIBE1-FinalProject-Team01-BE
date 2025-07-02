@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.repository.project;
 
+import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.repository.project.strategy.ProjectQueryStrategy;
@@ -66,7 +67,7 @@ public class ProjectJooqRepository {
                 .where(PROJECTS.ID.eq(projectId))
                 .groupBy(POSTS.ID)
                 .fetchOptionalInto(ProjectResponseDTO.class)
-                .orElse(null);
+                .orElseThrow(ErrorCode.POST_NOT_FOUND);
     }
 
     private SelectJoinStep<?> buildJoinQuery(SelectSelectStep<?> selectQuery) {

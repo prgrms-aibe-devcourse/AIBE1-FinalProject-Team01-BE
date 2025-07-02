@@ -11,8 +11,6 @@ import kr.co.amateurs.server.domain.entity.post.Project;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
-import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
-import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.project.ProjectJooqRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
@@ -22,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,33 +35,17 @@ public class ProjectService {
     private final FileService fileService;
 
     public PageResponseDTO<ProjectResponseDTO> getProjects(ProjectSearchParam params) {
-        Page<ProjectResponseDTO> projects;
-
-        try {
-            Long userId = userService.getCurrentLoginUser().getId();
-            projects = projectJooqRepository.findAllByUserId(params, userId);
-        } catch (CustomException e) {
-            projects = projectJooqRepository.findAll(params);
-        }
+        Page<ProjectResponseDTO> projects = userService.getCurrentUser()
+                .map(user -> projectJooqRepository.findAllByUserId(params, user.getId()))
+                .orElseGet(() -> projectJooqRepository.findAll(params));
 
         return PageResponseDTO.convertPageToDTO(projects);
     }
 
     public ProjectResponseDTO getProjectDetails(Long projectId) {
-        ProjectResponseDTO projectResponseDTO;
-
-        try {
-            User user = userService.getCurrentLoginUser();
-            projectResponseDTO = projectJooqRepository.findByIdAndUserId(projectId, user.getId());
-        } catch (CustomException e) {
-            projectResponseDTO = projectJooqRepository.findById(projectId);
-        }
-
-        if (projectResponseDTO == null) {
-            throw ErrorCode.POST_NOT_FOUND.get();
-        }
-
-        return projectResponseDTO;
+        return userService.getCurrentUser()
+                .map(user -> projectJooqRepository.findByIdAndUserId(projectId, user.getId()))
+                .orElseGet(() -> projectJooqRepository.findById(projectId));
     }
 
     @Transactional
@@ -116,7 +100,6 @@ public class ProjectService {
         project.update(projectRequestDTO);
     }
 
-    // TODO: Soft delete로 변경 예정
     @Transactional
     public void deleteProject(Long projectId) {
         User user = userService.getCurrentLoginUser();
