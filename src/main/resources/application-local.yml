@@ -33,6 +33,15 @@ spring:
     ansi:
       enabled: always
 
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: read:user,user:email
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
@@ -72,3 +81,9 @@ cloud:
       bucket: ${S3_BUCKET_NAME}
     cloudfront:
       domain: ${CLOUD_FRONT_DOMAIN_NAME}
+
+oauth:
+  success-redirect-url: http://localhost:3000
+
+cookie:
+  domain: localhost

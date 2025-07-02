@@ -29,13 +29,22 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
-  springdoc:
-    swagger-ui:
-      path: /swagger-ui.html
-      operationsSorter: method
-      tagsSorter: alpha
-      docExpansion: none
-    enable-kotlin: false
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: read:user,user:email
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    docExpansion: none
+  enable-kotlin: false
 
   output:
     ansi:
@@ -101,3 +110,9 @@ cloud:
       bucket: ${S3_BUCKET_NAME}
     cloudfront:
       domain: ${CLOUD_FRONT_DOMAIN_NAME}
+
+oauth:
+  success-redirect-url: https://dev.amateurs.co.kr
+
+cookie:
+  domain: .amateurs.co.kr
