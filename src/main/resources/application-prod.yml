@@ -101,6 +101,9 @@ management:
     tags:
       application: ${spring.application.name}
       version: '@project.version@'
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
   prometheus:
     metrics:
       export:
