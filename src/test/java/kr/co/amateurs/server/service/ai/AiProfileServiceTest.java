@@ -58,7 +58,7 @@ class AiProfileServiceTest {
     }
 
     @Nested
-    class generateInitialProfile_메서드는 {
+    class 초기_프로필_생성_기능 {
         @Test
         void 정상적으로_초기_프로필을_생성한다() {
             // given
@@ -89,7 +89,7 @@ class AiProfileServiceTest {
     }
 
     @Nested
-    class generateCompleteUserProfile_메서드는 {
+    class 완전한_프로필_생성_기능 {
         @Test
         void 정상적으로_완전한_프로필을_생성한다() {
             // given
@@ -126,9 +126,9 @@ class AiProfileServiceTest {
     }
 
     @Nested
-    class generateUserProfileResponse_메서드는 {
+    class 프로필_생성_기능 {
         @Test
-        void 정상적으로_프로필_Response를_생성한다() {
+        void 정상적으로_프로필을을_생성한다() {
             // given
             AiProfile profile = AiProfile.builder()
                     .user(testUser)

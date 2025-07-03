@@ -40,9 +40,9 @@ class PopularPostServiceTest {
     PostService postService;
 
     @Nested
-    class 인기글_계산_및_저장_테스트 {
+    class 인기글_계산_및_저장_기능 {
         @Test
-        void 게시글_없으면_저장_호출_안함() {
+        void 조건에_맞는_게시글이_없으면_저장하지_않는다() {
             // given
             when(popularPostRepository.findRecentPostsWithCounts(any())).thenReturn(List.of());
 
@@ -55,7 +55,7 @@ class PopularPostServiceTest {
         }
 
         @Test
-        void 게시글_있으면_점수계산_저장_삭제_호출() {
+        void 조건에_맞는_게시글이_있으면_점수를_계산하고_저장한다() {
             // given
             List<PopularPostRequest> posts = List.of(
                     생성(1L, 100, 10, 5, 0.0, LocalDate.now()),
@@ -72,7 +72,7 @@ class PopularPostServiceTest {
         }
 
         @Test
-        void 인기점수_정렬_상위10개만_저장() {
+        void 인기점수를_내림차순_정렬하여_limit개수만큼큼_저장한다() {
             // given
             List<PopularPostRequest> posts =
                     java.util.stream.IntStream.rangeClosed(1, 20)
@@ -97,9 +97,9 @@ class PopularPostServiceTest {
     }
 
     @Nested
-    class 인기글_조회_테스트 {
+    class 인기글_조회_기능 {
         @Test
-        void 인기글_조회_정상() {
+        void 인기글을_정상적으로_조회한다() {
             // given
             List<PopularPostRequest> posts = List.of(
                     생성(1L, 100, 10, 5, 123.4, LocalDate.now())
@@ -115,7 +115,7 @@ class PopularPostServiceTest {
         }
 
         @Test
-        void 인기글_없으면_빈리스트() {
+        void 인기글이_없으면_빈_리스트를_반환한다() {
             // given
             when(popularPostRepository.findLatestPopularPosts(anyInt())).thenReturn(List.of());
 

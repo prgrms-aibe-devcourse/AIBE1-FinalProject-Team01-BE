@@ -76,7 +76,7 @@ class PostRecommendServiceTest {
         }
 
         @Test
-        void 여러_추천_데이터가_있으면_모두_반환한다() {
+        void 여러_추천_데이터가_있으면_limit_개수만큼_모두_반환한다() {
             // given
             User user = AiTestFixture.createTestUser();
             Post post1 = AiTestFixture.createTestPost(user);
@@ -125,7 +125,7 @@ class PostRecommendServiceTest {
         }
 
         @Test
-        void AI_프로필이_있고_유사_게시글이_여러_개면_모두_반환한다() {
+        void AI_프로필이_있고_유사_게시글이_여러_개면_limit_개수만큼_반환한다() {
             // given
             given(aiProfileRepository.findByUserId(anyLong())).willReturn(Optional.of(testProfile));
             Post post1 = AiTestFixture.createTestPost(testUser);
