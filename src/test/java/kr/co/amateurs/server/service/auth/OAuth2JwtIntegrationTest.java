@@ -136,4 +136,55 @@ public class OAuth2JwtIntegrationTest {
 
         return new OAuth2UserRequest(clientRegistration, accessToken);
     }
+
+    @Test
+    void 기존_OAuth_사용자_로그인_시_새로운_JWT_토큰이_생성된다() {
+        // given
+        String uniqueEmail = "testuser" + System.currentTimeMillis() + "@github.com";
+        User existingUser = OAuth2TestFixture.defaultGitHubUser()
+                .providerId("12345")
+                .email(uniqueEmail)
+                .nickname("testuser")
+                .name("테스트유저")
+                .build();
+        userRepository.save(existingUser);
+
+        String oldRefreshToken = jwtProvider.generateRefreshToken(existingUser.getEmail());
+        refreshTokenService.saveRefreshToken(existingUser.getEmail(), oldRefreshToken, 3600L);
+
+        String githubApiResponse = OAuth2TestFixture.createGitHubApiResponse(
+                "12345", "testuser", "테스트유저", uniqueEmail
+        );
+        enqueueMockResponse(githubApiResponse);
+        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+
+        // when
+        OAuth2User oAuth2User = customOAuth2UserService.loadUser(userRequest);
+        CustomUserDetails userDetails = (CustomUserDetails) oAuth2User;
+        User loginUser = userDetails.getUser();
+
+        String newAccessToken = jwtProvider.generateAccessToken(loginUser.getEmail());
+        String newRefreshToken = jwtProvider.generateRefreshToken(loginUser.getEmail());
+        Long refreshExpiresIn = jwtProvider.getRefreshTokenExpirationMs() / 1000;
+
+        refreshTokenService.saveRefreshToken(loginUser.getEmail(), newRefreshToken, refreshExpiresIn);
+
+
+        // then
+        assertThat(newAccessToken).isNotNull();
+        assertThat(newRefreshToken).isNotNull();
+        assertThat(jwtProvider.validateToken(newAccessToken)).isTrue();
+        assertThat(jwtProvider.validateToken(newRefreshToken)).isTrue();
+
+        assertThat(jwtProvider.getEmailFromToken(newAccessToken)).isEqualTo(uniqueEmail);
+
+        Optional<RefreshToken> updatedRefreshToken = refreshTokenService.findByEmail(uniqueEmail);
+        assertThat(updatedRefreshToken).isPresent();
+        assertThat(updatedRefreshToken.get().getEmail()).isEqualTo(uniqueEmail);
+
+        long userCount = userRepository.count();
+        assertThat(userCount).isEqualTo(1);
+    }
+
+
 }

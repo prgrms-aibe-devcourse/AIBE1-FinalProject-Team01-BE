@@ -21,7 +21,7 @@ public class OAuth2TestFixture {
     public static String createGitHubApiResponse(String id, String login, String name, String email) {
         return String.format("""
             {
-                "id": %s,
+                "id": "%s",
                 "login": "%s",
                 "name": "%s",
                 "email": "%s",
@@ -45,9 +45,9 @@ public class OAuth2TestFixture {
     public static String createGitHubApiResponseWithoutLogin() {
         return """
             {
-                "id": 12345,
+                "id": "12345",
                 "name": "Test User",
-                "email": "test@github.com", 
+                "email": "test@github.com",
                 "avatar_url": "%s"
             }
             """.formatted(DEFAULT_AVATAR_URL);
@@ -56,8 +56,8 @@ public class OAuth2TestFixture {
     public static String createGitHubApiResponseWithoutEmail(String id, String login, String name) {
         return """
             {
-                "id": %s,
-                "login": "%s", 
+                "id": "%s",
+                "login": "%s",
                 "name": "%s",
                 "avatar_url": "%s"
             }
