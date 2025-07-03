@@ -41,10 +41,10 @@ public class DirectMessageController {
         return ResponseEntity.ok(message);
     }
 
-    @DeleteMapping
+    @DeleteMapping("{roomId}")
     @Operation(summary = "방 나가기")
-    public ResponseEntity<Void> exitRoom(@Valid @RequestBody DirectMessageRoomExitRequest request) {
-        directMessageService.exitRoom(request);
+    public ResponseEntity<Void> exitRoom(@PathVariable String roomId) {
+        directMessageService.exitRoom(roomId);
         return ResponseEntity.noContent().build();
     }
 }

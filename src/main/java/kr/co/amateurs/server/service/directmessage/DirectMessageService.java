@@ -38,6 +38,10 @@ public class DirectMessageService {
 
     public DirectMessageRoomResponse createRoom(long partnerId) {
         User currentUser = userService.getCurrentLoginUser();
+        if (currentUser.getId().equals(partnerId)) {
+            throw new CustomException(ErrorCode.INVALID_USER_ID);
+        }
+
         User partner = userService.findById(partnerId);
         List<User> participants = List.of(partner, currentUser);
 
@@ -68,9 +72,10 @@ public class DirectMessageService {
         return DirectMessagePageResponse.from(page);
     }
 
-    public void exitRoom(DirectMessageRoomExitRequest request) {
-        DirectMessageRoom room = validateRoomAccess(request.roomId(), request.userId());
-        room.userLeaveRoom(request.userId());
+    public void exitRoom(String roomId) {
+        User currentUser = userService.getCurrentLoginUser();
+        DirectMessageRoom room = validateRoomAccess(roomId, currentUser.getId());
+        room.userLeaveRoom(currentUser.getId());
 
         if (room.allParticipantsLeft()) {
             directMessageRoomRepository.delete(room);

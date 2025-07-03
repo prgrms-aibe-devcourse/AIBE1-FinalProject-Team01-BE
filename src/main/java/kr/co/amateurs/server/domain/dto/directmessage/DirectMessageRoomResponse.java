@@ -8,10 +8,10 @@ import java.time.LocalDateTime;
 
 @Builder
 public record DirectMessageRoomResponse(
-        String roomId,
-        Long otherUserId,
-        String otherUserNickname,
-        String otherUserProfileImage,
+        String id,
+        Long partnerId,
+        String partnerNickname,
+        String partnerProfileImage,
         String lastMessage,
         LocalDateTime sentAt
 ) {
