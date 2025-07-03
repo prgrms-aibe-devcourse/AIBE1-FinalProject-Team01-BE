@@ -61,8 +61,7 @@ public class BookmarkService {
 
     @Transactional
     public BookmarkResponseDTO addBookmarkPost(Long userId, Long postId) {
-        validateUser(userId);
-        User currentUser = userRepository.findById(userId).orElseThrow();
+        User currentUser = validateUser(userId);
         Post post = postRepository.findById(postId).orElseThrow();
         if (checkHasBookmarked(postId, userId)) {
             throw ErrorCode.DUPLICATE_BOOKMARK.get();
@@ -107,7 +106,7 @@ public class BookmarkService {
                 .existsByPost_IdAndUser_Id(postId, userId);
     }
 
-    private void validateUser(Long userId) {
+    private User validateUser(Long userId) {
         User user = userService.getCurrentLoginUser();
         Long currentId = user.getId();
         Role currentRole = user.getRole();
@@ -115,6 +114,8 @@ public class BookmarkService {
         if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
             throw new CustomException(ErrorCode.ACCESS_DENIED, "본인의 북마크에만 접근할 수 있습니다.");
         }
+
+        return user;
     }
     public List<PostContentData> getBookmarkedPosts(Long userId) {
         try {
