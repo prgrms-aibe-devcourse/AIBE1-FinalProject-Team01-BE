@@ -1,7 +1,5 @@
-package kr.co.amateurs.server.annotation.boardaccess;
+package kr.co.amateurs.server.annotation.checkpostmetadata;
 
-import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
-import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.OperationType;
 
 import java.lang.annotation.ElementType;
@@ -11,7 +9,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface BoardAccess {
+public @interface CheckPostMetaData {
     /**
      * 수행하려는 작업 타입을 지정합니다.
      * READ, WRITE 등의 작업에 따라 다른 권한 정책이 적용됩니다.

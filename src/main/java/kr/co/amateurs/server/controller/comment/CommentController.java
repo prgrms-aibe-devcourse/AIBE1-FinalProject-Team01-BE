@@ -3,8 +3,7 @@ package kr.co.amateurs.server.controller.comment;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.Valid;
-import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
+import kr.co.amateurs.server.annotation.checkpostmetadata.CheckPostMetaData;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
@@ -24,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class CommentController {
     private final CommentService commentService;
 
-    @BoardAccess
+    @CheckPostMetaData
     @GetMapping("/{postId}/comments")
     @Operation(
             summary = "댓글 목록 조회",
@@ -39,7 +38,7 @@ public class CommentController {
         return ResponseEntity.ok(comments);
     }
 
-    @BoardAccess
+    @CheckPostMetaData
     @GetMapping("/{postId}/comments/{commentId}/replies")
     @Operation(
             summary = "대댓글 목록 조회",
@@ -55,7 +54,7 @@ public class CommentController {
         return ResponseEntity.ok(replies);
     }
 
-    @BoardAccess(operation = OperationType.WRITE)
+    @CheckPostMetaData(operation = OperationType.WRITE)
     @PostMapping("/{postId}/comments")
     @Operation(
             summary = "댓글 작성",
@@ -69,7 +68,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
     }
 
-    @BoardAccess(operation = OperationType.WRITE)
+    @CheckPostMetaData(operation = OperationType.WRITE)
     @PutMapping("/{postId}/comments/{commentId}")
     @Operation(
             summary = "댓글 수정",
@@ -84,7 +83,7 @@ public class CommentController {
         return ResponseEntity.noContent().build();
     }
 
-    @BoardAccess(operation = OperationType.WRITE)
+    @CheckPostMetaData(operation = OperationType.WRITE)
     @DeleteMapping("/{postId}/comments/{commentId}")
     @Operation(
             summary = "댓글 삭제",

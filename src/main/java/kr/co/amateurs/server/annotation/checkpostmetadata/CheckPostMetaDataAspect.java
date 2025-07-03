@@ -1,7 +1,6 @@
-package kr.co.amateurs.server.annotation.boardaccess;
+package kr.co.amateurs.server.annotation.checkpostmetadata;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
-import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -28,15 +27,15 @@ import java.lang.reflect.Method;
 @Aspect
 @Component
 @RequiredArgsConstructor
-public class BoardAccessAspect {
+public class CheckPostMetaDataAspect {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final UserService userService;
-    private final BoardAccessPolicy boardAccessPolicy;
+    private final CheckPostMetaDataPolicy checkPostMetaDataPolicy;
 
-    @Before("@annotation(boardAccess)")
-    public void checkBoardAccess(JoinPoint joinPoint, BoardAccess boardAccess) {
+    @Before("@annotation(checkPostMetaData)")
+    public void checkBoardAccess(JoinPoint joinPoint, CheckPostMetaData checkPostMetaData) {
         User user = userService.getCurrentUser().orElse(null);
         Role userRole = user != null ? user.getRole() : Role.ANONYMOUS;
 
@@ -44,18 +43,18 @@ public class BoardAccessAspect {
             return;
         }
 
-        BoardType targetBoardType = getBoardType(joinPoint, boardAccess);
+        BoardType targetBoardType = getBoardType(joinPoint, checkPostMetaData);
 
-        validateBoardAccess(userRole, targetBoardType, boardAccess);
+        validateBoardAccess(userRole, targetBoardType, checkPostMetaData);
     }
 
-    private BoardType getBoardType(JoinPoint joinPoint, BoardAccess boardAccess) {
+    private BoardType getBoardType(JoinPoint joinPoint, CheckPostMetaData checkPostMetaData) {
         Post post = findPostById(joinPoint);
         return post.getBoardType();
     }
 
-    private void validateBoardAccess(Role userRole, BoardType targetBoardType, BoardAccess boardAccess) {
-        boardAccessPolicy.validateAccess(userRole, targetBoardType, boardAccess.operation());
+    private void validateBoardAccess(Role userRole, BoardType targetBoardType, CheckPostMetaData checkPostMetaData) {
+        checkPostMetaDataPolicy.validateAccess(userRole, targetBoardType, checkPostMetaData.operation());
     }
 
 
