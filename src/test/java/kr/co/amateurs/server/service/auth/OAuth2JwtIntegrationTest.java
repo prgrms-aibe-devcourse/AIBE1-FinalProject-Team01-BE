@@ -191,4 +191,37 @@ public class OAuth2JwtIntegrationTest {
         assertThat(userCount).isEqualTo(1);
     }
 
+    @Test
+    void 여러_OAuth_사용자의_JWT_토큰이_독립적으로_관리된다() {
+        // given - User1
+        long timestamp = System.currentTimeMillis();
+        String email1 = "testuser" + timestamp + "@github.com";
+        String response1 = OAuth2TestFixture.createGitHubApiResponse(
+                "12345", "testuser", "테스트유저", email1
+        );
+        enqueueMockResponse(response1);
+        OAuth2UserRequest request1 = createGitHubOAuth2UserRequest();
+        User user1 = ((CustomUserDetails) customOAuth2UserService.loadUser(request1)).getUser();
+        String token1 = jwtProvider.generateAccessToken(user1.getEmail());
+
+        // given - User2
+        String email2 = "testuser" + (timestamp + 1) + "@github.com";
+        String response2 = OAuth2TestFixture.createGitHubApiResponse(
+                "67890", "testuser2", "테스트유저2", email2
+        );
+        enqueueMockResponse(response2);
+        OAuth2UserRequest request2 = createGitHubOAuth2UserRequest();
+        User user2 = ((CustomUserDetails) customOAuth2UserService.loadUser(request2)).getUser();
+        String token2 = jwtProvider.generateAccessToken(user2.getEmail());
+
+        // then
+        assertThat(jwtProvider.getEmailFromToken(token1)).isEqualTo(email1);
+        assertThat(jwtProvider.getEmailFromToken(token2)).isEqualTo(email2);
+        assertThat(token1).isNotEqualTo(token2);
+
+        assertThat(user1.getId()).isNotEqualTo(user2.getId());
+        assertThat(user1.getProviderId()).isEqualTo("12345");
+        assertThat(user2.getProviderId()).isEqualTo("67890");
+        assertThat(userRepository.count()).isEqualTo(2);
+    }
 }
