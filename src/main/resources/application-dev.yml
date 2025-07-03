@@ -70,6 +70,18 @@ jwt:
   access-token-expiration-ms: 3600000
   refresh-token-expiration-ms: 1209600000
 
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret_key: ${AWS_SECRET_KEY}
+    region:
+      static: ${S3_REGION}
+    s3:
+      bucket: ${S3_BUCKET_NAME}
+    cloudfront:
+      domain: ${CLOUD_FRONT_DOMAIN_NAME}
+
 management:
   health:
     mongo:
@@ -99,17 +111,19 @@ management:
         enabled: true
         step: 30s
 
-cloud:
-  aws:
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret_key: ${AWS_SECRET_KEY}
-    region:
-      static: ${S3_REGION}
-    s3:
-      bucket: ${S3_BUCKET_NAME}
-    cloudfront:
-      domain: ${CLOUD_FRONT_DOMAIN_NAME}
+logging:
+  level:
+    root: INFO
+    org.springframework: WARN
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: DEBUG
+  file:
+    name: /var/log/spring-boot/application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 7
+      total-size-cap: 1GB
 
 oauth:
   success-redirect-url: https://dev.amateurs.co.kr
