@@ -1,9 +1,8 @@
 package kr.co.amateurs.server.service.project;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
-import kr.co.amateurs.server.domain.dto.bookmark.BookmarkCount;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
-import kr.co.amateurs.server.domain.dto.project.ProjectPageResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
@@ -11,10 +10,10 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.Project;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
-import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
+import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.project.ProjectJooqRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
-import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
@@ -28,43 +27,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProjectService {
     private final ProjectRepository projectRepository;
-    private final BookmarkRepository bookmarkRepository;
-    private final UserRepository userRepository;
     private final PostRepository postRepository;
+
+    private final ProjectJooqRepository projectJooqRepository;
 
     private final UserService userService;
     private final FileService fileService;
 
-    public ProjectPageResponseDTO getProjects(ProjectSearchParam params) {
-        Page<Project> projects = projectRepository.findAllByFilterOptionsOrderByLikeCountDesc(
-                params.getKeyword(),
-                params.getCourse(),
-                params.getBatch(),
-                params.toPageable()
-        );
+    public PageResponseDTO<ProjectResponseDTO> getProjects(ProjectSearchParam params) {
+        Page<ProjectResponseDTO> projects = userService.getCurrentUser()
+                .map(user -> projectJooqRepository.findAllByUserId(params, user.getId()))
+                .orElseGet(() -> projectJooqRepository.findAll(params));
 
-        List<Long> postIds = projects.getContent().stream()
-                .map(project -> project.getPost().getId())
-                .toList();
-
-        List<BookmarkCount> bookmarkCounts = bookmarkRepository.countByPostIds(postIds);
-
-        return ProjectPageResponseDTO.from(projects, bookmarkCounts);
+        return PageResponseDTO.convertPageToDTO(projects);
     }
 
     public ProjectResponseDTO getProjectDetails(Long projectId) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(ErrorCode.POST_NOT_FOUND);
-
-        int bookmarkCount = bookmarkRepository.countByPostId(project.getPost().getId());
-
-        return ProjectResponseDTO.from(project, bookmarkCount);
+        return userService.getCurrentUser()
+                .map(user -> projectJooqRepository.findByIdAndUserId(projectId, user.getId()))
+                .orElseGet(() -> projectJooqRepository.findById(projectId));
     }
 
     @Transactional
-    public ProjectResponseDTO createProject(String username, ProjectRequestDTO projectRequestDTO) {
-        User user = userRepository.findByEmail(username)
-                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+    public ProjectResponseDTO createProject(ProjectRequestDTO projectRequestDTO) {
+        User user = userService.getCurrentLoginUser();
 
         CommunityRequestDTO postRequestDto = new CommunityRequestDTO(
                 projectRequestDTO.title(),
@@ -94,11 +80,13 @@ public class ProjectService {
     }
 
     @Transactional
-    public void updateProject(String username, Long projectId, ProjectRequestDTO projectRequestDTO) {
+    public void updateProject(Long projectId, ProjectRequestDTO projectRequestDTO) {
+        User user = userService.getCurrentLoginUser();
+
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(ErrorCode.POST_NOT_FOUND);
 
-        validatePost(project.getPost(), username);
+        validatePost(project.getPost(), user.getEmail());
 
         CommunityRequestDTO postRequestDto = new CommunityRequestDTO(
                 projectRequestDTO.title(),
@@ -112,19 +100,20 @@ public class ProjectService {
         project.update(projectRequestDTO);
     }
 
-    // TODO: Soft delete로 변경 예정
     @Transactional
-    public void deleteProject(String username, Long projectId) {
+    public void deleteProject(Long projectId) {
+        User user = userService.getCurrentLoginUser();
+
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(ErrorCode.POST_NOT_FOUND);
 
-        validatePost(project.getPost(), username);
+        validatePost(project.getPost(), user.getEmail());
 
         projectRepository.deleteById(projectId);
     }
 
-    private void validatePost(Post post, String username) {
-        if (!post.getUser().getEmail().equals(username)) {
+    private void validatePost(Post post, String email) {
+        if (!post.getUser().getEmail().equals(email)) {
             throw ErrorCode.ACCESS_DENIED.get();
         }
     }
