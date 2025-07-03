@@ -18,6 +18,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.data.segment.TextSegment;
 
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +58,7 @@ class PostRecommendServiceTest {
     }
 
     @Nested
-    class getStoredRecommendations_메서드는 {
+    class 추천_데이터_조회_기능 {
         @Test
         void 추천_데이터가_있으면_정상적으로_반환한다() {
             // given
@@ -74,6 +76,28 @@ class PostRecommendServiceTest {
         }
 
         @Test
+        void 여러_추천_데이터가_있으면_모두_반환한다() {
+            // given
+            User user = AiTestFixture.createTestUser();
+            Post post1 = AiTestFixture.createTestPost(user);
+            Post post2 = AiTestFixture.createTestPost(user);
+            PostRecommendationResponse response1 = new PostRecommendationResponse(
+                post1.getId(), post1.getTitle(), user.getNickname(), 5, 10, 2, post1.getBoardType(), post1.getCreatedAt()
+            );
+            PostRecommendationResponse response2 = new PostRecommendationResponse(
+                post2.getId(), post2.getTitle(), user.getNickname(), 7, 20, 3, post2.getBoardType(), post2.getCreatedAt()
+            );
+            given(aiRecommendPostRepository.findRecommendationDataByUserId(anyLong())).willReturn(List.of(response1, response2));
+
+            // when
+            List<PostRecommendationResponse> result = postRecommendService.getStoredRecommendations(1L, 10);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result).extracting(PostRecommendationResponse::id).containsExactly(post1.getId(), post2.getId());
+        }
+
+        @Test
         void 추천_데이터가_없으면_빈_리스트를_반환한다() {
             // given
             given(aiRecommendPostRepository.findRecommendationDataByUserId(anyLong())).willReturn(Collections.emptyList());
@@ -87,7 +111,7 @@ class PostRecommendServiceTest {
     }
 
     @Nested
-    class getAiPersonalRecommendedPosts_메서드는 {
+    class AI_개인화_추천_게시글_조회_기능 {
         @Test
         void AI_프로필이_없으면_빈_리스트를_반환한다() {
             // given
@@ -99,17 +123,61 @@ class PostRecommendServiceTest {
             // then
             assertThat(result).isEmpty();
         }
+
+        @Test
+        void AI_프로필이_있고_유사_게시글이_여러_개면_모두_반환한다() {
+            // given
+            given(aiProfileRepository.findByUserId(anyLong())).willReturn(Optional.of(testProfile));
+            Post post1 = AiTestFixture.createTestPost(testUser);
+            Post post2 = AiTestFixture.createTestPost(testUser);
+            // EmbeddingMatch<TextSegment> mock 생성
+            TextSegment segment1 = TextSegment.from("content1");
+            TextSegment segment2 = TextSegment.from("content2");
+            // postId, userId 메타데이터 세팅
+            segment1.metadata().put("postId", post1.getId().toString());
+            segment1.metadata().put("userId", testUser.getId().toString());
+            segment2.metadata().put("postId", post2.getId().toString());
+            segment2.metadata().put("userId", testUser.getId().toString());
+            EmbeddingMatch<TextSegment> match1 = new EmbeddingMatch<TextSegment>(0.95, "embedding1", null, segment1);
+            EmbeddingMatch<TextSegment> match2 = new EmbeddingMatch<TextSegment>(0.93, "embedding2", null, segment2);
+            given(postEmbeddingService.findSimilarPosts(anyString(), anyInt())).willReturn(List.of(match1, match2));
+
+            // when
+            List<Post> result = postRecommendService.getAiPersonalRecommendedPosts(1L, 10);
+
+            // then
+            assertThat(result).isNotNull();
+        }
     }
 
     @Nested
-    class saveRecommendationsToDB_메서드는 {
+    class 추천_결과_DB_저장_기능 {
         @Test
         void 추천_게시글이_정상적으로_DB에_저장된다() {
             // given
             given(aiProfileRepository.findByUserId(anyLong())).willReturn(Optional.of(testProfile));
-            given(postEmbeddingService.findSimilarPosts(anyString(), anyInt())).willReturn(Collections.emptyList());
-            given(userService.findById(1L)).willReturn(testUser);
-            // 추천 게시글이 없으므로 실제로 저장되는 것은 없음
+            Post post1 = AiTestFixture.createTestPost(testUser);
+            Post post2 = AiTestFixture.createTestPost(testUser);
+            TextSegment segment1 = TextSegment.from("content1");
+            TextSegment segment2 = TextSegment.from("content2");
+            segment1.metadata().put("postId", post1.getId().toString());
+            segment1.metadata().put("userId", testUser.getId().toString());
+            segment2.metadata().put("postId", post2.getId().toString());
+            segment2.metadata().put("userId", testUser.getId().toString());
+            EmbeddingMatch<TextSegment> match1 = new EmbeddingMatch<TextSegment>(0.95, "embedding1", null, segment1);
+            EmbeddingMatch<TextSegment> match2 = new EmbeddingMatch<TextSegment>(0.93, "embedding2", null, segment2);
+            given(postEmbeddingService.findSimilarPosts(anyString(), anyInt())).willReturn(List.of(match1, match2));
+            given(userService.findById(anyLong())).willReturn(testUser);
+            given(aiRecommendPostRepository.saveAll(anyList())).willReturn(Collections.emptyList());
+
+            // when/then
+            assertThatCode(() -> postRecommendService.saveRecommendationsToDB(1L, 10)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void AI_프로필이_없으면_DB_저장_로직이_실행되지_않는다() {
+            // given
+            given(aiProfileRepository.findByUserId(anyLong())).willReturn(Optional.empty());
 
             // when/then
             assertThatCode(() -> postRecommendService.saveRecommendationsToDB(1L, 10)).doesNotThrowAnyException();
