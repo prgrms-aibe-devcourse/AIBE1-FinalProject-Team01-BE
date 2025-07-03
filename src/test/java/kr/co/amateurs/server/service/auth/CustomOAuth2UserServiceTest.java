@@ -6,6 +6,7 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.fixture.auth.OAuth2TestFixture;  // ✨ Fixture import
 import kr.co.amateurs.server.repository.user.UserRepository;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -59,16 +60,9 @@ public class CustomOAuth2UserServiceTest {
 
     @Test
     void 신규_GitHub_사용자는_회원가입이_가능하다() {
-        // given
-        String githubApiResponse = """
-            {
-                "id": 12345,
-                "login": "newuser",
-                "name": "뉴깃헙",
-                "email": "newuser@github.com",
-                "avatar_url": "https://github.com/avatar.jpg"
-            }
-            """;
+        String githubApiResponse = OAuth2TestFixture.createGitHubApiResponse(
+                "12345", "newuser", "뉴깃헙", "newuser@github.com"
+        );
 
         enqueueMockResponse(githubApiResponse);
         OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
@@ -87,6 +81,116 @@ public class CustomOAuth2UserServiceTest {
         assertThat(savedUser.get().getRole()).isEqualTo(Role.GUEST);
         assertThat(savedUser.get().getName()).isEqualTo("뉴깃헙");
         assertThat(savedUser.get().getNickname()).startsWith("newuser_");
+    }
+
+    @Test
+    void 기존_GitHub_사용자는_로그인이_가능하다() {
+        User existingUser = OAuth2TestFixture.defaultGitHubUser()
+                .providerId("12345")
+                .email("newuser@github.com")
+                .nickname("newuser_abc123")
+                .name("뉴깃헙")
+                .imageUrl("https://github.com/avatar.jpg")
+                .build();
+        userRepository.save(existingUser);
+
+        String githubApiResponse = OAuth2TestFixture.createGitHubApiResponse(
+                "12345", "newuser", "뉴깃헙", "newuser@github.com"
+        );
+
+        enqueueMockResponse(githubApiResponse);
+        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+
+        // when
+        OAuth2User result = customOAuth2UserService.loadUser(userRequest);
+
+        // then
+        assertThat(result).isInstanceOf(CustomUserDetails.class);
+
+        CustomUserDetails userDetails = (CustomUserDetails) result;
+        User returnedUser = userDetails.getUser();
+        assertThat(returnedUser.getEmail()).isEqualTo("newuser@github.com");
+        assertThat(returnedUser.getNickname()).isEqualTo("newuser_abc123");
+        assertThat(returnedUser.getName()).isEqualTo("뉴깃헙");
+
+        long userCount = userRepository.count();
+        assertThat(userCount).isEqualTo(1);
+    }
+
+    @Test
+    void GitHub에서_사용자_ID가_없으면_예외가_발생한다() {
+        String responseWithoutId = OAuth2TestFixture.createGitHubApiResponseWithoutId();
+
+        enqueueMockResponse(responseWithoutId);
+        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+
+        // when & then
+        assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
+                .isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    void GitHub에서_로그인_정보가_없으면_예외가_발생한다() {
+        String responseWithoutLogin = OAuth2TestFixture.createGitHubApiResponseWithoutLogin();
+
+        enqueueMockResponse(responseWithoutLogin);
+        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+
+        // when & then
+        assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("login");
+    }
+
+    @Test
+    void 다른_계정으로_이미_가입된_이메일로_가입_시도하면_예외가_발생한다() {
+        User existingUser = OAuth2TestFixture.defaultGitHubUser()
+                .providerId("existing123")
+                .email("duplicate@test.com")
+                .nickname("existing_user")
+                .name("Existing User")
+                .imageUrl("https://existing.jpg")
+                .build();
+        userRepository.save(existingUser);
+
+        String duplicateEmailResponse = OAuth2TestFixture.createGitHubApiResponse(
+                "99999", "newuser", "같은메일사용자", "duplicate@test.com"
+        );
+
+        enqueueMockResponse(duplicateEmailResponse);
+        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+
+        // when & then
+        assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
+                .isInstanceOf(OAuth2AuthenticationException.class);
+
+        long userCount = userRepository.count();
+        assertThat(userCount).isEqualTo(1);
+    }
+
+    @Test
+    void GitHub에서_이메일이_없으면_가짜_이메일이_생성된다() {
+        String responseWithoutEmail = OAuth2TestFixture.createGitHubApiResponseWithoutEmail(
+                "55555", "noemail", "메일없는사용자"
+        );
+
+        enqueueMockResponse(responseWithoutEmail);
+        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+
+        // when
+        OAuth2User result = customOAuth2UserService.loadUser(userRequest);
+
+        // then
+        assertThat(result).isInstanceOf(CustomUserDetails.class);
+
+        Optional<User> savedUser = userRepository.findByProviderIdAndProviderType("55555", ProviderType.GITHUB);
+        assertThat(savedUser).isPresent();
+
+        String generatedEmail = savedUser.get().getEmail();
+        assertThat(generatedEmail).startsWith("github_55555@");
+        assertThat(generatedEmail).endsWith("@amateurs.com");
+        assertThat(savedUser.get().getName()).isEqualTo("메일없는사용자");
+        assertThat(savedUser.get().getNickname()).startsWith("noemail_");
     }
 
     private void enqueueMockResponse(String jsonResponse) {
@@ -117,162 +221,5 @@ public class CustomOAuth2UserServiceTest {
         );
 
         return new OAuth2UserRequest(clientRegistration, accessToken);
-    }
-
-    private String createGitHubApiResponse(String id, String login, String name, String email) {
-        return String.format("""
-            {
-                "id": %s,
-                "login": "%s",
-                "name": "%s",
-                "email": "%s",
-                "avatar_url": "https://github.com/avatar.jpg"
-            }
-            """, id, login, name, email);
-    }
-
-    @Test
-    void 기존_GitHub_사용자는_로그인이_가능하다() {
-        // given
-        User existingUser = User.builder()
-                .providerId("12345")
-                .providerType(ProviderType.GITHUB)
-                .email("newuser@github.com")
-                .nickname("newuser_abc123")
-                .name("뉴깃헙")
-                .imageUrl("https://github.com/avatar.jpg")
-                .role(Role.GUEST)
-                .build();
-        userRepository.save(existingUser);
-
-        String githubApiResponse = """
-            {
-                "id": 12345,
-                "login": "newuser",
-                "name": "뉴깃헙",
-                "email": "newuser@github.com",
-                "avatar_url": "https://github.com/avatar.jpg"
-            }
-            """;
-
-        enqueueMockResponse(githubApiResponse);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
-
-        // when
-        OAuth2User result = customOAuth2UserService.loadUser(userRequest);
-
-        // then
-        assertThat(result).isInstanceOf(CustomUserDetails.class);
-
-        CustomUserDetails userDetails = (CustomUserDetails) result;
-        User returnedUser = userDetails.getUser();
-        assertThat(returnedUser.getEmail()).isEqualTo("newuser@github.com");
-        assertThat(returnedUser.getNickname()).isEqualTo("newuser_abc123");
-        assertThat(returnedUser.getName()).isEqualTo("뉴깃헙");
-
-        long userCount = userRepository.count();
-        assertThat(userCount).isEqualTo(1);
-    }
-
-    @Test
-    void GitHub에서_사용자_ID가_없으면_예외가_발생한다() {
-        // given
-        String responseWithoutId = """
-            {
-                "id": null,
-                "login": "testuser",
-                "name": "Test User",
-                "email": "test@github.com",
-                "avatar_url": "https://github.com/avatar.jpg"
-            }
-            """;
-
-        enqueueMockResponse(responseWithoutId);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
-
-        // when & then
-        assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
-                .isInstanceOf(CustomException.class);
-    }
-
-    @Test
-    void GitHub에서_로그인_정보가_없으면_예외가_발생한다() {
-        // given
-        String responseWithoutLogin = """
-            {
-                "id": 12345,
-                "name": "Test User",
-                "email": "test@github.com",
-                "avatar_url": "https://github.com/avatar.jpg"
-            }
-            """;
-
-        enqueueMockResponse(responseWithoutLogin);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
-
-        // when & then
-        assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("login");
-    }
-
-    @Test
-    void GitHub에서_이메일이_없으면_가짜_이메일이_생성된다() {
-        // given
-        String responseWithoutEmail = """
-            {
-                "id": 55555,
-                "login": "noemail",
-                "name": "메일없는사용자",
-                "avatar_url": "https://noemail.jpg"
-            }
-            """;
-
-        enqueueMockResponse(responseWithoutEmail);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
-
-        // when
-        OAuth2User result = customOAuth2UserService.loadUser(userRequest);
-
-        // then
-        assertThat(result).isInstanceOf(CustomUserDetails.class);
-
-        Optional<User> savedUser = userRepository.findByProviderIdAndProviderType("55555", ProviderType.GITHUB);
-        assertThat(savedUser).isPresent();
-
-        String generatedEmail = savedUser.get().getEmail();
-        assertThat(generatedEmail).startsWith("github_55555@");
-        assertThat(generatedEmail).endsWith("@amateurs.com");
-        assertThat(savedUser.get().getName()).isEqualTo("메일없는사용자");
-        assertThat(savedUser.get().getNickname()).startsWith("noemail_");
-    }
-
-    @Test
-    void 다른_계정으로_이미_가입된_이메일로_가입_시도하면_예외가_발생한다() {
-        // given
-        User existingUser = User.builder()
-                .providerId("existing123")
-                .providerType(ProviderType.GITHUB)
-                .email("duplicate@test.com")
-                .nickname("existing_user")
-                .name("Existing User")
-                .imageUrl("https://existing.jpg")
-                .role(Role.GUEST)
-                .build();
-        userRepository.save(existingUser);
-
-        String duplicateEmailResponse = createGitHubApiResponse(
-                "99999", "newuser", "같은메일사용자", "duplicate@test.com"
-        );
-
-        enqueueMockResponse(duplicateEmailResponse);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
-
-        // when & then
-        assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
-                .isInstanceOf(OAuth2AuthenticationException.class);
-
-        long userCount = userRepository.count();
-        assertThat(userCount).isEqualTo(1);
     }
 }

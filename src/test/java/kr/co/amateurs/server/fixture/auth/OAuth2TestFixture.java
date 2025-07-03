@@ -18,6 +18,51 @@ public class OAuth2TestFixture {
     public static final String DEFAULT_GITHUB_NAME = "KimGitHub";
     public static final String DEFAULT_AVATAR_URL = "https://github.com";
 
+    public static String createGitHubApiResponse(String id, String login, String name, String email) {
+        return String.format("""
+            {
+                "id": %s,
+                "login": "%s",
+                "name": "%s",
+                "email": "%s",
+                "avatar_url": "%s"
+            }
+            """, id, login, name, email, DEFAULT_AVATAR_URL);
+    }
+
+    public static String createGitHubApiResponseWithoutId() {
+        return """
+            {
+                "id": null,
+                "login": "testuser",
+                "name": "Test User", 
+                "email": "test@github.com",
+                "avatar_url": "%s"
+            }
+            """.formatted(DEFAULT_AVATAR_URL);
+    }
+
+    public static String createGitHubApiResponseWithoutLogin() {
+        return """
+            {
+                "id": 12345,
+                "name": "Test User",
+                "email": "test@github.com", 
+                "avatar_url": "%s"
+            }
+            """.formatted(DEFAULT_AVATAR_URL);
+    }
+
+    public static String createGitHubApiResponseWithoutEmail(String id, String login, String name) {
+        return """
+            {
+                "id": %s,
+                "login": "%s", 
+                "name": "%s",
+                "avatar_url": "%s"
+            }
+            """.formatted(id, login, name, DEFAULT_AVATAR_URL);
+    }
 
     public static OAuth2User createGitHubOAuth2User(String id, String email, String login, String name) {
         Map<String, Object> attributes = new HashMap<>();
@@ -36,15 +81,6 @@ public class OAuth2TestFixture {
         attributes.put("avatar_url", DEFAULT_AVATAR_URL);
 
         return new DefaultOAuth2User(null, attributes, "id");
-    }
-
-    public static OAuth2User createDefaultGitHubOAuth2User() {
-        return createGitHubOAuth2User(
-                DEFAULT_GITHUB_PROVIDER_ID,
-                DEFAULT_GITHUB_EMAIL,
-                DEFAULT_GITHUB_LOGIN,
-                DEFAULT_GITHUB_NAME
-        );
     }
 
     public static User.UserBuilder defaultGitHubUser() {
