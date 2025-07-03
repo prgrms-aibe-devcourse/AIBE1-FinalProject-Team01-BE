@@ -7,7 +7,7 @@ import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.report.ReportRequestDTO;
 import kr.co.amateurs.server.domain.dto.report.ReportResponseDTO;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportStatus;
-import kr.co.amateurs.server.domain.entity.report.enums.ReportType;
+import kr.co.amateurs.server.domain.entity.report.enums.ReportTarget;
 import kr.co.amateurs.server.service.report.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +32,12 @@ public class ReportController {
             description = "모든 신고 목록을 페이지네이션으로 조회합니다. 신고 타입과 상태로 필터링할 수 있습니다"
     )
     public ResponseEntity<Page<ReportResponseDTO>> getReports(
-            @RequestParam(required = false) ReportType reportType,
+            @RequestParam(required = false) ReportTarget reportTarget,
             @RequestParam(required = false) ReportStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<ReportResponseDTO> reports = reportService.getReports(reportType, status, page, size);
+        Page<ReportResponseDTO> reports = reportService.getReports(reportTarget, status, page, size);
         return ResponseEntity.ok(reports);
     }
 

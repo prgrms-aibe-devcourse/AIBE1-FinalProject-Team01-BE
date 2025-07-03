@@ -135,7 +135,7 @@ public class ReportControllerTest extends AbstractControllerTest {
                 ReportTestFixtures.createPostReport(studentUser, testPost, "부적절한 내용")
         );
         Report report2 = reportRepository.save(
-                ReportTestFixtures.createReportWithStatus(studentUser, testPost, "스팸 게시글", ReportStatus.REVIEWED)
+                ReportTestFixtures.createReportWithStatus(studentUser, testPost, "스팸 게시글", ReportStatus.RESOLVED)
         );
 
         // when & then
@@ -153,7 +153,7 @@ public class ReportControllerTest extends AbstractControllerTest {
                 .body("content[0].description", equalTo("부적절한 내용"))
                 .body("content[0].reportStatus", equalTo("PENDING"))
                 .body("content[1].description", equalTo("스팸 게시글"))
-                .body("content[1].reportStatus", equalTo("REVIEWED"));
+                .body("content[1].reportStatus", equalTo("RESOLVED"));
     }
 
     @Test
@@ -194,13 +194,13 @@ public class ReportControllerTest extends AbstractControllerTest {
         given()
                 .header("Authorization", "Bearer " + adminToken)
                 .when()
-                .put("/reports/{reportId}/{status}", report.getId(), ReportStatus.REVIEWED)
+                .put("/reports/{reportId}/{status}", report.getId(), ReportStatus.RESOLVED)
                 .then()
                 .statusCode(204);
 
 
         Report updatedReport = reportRepository.findById(report.getId()).orElseThrow();
-        assert updatedReport.getStatus() == ReportStatus.REVIEWED;
+        assert updatedReport.getStatus() == ReportStatus.RESOLVED;
     }
 
     @Test
@@ -214,7 +214,7 @@ public class ReportControllerTest extends AbstractControllerTest {
         given()
                 .header("Authorization", "Bearer " + studentToken)
                 .when()
-                .put("/reports/{reportId}/{status}", report.getId(), ReportStatus.REVIEWED)
+                .put("/reports/{reportId}/{status}", report.getId(), ReportStatus.RESOLVED)
                 .then()
                 .statusCode(403);
     }

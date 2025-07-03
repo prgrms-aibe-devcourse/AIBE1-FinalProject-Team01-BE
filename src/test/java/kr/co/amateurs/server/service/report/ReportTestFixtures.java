@@ -6,6 +6,7 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.report.Report;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportStatus;
+import kr.co.amateurs.server.domain.entity.report.enums.ReportTarget;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -104,6 +105,7 @@ public class ReportTestFixtures {
                 .post(post)
                 .description(description)
                 .status(ReportStatus.PENDING)
+                .reportType(ReportType.BAD_WORDS)
                 .build();
     }
 
@@ -113,6 +115,7 @@ public class ReportTestFixtures {
                 .comment(comment)
                 .description(description)
                 .status(ReportStatus.PENDING)
+                .reportType(ReportType.BAD_WORDS)
                 .build();
     }
 
@@ -122,22 +125,25 @@ public class ReportTestFixtures {
                 .post(post)
                 .description(description)
                 .status(status)
+                .reportType(ReportType.BAD_WORDS)
                 .build();
     }
 
     public static ReportRequestDTO createPostReportRequestDTO(Long postId, String description) {
         return new ReportRequestDTO(
                 postId,
-                ReportType.POST,
-                description
+                ReportTarget.POST,
+                description,
+                ReportType.BAD_WORDS
         );
     }
 
     public static ReportRequestDTO createCommentReportRequestDTO(Long commentId, String description) {
         return new ReportRequestDTO(
                 commentId,
-                ReportType.COMMENT,
-                description
+                ReportTarget.COMMENT,
+                description,
+                ReportType.BAD_WORDS
         );
     }
 }
