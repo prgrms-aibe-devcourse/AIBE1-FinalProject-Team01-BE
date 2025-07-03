@@ -6,7 +6,7 @@ import org.springframework.security.config.annotation.web.configurers.AuthorizeH
 import org.springframework.stereotype.Component;
 
 @Component
-public class CommentAuthorizeHttpRequestsConfig implements CustomAuthorizeHttpRequestsConfigurer{
+public class PostAuthorizeHttpRequestsConfig implements CustomAuthorizeHttpRequestsConfigurer{
     @Override
     public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
