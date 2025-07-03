@@ -91,8 +91,6 @@ management:
       exposure:
         include: health,info,prometheus,metrics
   endpoint:
-    health:
-      show-details: always # nginx에서 ip 제한 처리
     info:
       access: read_only
     prometheus:
@@ -115,6 +113,13 @@ logging:
     org.springframework: WARN
     org.hibernate.SQL: ERROR
     org.hibernate.type.descriptor.sql.BasicBinder: ERROR
+  file:
+    name: /var/log/spring-boot/application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 7
+      total-size-cap: 1GB
 
 oauth:
   success-redirect-url: https://dev.amateurs.co.kr

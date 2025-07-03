@@ -16,8 +16,6 @@ import java.time.LocalDateTime;
 
 public interface LikeRepository extends JpaRepository<Like, Long> {
 
-    Optional<Like> findByPostIdAndUserId(Long postId, Long id);
-
     @Transactional
     @Modifying
     void deleteByPostIdAndUserId(Long postId, Long userId);
@@ -47,4 +45,6 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     List<Like> findTop3ByUserIdAndPostIsNotNullOrderByCreatedAtDesc(Long userId);
 
     boolean existsByUserIdAndPostIsNotNullAndCreatedAtAfter(Long userId, LocalDateTime createdAt);
+
+    boolean existsByComment_IdAndUser_Id(Long commentId, Long userId);
 }
