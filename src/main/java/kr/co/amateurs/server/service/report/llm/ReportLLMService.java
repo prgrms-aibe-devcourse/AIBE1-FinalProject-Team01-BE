@@ -1,4 +1,4 @@
-package kr.co.amateurs.server.service.report;
+package kr.co.amateurs.server.service.report.llm;
 
 import kr.co.amateurs.server.domain.dto.report.LLMAnalysisResult;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportType;

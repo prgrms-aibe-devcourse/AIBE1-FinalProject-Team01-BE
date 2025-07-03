@@ -32,7 +32,6 @@ public class ReportService {
     private final CommentRepository commentRepository;
     private final ReportRepository reportRepository;
     private final UserService userService;
-    private final ReportProcessingManager processingManager;
 
     public Page<ReportResponseDTO> getReports(ReportTarget reportTarget, ReportStatus status , int page, int size) {
         Pageable pageable = PageRequest.of(page, size);

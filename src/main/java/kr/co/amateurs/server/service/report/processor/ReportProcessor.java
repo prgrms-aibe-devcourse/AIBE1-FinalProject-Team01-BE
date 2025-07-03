@@ -1,9 +1,8 @@
-package kr.co.amateurs.server.service.report;
+package kr.co.amateurs.server.service.report.processor;
 
 import kr.co.amateurs.server.domain.dto.report.LLMAnalysisResult;
 import kr.co.amateurs.server.domain.entity.report.Report;
-import kr.co.amateurs.server.domain.entity.report.enums.ReportTarget;
-import kr.co.amateurs.server.domain.entity.report.enums.ReportType;
+import kr.co.amateurs.server.service.report.llm.ReportLLMService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -48,12 +47,10 @@ public class ReportProcessor {
 
     private String extractContent(Report report) {
         if (report.getPost() != null) {
-            // 게시글의 경우 제목 + 내용
             String title = report.getPost().getTitle() != null ? report.getPost().getTitle() : "";
             String content = report.getPost().getContent() != null ? report.getPost().getContent() : "";
             return title + " " + content;
         } else if (report.getComment() != null) {
-            // 댓글의 경우 내용만
             return report.getComment().getContent() != null ? report.getComment().getContent() : "";
         } else {
             log.warn("신고 대상이 명확하지 않음 - Report ID: {}", report.getId());

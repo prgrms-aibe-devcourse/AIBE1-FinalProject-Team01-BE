@@ -46,6 +46,10 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private Boolean isDeleted = false;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isBlinded = false;
+
     @Column(name = "tag")
     private String tags;
 
@@ -99,5 +103,9 @@ public class Post extends BaseEntity {
         this.title = requestDTO.title();
         this.content = requestDTO.content();
         this.tags = requestDTO.tags();
+    }
+
+    public void updateBlinded(boolean isBlinded) {
+        this.isBlinded = isBlinded;
     }
 }

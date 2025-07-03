@@ -1,7 +1,5 @@
-package kr.co.amateurs.server.service.report;
+package kr.co.amateurs.server.service.report.llm;
 
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.service.AiServices;
 import kr.co.amateurs.server.domain.dto.report.LLMAnalysisResult;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportType;
 import lombok.RequiredArgsConstructor;
@@ -59,10 +57,8 @@ public class GeminiReportLLMService implements ReportLLMService {
 
     private LLMAnalysisResult parseGeminiResponse(String response) {
         try {
-            // JSON 응답에서 코드 블록 제거
             String cleanedResponse = response.replaceAll("```json\\s*", "").replaceAll("```", "").trim();
 
-            // 간단한 JSON 파싱 (실제로는 Jackson 등을 사용하는 것이 좋음)
             boolean isViolation = cleanedResponse.contains("\"isViolation\": true") ||
                     cleanedResponse.contains("\"isViolation\":true");
 
@@ -90,9 +86,10 @@ public class GeminiReportLLMService implements ReportLLMService {
             if (m.find()) {
                 return m.group(1);
             }
-            return "값을 추출할 수 없음";
+            log.warn("JSON에서 키 '{}' 값을 찾을 수 없음", key);
+            return "분석 결과 없음";
         } catch (Exception e) {
-            return "파싱 오류";
+            return "파싱 오류 발생";
         }
     }
 
@@ -103,9 +100,9 @@ public class GeminiReportLLMService implements ReportLLMService {
             java.util.regex.Matcher m = p.matcher(json);
             if (m.find()) {
                 double score = Double.parseDouble(m.group(1));
-                return Math.max(0.0, Math.min(1.0, score)); // 0.0 ~ 1.0 범위로 제한
+                return Math.max(0.0, Math.min(1.0, score));
             }
-            return 0.5; // 기본값
+            return 0.5;
         } catch (Exception e) {
             return 0.0;
         }

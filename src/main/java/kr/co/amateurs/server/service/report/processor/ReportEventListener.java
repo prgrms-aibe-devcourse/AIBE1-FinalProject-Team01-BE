@@ -1,4 +1,4 @@
-package kr.co.amateurs.server.service.report;
+package kr.co.amateurs.server.service.report.processor;
 
 import kr.co.amateurs.server.domain.dto.report.ReportCreatedEvent;
 import lombok.RequiredArgsConstructor;
@@ -6,6 +6,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+/**
+ * 트랜잭션 저장 이후에 프로세서 매니저에 등록하기 위한 이벤트 리스너
+ *
+ */
 @Component
 @RequiredArgsConstructor
 public class ReportEventListener {

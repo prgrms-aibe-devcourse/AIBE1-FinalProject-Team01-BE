@@ -69,6 +69,13 @@ public class Report extends BaseEntity {
         this.confidenceScore = confidenceScore;
     }
 
+    public void manualProcessing(String violationReason, Double confidenceScore) {
+        this.status = ReportStatus.MANUAL_REVIEW;
+        this.processingCompletedAt = LocalDateTime.now();
+        this.violationReason = violationReason;
+        this.confidenceScore = confidenceScore;
+    }
+
 
     public static Report fromPost(Post post, User user, ReportRequestDTO requestDTO) {
         return Report.builder()
