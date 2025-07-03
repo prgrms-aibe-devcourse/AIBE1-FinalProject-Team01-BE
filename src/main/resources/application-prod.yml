@@ -34,10 +34,20 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
-  springdoc:
-    swagger-ui:
-      enabled: false
-    enable-kotlin: false
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: read:user,user:email
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  enable-kotlin: false
 
   output:
     ansi:
@@ -81,8 +91,6 @@ management:
       exposure:
         include: health,info,prometheus,metrics
   endpoint:
-    health:
-      show-details: always # nginx에서 ip 제한 처리
     info:
       access: read_only
     prometheus:
@@ -105,3 +113,16 @@ logging:
     org.springframework: WARN
     org.hibernate.SQL: ERROR
     org.hibernate.type.descriptor.sql.BasicBinder: ERROR
+  file:
+    name: /var/log/spring-boot/application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 7
+      total-size-cap: 1GB
+
+oauth:
+  success-redirect-url: https://dev.amateurs.co.kr
+
+cookie:
+  domain: .amateurs.co.kr
