@@ -40,6 +40,24 @@ public class AiProfileService {
     }
 
     @Transactional
+    public AiProfile generateInitialProfile(Long userId) {
+        try {
+            log.info("초기 AI 프로필 생성 시작: userId={}", userId);
+
+            String userTopics = collectUserTopics(userId);
+            AiProfileResponse profile = aiLlmService.generateInitialProfile(userTopics);
+            log.info("초기 AI 프로필 생성 완료: userId={}, profile={}", userId, profile);
+
+            return saveOrUpdateProfile(userId, profile);
+
+        } catch (Exception e) {
+            log.error("초기 AI 프로필 생성 실패: userId={}", userId, e);
+            throw ErrorCode.ERROR_AI_PROFILE_GENERATION.get();
+        }
+    }
+
+
+    @Transactional
     public AiProfile generateCompleteUserProfile(Long userId) {
         try {
             log.info("사용자 AI 프로필 생성 시작: userId={}", userId);
@@ -59,23 +77,7 @@ public class AiProfileService {
             AiProfileResponse profile = aiLlmService.generateFinalProfile(request);
             log.info("AI 프로필 생성 1단계 완료: userId={}, profile={}", userId, profile);
 
-            User user = userService.findById(userId);
-            AiProfile aiProfile = aiProfileRepository.findByUserId(userId)
-                    .map(exist -> {
-                        exist.updateProfile(profile);
-                        return exist;
-                    })
-                    .orElseGet(() -> AiProfile.builder()
-                            .user(user)
-                            .personaDescription(profile.personaDescription())
-                            .interestKeywords(profile.interestKeywords())
-                            .build());
-
-            AiProfile result = aiProfileRepository.save(aiProfile);
-
-            log.info("사용자 AI 프로필 생성 완료: userId={}", userId);
-            return result;
-
+            return saveOrUpdateProfile(userId, profile);
         } catch (Exception e) {
             log.error("사용자 AI 프로필 생성 실패: userId={}", userId, e);
             throw ErrorCode.ERROR_AI_PROFILE_GENERATION.get();
@@ -89,8 +91,8 @@ public class AiProfileService {
             return aiLlmService.summarizeBookmarkedPosts(bookmarks);
 
         } catch (Exception e) {
-            log.error("북마크 수집+분석 실패: userId={}", userId, e);
-            throw ErrorCode.ERROR_USER_ACTIVITY_INSUFFICIENT.get();
+            log.warn("북마크 수집 실패, 기본값 사용: userId={}", userId, e);
+            return new PostSummaryData("북마크", "북마크 활동이 없습니다.");
         }
     }
 
@@ -101,8 +103,8 @@ public class AiProfileService {
             return aiLlmService.summarizeLikedPosts(likes);
 
         } catch (Exception e) {
-            log.error("좋아요 수집+분석 실패: userId={}", userId, e);
-            throw ErrorCode.ERROR_USER_ACTIVITY_INSUFFICIENT.get();
+            log.warn("좋아요 수집 실패, 기본값 사용: userId={}", userId, e);
+            return new PostSummaryData("좋아요", "좋아요 활동이 없습니다.");
         }
     }
 
@@ -113,8 +115,8 @@ public class AiProfileService {
             return aiLlmService.summarizeWrittenPosts(written);
 
         } catch (Exception e) {
-            log.error("작성글 수집+분석 실패: userId={}", userId, e);
-            throw ErrorCode.ERROR_USER_ACTIVITY_INSUFFICIENT.get();
+            log.warn("작성글 수집 실패, 기본값 사용: userId={}", userId, e);
+            return new PostSummaryData("작성글", "작성 활동이 없습니다.");
         }
     }
 
@@ -128,6 +130,36 @@ public class AiProfileService {
                 savedProfile.getPersonaDescription(),
                 savedProfile.getInterestKeywords()
         );
+    }
+
+    private AiProfile saveOrUpdateProfile(Long userId, AiProfileResponse profile) {
+        User user = userService.findById(userId);
+        AiProfile aiProfile = aiProfileRepository.findByUserId(userId)
+                .map(exist -> {
+                    exist.updateProfile(profile);
+                    return exist;
+                })
+                .orElseGet(() -> AiProfile.builder()
+                        .user(user)
+                        .personaDescription(profile.personaDescription())
+                        .interestKeywords(profile.interestKeywords())
+                        .build());
+
+        return aiProfileRepository.save(aiProfile);
+    }
+
+    /**
+     * 최근 활동 여부 체크 (북마크 OR 좋아요 OR 작성글)
+     */
+    public boolean hasRecentActivity(Long userId, int days) {
+        try {
+            return bookmarkService.hasRecentBookmarkActivity(userId, days) ||
+                    likeService.hasRecentLikeActivity(userId, days) ||
+                    postService.hasRecentPostActivity(userId, days);
+        } catch (Exception e) {
+            log.warn("활동 체크 실패: userId={}", userId, e);
+            return false;
+        }
     }
 
 }

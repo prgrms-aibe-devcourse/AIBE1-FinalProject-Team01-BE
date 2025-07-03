@@ -76,23 +76,13 @@ public enum ErrorCode implements Supplier<CustomException> {
     // AI 프로필 관련
     ERROR_SUMMARIZE(HttpStatus.INTERNAL_SERVER_ERROR, "활동 요약 생성 중 오류가 발생했습니다."),
     ERROR_AI_PROFILE_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "AI 프로필 생성 중 오류가 발생했습니다."),
-    ERROR_AI_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "AI 프로필을 찾을 수 없습니다."),
-    ERROR_USER_ACTIVITY_INSUFFICIENT(HttpStatus.BAD_REQUEST, "사용자 활동이 부족하여 AI 프로필을 생성할 수 없습니다."),
-
-    // 추천 시스템 관련
-    ERROR_AI_RECOMMENDATION_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "추천 생성 중 오류가 발생했습니다."),
-    ERROR_AI_RECOMMENDATION_SAVE(HttpStatus.INTERNAL_SERVER_ERROR, "추천 게시글 저장 중 오류가 발생했습니다."),
-    ERROR_AI_RECOMMENDATION_NOT_FOUND(HttpStatus.NOT_FOUND, "저장된 추천 게시글을 찾을 수 없습니다."),
-
     // 임베딩 관련
     ERROR_AI_EMBEDDING_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 생성 중 오류가 발생했습니다."),
-    ERROR_AI_EMBEDDING_SEARCH(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 검색 중 오류가 발생했습니다."),
-    ERROR_AI_EMBEDDING_INITIALIZE(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 초기화 중 오류가 발생했습니다."), 
-    
+
     // 좋아요 관련
     INVALID_LIKE(HttpStatus.BAD_REQUEST, "좋아요에는 댓글, 게시글 중 하나만 있어야 됩니다."),
-    DUPLICATE_LIKE(HttpStatus.CONFLICT, "좋아요가 이미 있습니다."), 
-    
+    DUPLICATE_LIKE(HttpStatus.CONFLICT, "좋아요가 이미 있습니다."),
+
     // 북마크 관련
     DUPLICATE_BOOKMARK(HttpStatus.CONFLICT, "북마크가 이미 있습니다.");
 

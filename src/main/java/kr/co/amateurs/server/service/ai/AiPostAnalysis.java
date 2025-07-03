@@ -52,6 +52,19 @@ public interface AiPostAnalysis {
     String analyzeWritten(@V("posts") String posts);
 
     @UserMessage("""
+        사용자가 가입 시 선택한 토픽을 기반으로 기본 AI 프로필을 생성해주세요.
+        
+        선택한 토픽: {{userTopics}}
+        
+        요구사항:
+        - 선택한 토픽을 기반으로 기본적인 관심사 추론
+        - 해당 분야의 일반적인 학습 방향 제시
+        - 관심 기술 키워드는 선택한 토픽 관련 3-5개로 구성
+        - 아직 활동 데이터가 없으므로 일반적인 초보자 관점에서 작성
+        """)
+    AiProfileResponse generateInitialProfile(@V("userTopics") String userTopics);
+
+    @UserMessage("""
         사용자의 활동 데이터를 분석하여 개인화된 프로필을 생성해주세요.
         
         사용자 가입 토픽: {{userTopics}}
@@ -60,7 +73,9 @@ public interface AiPostAnalysis {
         사용자 활동 요약:
         {{summaries}}
         
-        사용자의 특성을 분석하고 관심 기술 키워드를 추출해주세요.
+        요구사항:
+        - 데브코스 정보가 "정보 없음"인 경우 무시하고 다른 정보로 분석
+        - 활동 요약이 부족한 경우 토픽 정보를 더 중점적으로 활용
         - 관심 기술 키워드는 5~8개 이내로 작성
         """)
     AiProfileResponse generateFinalProfile(@V("userTopics") String userTopics, @V("devcourseName") String devcourseName, @V("summaries") String summaries);

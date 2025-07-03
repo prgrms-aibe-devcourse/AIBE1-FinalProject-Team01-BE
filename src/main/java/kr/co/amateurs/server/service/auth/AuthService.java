@@ -10,19 +10,25 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.AiProfileService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
+    private final AiProfileService aiProfileService;
 
     @Transactional
     public SignupResponseDto signup(SignupRequestDto request){
@@ -43,6 +49,15 @@ public class AuthService {
         user.addUserTopics(request.topics());
 
         User savedUser = userService.saveUser(user);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                aiProfileService.generateInitialProfile(savedUser.getId());
+                log.info("회원가입 시 초기 AI 프로필 생성 완료: userId={}", savedUser.getId());
+            } catch (Exception e) {
+                log.warn("회원가입 시 초기 AI 프로필 생성 실패: userId={}", savedUser.getId(), e);
+            }
+        });
 
         return SignupResponseDto.fromEntity(savedUser, request.topics());
     }
