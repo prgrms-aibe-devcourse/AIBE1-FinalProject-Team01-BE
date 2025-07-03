@@ -246,4 +246,33 @@ public class CustomOAuth2UserServiceTest {
         assertThat(savedUser.get().getName()).isEqualTo("메일없는사용자");
         assertThat(savedUser.get().getNickname()).startsWith("noemail_");
     }
+
+    @Test
+    void 다른_계정으로_이미_가입된_이메일로_가입_시도하면_예외가_발생한다() {
+        // given
+        User existingUser = User.builder()
+                .providerId("existing123")
+                .providerType(ProviderType.GITHUB)
+                .email("duplicate@test.com")
+                .nickname("existing_user")
+                .name("Existing User")
+                .imageUrl("https://existing.jpg")
+                .role(Role.GUEST)
+                .build();
+        userRepository.save(existingUser);
+
+        String duplicateEmailResponse = createGitHubApiResponse(
+                "99999", "newuser", "같은메일사용자", "duplicate@test.com"
+        );
+
+        enqueueMockResponse(duplicateEmailResponse);
+        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+
+        // when & then
+        assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
+                .isInstanceOf(OAuth2AuthenticationException.class);
+
+        long userCount = userRepository.count();
+        assertThat(userCount).isEqualTo(1);
+    }
 }
