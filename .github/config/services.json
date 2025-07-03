@@ -22,5 +22,11 @@
   },
   "n8n": {
     "source": "docker/n8n/*"
+  },
+  "promtail": {
+    "source": "docker/promtail/*"
+  },
+  "loki": {
+    "source": "docker/loki/*"
   }
 }
