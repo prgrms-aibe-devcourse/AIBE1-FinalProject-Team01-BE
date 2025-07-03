@@ -44,7 +44,7 @@ public class ReportService {
 
     @Transactional
     public ReportResponseDTO createReport(ReportRequestDTO requestDTO) {
-        User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
+        User user = userService.getCurrentLoginUser();
 
         if (isDuplicateReport(requestDTO, user)) {
             throw ErrorCode.DUPLICATE_REPORT.get();
