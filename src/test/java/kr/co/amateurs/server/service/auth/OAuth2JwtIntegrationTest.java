@@ -105,6 +105,11 @@ public class OAuth2JwtIntegrationTest {
         assertThat(savedRefreshToken).isPresent();
         assertThat(savedRefreshToken.get().getEmail()).isEqualTo(uniqueEmail);
         assertThat(savedRefreshToken.get().getExpiration()).isEqualTo(refreshExpiresIn);
+
+        String emailFromToken = jwtProvider.getEmailFromToken(accessToken);
+        Optional<User> userByEmail = userRepository.findByEmail(emailFromToken);
+        assertThat(userByEmail).isPresent();
+        assertThat(userByEmail.get().getId()).isEqualTo(savedUser.getId());
     }
 
     private void enqueueMockResponse(String jsonResponse) {
@@ -185,6 +190,5 @@ public class OAuth2JwtIntegrationTest {
         long userCount = userRepository.count();
         assertThat(userCount).isEqualTo(1);
     }
-
 
 }
