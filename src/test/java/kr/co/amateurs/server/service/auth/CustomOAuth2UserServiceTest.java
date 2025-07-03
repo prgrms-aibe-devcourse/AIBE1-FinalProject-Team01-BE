@@ -115,4 +115,50 @@ public class CustomOAuth2UserServiceTest {
 
         return new OAuth2UserRequest(clientRegistration, accessToken);
     }
+
+    @Test
+    void 기존_GitHub_사용자는_로그인이_가능하다() throws IOException {
+        // given
+        User existingUser = User.builder()
+                .providerId("12345")
+                .providerType(ProviderType.GITHUB)
+                .email("newuser@github.com")
+                .nickname("newuser_abc123")
+                .name("뉴깃헙")
+                .imageUrl("https://github.com/avatar.jpg")
+                .role(Role.GUEST)
+                .build();
+        userRepository.save(existingUser);
+
+        String githubApiResponse = """
+        {
+            "id": 12345,
+            "login": "newuser",
+            "name": "뉴깃헙",
+            "email": "newuser@github.com",
+            "avatar_url": "https://github.com/avatar.jpg"
+        }
+        """;
+
+        mockWebServer.enqueue(new MockResponse()
+                .setBody(githubApiResponse)
+                .addHeader("Content-Type", "application/json"));
+
+        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+
+        // when
+        OAuth2User result = customOAuth2UserService.loadUser(userRequest);
+
+        // then
+        assertThat(result).isInstanceOf(CustomUserDetails.class);
+
+        CustomUserDetails userDetails = (CustomUserDetails) result;
+        User returnedUser = userDetails.getUser();
+        assertThat(returnedUser.getEmail()).isEqualTo("newuser@github.com");
+        assertThat(returnedUser.getNickname()).isEqualTo("newuser_abc123");
+        assertThat(returnedUser.getName()).isEqualTo("뉴깃헙");
+
+        long userCount = userRepository.count();
+        assertThat(userCount).isEqualTo(1);
+    }
 }
