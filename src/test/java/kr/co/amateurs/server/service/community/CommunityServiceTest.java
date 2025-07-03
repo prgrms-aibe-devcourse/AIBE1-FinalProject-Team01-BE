@@ -240,7 +240,7 @@ class CommunityServiceTest {
         CommunityRequestDTO requestDTO = CommunityTestFixtures.createRequestDTO("새로운 제목","태그", "새로운 내용");
         BoardType boardType = BoardType.FREE;
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when
         CommunityResponseDTO result = communityService.createPost(requestDTO, boardType);
@@ -260,7 +260,7 @@ class CommunityServiceTest {
         CommunityRequestDTO requestDTO = CommunityTestFixtures.createRequestDTO("새로운 제목", "태그","새로운 내용");
         BoardType boardType = BoardType.FREE;
 
-        given(userService.getCurrentUser()).willReturn(Optional.empty());
+        given(userService.getCurrentLoginUser()).willThrow(CustomException.class);
 
         // when & then
         assertThatThrownBy(() -> communityService.createPost(requestDTO, boardType))
@@ -273,7 +273,7 @@ class CommunityServiceTest {
         CommunityRequestDTO requestDTO = CommunityTestFixtures.createRequestDTO("수정된 제목","수정 태그", "수정된 내용");
         Long communityId = testFreeCommunityPost.getId();
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when
         communityService.updatePost(requestDTO, communityId);
@@ -304,7 +304,7 @@ class CommunityServiceTest {
         CommunityRequestDTO requestDTO = CommunityTestFixtures.createRequestDTO("수정된 제목","수정 태그", "수정된 내용");
         Long communityId = testFreeCommunityPost.getId();
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
+        given(userService.getCurrentLoginUser()).willReturn(testOtherUser);
 
         // when & then
         assertThatThrownBy(() -> communityService.updatePost(requestDTO, communityId))
@@ -316,7 +316,7 @@ class CommunityServiceTest {
         // given
         Long communityId = testFreeCommunityPost.getId();
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when
         communityService.deletePost(communityId);
@@ -343,7 +343,7 @@ class CommunityServiceTest {
         // given
         Long communityId = testFreeCommunityPost.getId();
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
+        given(userService.getCurrentLoginUser()).willReturn(testOtherUser);
 
         // when & then
         assertThatThrownBy(() -> communityService.deletePost(communityId))

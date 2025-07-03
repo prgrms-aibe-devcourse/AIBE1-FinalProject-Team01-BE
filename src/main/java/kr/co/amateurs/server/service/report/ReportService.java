@@ -45,7 +45,7 @@ public class ReportService {
 
     @Transactional
     public ReportResponseDTO createReport(ReportRequestDTO requestDTO) {
-        User user = userService.getCurrentUser().orElseThrow(ErrorCode.USER_NOT_FOUND);
+        User user = userService.getCurrentLoginUser();
 
         Report report = createReportEntity(requestDTO, user);
         Report savedReport = reportRepository.save(report);

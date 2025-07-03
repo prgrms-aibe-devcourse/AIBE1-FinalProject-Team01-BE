@@ -16,6 +16,7 @@ import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -36,64 +37,84 @@ public class LikeService {
     private final UserService userService;
 
 
+    @Transactional
     public LikeResponseDTO addLikeToPost(Long postId) {
-        User currentUser = getCurrentUser();
-        validateUser(currentUser.getId());
-        Post post = postRepository.findById(postId).orElseThrow();
+        User currentUser = userService.getCurrentLoginUser();
+        Post post = postRepository.findById(postId).orElseThrow(ErrorCode.NOT_FOUND);
+        if(checkHasLiked(postId, currentUser.getId())) {
+            throw ErrorCode.DUPLICATE_LIKE.get();
+        }
+
         Like likeToPost = Like.builder()
                 .user(currentUser)
                 .post(post)
                 .build();
         Like savedLike = likeRepository.save(likeToPost);
-        likeRepository.increasePostLikeCount(postId);
+
+        post.incrementLikeCount();
+
         return convertToDTO(savedLike, "post");
     }
 
-    public LikeResponseDTO addLikeToComment(Long commentId) {
-        User currentUser = getCurrentUser();
-        validateUser(currentUser.getId());
-        Comment comment = commentRepository.findById(commentId).orElseThrow();
+    @Transactional
+    public LikeResponseDTO addLikeToComment(Long postId, Long commentId) {
+        User currentUser = userService.getCurrentLoginUser();
+        Comment comment = commentRepository.findById(commentId).orElseThrow(ErrorCode.NOT_FOUND);
+
+        validateCommentBelongsToPost(comment, postId);
+        if (checkCommentHasLiked(commentId, currentUser.getId())){
+            throw ErrorCode.DUPLICATE_LIKE.get();
+        }
+
         Like likeToPost = Like.builder()
                 .user(currentUser)
                 .comment(comment)
                 .build();
         Like savedLike = likeRepository.save(likeToPost);
-        likeRepository.increaseCommentLikeCount(commentId);
+
+        comment.incrementLikeCount();
+
         return convertToDTO(savedLike, "comment");
 
     }
 
+    @Transactional
     public void removeLikeFromPost(Long postId) {
-        User currentUser = getCurrentUser();
-        validateUser(currentUser.getId());
+        User currentUser = userService.getCurrentLoginUser();
+        Post post = postRepository.findById(postId).orElseThrow(ErrorCode.NOT_FOUND);
+
+        if(!checkHasLiked(postId, currentUser.getId())) {
+            throw ErrorCode.NOT_FOUND.get();
+        }
+
         likeRepository.deleteByPostIdAndUserId(postId, currentUser.getId());
+
+        post.decrementLikeCount();
     }
 
-    public void removeLikeFromComment(Long commentId) {
-        User currentUser = getCurrentUser();
-        validateUser(currentUser.getId());
+    @Transactional
+    public void removeLikeFromComment(Long postId, Long commentId) {
+        User currentUser = userService.getCurrentLoginUser();
+        Comment comment = commentRepository.findById(commentId).orElseThrow(ErrorCode.NOT_FOUND);
+
+        validateCommentBelongsToPost(comment, postId);
+        if(!checkCommentHasLiked(commentId, currentUser.getId())) {
+            throw ErrorCode.NOT_FOUND.get();
+        }
+
         likeRepository.deleteByCommentIdAndUserId(commentId, currentUser.getId());
+
+        comment.decrementLikeCount();
     }
+
     public boolean checkHasLiked(Long postId, Long userId) {
-        User user = getCurrentUser();
         return likeRepository
-                .findByPostIdAndUserId(postId, userId)
-                .isPresent();
+                .existsByPost_IdAndUser_Id(postId, userId);
     }
-    private User getCurrentUser() {
-        Optional<User> user = Objects.requireNonNull(userService).getCurrentUser();
-        if (user.isEmpty()) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        }
-        return user.get();
-    }
-    private void validateUser(Long userId) {
-        User currentUser = getCurrentUser();
-        Long currentId = currentUser.getId();
-        Role currentRole = currentUser.getRole();
-        if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
-            throw new CustomException(ErrorCode.ACCESS_DENIED, "본인의 북마크에만 접근할 수 있습니다.");
-        }
+
+    public boolean checkCommentHasLiked(Long commentId, Long userId) {
+        return likeRepository
+                .existsByComment_IdAndUser_Id(commentId, userId);
     }
 
     public List<PostContentData> getLikedPosts(Long userId) {
@@ -103,6 +124,12 @@ public class LikeService {
                     new PostContentData(like.getPost().getId(), like.getPost().getTitle(), like.getPost().getContent(), "좋아요")).toList();
         } catch (Exception e) {
             return Collections.emptyList();
+        }
+    }
+
+    private void validateCommentBelongsToPost(Comment comment, Long postId) {
+        if (!comment.getPost().getId().equals(postId)) {
+            throw new CustomException(ErrorCode.INVALID_COMMENT_POST_RELATION);
         }
     }
 

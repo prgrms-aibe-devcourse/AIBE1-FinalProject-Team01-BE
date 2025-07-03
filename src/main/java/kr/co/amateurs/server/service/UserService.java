@@ -100,9 +100,7 @@ public class UserService {
     }
 
     public UserProfileResponseDto getCurrentUserProfile() {
-        Long userId = getCurrentUser()
-                .map(User::getId)
-                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+        Long userId = getCurrentLoginUser().getId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);

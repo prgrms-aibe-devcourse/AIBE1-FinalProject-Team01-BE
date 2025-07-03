@@ -16,6 +16,8 @@ on:
           - 'grafana'
           - 'node-exporter'
           - 'n8n'
+          - 'promtail'
+          - 'loki'
         default: 'spring-dev'
 
   workflow_call:
