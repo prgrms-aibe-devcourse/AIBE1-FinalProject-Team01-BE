@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
+import static kr.co.amateurs.server.fixture.post.PopularPostRequestFixture.생성;
 
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
@@ -37,22 +38,6 @@ class PopularPostServiceTest {
 
     @MockitoBean
     PostService postService;
-
-    static PopularPostRequest 인기글요청(Long postId, int view, int like, int comment, double score, LocalDate date) {
-        return new PopularPostRequest(
-                postId,
-                view,
-                like,
-                comment,
-                score,
-                date,
-                "테스터",
-                DevCourseTrack.BACKEND,
-                LocalDateTime.now(),
-                "테스트 제목",
-                BoardType.FREE
-        );
-    }
 
     @Nested
     class 인기글_계산_및_저장_테스트 {
@@ -73,8 +58,8 @@ class PopularPostServiceTest {
         void 게시글_있으면_점수계산_저장_삭제_호출() {
             // given
             List<PopularPostRequest> posts = List.of(
-                    인기글요청(1L, 100, 10, 5, 0.0, LocalDate.now()),
-                    인기글요청(2L, 200, 20, 10, 0.0, LocalDate.now())
+                    생성(1L, 100, 10, 5, 0.0, LocalDate.now()),
+                    생성(2L, 200, 20, 10, 0.0, LocalDate.now())
             );
             when(popularPostRepository.findRecentPostsWithCounts(any())).thenReturn(posts);
 
@@ -91,7 +76,7 @@ class PopularPostServiceTest {
             // given
             List<PopularPostRequest> posts =
                     java.util.stream.IntStream.rangeClosed(1, 20)
-                            .mapToObj(i -> 인기글요청((long) i, 100 * i, 10 * i, 5 * i, 0.0, LocalDate.now()))
+                            .mapToObj(i -> 생성((long) i, 100 * i, 10 * i, 5 * i, 0.0, LocalDate.now()))
                             .toList();
             when(popularPostRepository.findRecentPostsWithCounts(any())).thenReturn(posts);
 
@@ -117,7 +102,7 @@ class PopularPostServiceTest {
         void 인기글_조회_정상() {
             // given
             List<PopularPostRequest> posts = List.of(
-                    인기글요청(1L, 100, 10, 5, 123.4, LocalDate.now())
+                    생성(1L, 100, 10, 5, 123.4, LocalDate.now())
             );
             when(popularPostRepository.findLatestPopularPosts(anyInt())).thenReturn(posts);
 
