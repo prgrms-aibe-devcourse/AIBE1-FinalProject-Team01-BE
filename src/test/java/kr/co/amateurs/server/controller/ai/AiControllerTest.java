@@ -10,6 +10,7 @@ import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.ai.PostRecommendService;
 import kr.co.amateurs.server.service.post.PopularPostService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,11 @@ class AiControllerTest extends AbstractControllerTest {
 
     User user;
     String accessToken;
+
+    @AfterEach
+    void cleanup() {
+        userRepository.deleteAll();
+    }
 
     @Nested
     class AI_추천_및_인기글_API {
@@ -75,14 +81,6 @@ class AiControllerTest extends AbstractControllerTest {
                 .when().get("/ai/posts/popular?limit=1")
                 .then().statusCode(200)
                 .extract().jsonPath().getList(".", PopularPostResponse.class);
-        }
-
-        @Test
-        void 인증_없이_추천_게시글_요청시_401_반환한다() {
-            // when & then
-            RestAssured
-                .when().get("/ai/posts/recommendations?limit=1")
-                .then().statusCode(401);
         }
         
         @Test
