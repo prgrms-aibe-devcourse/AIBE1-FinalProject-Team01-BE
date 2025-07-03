@@ -22,6 +22,9 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 class AiControllerTest extends AbstractControllerTest {
 
@@ -73,5 +76,32 @@ class AiControllerTest extends AbstractControllerTest {
                 .then().statusCode(200)
                 .extract().jsonPath().getList(".", PopularPostResponse.class);
         }
+
+        @Test
+        void 인증_없이_추천_게시글_요청시_401_반환한다() {
+            // when & then
+            RestAssured
+                .when().get("/ai/posts/recommendations?limit=1")
+                .then().statusCode(401);
+        }
+        
+        @Test
+        void 추천_게시글이_없으면_빈_리스트를_반환한다() {
+            // given (인증 필요)
+            user = UserTestFixture.createUser();
+            user = userRepository.save(user);
+            accessToken = jwtProvider.generateAccessToken(user.getEmail());
+            when(postRecommendService.getStoredRecommendations(anyLong(), anyInt())).thenReturn(List.of());
+
+            // when & then
+            List<PostRecommendationResponse> result = RestAssured
+                .given().header("Authorization", "Bearer " + accessToken)
+                .when().get("/ai/posts/recommendations?limit=1")
+                .then().statusCode(200)
+                .extract().jsonPath().getList(".", PostRecommendationResponse.class);
+            org.assertj.core.api.Assertions.assertThat(result).isEmpty();
+        }
+
+    
     }
 } 

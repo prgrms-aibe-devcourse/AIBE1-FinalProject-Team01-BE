@@ -123,7 +123,7 @@ class PopularPostServiceTest {
             List<PopularPostResponse> result = popularPostService.getPopularPosts(10);
 
             // then
-            assertThat(result).isEmpty();
+            org.assertj.core.api.Assertions.assertThat(result).isEmpty();
         }
     }
 } 
