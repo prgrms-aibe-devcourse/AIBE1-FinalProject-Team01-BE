@@ -3,8 +3,7 @@ package kr.co.amateurs.server.controller.comment;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.Valid;
-import kr.co.amateurs.server.annotation.boardaccess.BoardAccess;
+import kr.co.amateurs.server.annotation.checkpostmetadata.CheckPostMetaData;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
@@ -24,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class CommentController {
     private final CommentService commentService;
 
-    @BoardAccess(hasPostId = true)
+    @CheckPostMetaData
     @GetMapping("/{postId}/comments")
     @Operation(
             summary = "댓글 목록 조회",
@@ -39,7 +38,7 @@ public class CommentController {
         return ResponseEntity.ok(comments);
     }
 
-    @BoardAccess(hasPostId = true)
+    @CheckPostMetaData
     @GetMapping("/{postId}/comments/{commentId}/replies")
     @Operation(
             summary = "대댓글 목록 조회",
@@ -51,11 +50,11 @@ public class CommentController {
             @RequestParam(required = false) Long cursor,  // 대댓글 커서
             @RequestParam(defaultValue = "5") int size
     ) {
-        CommentPageDTO replies = commentService.getReplies(commentId, cursor, size);
+        CommentPageDTO replies = commentService.getReplies(postId, commentId, cursor, size);
         return ResponseEntity.ok(replies);
     }
 
-    @BoardAccess(hasPostId = true, operation = OperationType.WRITE)
+    @CheckPostMetaData(operation = OperationType.WRITE)
     @PostMapping("/{postId}/comments")
     @Operation(
             summary = "댓글 작성",
@@ -69,7 +68,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
     }
 
-    @BoardAccess(isComment = true, checkAuthor = true, hasPostId = true, operation = OperationType.WRITE)
+    @CheckPostMetaData(operation = OperationType.WRITE)
     @PutMapping("/{postId}/comments/{commentId}")
     @Operation(
             summary = "댓글 수정",
@@ -80,11 +79,11 @@ public class CommentController {
             @PathVariable Long commentId,
             @Valid @RequestBody CommentRequestDTO requestDTO
     ){
-        commentService.updateComment(commentId, requestDTO);
+        commentService.updateComment(postId, commentId, requestDTO);
         return ResponseEntity.noContent().build();
     }
 
-    @BoardAccess(isComment = true, checkAuthor = true, hasPostId = true, operation = OperationType.WRITE)
+    @CheckPostMetaData(operation = OperationType.WRITE)
     @DeleteMapping("/{postId}/comments/{commentId}")
     @Operation(
             summary = "댓글 삭제",
@@ -94,7 +93,7 @@ public class CommentController {
         @PathVariable Long postId,
         @PathVariable Long commentId
     ){
-        commentService.deleteComment(commentId);
+        commentService.deleteComment(postId, commentId);
         return ResponseEntity.noContent().build();
     }
 }

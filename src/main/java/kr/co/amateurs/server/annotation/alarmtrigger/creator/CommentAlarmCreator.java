@@ -56,8 +56,8 @@ public class CommentAlarmCreator implements AlarmCreator {
             throw new CustomException(ErrorCode.UNSUPPORTED_RESULT_TYPE);
         }
 
-        User currentUser = userService.getCurrentUser()
-                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+        User currentUser = userService.getCurrentLoginUser();
+
         Post post = postService.findById(response.postId());
 
         createCommentAlarm(currentUser, post, response);

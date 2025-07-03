@@ -23,4 +23,8 @@ public record PageResponseDTO<T>(
                 pageInfo
         );
     }
+
+    public static <T> PageResponseDTO<T> convertPageToDTO(List<T> content, PageInfo pageInfo) {
+        return new PageResponseDTO<>(content, pageInfo);
+    }
 }

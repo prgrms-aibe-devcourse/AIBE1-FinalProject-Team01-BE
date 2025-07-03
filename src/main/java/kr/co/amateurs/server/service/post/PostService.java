@@ -39,18 +39,16 @@ public class PostService {
                 .orElseThrow(ErrorCode.POST_NOT_FOUND);
     }
 
-    public List<Post> findPopularPosts(int limit) {
-        LocalDateTime week = LocalDateTime.now().minusWeeks(1);
-
-        if (limit <= 10) {
-            return postRepository.findTop10ByIsDeletedFalseAndCreatedAtAfterOrderByLikeCountDescCreatedAtDesc(week);
-        } else {
-            // 10개 초과 요청시 20개 반환
-            return postRepository.findTop20ByIsDeletedFalseAndCreatedAtAfterOrderByLikeCountDescCreatedAtDesc(week);
-        }
-    }
-
     public List<Post> findAllPosts() {
         return postRepository.findAll();
+    }
+
+    public boolean hasRecentPostActivity(Long userId, int days) {
+        try {
+            LocalDateTime since = LocalDateTime.now().minusDays(days);
+            return postRepository.existsByUserIdAndCreatedAtAfter(userId, since);
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

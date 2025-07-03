@@ -8,7 +8,6 @@ import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
-import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -16,7 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -102,9 +100,7 @@ public class UserService {
     }
 
     public UserProfileResponseDto getCurrentUserProfile() {
-        Long userId = getCurrentUser()
-                .map(User::getId)
-                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+        Long userId = getCurrentLoginUser().getId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);

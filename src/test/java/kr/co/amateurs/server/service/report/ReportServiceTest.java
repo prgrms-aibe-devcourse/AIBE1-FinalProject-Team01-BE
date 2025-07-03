@@ -132,7 +132,7 @@ class ReportServiceTest {
     void 유효한_게시글_신고_요청으로_신고를_생성하면_신고가_생성되어야_한다() {
         // given
         ReportRequestDTO requestDTO = ReportTestFixtures.createPostReportRequestDTO(testPost2.getId(), "스팸 게시글");
-        given(userService.getCurrentUser()).willReturn(Optional.of(reporterUser));
+        given(userService.getCurrentLoginUser()).willReturn(reporterUser);
 
         // when
         ReportResponseDTO result = reportService.createReport(requestDTO);
@@ -150,7 +150,7 @@ class ReportServiceTest {
     void 유효한_댓글_신고_요청으로_신고를_생성하면_신고가_생성되어야_한다() {
         // given
         ReportRequestDTO requestDTO = ReportTestFixtures.createCommentReportRequestDTO(testComment2.getId(), "욕설 댓글");
-        given(userService.getCurrentUser()).willReturn(Optional.of(reporterUser));
+        given(userService.getCurrentLoginUser()).willReturn(reporterUser);
 
         // when
         ReportResponseDTO result = reportService.createReport(requestDTO);
@@ -192,7 +192,7 @@ class ReportServiceTest {
     void 로그인하지_않은_상태로_신고를_생성하면_예외가_발생해야_한다() {
         // given
         ReportRequestDTO requestDTO = ReportTestFixtures.createPostReportRequestDTO(testPost.getId(), "로그인 없는 신고");
-        given(userService.getCurrentUser()).willReturn(Optional.empty());
+        given(userService.getCurrentLoginUser()).willThrow(CustomException.class);
 
         // when & then
         assertThatThrownBy(() -> reportService.createReport(requestDTO))

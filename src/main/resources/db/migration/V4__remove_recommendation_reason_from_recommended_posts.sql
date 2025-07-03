@@ -1,0 +1,1 @@
+ALTER TABLE recommended_posts DROP COLUMN recommendation_reason;

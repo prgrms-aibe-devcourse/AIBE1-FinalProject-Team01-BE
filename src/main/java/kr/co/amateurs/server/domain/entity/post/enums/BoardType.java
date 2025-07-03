@@ -15,6 +15,7 @@ public enum BoardType {
     PROJECT_HUB("프로젝트 허브"),
     INFO("정보게시판"),
     REVIEW("데브코스후기");
+    //NEWS(description:"IT 뉴스") // TODO: 추후 추가
 
     private final String description;
 }
