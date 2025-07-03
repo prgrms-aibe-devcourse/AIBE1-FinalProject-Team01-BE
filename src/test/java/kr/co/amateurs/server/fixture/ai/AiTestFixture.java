@@ -5,6 +5,9 @@ import kr.co.amateurs.server.domain.entity.ai.RecommendedPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.domain.dto.ai.PostContentData;
+import kr.co.amateurs.server.domain.dto.ai.PostSummaryData;
+import kr.co.amateurs.server.domain.dto.ai.AiProfileResponse;
 
 public class AiTestFixture {
     public static User createTestUser() {
@@ -46,6 +49,18 @@ public class AiTestFixture {
                 .build();
         setId(rec, 200L);
         return rec;
+    }
+
+    public static PostContentData createPostContentData(Long postId, String title, String content, String activityType) {
+        return new PostContentData(postId, title, content, activityType);
+    }
+
+    public static PostSummaryData createPostSummaryData(String type, String summary) {
+        return new PostSummaryData(type, summary);
+    }
+
+    public static AiProfileResponse createAiProfileResponse(String personaDescription, String interestKeywords) {
+        return new AiProfileResponse(personaDescription, interestKeywords);
     }
 
     private static void setId(Object entity, Long id) {
