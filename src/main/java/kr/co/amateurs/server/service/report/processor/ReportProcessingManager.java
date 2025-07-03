@@ -51,12 +51,12 @@ public class ReportProcessingManager {
     }
 
     public void addToQueue(Long reportId) {
-        try {
-            processingQueue.offer(reportId);
+        boolean success = processingQueue.offer(reportId);
+        if (success) {
             log.info("신고 큐 추가 완료 - Report ID: {}, 현재 큐 크기: {}",
                     reportId, processingQueue.size());
-        } catch (Exception e) {
-            log.error("신고 큐 추가 실패 - Report ID: {}", reportId, e);
+        } else {
+            log.warn("신고 큐가 가득 찼습니다 - Report ID: {}", reportId);
         }
     }
 
