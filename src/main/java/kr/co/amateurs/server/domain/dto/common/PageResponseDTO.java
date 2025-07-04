@@ -3,6 +3,7 @@ package kr.co.amateurs.server.domain.dto.common;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
+import java.util.function.Function;
 
 
 public record PageResponseDTO<T>(
@@ -15,6 +16,15 @@ public record PageResponseDTO<T>(
                 page.getContent(),
                 pageInfo
         );
+    }
+
+    public static <E, D> PageResponseDTO<D> convertPageToDTO(Page<E> entityPage, Function<E, D> converter) {
+        List<D> convertedContent = entityPage.getContent().stream()
+                .map(converter)
+                .toList();
+
+        PageInfo pageInfo = PageInfo.from(entityPage);
+        return new PageResponseDTO<>(convertedContent, pageInfo);
     }
 
     public static <T> PageResponseDTO<T> convertPageToDTO(Page<T> page, PageInfo pageInfo){
