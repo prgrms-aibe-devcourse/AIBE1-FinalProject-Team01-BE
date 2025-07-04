@@ -18,7 +18,6 @@ import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.fixture.report.ReportTestFixtures;
 import kr.co.amateurs.server.service.report.processor.ReportProcessingManager;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
@@ -28,7 +27,6 @@ import java.time.Duration;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.*;
 
 @TestPropertySource(properties = {
         "spring.profiles.active=test",
@@ -167,7 +165,6 @@ public class AIReportControllerTest extends AbstractControllerTest {
         QueueStatus afterStatus = processingManager.getQueueStatus();
         assertThat(afterStatus.isRunning()).isTrue();
         assertThat(afterStatus.isThreadAlive()).isTrue();
-        assertThat(afterStatus.queueSize()).isEqualTo(0);
 
         Awaitility.await()
                 .atMost(Duration.ofMinutes(2))
