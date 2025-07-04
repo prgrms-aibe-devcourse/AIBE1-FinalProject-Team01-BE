@@ -91,7 +91,7 @@ public class ReportControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void GUEST_권한으로_신고를_생성하면_실패해야_한다() {
+    void GUEST_권한으로_신고를_생성하면_성공해야_한다() {
         ReportRequestDTO requestDTO = ReportTestFixtures.createPostReportRequestDTO(
                 testPost.getId(),
                 "부적절한 게시글 내용입니다"
@@ -105,13 +105,16 @@ public class ReportControllerTest extends AbstractControllerTest {
                 .when()
                 .post("/reports")
                 .then()
-                .statusCode(403);
+                .body("reporterName", notNullValue())
+                .body("description", equalTo("부적절한 게시글 내용입니다"))
+                .body("reportStatus", equalTo("PENDING"))
+                .body("postTitle", equalTo("테스트 제목"));
 
-        assert reportRepository.count() == 0;
+        assert reportRepository.count() == 1;
     }
 
     @Test
-    void 권한_없이_신고를_생성하면_403에러가_발생해야_한다() {
+    void 권한_없이_신고를_생성하면_401에러가_발생해야_한다() {
         // given
         ReportRequestDTO requestDTO = ReportTestFixtures.createPostReportRequestDTO(
                 testPost.getId(),
@@ -125,7 +128,7 @@ public class ReportControllerTest extends AbstractControllerTest {
                 .when()
                 .post("/reports")
                 .then()
-                .statusCode(403);
+                .statusCode(401);
     }
 
     @Test
@@ -171,7 +174,7 @@ public class ReportControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void 권한_없이_신고_목록을_조회하면_403에러가_발생해야_한다() {
+    void 권한_없이_신고_목록을_조회하면_401에러가_발생해야_한다() {
         // when & then
         given()
                 .param("reportType", "POST")
@@ -180,7 +183,7 @@ public class ReportControllerTest extends AbstractControllerTest {
                 .when()
                 .get("/reports")
                 .then()
-                .statusCode(403);
+                .statusCode(401);
     }
 
     @Test
