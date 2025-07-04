@@ -31,7 +31,7 @@ scrape_configs:
       - timestamp:
           source: timestamp
           format: '2006-01-02T15:04:05.000Z'
-          location: Asia/Seoul
+          location: UTC
 
       - multiline:
           firstline: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z'
