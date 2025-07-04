@@ -2,8 +2,6 @@
 
 set -e
 
-echo "기존 환경 정리 중..."
-
 if [ -z "$SERVICE_NAME" ]; then
     echo "오류: SERVICE_NAME 환경변수가 설정되지 않았습니다"
     exit 1
@@ -23,11 +21,6 @@ cd "$TARGET_DIR"
 
 echo "기존 $ACTIVE_ENV 환경 정리 중 (포트: $ACTIVE_PORT)..."
 docker-compose -p ${SERVICE_NAME}-${ACTIVE_ENV} down || true
-
-if docker ps --format "table {{.Names}}" | grep -E "^${SERVICE_NAME}(-app)?-[0-9]+$" | grep -q ":$ACTIVE_PORT->"; then
-    echo "기존 환경 정리 중..."
-    docker-compose down || true
-fi
 
 echo "사용하지 않는 Docker 이미지 정리 중..."
 docker image prune -f
