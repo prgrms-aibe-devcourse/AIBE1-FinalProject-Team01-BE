@@ -17,7 +17,7 @@ import java.util.List;
 @Slf4j
 public class SwaggerConfig {
 
-    @Value("${swagger.server.url:http://localhost:8080}")
+    @Value("${swagger.server.url:https://api.amateurs.co.kr/}")
     private String url;
 
     @Bean
@@ -34,12 +34,12 @@ public class SwaggerConfig {
                         .scheme("bearer")
                         .bearerFormat("JWT"));
 
-        var server = new Server();
-        server.setUrl(url);
+        var local = new Server().url("http://localhost:8080");
+        var server = new Server().url(url);
 
         return new OpenAPI()
                 .info(info)
-                .servers(List.of(server))
+                .servers(List.of(local, server))
                 .addSecurityItem(securityRequirement)
                 .components(components);
     }
