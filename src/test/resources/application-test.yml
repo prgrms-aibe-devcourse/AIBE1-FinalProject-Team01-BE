@@ -29,8 +29,8 @@ langchain4j:
       api-key: test
       model-name: test
     report:
-      api-key: ${GEMINI_REPORT_API_KEY}
-      model-name: ${GEMINI_REPORT_MODEL}
+      api-key: test
+      model-name: test
 openai:
   api-key: sk-test-key-do-not-use-in-dev-or-prod # Replace with a dummy or test API key
   embedding-model: text-embedding-3-small
