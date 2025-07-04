@@ -73,11 +73,26 @@ public class AiLlmService {
         }
     }
 
+    public AiProfileResponse generateInitialProfile(String userTopics) {
+        try {
+            AiProfileResponse profile = aiPostAnalysis.generateInitialProfile(userTopics);
+            log.info("초기 토픽 기반 프로필 생성 완료");
+            return profile;
+        } catch (Exception e) {
+            log.error("초기 프로필 생성 실패", e);
+            throw ErrorCode.ERROR_AI_PROFILE_GENERATION.get();
+        }
+    }
+
     public AiProfileResponse generateFinalProfile(AiProfileRequest request) {
         try {
             String summariesText = request.activitySummaries().stream()
                     .map(summary -> String.format("- %s: %s", summary.activityType(), summary.summary()))
                     .collect(Collectors.joining("\n"));
+
+            if (summariesText.trim().isEmpty()) {
+                summariesText = "아직 충분한 활동 데이터가 없습니다.";
+            }
 
             AiProfileResponse profile = aiPostAnalysis.generateFinalProfile(
                     request.userTopics(),

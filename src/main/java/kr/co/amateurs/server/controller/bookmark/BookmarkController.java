@@ -4,6 +4,7 @@ package kr.co.amateurs.server.controller.bookmark;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.amateurs.server.annotation.checkpostmetadata.CheckPostMetaData;
 import kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
@@ -31,9 +32,9 @@ public class BookmarkController {
             ) {
         PageResponseDTO<BookmarkResponseDTO> bookmarkList = bookmarkService.getBookmarkPostList(userId, paginationParam);
         return ResponseEntity.ok(bookmarkList);
-
     }
 
+    @CheckPostMetaData
     @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
     @PostMapping("/users/{userId}/bookmarks/{postId}")
     @Operation(summary = "북마크 등록", description = "특정 게시글을 북마크에 등록합니다.")
@@ -45,6 +46,7 @@ public class BookmarkController {
          return ResponseEntity.status(HttpStatus.CREATED).body(bookmarkPost);
     }
 
+    @CheckPostMetaData
     @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
     @DeleteMapping("/users/{userId}/bookmarks/{postId}")
     @Operation(summary = "북마크 제거", description = "북마크 해둔 특정 게시글의 북마크를 해제합니다.")

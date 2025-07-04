@@ -4,9 +4,12 @@ import kr.co.amateurs.server.config.auth.CustomAuthorizeHttpRequestsConfigurer;
 import kr.co.amateurs.server.config.jwt.JwtAccessDeniedHandler;
 import kr.co.amateurs.server.config.jwt.JwtAuthenticationEntryPoint;
 import kr.co.amateurs.server.config.jwt.JwtAuthenticationFilter;
+import kr.co.amateurs.server.service.auth.CustomOAuth2UserService;
+import kr.co.amateurs.server.service.auth.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -29,8 +32,29 @@ public class SecurityConfig {
     private final List<CustomAuthorizeHttpRequestsConfigurer> customAuthorizeHttpRequestsConfigurers;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
+    @Profile("test")
+    public SecurityFilterChain testFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(jwtAccessDeniedHandler))
+                .authorizeHttpRequests(auth -> {
+                    customAuthorizeHttpRequestsConfigurers.forEach(configurer -> configurer.configure(auth));
+                    auth.requestMatchers("/**").permitAll();
+                })
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
+
+
+    @Bean
+    @Profile("!test")
+    public SecurityFilterChain prodFilterChain(HttpSecurity http,
+                                               CustomOAuth2UserService customOAuth2UserService,
+                                               OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) throws Exception {
+        return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -44,6 +68,7 @@ public class SecurityConfig {
                     auth.requestMatchers("/**").permitAll();
                 })
 
+
                 // TODO: 개발 완료 후 아래 설정으로 변경할 예정
 //                .authorizeHttpRequests(auth -> auth
 //                        // 인증 없이 접근 가능
@@ -52,7 +77,9 @@ public class SecurityConfig {
 //                                "/swagger-ui/**",
 //                                "/v3/api-docs/**",
 //                                "/swagger-ui.html",
-//                                "/actuator/**"
+//                                "/actuator/**",
+//                                "/oauth2/**",
+//                                "/login/oauth2/**"
 //                        ).permitAll()
 //
 //                        // 비로그인 사용자
@@ -92,8 +119,11 @@ public class SecurityConfig {
 //                        .anyRequest().authenticated()
 //                )
 
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService))
+                        .successHandler(oAuth2LoginSuccessHandler))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 }

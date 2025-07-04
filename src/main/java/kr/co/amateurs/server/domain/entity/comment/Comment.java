@@ -45,6 +45,16 @@ public class Comment extends BaseEntity {
     @Builder.Default
     private Boolean isDeleted = false;
 
+    public void incrementLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decrementLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
+    }
+
     public static Comment from(CommentRequestDTO requestDTO, Post post, User user, Comment parentComment) {
         return Comment.builder()
                 .user(user)
