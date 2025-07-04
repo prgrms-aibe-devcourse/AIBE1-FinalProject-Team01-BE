@@ -18,6 +18,7 @@ import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.fixture.report.ReportTestFixtures;
 import kr.co.amateurs.server.service.report.processor.ReportProcessingManager;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
@@ -28,6 +29,7 @@ import java.time.Duration;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Disabled("LLM 컨트롤러 테스트는 일단 중지하고 LLM을 사용하지 않는 ServiceTest로 대체")
 @TestPropertySource(properties = {
         "spring.profiles.active=test",
         "ai.processing.enabled=true"
