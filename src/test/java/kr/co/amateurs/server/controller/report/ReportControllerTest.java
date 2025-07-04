@@ -1,6 +1,5 @@
 package kr.co.amateurs.server.controller.report;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
@@ -13,13 +12,14 @@ import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
-import kr.co.amateurs.server.service.report.ReportTestFixtures;
+import kr.co.amateurs.server.fixture.report.ReportTestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 
 
@@ -291,9 +291,4 @@ public class ReportControllerTest extends AbstractControllerTest {
                 .then()
                 .statusCode(404);
     }
-
-
-
-
-
 }

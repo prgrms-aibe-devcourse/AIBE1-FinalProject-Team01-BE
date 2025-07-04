@@ -45,11 +45,11 @@ public class ReportService {
     public ReportResponseDTO createReport(ReportRequestDTO requestDTO) {
         User user = userService.getCurrentLoginUser();
 
+        Report report = createReportEntity(requestDTO, user);
         if (isDuplicateReport(requestDTO, user)) {
             throw ErrorCode.DUPLICATE_REPORT.get();
         }
 
-        Report report = createReportEntity(requestDTO, user);
         Report savedReport = reportRepository.save(report);
 
         eventPublisher.publishEvent(new ReportCreatedEvent(savedReport.getId()));

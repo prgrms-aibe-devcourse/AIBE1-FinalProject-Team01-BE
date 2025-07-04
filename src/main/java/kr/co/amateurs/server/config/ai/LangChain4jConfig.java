@@ -12,17 +12,31 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LangChain4jConfig {
 
-    @Value("${langchain4j.google-ai-gemini.api-key}")
+    @Value("${langchain4j.google-ai-gemini.recommend.api-key}")
     private String geminiKey;
 
-    @Value("${langchain4j.google-ai-gemini.model-name}")
+    @Value("${langchain4j.google-ai-gemini.recommend.model-name}")
     private String geminiModel;
+
+    @Value("${langchain4j.google-ai-gemini.report.api-key}")
+    private String geminiReportKey;
+
+    @Value("${langchain4j.google-ai-gemini.report.model-name}")
+    private String geminiReportModel;
 
     @Bean
     public ChatLanguageModel chatLanguageModel() {
         return GoogleAiGeminiChatModel.builder()
                 .apiKey(geminiKey)
                 .modelName(geminiModel)
+                .build();
+    }
+
+    @Bean
+    public ChatLanguageModel chatLanguageReportModel() {
+        return GoogleAiGeminiChatModel.builder()
+                .apiKey(geminiReportKey)
+                .modelName(geminiReportModel)
                 .build();
     }
 
@@ -34,9 +48,9 @@ public class LangChain4jConfig {
     }
 
     @Bean
-    public ReportAnalysis reportAnalysis(ChatLanguageModel chatLanguageModel) {
+    public ReportAnalysis reportAnalysis(ChatLanguageModel chatLanguageReportModel) {
         return AiServices.builder(ReportAnalysis.class)
-                .chatLanguageModel(chatLanguageModel)
+                .chatLanguageModel(chatLanguageReportModel)
                 .build();
     }
 }

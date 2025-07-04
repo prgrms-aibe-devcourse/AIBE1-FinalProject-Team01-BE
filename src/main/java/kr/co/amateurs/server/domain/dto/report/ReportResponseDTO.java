@@ -5,6 +5,7 @@ import kr.co.amateurs.server.domain.entity.report.enums.ReportStatus;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportType;
 
 public record ReportResponseDTO (
+    Long id,
     Long postId,
     String postTitle,
     String postContent,
@@ -19,6 +20,7 @@ public record ReportResponseDTO (
 ){
     public static ReportResponseDTO from(Report report) {
         return new ReportResponseDTO(
+                report.getId(),
                 report.getPost() != null ? report.getPost().getId() : null,
                 report.getPost() != null ? report.getPost().getTitle() : null,
                 report.getPost() != null ? report.getPost().getContent() : null,

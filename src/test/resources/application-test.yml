@@ -25,9 +25,12 @@ spring:
 
 langchain4j:
   google-ai-gemini:
-    api-key: dummy-api-key # Replace with a dummy or test API key
-    model-name: gemini-1.5-flash
-
+    recommend:
+      api-key: test
+      model-name: test
+    report:
+      api-key: ${GEMINI_REPORT_API_KEY}
+      model-name: ${GEMINI_REPORT_MODEL}
 openai:
   api-key: sk-test-key-do-not-use-in-dev-or-prod # Replace with a dummy or test API key
   embedding-model: text-embedding-3-small
@@ -69,3 +72,7 @@ de:
     mongodb:
       embedded:
         version: 7.0.2
+
+ai:
+  processing:
+    enabled: false

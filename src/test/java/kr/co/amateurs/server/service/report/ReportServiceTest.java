@@ -10,6 +10,7 @@ import kr.co.amateurs.server.domain.entity.report.enums.ReportStatus;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportTarget;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.fixture.report.ReportTestFixtures;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
@@ -59,6 +60,7 @@ class ReportServiceTest {
     private User adminUser;
     private Post testPost;
     private Post testPost2;
+    private Post testPost3;
     private Comment testComment;
     private Comment testComment2;
     private Report testPostReport;
@@ -73,6 +75,7 @@ class ReportServiceTest {
 
         testPost = postRepository.save(ReportTestFixtures.createTestPost(testUser));
         testPost2 = postRepository.save(ReportTestFixtures.createCustomPost(testUser, "다른 게시글", "다른 내용", BoardType.GATHER));
+        testPost3 = postRepository.save(ReportTestFixtures.createCustomPost(testUser, "다른 게시글", "다른 내용", BoardType.GATHER));
 
         testComment = commentRepository.save(ReportTestFixtures.createTestComment(testPost, testUser));
         testComment2 = commentRepository.save(ReportTestFixtures.createCustomComment(testPost2, testUser, "다른 댓글"));
@@ -131,7 +134,7 @@ class ReportServiceTest {
     @Test
     void 유효한_게시글_신고_요청으로_신고를_생성하면_신고가_생성되어야_한다() {
         // given
-        ReportRequestDTO requestDTO = ReportTestFixtures.createPostReportRequestDTO(testPost2.getId(), "스팸 게시글");
+        ReportRequestDTO requestDTO = ReportTestFixtures.createPostReportRequestDTO(testPost3.getId(), "스팸 게시글");
         given(userService.getCurrentLoginUser()).willReturn(reporterUser);
 
         // when
@@ -141,7 +144,7 @@ class ReportServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.description()).isEqualTo("스팸 게시글");
         assertThat(result.postTitle()).isNotNull();
-        assertThat(result.postId()).isEqualTo(testPost2.getId());
+        assertThat(result.postId()).isEqualTo(testPost3.getId());
         assertThat(result.reportStatus()).isEqualTo(ReportStatus.PENDING);
         assertThat(result.reporterName()).isEqualTo("student");
     }
