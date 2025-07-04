@@ -10,11 +10,13 @@ import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.file.PostImageRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.service.UserService;
@@ -39,6 +41,7 @@ public class MatchService {
 
     private final MatchRepository matchRepository;
     private final PostRepository postRepository;
+    private final PostImageRepository postImageRepository;
     private final UserService userService;
     private final LikeService likeService;
     private final BookmarkService bookmarkService;
@@ -112,6 +115,9 @@ public class MatchService {
         MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
         validateUser(post);
+        List<PostImage> images = postImageRepository.findByPost(post);
+        images.forEach(img -> fileService.deleteFile(img.getImageUrl()));
+        postImageRepository.deleteAll(images);
         postRepository.delete(post);
     }
 

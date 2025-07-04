@@ -6,11 +6,13 @@ import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.CommunityPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.repository.community.CommunityRepository;
+import kr.co.amateurs.server.repository.file.PostImageRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingService;
@@ -38,6 +40,7 @@ import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPag
 public class CommunityService {
     private final CommunityRepository communityRepository;
     private final PostRepository postRepository;
+    private final PostImageRepository postImageRepository;
     private final BookmarkService bookmarkService;
     private final LikeService likeService;
 
@@ -114,6 +117,10 @@ public class CommunityService {
 
         Post post = communityPost.getPost();
         validatePost(post);
+
+        List<PostImage> images = postImageRepository.findByPost(post);
+        images.forEach(img -> fileService.deleteFile(img.getImageUrl()));
+        postImageRepository.deleteAll(images);
 
         communityRepository.delete(communityPost);
     }
