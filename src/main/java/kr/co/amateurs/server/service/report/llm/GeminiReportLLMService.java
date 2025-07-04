@@ -102,7 +102,7 @@ public class GeminiReportLLMService implements ReportLLMService {
                 double score = Double.parseDouble(m.group(1));
                 return Math.max(0.0, Math.min(1.0, score));
             }
-            return 0.5;
+            return 0.0;
         } catch (Exception e) {
             return 0.0;
         }

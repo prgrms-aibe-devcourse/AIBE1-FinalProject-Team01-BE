@@ -53,4 +53,5 @@ public class LangChain4jConfig {
                 .chatLanguageModel(chatLanguageReportModel)
                 .build();
     }
+
 }

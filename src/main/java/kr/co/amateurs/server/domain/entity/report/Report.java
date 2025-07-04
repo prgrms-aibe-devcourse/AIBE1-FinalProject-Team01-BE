@@ -76,6 +76,14 @@ public class Report extends BaseEntity {
         this.confidenceScore = confidenceScore;
     }
 
+    public void errorProcessing(String errorReason) {
+        this.status = ReportStatus.ERROR;
+        this.processingCompletedAt = LocalDateTime.now();
+        this.isViolation = false;
+        this.violationReason = errorReason;
+        this.confidenceScore = 0.0;
+    }
+
 
     public static Report fromPost(Post post, User user, ReportRequestDTO requestDTO) {
         return Report.builder()
@@ -102,4 +110,6 @@ public class Report extends BaseEntity {
     public void updateStatusReport(ReportStatus status) {
         this.status = status;
     }
+
+
 }

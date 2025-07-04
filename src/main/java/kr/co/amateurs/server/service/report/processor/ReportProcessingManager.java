@@ -34,6 +34,7 @@ public class ReportProcessingManager {
     private static final int MAX_RETRY_ATTEMPTS = 3;
     private static final long RATE_LIMIT_WAIT_MS = 60000;
     private static final long RETRY_WAIT_MS = 5000;
+    private static final long WAIT_NEXT_MS = 1000;
 
     @PostConstruct
     public void initialize() {
@@ -101,8 +102,6 @@ public class ReportProcessingManager {
                 log.info("신고 처리 시작 - Report ID: {}", reportId);
                 processReportWithRetry(reportId);
 
-                Thread.sleep(1000);
-
             } catch (InterruptedException e) {
                 log.info("신고 처리 스레드 인터럽트됨");
                 Thread.currentThread().interrupt();
@@ -121,6 +120,7 @@ public class ReportProcessingManager {
         while (attempt < MAX_RETRY_ATTEMPTS) {
             try {
                 processReport(reportId);
+                Thread.sleep(WAIT_NEXT_MS);
                 return;
 
             } catch (Exception e) {
@@ -211,6 +211,7 @@ public class ReportProcessingManager {
 
         } catch (Exception e) {
             log.error("신고 처리 실패 - Report ID: {}", reportId, e);
+            handleProcessingError(reportId, e.getMessage());
             throw e;
         }
     }
@@ -245,7 +246,7 @@ public class ReportProcessingManager {
 
     private void handleProcessingError(Long reportId, String errorMessage) {
         Report report = reportRepository.findById(reportId).orElseThrow(ErrorCode.REPORT_NOT_FOUND);
-        report.completeProcessing(false, errorMessage, null);
+        report.errorProcessing(errorMessage);
         reportRepository.save(report);
 
         log.error("신고 처리 오류 - Report ID: {}, 오류: {}",
