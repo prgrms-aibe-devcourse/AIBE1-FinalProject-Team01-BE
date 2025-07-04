@@ -11,7 +11,7 @@ public class ReportAuthorizeHttpRequestsConfig implements CustomAuthorizeHttpReq
     public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
                 .requestMatchers(HttpMethod.GET, "/api/v1/reports/**").hasAnyRole("ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/v1/reports/**").hasAnyRole("ADMIN", "STUDENT")
+                .requestMatchers(HttpMethod.POST, "/api/v1/reports/**").hasAnyRole("ADMIN", "STUDENT", "GUEST")
                 .requestMatchers(HttpMethod.PUT, "/api/v1/reports/**").hasAnyRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/reports/**").hasAnyRole("ADMIN");
     }

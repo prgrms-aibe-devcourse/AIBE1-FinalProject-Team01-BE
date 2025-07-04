@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 public class ReportController {
     private final ReportService reportService;
 
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     @Operation(
             summary = "신고 목록 조회 (관리자 전용)",
@@ -41,7 +40,6 @@ public class ReportController {
         return ResponseEntity.ok(reports);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @PostMapping
     @Operation(
             summary = "신고 접수",
@@ -59,7 +57,6 @@ public class ReportController {
             description = "특정 신고의 상태를 변경합니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{reportId}/{status}")
     public ResponseEntity<Void> updateStatusReport(
             @PathVariable Long reportId,
@@ -74,7 +71,6 @@ public class ReportController {
             description = "특정 신고를 삭제합니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{reportId}")
     public ResponseEntity<Void> deleteReport(@PathVariable Long reportId) {
         reportService.deleteReport(reportId);
