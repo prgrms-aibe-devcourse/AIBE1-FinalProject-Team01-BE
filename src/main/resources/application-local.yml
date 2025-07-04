@@ -38,13 +38,13 @@ spring:
       client:
         registration:
           github:
-            client-id: ${GITHUB_CLIENT_ID}
-            client-secret: ${GITHUB_CLIENT_SECRET}
+            client-id: ${LOCAL_CLIENT_ID}
+            client-secret: ${LOCAL_CLIENT_SECRET}
             scope: read:user,user:email
           kakao:
             client-id: ${KAKAO_CLIENT_ID}
             client-secret: ${KAKAO_CLIENT_SECRET}
-            redirect-uri: "https://www.amateurs.co.kr/login/oauth2/code/kakao"
+            redirect-uri: "http://localhost:8080/login/oauth2/code/kakao"
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             client-name: Kakao
@@ -97,10 +97,7 @@ cloud:
       domain: ${CLOUD_FRONT_DOMAIN_NAME}
 
 oauth:
-  success-redirect-url: http://localhost:3000
-
-cookie:
-  domain: localhost
+  success-redirect-url: http://localhost:5173
 
 swagger:
   server:

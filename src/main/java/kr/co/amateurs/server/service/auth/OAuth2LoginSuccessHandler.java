@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -34,10 +35,10 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
 
-    @Value("${oauth.success-redirect-url:http://localhost:3000}")
+    @Value("${oauth.success-redirect-url:http://localhost:5173}")
     private String successRedirectUrl;
 
-    @Value("${cookie.domain:localhost}")
+    @Value("${cookie.domain:}")
     private String cookieDomain;
 
 
@@ -69,7 +70,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
             accessTokenCookie.setMaxAge(Math.toIntExact(accessExpiresIn / 1000));
-            accessTokenCookie.setDomain(cookieDomain);
+            if (StringUtils.hasText(cookieDomain)) {
+                accessTokenCookie.setDomain(cookieDomain);
+            }
             accessTokenCookie.setPath("/");
             accessTokenCookie.setSecure(true);
             accessTokenCookie.setHttpOnly(true);
@@ -77,7 +80,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
             refreshTokenCookie.setMaxAge(Math.toIntExact(refreshExpiresIn));
-            refreshTokenCookie.setDomain(cookieDomain);
+            if (StringUtils.hasText(cookieDomain)) {
+                refreshTokenCookie.setDomain(cookieDomain);
+            }
             refreshTokenCookie.setPath("/");
             refreshTokenCookie.setSecure(true);
             refreshTokenCookie.setHttpOnly(true);
