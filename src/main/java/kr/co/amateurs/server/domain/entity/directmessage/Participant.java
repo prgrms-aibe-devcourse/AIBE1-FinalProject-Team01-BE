@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.domain.entity.directmessage;
 
+import kr.co.amateurs.server.domain.entity.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 public class Participant {
     private Long userId;
     private String nickname;
+    private String profileImage;
     private LocalDateTime lastReadAt;
     private LocalDateTime leftAt;
 
@@ -31,5 +33,12 @@ public class Participant {
 
     public void reEntry() {
         this.isActive = true;
+    }
+
+    public static Participant from(User user) {
+        return Participant.builder()
+                .nickname(user.getNickname())
+                .profileImage(user.getImageUrl())
+                .build();
     }
 }
