@@ -16,7 +16,7 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
 
   flyway:
-    enabled: true
+    enabled: false
     locations: classpath:db/migration
     baseline-on-migrate: true
     validate-on-migrate: true
@@ -29,13 +29,22 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
-  springdoc:
-    swagger-ui:
-      path: /swagger-ui.html
-      operationsSorter: method
-      tagsSorter: alpha
-      docExpansion: none
-    enable-kotlin: false
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: read:user,user:email
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    docExpansion: none
+  enable-kotlin: false
 
   output:
     ansi:
@@ -60,6 +69,18 @@ jwt:
   secret: ${JWT_SECRET}
   access-token-expiration-ms: 3600000
   refresh-token-expiration-ms: 1209600000
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret_key: ${AWS_SECRET_KEY}
+    region:
+      static: ${S3_REGION}
+    s3:
+      bucket: ${S3_BUCKET_NAME}
+    cloudfront:
+      domain: ${CLOUD_FRONT_DOMAIN_NAME}
 
 management:
   health:
@@ -90,14 +111,22 @@ management:
         enabled: true
         step: 30s
 
-cloud:
-  aws:
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret_key: ${AWS_SECRET_KEY}
-    region:
-      static: ${S3_REGION}
-    s3:
-      bucket: ${S3_BUCKET_NAME}
-    cloudfront:
-      domain: ${CLOUD_FRONT_DOMAIN_NAME}
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: DEBUG
+  file:
+    name: /var/log/spring-boot/application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 7
+      total-size-cap: 1GB
+
+oauth:
+  success-redirect-url: https://dev.amateurs.co.kr
+
+cookie:
+  domain: .amateurs.co.kr

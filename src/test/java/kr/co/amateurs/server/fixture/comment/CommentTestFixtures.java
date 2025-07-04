@@ -2,8 +2,10 @@ package kr.co.amateurs.server.fixture.comment;
 
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
+import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 
@@ -132,5 +134,14 @@ public class CommentTestFixtures {
 
     public static CommentRequestDTO createCommentRequestDTO(Long parentCommentId, String content) {
         return new CommentRequestDTO(parentCommentId, content);
+    }
+
+    public static MarketItem createMarketItem(Post post) {
+        return MarketItem.builder()
+                .post(post)
+                .price(10000)
+                .place("서울")
+                .status(MarketStatus.SELLING)
+                .build();
     }
 }

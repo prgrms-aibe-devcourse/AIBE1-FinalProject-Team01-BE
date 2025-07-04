@@ -233,7 +233,7 @@ class ITServiceTest {
         ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO("새로운 제목","태그", "새로운 내용");
         BoardType boardType = BoardType.REVIEW;
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when
         ITResponseDTO result = itService.createPost(requestDTO, boardType);
@@ -253,7 +253,7 @@ class ITServiceTest {
         ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO("새로운 제목", "태그","새로운 내용");
         BoardType boardType = BoardType.REVIEW;
 
-        given(userService.getCurrentUser()).willReturn(Optional.empty());
+        given(userService.getCurrentLoginUser()).willThrow(CustomException.class);
 
         // when & then
         assertThatThrownBy(() -> itService.createPost(requestDTO, boardType))
@@ -266,7 +266,7 @@ class ITServiceTest {
         ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO("수정된 제목","수정 태그", "수정된 내용");
         Long itId = testReviewITPost.getId();
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when
         itService.updatePost(requestDTO, itId);
@@ -297,7 +297,7 @@ class ITServiceTest {
         ITRequestDTO requestDTO = ITTestFixtures.createRequestDTO("수정된 제목","수정 태그", "수정된 내용");
         Long itId = testReviewITPost.getId();
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
+        given(userService.getCurrentLoginUser()).willReturn(testOtherUser);
 
         // when & then
         assertThatThrownBy(() -> itService.updatePost(requestDTO, itId))
@@ -309,7 +309,7 @@ class ITServiceTest {
         // given
         Long itId = testReviewITPost.getId();
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testStudentUser));
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when
         itService.deletePost(itId);
@@ -336,7 +336,7 @@ class ITServiceTest {
         // given
         Long itId = testReviewITPost.getId();
 
-        given(userService.getCurrentUser()).willReturn(Optional.of(testOtherUser));
+        given(userService.getCurrentLoginUser()).willReturn(testOtherUser);
 
         // when & then
         assertThatThrownBy(() -> itService.deletePost(itId))

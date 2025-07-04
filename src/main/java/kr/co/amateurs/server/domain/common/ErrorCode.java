@@ -28,12 +28,17 @@ public enum ErrorCode implements Supplier<CustomException> {
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "이미 사용 중인 이메일입니다."),
     DUPLICATE_NICKNAME(HttpStatus.BAD_REQUEST, "이미 사용 중인 닉네임입니다."),
 
+    OAUTH_EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 다른 소셜 계정으로 가입된 이메일입니다."),
+    OAUTH_USER_REGISTRATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 사용자 등록 중 오류가 발생했습니다."),
+    OAUTH_PROVIDER_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 로그인 제공업체입니다."),
+    OAUTH_EMAIL_API_CALL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "GitHub 이메일 정보 조회 중 오류가 발생했습니다."),
+
     // 회원 정보 수정 관련 에러
     EMPTY_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호를 입력해주세요."),
     INVALID_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다."),
 
     // 로그인 관련 에러
-    USER_NOT_FOUND(HttpStatus.UNAUTHORIZED, "존재하지 않는 사용자입니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 사용자입니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     ANONYMOUS_USER(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
 
@@ -66,22 +71,20 @@ public enum ErrorCode implements Supplier<CustomException> {
 
     // 댓글
     INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "자식 댓글에는 댓글을 달 수 없습니다."),
+    INVALID_COMMENT_POST_RELATION(HttpStatus.BAD_REQUEST, "게시글안에 해당하는 댓글이 없습니다"),
 
     // AI 프로필 관련
     ERROR_SUMMARIZE(HttpStatus.INTERNAL_SERVER_ERROR, "활동 요약 생성 중 오류가 발생했습니다."),
     ERROR_AI_PROFILE_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "AI 프로필 생성 중 오류가 발생했습니다."),
-    ERROR_AI_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "AI 프로필을 찾을 수 없습니다."),
-    ERROR_USER_ACTIVITY_INSUFFICIENT(HttpStatus.BAD_REQUEST, "사용자 활동이 부족하여 AI 프로필을 생성할 수 없습니다."),
-
-    // 추천 시스템 관련
-    ERROR_AI_RECOMMENDATION_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "추천 생성 중 오류가 발생했습니다."),
-    ERROR_AI_RECOMMENDATION_SAVE(HttpStatus.INTERNAL_SERVER_ERROR, "추천 게시글 저장 중 오류가 발생했습니다."),
-    ERROR_AI_RECOMMENDATION_NOT_FOUND(HttpStatus.NOT_FOUND, "저장된 추천 게시글을 찾을 수 없습니다."),
-
     // 임베딩 관련
     ERROR_AI_EMBEDDING_GENERATION(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 생성 중 오류가 발생했습니다."),
-    ERROR_AI_EMBEDDING_SEARCH(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 검색 중 오류가 발생했습니다."),
-    ERROR_AI_EMBEDDING_INITIALIZE(HttpStatus.INTERNAL_SERVER_ERROR, "임베딩 초기화 중 오류가 발생했습니다.");
+
+    // 좋아요 관련
+    INVALID_LIKE(HttpStatus.BAD_REQUEST, "좋아요에는 댓글, 게시글 중 하나만 있어야 됩니다."),
+    DUPLICATE_LIKE(HttpStatus.CONFLICT, "좋아요가 이미 있습니다."),
+
+    // 북마크 관련
+    DUPLICATE_BOOKMARK(HttpStatus.CONFLICT, "북마크가 이미 있습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

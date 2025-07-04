@@ -24,12 +24,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = :postId")
     int increaseViewCount(@Param("postId") Long postId);
 
-    boolean existsByUserIdAndUpdatedAtAfter(Long userId, LocalDateTime since);
-
     List<Post> findTop3ByUserIdOrderByCreatedAtDesc(Long userId);
 
     List<Post> findTop10ByIsDeletedFalseAndCreatedAtAfterOrderByLikeCountDescCreatedAtDesc(LocalDateTime createdAt);
     List<Post> findTop20ByIsDeletedFalseAndCreatedAtAfterOrderByLikeCountDescCreatedAtDesc(LocalDateTime createdAt);
 
     List<Post> findByUser(User user);
+    boolean existsByUserIdAndCreatedAtAfter(Long userId, LocalDateTime createdAt);
 }

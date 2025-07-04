@@ -25,12 +25,12 @@ public record SignupRequestDto(
 
         @Schema(description = "닉네임", example = "testnick")
         @NotBlank(message = "닉네임은 필수입니다")
-        @Size(min = 2, max = 10, message = "닉네임은 2-10자 사이여야 합니다")
+        @Size(min = 2, max = 15, message = "닉네임은 2-15자 사이여야 합니다")
         String nickname,
 
         @Schema(description = "이름", example = "김테스트")
         @NotBlank(message = "이름은 필수입니다")
-        @Size(min = 2, max = 5, message = "이름은 2-5자 사이여야 합니다")
+        @Size(min = 2, max = 10, message = "이름은 2-10자 사이여야 합니다")
         String name,
 
         @Schema(description = "관심 토픽 목록", example = "[\"FRONTEND\", \"BACKEND\"]")

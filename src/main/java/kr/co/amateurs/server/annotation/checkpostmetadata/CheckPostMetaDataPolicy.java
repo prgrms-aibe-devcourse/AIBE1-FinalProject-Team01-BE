@@ -1,4 +1,4 @@
-package kr.co.amateurs.server.annotation.boardaccess;
+package kr.co.amateurs.server.annotation.checkpostmetadata;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardCategory;
@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Component
-public class BoardAccessPolicy {
+public class CheckPostMetaDataPolicy {
     private final Map<BoardCategory, Set<Role>> READ_ACCESS_MAP = Map.of(
             BoardCategory.COMMUNITY, Set.of(Role.GUEST, Role.STUDENT, Role.ADMIN),
             BoardCategory.TOGETHER, Set.of(Role.STUDENT, Role.ADMIN),

@@ -27,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import java.util.Collections;
@@ -59,10 +60,14 @@ public class BookmarkService {
         return convertPageToDTO(bookmarkList.map(this::convertToDTO));
     }
 
+    @Transactional
     public BookmarkResponseDTO addBookmarkPost(Long userId, Long postId) {
-        validateUser(userId);
-        User currentUser = userRepository.findById(userId).orElseThrow();
+        User currentUser = validateUser(userId);
         Post post = postRepository.findById(postId).orElseThrow();
+        if (checkHasBookmarked(postId, userId)) {
+            throw ErrorCode.DUPLICATE_BOOKMARK.get();
+        }
+
         Bookmark newBookmark = Bookmark.builder()
                 .user(currentUser)
                 .post(post)
@@ -99,21 +104,19 @@ public class BookmarkService {
     }
     public boolean checkHasBookmarked(Long postId, Long userId) {
         return bookmarkRepository
-                .findByPostIdAndUserId(postId, userId)
-                .isPresent();
+                .existsByPost_IdAndUser_Id(postId, userId);
     }
 
-    private void validateUser(Long userId) {
-        Optional<User> user = userService.getCurrentUser();
-        if (user.isEmpty()) {
-            throw new CustomException(ErrorCode.USER_NOT_FOUND);
-        }
-        Long currentId = user.get().getId();
-        Role currentRole = user.get().getRole();
+    private User validateUser(Long userId) {
+        User user = userService.getCurrentLoginUser();
+        Long currentId = user.getId();
+        Role currentRole = user.getRole();
 
         if (!currentId.equals(userId) && currentRole != Role.ADMIN) {
             throw new CustomException(ErrorCode.ACCESS_DENIED, "본인의 북마크에만 접근할 수 있습니다.");
         }
+
+        return user;
     }
     public List<PostContentData> getBookmarkedPosts(Long userId) {
         try {
@@ -122,6 +125,15 @@ public class BookmarkService {
                     -> new PostContentData(bookmark.getPost().getId(), bookmark.getPost().getTitle(), bookmark.getPost().getContent(), "북마크")).toList();
         } catch (Exception e) {
             return Collections.emptyList();
+        }
+    }
+
+    public boolean hasRecentBookmarkActivity(Long userId, int days) {
+        try {
+            LocalDateTime since = LocalDateTime.now().minusDays(days);
+            return bookmarkRepository.existsByUserIdAndCreatedAtAfter(userId, since);
+        } catch (Exception e) {
+            return false;
         }
     }
 
