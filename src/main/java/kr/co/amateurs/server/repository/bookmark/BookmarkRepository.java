@@ -65,7 +65,7 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     """)
     List<BookmarkCount> countByPostIds(@Param("postIds") List<Long> postIds);
 
-    boolean existsByUserIdAndUpdatedAtAfter(Long userId, LocalDateTime since);
-
     List<Bookmark> findTop3ByUserIdOrderByCreatedAtDesc(Long userId);
+
+    boolean existsByUserIdAndCreatedAtAfter(Long userId, LocalDateTime createdAt);
 }

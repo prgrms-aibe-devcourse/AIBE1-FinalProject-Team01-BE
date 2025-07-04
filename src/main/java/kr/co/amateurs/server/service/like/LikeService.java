@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -129,6 +130,15 @@ public class LikeService {
     private void validateCommentBelongsToPost(Comment comment, Long postId) {
         if (!comment.getPost().getId().equals(postId)) {
             throw new CustomException(ErrorCode.INVALID_COMMENT_POST_RELATION);
+        }
+    }
+
+    public boolean hasRecentLikeActivity(Long userId, int days) {
+        try {
+            LocalDateTime since = LocalDateTime.now().minusDays(days);
+            return likeRepository.existsByUserIdAndPostIsNotNullAndCreatedAtAfter(userId, since);
+        } catch (Exception e) {
+            return false;
         }
     }
 }
