@@ -92,7 +92,7 @@ public class AiDevController {
     @Operation(summary = "특정 사용자 추천 게시글 생성", description = "개별 사용자 추천 생성 및 저장")
     public ResponseEntity<Void> saveUserRecommendations(
             @RequestParam Long userId,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(name = "limit", defaultValue = "10") int limit) {
         postRecommendService.saveRecommendationsToDB(userId, limit);
         return ResponseEntity.ok().build();
     }
@@ -101,7 +101,7 @@ public class AiDevController {
     @Operation(summary = "특정 사용자 추천 게시글 조회", description = "저장된 추천 게시글을 조회합니다 (개발용)")
     public ResponseEntity<List<PostRecommendationResponse>> getUserRecommendations(
             @RequestParam Long userId,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(name = "limit", defaultValue = "10") int limit) {
         StopWatch stopWatch = new StopWatch("추천 게시글 조회");
         stopWatch.start();
 
