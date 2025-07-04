@@ -97,10 +97,7 @@ cloud:
       domain: ${CLOUD_FRONT_DOMAIN_NAME}
 
 oauth:
-  success-redirect-url: http://localhost:3000
-
-cookie:
-  domain: localhost
+  success-redirect-url: http://localhost:5173
 
 swagger:
   server:

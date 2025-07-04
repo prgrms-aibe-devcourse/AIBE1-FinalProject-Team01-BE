@@ -29,6 +29,10 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
+  output:
+    ansi:
+      enabled: always
+
   security:
     oauth2:
       client:
@@ -40,7 +44,7 @@ spring:
           kakao:
             client-id: ${KAKAO_CLIENT_ID}
             client-secret: ${KAKAO_CLIENT_SECRET}
-            redirect-uri: "https://www.amateurs.co.kr/login/oauth2/code/kakao"
+            redirect-uri: "http://localhost:8080/login/oauth2/code/kakao"
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             client-name: Kakao
@@ -52,7 +56,6 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
-
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
@@ -60,10 +63,6 @@ springdoc:
     tagsSorter: alpha
     docExpansion: none
   enable-kotlin: false
-
-  output:
-    ansi:
-      enabled: always
 
 langchain4j:
   google-ai-gemini:
@@ -97,51 +96,5 @@ cloud:
     cloudfront:
       domain: ${CLOUD_FRONT_DOMAIN_NAME}
 
-management:
-  health:
-    mongo:
-      enabled: false # TODO: MongoDB Health Check 비활성화, 추후 활성화 필요
-
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus,metrics
-  endpoint:
-    health:
-      show-details: always # nginx에서 ip 제한 처리
-    info:
-      access: read_only
-    prometheus:
-      access: read_only
-    metrics:
-      access: read_only
-
-  metrics:
-    tags:
-      application: ${spring.application.name}
-      version: '@project.version@'
-  prometheus:
-    metrics:
-      export:
-        enabled: true
-        step: 30s
-
-logging:
-  level:
-    root: INFO
-    org.springframework: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: DEBUG
-  file:
-    name: /var/log/spring-boot/application.log
-  logback:
-    rollingpolicy:
-      max-file-size: 100MB
-      max-history: 7
-      total-size-cap: 1GB
-
 oauth:
-  success-redirect-url: https://dev.amateurs.co.kr
-
-cookie:
-  domain: .amateurs.co.kr
+  success-redirect-url: http://localhost:5173
