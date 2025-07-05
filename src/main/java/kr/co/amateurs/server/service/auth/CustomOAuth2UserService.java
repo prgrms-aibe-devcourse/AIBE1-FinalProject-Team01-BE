@@ -158,16 +158,18 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         return generateFakeEmail(provider, providerId);
     }
 
-    @SuppressWarnings("unchecked")
     private String getKakaoEmail(OAuth2User oAuth2User, String providerId) {
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-        if (kakaoAccount != null) {
-            String email = (String) kakaoAccount.get("email");
-            if (email != null && !email.isEmpty()) {
-                return email;
-            }
+        Map<String, Object> kakaoAccount = getKakaoAccount(attributes);
+        if (kakaoAccount == null) {
+            log.warn("Kakao 계정 정보가 Map 형식이 아닙니다");
+            return generateFakeEmail("kakao", providerId);
+        }
+
+        String email = (String) kakaoAccount.get("email");
+        if (email != null && !email.isEmpty()) {
+            return email;
         }
 
         log.warn("Kakao에서 이메일을 받지 못했습니다");
@@ -232,15 +234,13 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             }
             return nickname;
         } else if ("kakao".equals(provider)) {
-            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-            if (kakaoAccount != null) {
-                Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-                if (profile != null) {
-                    String nickname = (String) profile.get("nickname");
-                    return nickname != null ? nickname : "카카오사용자";
-                }
+            Map<String, Object> profile = getKakaoProfile(attributes);
+            if (profile == null) {
+                return "카카오사용자";
             }
-            return "카카오사용자";
+
+            String nickname = (String) profile.get("nickname");
+            return nickname != null ? nickname : "카카오사용자";
         }
 
         throw ErrorCode.OAUTH_PROVIDER_NOT_SUPPORTED.get();
@@ -253,11 +253,8 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             String name = (String) attributes.get("name");
             return name != null ? name : (String) attributes.get("login");
         } else if ("kakao".equals(provider)) {
-            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-            if (kakaoAccount != null) {
-                Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-                return profile != null ? (String) profile.get("nickname") : null;
-            }
+            Map<String, Object> profile = getKakaoProfile(attributes);
+            return profile != null ? (String) profile.get("nickname") : null;
         }
 
         return null;
@@ -269,11 +266,8 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         if ("github".equals(provider)) {
             return (String) attributes.get("avatar_url");
         } else if ("kakao".equals(provider)) {
-            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-            if (kakaoAccount != null) {
-                Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-                return profile != null ? (String) profile.get("profile_image_url") : null;
-            }
+            Map<String, Object> profile = getKakaoProfile(attributes);
+            return profile != null ? (String) profile.get("profile_image_url") : null;
         }
 
         return null;
@@ -287,6 +281,38 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         }
 
         return oAuth2User.getAttributes();
+    }
+
+    private Map<String, Object> getKakaoProfile(Map<String, Object> attributes) {
+        Object kakaoAccountObj = attributes.get("kakao_account");
+        if (!(kakaoAccountObj instanceof Map)) {
+            return null;
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> kakaoAccount = (Map<String, Object>) kakaoAccountObj;
+
+        Object profileObj = kakaoAccount.get("profile");
+        if (!(profileObj instanceof Map)) {
+            return null;
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> profile = (Map<String, Object>) profileObj;
+
+        return profile;
+    }
+
+    private Map<String, Object> getKakaoAccount(Map<String, Object> attributes) {
+        Object kakaoAccountObj = attributes.get("kakao_account");
+        if (!(kakaoAccountObj instanceof Map)) {
+            return null;
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> kakaoAccount = (Map<String, Object>) kakaoAccountObj;
+
+        return kakaoAccount;
     }
 
 }
