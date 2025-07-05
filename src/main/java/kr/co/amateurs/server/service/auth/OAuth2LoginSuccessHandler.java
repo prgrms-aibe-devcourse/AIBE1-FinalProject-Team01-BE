@@ -48,7 +48,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         String provider  = extractProviderFromRequest(request);
 
-        log.debug("{} OAuth2User 속성: {}", provider, oAuth2User.getAttributes());
+        log.debug("{} OAuth2User 로그인 성공 핸들러 진입", provider);
 
         try {
             String providerId = extractProviderId(oAuth2User, provider);
@@ -106,7 +106,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         Object id = attributes.get("id");
 
         if (id == null) {
-            log.error("{}에서 사용자 ID를 받지 못했습니다:{}", provider, attributes);
+            log.error("{}에서 사용자 ID를 받지 못했습니다", provider);
             throw ErrorCode.OAUTH_USER_REGISTRATION_FAILED.get();
         }
 

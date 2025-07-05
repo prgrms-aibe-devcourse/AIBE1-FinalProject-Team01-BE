@@ -48,16 +48,13 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         String provider = userRequest.getClientRegistration().getRegistrationId();
         log.info("OAuth2 로그인 시도: provider={}", provider);
-
-        log.info("GitHub에서 받아온 모든 속성: {}", oAuth2User.getAttributes());
+        log.info("{} OAuth2 로그인 사용자 정보 획득 완료", provider);
 
         String providerId = getProviderId(oAuth2User, provider);
         String email = getEmailWithFallback(userRequest, oAuth2User, provider, providerId);
         String nickname = getNickname(oAuth2User, provider);
         String name = getName(oAuth2User, provider);
         String imageUrl = getImageUrl(oAuth2User, provider);
-
-        log.info("파싱된 정보 - email: '{}', nickname: '{}', name: '{}'", email, nickname, name);
 
         try {
             saveOrUpdateUser(provider, providerId, email, nickname, name, imageUrl);
@@ -104,7 +101,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 .build();
 
         userRepository.save(newUser);
-        log.info("신규 사용자 등록: userId={}, 닉네임={}, 이메일={}", newUser.getId(), uniqueNickname, email);
+        log.info("신규 사용자 등록: userId={}, 닉네임={}", newUser.getId(), uniqueNickname);
     }
 
 
@@ -130,7 +127,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         Object id = attributes.get("id");
         if (id == null) {
-            log.error("{}에서 사용자 ID를 받지 못했습니다: {}", provider, attributes);
+            log.error("{}에서 사용자 ID를 받지 못했습니다", provider);
             throw ErrorCode.OAUTH_USER_REGISTRATION_FAILED.get();
         }
 
@@ -146,16 +143,13 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         String attributeEmail = (String) attributes.get("email");
         if (attributeEmail != null && !attributeEmail.isEmpty()) {
-            log.info("GitHub attributes에서 이메일 획득: {}", attributeEmail);
             return attributeEmail;
         }
 
         log.info("GitHub attributes에 이메일이 없어 AccessToken으로 조회 시도");
         try {
             String accessToken = userRequest.getAccessToken().getTokenValue();
-            String emailFromApi = fetchEmailWithAccessToken(accessToken);
-            log.info("GitHub API에서 이메일 획득: {}", emailFromApi);
-            return emailFromApi;
+            return fetchEmailWithAccessToken(accessToken);
         } catch (CustomException e) {
             log.warn("GitHub API로 이메일 조회 실패: {}", e.getMessage());
         }
@@ -172,7 +166,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         if (kakaoAccount != null) {
             String email = (String) kakaoAccount.get("email");
             if (email != null && !email.isEmpty()) {
-                log.info("Kakao에서 이메일 획득: {}", email);
                 return email;
             }
         }
@@ -234,7 +227,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         if ("github".equals(provider)) {
             String nickname = (String) attributes.get("login");
             if (nickname == null) {
-                log.error("GitHub에서 닉네임을 받지 못했습니다: {}", attributes);
+                log.error("GitHub에서 닉네임을 받지 못했습니다");
                 throw ErrorCode.OAUTH_USER_REGISTRATION_FAILED.get();
             }
             return nickname;
