@@ -115,11 +115,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         }
 
         String uniqueSuffix = UUID.randomUUID().toString().substring(0, 6);
-        return originalNickname + "_" + uniqueSuffix;
+        return String.format("%s_%s", originalNickname, uniqueSuffix);
     }
 
     private String generateFakeEmail(String provider, String providerId) {
-        return provider + "_" + providerId + "@amateurs.local";
+        return String.format("%s_%s@amateurs.local", provider, providerId);
     }
 
     private String getProviderId(OAuth2User oAuth2User, String provider) {
