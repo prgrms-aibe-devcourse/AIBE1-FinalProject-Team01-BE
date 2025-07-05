@@ -1,5 +1,7 @@
 package kr.co.amateurs.server.service.auth;
 
+import jakarta.servlet.http.HttpServletResponse;
+import kr.co.amateurs.server.config.auth.CookieUtils;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
@@ -29,6 +31,7 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
     private final AiProfileService aiProfileService;
+    private final CookieUtils cookieUtils;
 
     @Transactional
     public SignupResponseDto signup(SignupRequestDto request){
@@ -64,6 +67,12 @@ public class AuthService {
 
     @Transactional
     public LoginResponseDto login(LoginRequestDto request){
+        return login(request, null);
+    }
+
+    @Transactional
+    public LoginResponseDto login(LoginRequestDto request,
+                                  HttpServletResponse response) {
         User user = userService.findByEmail(request.email());
 
         if(!passwordEncoder.matches(request.password(), user.getPassword())){
@@ -78,6 +87,9 @@ public class AuthService {
 
         refreshTokenService.saveRefreshToken(user.getEmail(), refreshToken, refreshExpiresIn);
 
+        if (response != null) {
+            cookieUtils.setAuthTokenCookie(response, accessToken, expiresIn, refreshToken, refreshExpiresIn);
+        }
         return LoginResponseDto.of(accessToken, refreshToken, expiresIn);
     }
 }

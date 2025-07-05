@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.auth;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.auth.*;
 import kr.co.amateurs.server.service.UserService;
@@ -29,9 +30,10 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "사용자 인증 후 JWT 토큰을 발급합니다")
-    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
-        LoginResponseDto response = authService.login(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request,
+                                                  HttpServletResponse response) {
+        LoginResponseDto loginResponse = authService.login(request, response);
+        return ResponseEntity.ok(loginResponse);
     }
 
     @GetMapping("/check/email")
