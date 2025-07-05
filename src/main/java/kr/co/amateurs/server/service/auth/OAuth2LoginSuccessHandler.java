@@ -8,6 +8,7 @@ import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
+import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 
@@ -90,13 +91,18 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             String redirectUrl = successRedirectUrl + "/oauth/callback";
             response.sendRedirect(redirectUrl);
-        } catch (Exception e) {
-            log.error("{} OAuth 로그인 처리 중 오류: {}", provider, e.getMessage(), e);
-
-            String errorMessage = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
-            String errorRedirectUrl = successRedirectUrl + "?error=" + errorMessage + "&socialType=" + provider;
-
-            response.sendRedirect(errorRedirectUrl);
+        } catch (CustomException e) {
+            log.warn("{} OAuth 로그인 실패: {}", provider, e.getMessage());
+            redirectWithError(response, provider, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            log.error("{} OAuth 로그인 실패 - 지원하지 않는 제공자: {}", provider, e.getMessage());
+            redirectWithError(response, provider, ErrorCode.OAUTH_INVALID_PROVIDER.get().getMessage());
+        } catch (RuntimeException e) {
+            log.error("{} OAuth 로그인 처리 중 시스템 오류: {}", provider, e.getMessage(), e);
+            redirectWithError(response, provider, ErrorCode.OAUTH_SYSTEM_ERROR.get().getMessage());
+        } catch (IOException e) {
+            log.error("{} OAuth 로그인 중 리다이렉트 오류: {}", provider, e.getMessage(), e);
+            handleIOException(response, e);
         }
     }
 
@@ -123,5 +129,20 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         }
 
         return "github";
+    }
+
+    private void redirectWithError(HttpServletResponse response, String provider, String message) throws IOException {
+        String errorMessage = URLEncoder.encode(message, StandardCharsets.UTF_8);
+        String errorRedirectUrl = successRedirectUrl + "?error=" + errorMessage + "&socialType=" + provider;
+        response.sendRedirect(errorRedirectUrl);
+    }
+
+    private void handleIOException(HttpServletResponse response, IOException originalException) {
+        try {
+            CustomException ce = ErrorCode.OAUTH_REDIRECT_FAILED.get();
+            response.sendError(ce.getErrorCode().getHttpStatus().value(), ce.getMessage());
+        } catch (IOException ioException) {
+            log.error("에러 응답 전송도 실패: {}", ioException.getMessage());
+        }
     }
 }
