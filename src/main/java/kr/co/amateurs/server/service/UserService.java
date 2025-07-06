@@ -198,6 +198,6 @@ public class UserService {
 
     public User findById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+                .orElseThrow(ErrorCode.NOT_FOUND);
     }
 }
