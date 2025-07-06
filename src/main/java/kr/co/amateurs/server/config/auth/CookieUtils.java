@@ -11,6 +11,10 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class CookieUtils {
 
+    public static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
+    public static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
+    public static final int BEARER_PREFIX_LENGTH = 7;
+
     @Value("${cookie.domain:}")
     private String cookieDomain;
 
@@ -24,11 +28,11 @@ public class CookieUtils {
                                    Long refreshTokenExpiresIn) {
         log.debug("인증 토큰 쿠키 설정 시작");
 
-        Cookie accessTokenCookie = createSecureCookie("accessToken", accessToken,
+        Cookie accessTokenCookie = createSecureCookie(ACCESS_TOKEN_COOKIE_NAME, accessToken,
                 Math.toIntExact(accessTokenExpiresIn / 1000));
         response.addCookie(accessTokenCookie);
 
-        Cookie refreshTokenCookie = createSecureCookie("refreshToken", refreshToken,
+        Cookie refreshTokenCookie = createSecureCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken,
                 Math.toIntExact(refreshTokenExpiresIn));
         response.addCookie(refreshTokenCookie);
     }
