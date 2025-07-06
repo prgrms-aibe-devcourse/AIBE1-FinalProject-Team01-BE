@@ -31,7 +31,7 @@ public class AuthService {
     private final CookieUtils cookieUtils;
 
     @Transactional
-    public SignupResponseDto signup(SignupRequestDto request){
+    public SignupResponseDTO signup(SignupRequestDTO request){
         userService.validateEmailDuplicate(request.email());
         userService.validateNicknameDuplicate(request.nickname());
 
@@ -59,16 +59,16 @@ public class AuthService {
             }
         });
 
-        return SignupResponseDto.fromEntity(savedUser, request.topics());
+        return SignupResponseDTO.fromEntity(savedUser, request.topics());
     }
 
     @Transactional
-    public LoginResponseDto login(LoginRequestDto request){
+    public LoginResponseDTO login(LoginRequestDTO request){
         return login(request, null);
     }
 
     @Transactional
-    public LoginResponseDto login(LoginRequestDto request,
+    public LoginResponseDTO login(LoginRequestDTO request,
                                   HttpServletResponse response) {
         User user = userService.findByEmail(request.email());
 
@@ -85,9 +85,9 @@ public class AuthService {
         refreshTokenService.saveRefreshToken(user.getEmail(), refreshToken, refreshExpiresIn);
 
         if (response != null) {
-            TokenInfo tokenInfo = TokenInfo.of(accessToken, expiresIn, refreshToken, refreshExpiresIn);
-            cookieUtils.setAuthTokenCookie(response, tokenInfo);
+            TokenInfoDTO tokenInfoDTO = TokenInfoDTO.of(accessToken, expiresIn, refreshToken, refreshExpiresIn);
+            cookieUtils.setAuthTokenCookie(response, tokenInfoDTO);
         }
-        return LoginResponseDto.of(accessToken, refreshToken, expiresIn);
+        return LoginResponseDTO.of(accessToken, refreshToken, expiresIn);
     }
 }

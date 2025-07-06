@@ -1,6 +1,6 @@
 package kr.co.amateurs.server.fixture.common;
 
-import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
+import kr.co.amateurs.server.domain.dto.auth.SignupRequestDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -38,8 +38,8 @@ public class UserTestFixture {
         return defaultUser().email(email).build();
     }
 
-    public static SignupRequestDto.SignupRequestDtoBuilder defaultSignupRequest() {
-        return SignupRequestDto.builder()
+    public static SignupRequestDTO.SignupRequestDTOBuilder defaultSignupRequest() {
+        return SignupRequestDTO.builder()
                 .email(DEFAULT_EMAIL)
                 .nickname(DEFAULT_NICKNAME)
                 .name(DEFAULT_NAME)
@@ -47,22 +47,22 @@ public class UserTestFixture {
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND));
     }
 
-    public static SignupRequestDto createSignupRequest() {
+    public static SignupRequestDTO createSignupRequest() {
         return defaultSignupRequest().build();
     }
 
-    public static SignupRequestDto createSignupRequestWithEmail(String email) {
+    public static SignupRequestDTO createSignupRequestWithEmail(String email) {
         return defaultSignupRequest().email(email).build();
     }
 
-    public static SignupRequestDto createInvalidEmailSignupRequest() {
+    public static SignupRequestDTO createInvalidEmailSignupRequest() {
         return defaultSignupRequest().email("invalid-email").build();
     }
 
     /**
      * 너무 많은 토픽을 가진 회원가입 요청 DTO를 생성합니다
      */
-    public static SignupRequestDto createTooManyTopicsSignupRequest() {
+    public static SignupRequestDTO createTooManyTopicsSignupRequest() {
         return defaultSignupRequest()
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.AI, Topic.MOBILE))
                 .build();
@@ -87,7 +87,7 @@ public class UserTestFixture {
     /**
      * 고유한 이메일로 회원가입 요청 DTO를 생성합니다
      */
-    public static SignupRequestDto createUniqueSignupRequest() {
+    public static SignupRequestDTO createUniqueSignupRequest() {
         return defaultSignupRequest()
                 .email(generateUniqueEmail())
                 .nickname(generateUniqueNickname())

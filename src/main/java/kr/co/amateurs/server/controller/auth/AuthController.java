@@ -23,34 +23,34 @@ public class AuthController {
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다")
-    public ResponseEntity<SignupResponseDto> signup(@Valid @RequestBody SignupRequestDto request) {
-        SignupResponseDto response = authService.signup(request);
+    public ResponseEntity<SignupResponseDTO> signup(@Valid @RequestBody SignupRequestDTO request) {
+        SignupResponseDTO response = authService.signup(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "사용자 인증 후 JWT 토큰을 발급합니다")
-    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request,
+    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request,
                                                   HttpServletResponse response) {
-        LoginResponseDto loginResponse = authService.login(request, response);
+        LoginResponseDTO loginResponse = authService.login(request, response);
         return ResponseEntity.ok(loginResponse);
     }
 
     @GetMapping("/check/email")
     @Operation(summary = "이메일 중복 확인", description = "이메일 중복 여부를 확인합니다")
-    public ResponseEntity<CheckResponseDto> checkEmailDuplicate(@RequestParam String email) {
+    public ResponseEntity<CheckResponseDTO> checkEmailDuplicate(@RequestParam String email) {
         boolean available = userService.isEmailAvailable(email);
         return ResponseEntity.ok(available ?
-                CheckResponseDto.available("이메일") :
-                CheckResponseDto.unavailable("이메일"));
+                CheckResponseDTO.available("이메일") :
+                CheckResponseDTO.unavailable("이메일"));
     }
 
     @GetMapping("/check/nickname")
     @Operation(summary = "닉네임 중복 확인", description = "닉네임 중복 여부를 확인합니다")
-    public ResponseEntity<CheckResponseDto> checkNicknameDuplicate(@RequestParam String nickname) {
+    public ResponseEntity<CheckResponseDTO> checkNicknameDuplicate(@RequestParam String nickname) {
         boolean available = userService.isNicknameAvailable(nickname);
         return ResponseEntity.ok(available ?
-                CheckResponseDto.available("닉네임") :
-                CheckResponseDto.unavailable("닉네임"));
+                CheckResponseDTO.available("닉네임") :
+                CheckResponseDTO.unavailable("닉네임"));
     }
 }
