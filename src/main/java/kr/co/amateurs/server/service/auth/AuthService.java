@@ -4,10 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.co.amateurs.server.config.auth.CookieUtils;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.common.ErrorCode;
-import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.LoginResponseDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
+import kr.co.amateurs.server.domain.dto.auth.*;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -83,12 +80,13 @@ public class AuthService {
         Long expiresIn = jwtProvider.getAccessTokenExpirationMs();
 
         String refreshToken = jwtProvider.generateRefreshToken(user.getEmail());
-        Long refreshExpiresIn = jwtProvider.getRefreshTokenExpirationMs() / 1000;
+        Long refreshExpiresIn = jwtProvider.getRefreshTokenExpirationMs();
 
         refreshTokenService.saveRefreshToken(user.getEmail(), refreshToken, refreshExpiresIn);
 
         if (response != null) {
-            cookieUtils.setAuthTokenCookie(response, accessToken, expiresIn, refreshToken, refreshExpiresIn);
+            TokenInfo tokenInfo = TokenInfo.of(accessToken, expiresIn, refreshToken, refreshExpiresIn);
+            cookieUtils.setAuthTokenCookie(response, tokenInfo);
         }
         return LoginResponseDto.of(accessToken, refreshToken, expiresIn);
     }

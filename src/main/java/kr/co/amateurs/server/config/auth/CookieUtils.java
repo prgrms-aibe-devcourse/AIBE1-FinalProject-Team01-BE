@@ -2,6 +2,7 @@ package kr.co.amateurs.server.config.auth;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import kr.co.amateurs.server.domain.dto.auth.TokenInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -21,19 +22,22 @@ public class CookieUtils {
     @Value("${cookie.secure:true}")
     private boolean secure;
 
-    public void setAuthTokenCookie(HttpServletResponse response,
-                                   String accessToken,
-                                   Long accessTokenExpiresIn,
-                                   String refreshToken,
-                                   Long refreshTokenExpiresIn) {
+    public void setAuthTokenCookie(HttpServletResponse response, TokenInfo tokenInfo) {
         log.debug("인증 토큰 쿠키 설정 시작");
 
-        Cookie accessTokenCookie = createSecureCookie(ACCESS_TOKEN_COOKIE_NAME, accessToken,
-                Math.toIntExact(accessTokenExpiresIn / 1000));
+        Cookie accessTokenCookie = createSecureCookie(
+                ACCESS_TOKEN_COOKIE_NAME,
+                tokenInfo.accessToken(),
+                Math.toIntExact(tokenInfo.accessTokenExpiresIn() / 1000)
+        );
         response.addCookie(accessTokenCookie);
 
-        Cookie refreshTokenCookie = createSecureCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken,
-                Math.toIntExact(refreshTokenExpiresIn));
+        // Refresh Token 쿠키 생성 (초 단위)
+        Cookie refreshTokenCookie = createSecureCookie(
+                REFRESH_TOKEN_COOKIE_NAME,
+                tokenInfo.refreshToken(),
+                Math.toIntExact(tokenInfo.refreshTokenExpiresIn() / 1000)
+        );
         response.addCookie(refreshTokenCookie);
     }
 
