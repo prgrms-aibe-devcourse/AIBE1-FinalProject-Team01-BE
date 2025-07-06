@@ -2,10 +2,7 @@ package kr.co.amateurs.server.service.auth;
 
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.common.ErrorCode;
-import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.LoginResponseDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
+import kr.co.amateurs.server.domain.dto.auth.*;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -79,5 +76,25 @@ public class AuthService {
         refreshTokenService.saveRefreshToken(user.getEmail(), refreshToken, refreshExpiresIn);
 
         return LoginResponseDto.of(accessToken, refreshToken, expiresIn);
+    }
+
+    @Transactional
+    public TokenReissueResponseDTO reissueToken (TokenReissueRequestDTO request){
+        String refreshToken = request.refreshToken();
+
+        if (!jwtProvider.validateToken(refreshToken)) {
+            throw ErrorCode.UNAUTHORIZED.get();
+        }
+
+        String email = jwtProvider.getEmailFromToken(refreshToken);
+
+        if (!refreshTokenService.existsByEmail(email)) {
+            throw ErrorCode.UNAUTHORIZED.get();
+        }
+
+        String newAccessToken = jwtProvider.generateAccessToken(email);
+        Long expiresIn = jwtProvider.getAccessTokenExpirationMs();
+
+        return TokenReissueResponseDTO.of(newAccessToken, expiresIn);
     }
 }

@@ -51,4 +51,11 @@ public class AuthController {
                 CheckResponseDto.available("닉네임") :
                 CheckResponseDto.unavailable("닉네임"));
     }
+
+    @PostMapping("/reissue")
+    @Operation(summary = "토큰 재발급", description = "리프레시 토큰을 이용하여 새로운 액세스 토큰을 발급합니다")
+    public ResponseEntity<TokenReissueResponseDTO> reissueToken(@Valid @RequestBody TokenReissueRequestDTO request) {
+        TokenReissueResponseDTO response = authService.reissueToken(request);
+        return ResponseEntity.ok(response);
+    }
 }
