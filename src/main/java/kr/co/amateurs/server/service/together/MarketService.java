@@ -17,16 +17,19 @@ import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import kr.co.amateurs.server.service.file.FileService;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO.convertToDTO;
@@ -34,6 +37,7 @@ import static kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO.co
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MarketService {
     private final MarketRepository marketRepository;
     private final PostRepository postRepository;
@@ -42,6 +46,7 @@ public class MarketService {
     private final BookmarkService bookmarkService;
 
     private final FileService fileService;
+    private final PostEmbeddingService postEmbeddingService;
 
 
     public PageResponseDTO<MarketPostResponseDTO> getMarketPostList(PostPaginationParam paginationParam) {
@@ -83,6 +88,14 @@ public class MarketService {
 
         List<String> imgUrls = fileService.extractImageUrls(dto.content());
         fileService.savePostImage(savedPost, imgUrls);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.createPostEmbeddings(savedPost);
+            } catch (Exception e) {
+                log.warn("커뮤니티 게시글 임베딩 생성 실패: postId={}", savedPost.getId(), e);
+            }
+        });
 
         return convertToDTO(savedMp, savedPost, false, false);
     }

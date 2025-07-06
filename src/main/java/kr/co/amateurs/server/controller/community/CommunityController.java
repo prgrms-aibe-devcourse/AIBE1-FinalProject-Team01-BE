@@ -30,7 +30,7 @@ public class CommunityController {
             description = "특정 게시판 타입의 게시글 목록을 페이지네이션으로 조회합니다. 키워드 검색도 지원합니다."
     )
     public ResponseEntity<PageResponseDTO<CommunityResponseDTO>> getCommunity(
-            @PathVariable BoardType boardType,
+            @PathVariable("boardType") BoardType boardType,
             @ParameterObject @Valid PostPaginationParam paginationParam
             ) {
 
@@ -45,7 +45,7 @@ public class CommunityController {
             description = "특정 게시글의 상세 정보를 조회합니다."
     )
     public ResponseEntity<CommunityResponseDTO> getCommunityPost(
-            @PathVariable BoardType boardType,
+            @PathVariable("boardType") BoardType boardType,
             @PathVariable Long communityId) {
 
         CommunityResponseDTO post = communityService.getPost(communityId);

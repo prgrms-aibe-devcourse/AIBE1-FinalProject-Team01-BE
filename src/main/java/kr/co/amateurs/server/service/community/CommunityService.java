@@ -92,6 +92,7 @@ public class CommunityService {
                 log.warn("커뮤니티 게시글 임베딩 생성 실패: postId={}", savedPost.getId(), e);
             }
         });
+
         List<String> imgUrls = fileService.extractImageUrls(requestDTO.content());
         fileService.savePostImage(savedPost, imgUrls);
 

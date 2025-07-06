@@ -18,16 +18,19 @@ import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import kr.co.amateurs.server.service.file.FileService;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO.convertToDTO;
@@ -35,6 +38,7 @@ import static kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO.con
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MatchService {
 
     private final MatchRepository matchRepository;
@@ -44,6 +48,7 @@ public class MatchService {
     private final BookmarkService bookmarkService;
 
     private final FileService fileService;
+    private final PostEmbeddingService postEmbeddingService;
 
     public PageResponseDTO<MatchPostResponseDTO> getMatchPostList(PostPaginationParam paginationParam) {
         //TODO - 테스트 코드 수정 후 통과 시 삭제 예정
@@ -90,6 +95,13 @@ public class MatchService {
                 .build();
         MatchingPost savedMp = matchRepository.save(mp);
 
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.createPostEmbeddings(savedPost);
+            } catch (Exception e) {
+                log.warn("커뮤니티 게시글 임베딩 생성 실패: postId={}", savedPost.getId(), e);
+            }
+        });
 
         List<String> imgUrls = fileService.extractImageUrls(dto.content());
         fileService.savePostImage(savedPost, imgUrls);
