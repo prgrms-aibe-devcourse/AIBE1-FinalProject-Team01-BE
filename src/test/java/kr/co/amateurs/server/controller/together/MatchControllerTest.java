@@ -2,12 +2,14 @@ package kr.co.amateurs.server.controller.together;
 
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
+import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
+import kr.co.amateurs.server.repository.together.MatchJooqRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +21,7 @@ import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.*;
+import static kr.co.amateurs.server.fixture.together.MarketTestFixture.createMarketPostRequestDTO;
 import static kr.co.amateurs.server.fixture.together.MatchTestFixture.createMatchPostRequestDTO;
 import static org.hamcrest.Matchers.*;
 
@@ -32,6 +35,8 @@ class MatchControllerTest extends AbstractControllerTest {
     private PostRepository postRepository;
     @Autowired
     private ReportRepository reportRepository;
+    @Autowired
+    private MatchJooqRepository matchJooqRepository;
 
     private String guestEmail;
     private String adminEmail;
@@ -232,6 +237,8 @@ class MatchControllerTest extends AbstractControllerTest {
     class AdminTests {
         @Test
         void 관리자유저가_키워드를포함하여_페이지조회하면_200과_페이지를_검증한다() {
+            int dataCount = matchJooqRepository.countByKeyword("React");
+
             given()
                     .header("Authorization", "Bearer " + fakeAdminToken())
                     .param("page", 0)
@@ -241,7 +248,8 @@ class MatchControllerTest extends AbstractControllerTest {
                     .get("/matches")
                     .then()
                     .statusCode(200)
-                    .body("pageInfo.pageSize", equalTo(5));
+                    .body("pageInfo.pageSize", equalTo(5))
+                    .body("pageInfo.totalElements", equalTo(dataCount));
         }
 
         @Test
@@ -274,6 +282,27 @@ class MatchControllerTest extends AbstractControllerTest {
                     .param("size", 10)
                     .when()
                     .get("/matches")
+                    .then()
+                    .statusCode(401);
+        }
+        @Test
+        void 인증없이_수정요청하면_401을_반환한다() {
+            MatchPostRequestDTO update = createMatchPostRequestDTO();
+
+            given()
+                    .contentType(ContentType.JSON)
+                    .body(update)
+                    .when()
+                    .put("/matches/{matchId}", 1L)
+                    .then()
+                    .statusCode(401);
+        }
+
+        @Test
+        void 인증없이_삭제요청하면_401을_반환한다() {
+            given()
+                    .when()
+                    .delete("/matches/{matchId}", 1L)
                     .then()
                     .statusCode(401);
         }

@@ -2,11 +2,13 @@ package kr.co.amateurs.server.controller.together;
 
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
+import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
+import kr.co.amateurs.server.repository.together.MarketJooqRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +20,7 @@ import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.*;
+import static kr.co.amateurs.server.fixture.together.GatheringTestFixture.createGatheringRequestDTO;
 import static kr.co.amateurs.server.fixture.together.MarketTestFixture.createMarketPostRequestDTO;
 import static org.hamcrest.Matchers.*;
 
@@ -31,6 +34,8 @@ class MarketControllerTest extends AbstractControllerTest {
     private PostRepository postRepository;
     @Autowired
     private ReportRepository reportRepository;
+    @Autowired
+    private MarketJooqRepository marketJooqRepository;
 
     private String guestEmail;
     private String adminEmail;
@@ -227,6 +232,7 @@ class MarketControllerTest extends AbstractControllerTest {
     class AdminTests {
         @Test
         void 관리자유저가_키워드를포함하여_페이지조회하면_200과_페이지를_검증한다() {
+            int dataCount = marketJooqRepository.countByKeyword("React");
             given()
                     .header("Authorization", "Bearer " + fakeAdminToken())
                     .param("page", 0)
@@ -236,7 +242,8 @@ class MarketControllerTest extends AbstractControllerTest {
                     .get("/market")
                     .then()
                     .statusCode(200)
-                    .body("pageInfo.pageSize", equalTo(5));
+                    .body("pageInfo.pageSize", equalTo(5))
+                    .body("pageInfo.totalElements", equalTo(dataCount));
         }
 
         @Test
@@ -269,6 +276,28 @@ class MarketControllerTest extends AbstractControllerTest {
                     .param("size", 10)
                     .when()
                     .get("/market")
+                    .then()
+                    .statusCode(401);
+        }
+
+        @Test
+        void 인증없이_수정요청하면_401을_반환한다() {
+            MarketPostRequestDTO update = createMarketPostRequestDTO();
+
+            given()
+                    .contentType(ContentType.JSON)
+                    .body(update)
+                    .when()
+                    .put("/market/{marketId}", 1L)
+                    .then()
+                    .statusCode(401);
+        }
+
+        @Test
+        void 인증없이_삭제요청하면_401을_반환한다() {
+            given()
+                    .when()
+                    .delete("/market/{marketId}", 1L)
                     .then()
                     .statusCode(401);
         }

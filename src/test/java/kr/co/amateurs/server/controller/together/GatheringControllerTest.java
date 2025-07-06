@@ -10,6 +10,7 @@ import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
+import kr.co.amateurs.server.repository.together.GatheringJooqRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.together.GatheringService;
@@ -36,6 +37,8 @@ class GatheringControllerTest extends AbstractControllerTest {
     private PostRepository postRepository;
     @Autowired
     private ReportRepository reportRepository;
+    @Autowired
+    private GatheringJooqRepository gatheringJooqRepository;
 
     private String guestEmail;
     private String adminEmail;
@@ -234,6 +237,8 @@ class GatheringControllerTest extends AbstractControllerTest {
     class AdminTests {
         @Test
         void 관리자유저가_키워드를포함하여_페이지조회하면_200과_페이지를_검증한다() {
+            int dataCount = gatheringJooqRepository.countByKeyword("React");
+
             given()
                     .header("Authorization", "Bearer " + fakeAdminToken())
                     .param("page", 0)
@@ -243,7 +248,8 @@ class GatheringControllerTest extends AbstractControllerTest {
                     .get("/gatherings")
                     .then()
                     .statusCode(200)
-                    .body("pageInfo.pageSize", equalTo(5));
+                    .body("pageInfo.pageSize", equalTo(5))
+                    .body("pageInfo.totalElements", equalTo(dataCount));
         }
 
         @Test
@@ -276,6 +282,28 @@ class GatheringControllerTest extends AbstractControllerTest {
                     .param("size", 10)
                     .when()
                     .get("/gatherings")
+                    .then()
+                    .statusCode(401);
+        }
+
+        @Test
+        void 인증없이_수정요청하면_401을_반환한다() {
+            GatheringPostRequestDTO update = createGatheringRequestDTO();
+
+            given()
+                    .contentType(ContentType.JSON)
+                    .body(update)
+                    .when()
+                    .put("/gatherings/{gatheringId}", 1L)
+                    .then()
+                    .statusCode(401);
+        }
+
+        @Test
+        void 인증없이_삭제요청하면_401을_반환한다() {
+            given()
+                    .when()
+                    .delete("/gatherings/{gatheringId}", 1L)
                     .then()
                     .statusCode(401);
         }
