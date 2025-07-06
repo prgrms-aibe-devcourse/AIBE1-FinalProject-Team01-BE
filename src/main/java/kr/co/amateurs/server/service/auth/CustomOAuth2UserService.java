@@ -38,26 +38,26 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     private final UserRepository userRepository;
     private final RestClient restClient;
 
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
         OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
         OAuth2User oAuth2User = delegate.loadUser(userRequest);
 
-        String provider = userRequest.getClientRegistration().getRegistrationId();
-        log.info("OAuth2 로그인 시도: provider={}", provider);
-        log.info("{} OAuth2 로그인 사용자 정보 획득 완료", provider);
+        String providerName = userRequest.getClientRegistration().getRegistrationId();
+        ProviderType providerType = ProviderType.fromProviderName(providerName);
 
-        String providerId = getProviderId(oAuth2User, provider);
-        String email = getEmailWithFallback(userRequest, oAuth2User, provider, providerId);
-        String nickname = getNickname(oAuth2User, provider);
-        String name = getName(oAuth2User, provider);
-        String imageUrl = getImageUrl(oAuth2User, provider);
+        log.info("OAuth2 로그인 시도: provider={}", providerType.getProviderName());
+        log.info("{} OAuth2 로그인 사용자 정보 획득 완료", providerType.getProviderName());
+
+        String providerId = getProviderId(oAuth2User, providerType);
+        String email = getEmailWithFallback(userRequest, oAuth2User, providerType, providerId);
+        String nickname = getNickname(oAuth2User, providerType);
+        String name = getName(oAuth2User, providerType);
+        String imageUrl = getImageUrl(oAuth2User, providerType);
 
         try {
-            saveOrUpdateUser(provider, providerId, email, nickname, name, imageUrl);
+            saveOrUpdateUser(providerType, providerId, email, nickname, name, imageUrl);
         } catch (Exception e) {
             log.error("OAuth 사용자 등록 실패: {}", e.getMessage());
             throw new OAuth2AuthenticationException(
@@ -65,16 +65,15 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     ErrorCode.OAUTH_USER_REGISTRATION_FAILED.getMessage());
         }
 
-        User user = userRepository.findByProviderIdAndProviderType(
-                providerId, ProviderType.valueOf(provider.toUpperCase()))
+        User user = userRepository.findByProviderIdAndProviderType(providerId, providerType)
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);
 
         return new CustomUserDetails(user, oAuth2User.getAttributes());
     }
 
-    private void saveOrUpdateUser(String provider, String providerId, String email, String nickname, String name, String imageUrl) {
+    private void saveOrUpdateUser(ProviderType providerType, String providerId, String email, String nickname, String name, String imageUrl) {
 
-        Optional<User> existingUser = userRepository.findByProviderIdAndProviderType (providerId, ProviderType.valueOf(provider.toUpperCase()));
+        Optional<User> existingUser = userRepository.findByProviderIdAndProviderType(providerId, providerType);
 
         if (existingUser.isPresent()) {
             log.info("기존 사용자 로그인: userId={}", existingUser.get().getId());
@@ -92,7 +91,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         User newUser = User.builder()
                 .providerId(providerId)
-                .providerType(ProviderType.valueOf(provider.toUpperCase()))
+                .providerType(providerType)
                 .email(email)
                 .nickname(uniqueNickname)
                 .name(name)
@@ -122,49 +121,49 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         return String.format("%s_%s@amateurs.local", provider, providerId);
     }
 
-    private String getProviderId(OAuth2User oAuth2User, String provider) {
-        Map<String, Object> attributes = validateAndGetAttributes(oAuth2User, provider);
+    private String getProviderId(OAuth2User oAuth2User, ProviderType providerType) {
+        Map<String, Object> attributes = validateAndGetAttributes(oAuth2User, providerType);
 
         Object id = attributes.get("id");
         if (id == null) {
-            log.error("{}에서 사용자 ID를 받지 못했습니다", provider);
+            log.error("{}에서 사용자 ID를 받지 못했습니다", providerType.getProviderName());
             throw ErrorCode.OAUTH_USER_REGISTRATION_FAILED.get();
         }
 
         return String.valueOf(id);
     }
 
-    private String getEmailWithFallback(OAuth2UserRequest userRequest, OAuth2User oAuth2User, String provider, String providerId) {
-        if (ProviderType.KAKAO.getProviderName().equalsIgnoreCase(provider)) {
-            return getKakaoEmail(oAuth2User, providerId);
+    private String getEmailWithFallback(OAuth2UserRequest userRequest, OAuth2User oAuth2User, ProviderType providerType, String providerId) {
+        if (providerType == ProviderType.KAKAO) {
+            return getKakaoEmail(oAuth2User, providerId, providerType);
         }
 
-        Map<String, Object> attributes = validateAndGetAttributes(oAuth2User, provider);
+        Map<String, Object> attributes = validateAndGetAttributes(oAuth2User, providerType);
 
         String attributeEmail = (String) attributes.get("email");
         if (attributeEmail != null && !attributeEmail.isEmpty()) {
             return attributeEmail;
         }
 
-        log.info("GitHub attributes에 이메일이 없어 AccessToken으로 조회 시도");
+        log.info("{} attributes에 이메일이 없어 AccessToken으로 조회 시도", providerType.getProviderName());
         try {
             String accessToken = userRequest.getAccessToken().getTokenValue();
-            return fetchEmailWithAccessToken(accessToken);
+            return fetchEmailWithAccessToken(accessToken, providerType);
         } catch (CustomException e) {
-            log.warn("GitHub API로 이메일 조회 실패: {}", e.getMessage());
+            log.warn("{} API로 이메일 조회 실패: {}", providerType.getProviderName(), e.getMessage());
         }
 
         log.info("이메일 조회 실패, generateFakeEmail 사용");
-        return generateFakeEmail(provider, providerId);
+        return generateFakeEmail(providerType.getProviderName(), providerId);
     }
 
-    private String getKakaoEmail(OAuth2User oAuth2User, String providerId) {
+    private String getKakaoEmail(OAuth2User oAuth2User, String providerId, ProviderType providerType) {
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
         Map<String, Object> kakaoAccount = getKakaoAccount(attributes);
         if (kakaoAccount == null) {
-            log.warn("Kakao 계정 정보가 Map 형식이 아닙니다");
-            return generateFakeEmail("kakao", providerId);
+            log.warn("{} 계정 정보가 Map 형식이 아닙니다", providerType.getProviderName());
+            return generateFakeEmail(providerType.getProviderName(), providerId);
         }
 
         String email = (String) kakaoAccount.get("email");
@@ -172,11 +171,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             return email;
         }
 
-        log.warn("Kakao에서 이메일을 받지 못했습니다");
-        return generateFakeEmail("kakao", providerId);
+        log.warn("{}에서 이메일을 받지 못했습니다", providerType.getProviderName());
+        return generateFakeEmail(providerType.getProviderName(), providerId);
     }
 
-    private String fetchEmailWithAccessToken(String accessToken) {
+    private String fetchEmailWithAccessToken(String accessToken, ProviderType providerType) {
         try {
             List<Map<String, Object>> emails = restClient.get()
                     .uri("https://api.github.com/user/emails")
@@ -187,7 +186,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     .body(new ParameterizedTypeReference<List<Map<String, Object>>>() {});
 
             if (emails == null || emails.isEmpty()) {
-                log.warn("GitHub API에서 이메일 목록이 비어있음");
+                log.warn("{} API에서 이메일 목록이 비어있음", providerType.getProviderName());
                 throw ErrorCode.OAUTH_EMAIL_API_CALL_FAILED.get();
             }
 
@@ -208,32 +207,32 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 }
             }
 
-            log.warn("GitHub API에서 verified된 이메일을 찾을 수 없음");
+            log.warn("{} API에서 verified된 이메일을 찾을 수 없음", providerType.getProviderName());
             throw ErrorCode.OAUTH_EMAIL_API_CALL_FAILED.get();
 
         } catch (HttpClientErrorException e) {
-            log.error("GitHub API 클라이언트 오류 ({}): {}", e.getStatusCode(), e.getMessage());
+            log.error("{} API 클라이언트 오류 ({}): {}", providerType.getProviderName(), e.getStatusCode(), e.getMessage());
             throw e.getStatusCode().value() == 401 ? ErrorCode.UNAUTHORIZED.get() : ErrorCode.ACCESS_DENIED.get();
         } catch (HttpServerErrorException e) {
-            log.error("GitHub API 서버 오류 ({}): {}", e.getStatusCode(), e.getMessage());
+            log.error("{} API 서버 오류 ({}): {}", providerType.getProviderName(), e.getStatusCode(), e.getMessage());
             throw ErrorCode.OAUTH_EMAIL_API_CALL_FAILED.get();
         } catch (Exception e) {
-            log.error("GitHub API 호출 중 오류: {}", e.getMessage());
+            log.error("{} API 호출 중 오류: {}", providerType.getProviderName(), e.getMessage());
             throw ErrorCode.OAUTH_EMAIL_API_CALL_FAILED.get();
         }
     }
 
-    private String getNickname(OAuth2User oAuth2User, String provider) {
+    private String getNickname(OAuth2User oAuth2User, ProviderType providerType) {
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        if ("github".equals(provider)) {
+        if (providerType == ProviderType.GITHUB) {
             String nickname = (String) attributes.get("login");
             if (nickname == null) {
-                log.error("GitHub에서 닉네임을 받지 못했습니다");
+                log.error("{}에서 닉네임을 받지 못했습니다", providerType.getProviderName());
                 throw ErrorCode.OAUTH_USER_REGISTRATION_FAILED.get();
             }
             return nickname;
-        } else if ("kakao".equals(provider)) {
+        } else if (providerType == ProviderType.KAKAO) {
             Map<String, Object> profile = getKakaoProfile(attributes);
             if (profile == null) {
                 return "카카오사용자";
@@ -246,13 +245,13 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         throw ErrorCode.OAUTH_PROVIDER_NOT_SUPPORTED.get();
     }
 
-    private String getName(OAuth2User oAuth2User, String provider) {
+    private String getName(OAuth2User oAuth2User, ProviderType providerType) {
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        if ("github".equals(provider)) {
+        if (providerType == ProviderType.GITHUB) {
             String name = (String) attributes.get("name");
             return name != null ? name : (String) attributes.get("login");
-        } else if ("kakao".equals(provider)) {
+        } else if (providerType == ProviderType.KAKAO) {
             Map<String, Object> profile = getKakaoProfile(attributes);
             return profile != null ? (String) profile.get("nickname") : null;
         }
@@ -260,12 +259,12 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         return null;
     }
 
-    private String getImageUrl(OAuth2User oAuth2User, String provider) {
+    private String getImageUrl(OAuth2User oAuth2User, ProviderType providerType) {
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        if ("github".equals(provider)) {
+        if (providerType == ProviderType.GITHUB) {
             return (String) attributes.get("avatar_url");
-        } else if ("kakao".equals(provider)) {
+        } else if (providerType == ProviderType.KAKAO) {
             Map<String, Object> profile = getKakaoProfile(attributes);
             return profile != null ? (String) profile.get("profile_image_url") : null;
         }
@@ -273,10 +272,9 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         return null;
     }
 
-    private Map<String, Object> validateAndGetAttributes(OAuth2User oAuth2User, String provider) {
-        if (!ProviderType.GITHUB.getProviderName().equalsIgnoreCase(provider) &&
-                !ProviderType.KAKAO.getProviderName().equalsIgnoreCase(provider)) {
-            log.error("지원하지 않는 OAuth Provider: {}", provider);
+    private Map<String, Object> validateAndGetAttributes(OAuth2User oAuth2User, ProviderType providerType) {
+        if (providerType != ProviderType.GITHUB && providerType != ProviderType.KAKAO) {
+            log.error("지원하지 않는 OAuth Provider: {}", providerType.getProviderName());
             throw ErrorCode.OAUTH_PROVIDER_NOT_SUPPORTED.get();
         }
 

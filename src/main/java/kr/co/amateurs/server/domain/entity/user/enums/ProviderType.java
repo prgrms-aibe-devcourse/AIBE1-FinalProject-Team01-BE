@@ -13,4 +13,13 @@ public enum ProviderType {
     GITHUB("github");
 
     private final String providerName;
+
+    public static ProviderType fromProviderName(String providerName) {
+        for (ProviderType type : values()) {
+            if (type.providerName.equalsIgnoreCase(providerName)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("지원하지 않는 제공자: " + providerName);
+    }
 }
