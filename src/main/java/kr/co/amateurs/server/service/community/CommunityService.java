@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
@@ -101,7 +100,7 @@ public class CommunityService {
         Post post = communityPost.getPost();
         validatePost(post);
 
-        communityRepository.delete(communityPost);
+        postRepository.delete(post);
     }
 
     private void validatePost(Post post) {
