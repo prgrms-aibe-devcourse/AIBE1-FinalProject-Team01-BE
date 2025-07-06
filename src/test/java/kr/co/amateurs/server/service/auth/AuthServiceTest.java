@@ -239,7 +239,7 @@ public class AuthServiceTest {
     }
 
     @Test
-    void 유효한_리프레시_토큰으로_토큰_재발급_시_새로운_액새스_토큰을_반환한다() {
+    void 유효한_리프레시_토큰으로_토큰_재발급_시_새로운_액새스_토큰을_반환한다() throws InterruptedException {
         // given
         SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
         authService.signup(signupRequest);
@@ -250,6 +250,7 @@ public class AuthServiceTest {
                 .build();
 
         LoginResponseDto loginResponse = authService.login(loginRequest);
+        Thread.sleep(1000);
 
         TokenReissueRequestDTO reissueRequest = new TokenReissueRequestDTO(loginResponse.refreshToken());
 
