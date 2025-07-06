@@ -26,9 +26,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findTop3ByUserIdOrderByCreatedAtDesc(Long userId);
 
-    List<Post> findTop10ByIsDeletedFalseAndCreatedAtAfterOrderByLikeCountDescCreatedAtDesc(LocalDateTime createdAt);
-    List<Post> findTop20ByIsDeletedFalseAndCreatedAtAfterOrderByLikeCountDescCreatedAtDesc(LocalDateTime createdAt);
-
     List<Post> findByUser(User user);
     boolean existsByUserIdAndCreatedAtAfter(Long userId, LocalDateTime createdAt);
 }
