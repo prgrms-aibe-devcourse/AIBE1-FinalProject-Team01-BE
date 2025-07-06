@@ -1,27 +1,28 @@
 package kr.co.amateurs.server.domain.dto.directmessage;
 
-import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessageRoom;
-import kr.co.amateurs.server.domain.entity.directmessage.Participant;
+import kr.co.amateurs.server.domain.entity.user.User;
 import lombok.Builder;
+
+import java.time.LocalDateTime;
 
 @Builder
 public record DirectMessageRoomResponse(
-        String roomId,
-        Long otherUserId,
-        String lastMessage
+        String id,
+        Long partnerId,
+        String partnerNickname,
+        String partnerProfileImage,
+        String lastMessage,
+        LocalDateTime sentAt
 ) {
-    public static DirectMessageRoomResponse fromCollection(DirectMessageRoom room, Long currentUserId) {
-        Long otherUserId = room.getParticipants().stream()
-                .filter(participant -> !participant.getUserId().equals(currentUserId))
-                .findFirst()
-                .map(Participant::getUserId)
-                .orElseThrow(ErrorCode.NOT_FOUND_OTHER_USER);
-
+    public static DirectMessageRoomResponse fromCollection(DirectMessageRoom room, User otherUser) {
         return new DirectMessageRoomResponse(
                 room.getId(),
-                otherUserId,
-                room.getLastMessage()
+                otherUser.getId(),
+                otherUser.getNickname(),
+                otherUser.getImageUrl(),
+                room.getLastMessage(),
+                room.getSentAt()
         );
     }
 }
