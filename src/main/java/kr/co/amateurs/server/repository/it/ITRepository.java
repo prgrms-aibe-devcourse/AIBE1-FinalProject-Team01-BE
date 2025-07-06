@@ -111,7 +111,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
         FROM ITPost ip
         JOIN ip.post p JOIN p.user u
         LEFT JOIN Comment c ON c.post.id = p.id AND c.isDeleted = false
-        WHERE ip.id = :communityId
+        WHERE ip.id = :itId
         GROUP BY ip.id, p.id, u.id
         """)
     Optional<ITResponseDTO> findDTOByIdForGuest(@Param("itId") Long itId);
