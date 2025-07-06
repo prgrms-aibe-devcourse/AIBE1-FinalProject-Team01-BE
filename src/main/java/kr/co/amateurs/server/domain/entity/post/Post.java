@@ -2,6 +2,7 @@ package kr.co.amateurs.server.domain.entity.post;
 
 import jakarta.persistence.*;
 import kr.co.amateurs.server.domain.dto.post.PostRequest;
+import kr.co.amateurs.server.domain.entity.ai.RecommendedPost;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -56,6 +57,12 @@ public class Post extends BaseEntity {
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostImage> postImages = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PopularPost> popularPosts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecommendedPost> recommendedPosts = new ArrayList<>();
 
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private MarketItem marketItem;
