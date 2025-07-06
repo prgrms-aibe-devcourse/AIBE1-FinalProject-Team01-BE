@@ -134,3 +134,7 @@ oauth:
 
 cookie:
   domain: .amateurs.co.kr
+
+app:
+  cors:
+    allowed-origins: https://dev.amateurs.co.kr
