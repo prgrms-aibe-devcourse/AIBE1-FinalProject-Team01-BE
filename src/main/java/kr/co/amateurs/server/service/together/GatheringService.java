@@ -107,9 +107,8 @@ public class GatheringService {
         GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
         validateUser(post);
-        List<PostImage> images = postImageRepository.findByPost(post);
-        images.forEach(img -> fileService.deleteFile(img.getImageUrl()));
-        postImageRepository.deleteAll(images);
+
+        fileService.deletePostImage(post);
         postRepository.delete(post);
     }
 

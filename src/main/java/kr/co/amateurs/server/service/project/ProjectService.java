@@ -112,10 +112,7 @@ public class ProjectService {
 
         validatePost(project.getPost(), user.getEmail());
 
-        List<PostImage> images = postImageRepository.findByPost(project.getPost());
-        images.forEach(img -> fileService.deleteFile(img.getImageUrl()));
-        postImageRepository.deleteAll(images);
-
+        fileService.deletePostImage(project.getPost());
         projectRepository.deleteById(projectId);
     }
 

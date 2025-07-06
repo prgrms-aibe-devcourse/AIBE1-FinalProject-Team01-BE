@@ -106,9 +106,8 @@ public class MarketService {
         MarketItem mi = marketRepository.findById(marketId).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mi.getPost();
         validateUser(post);
-        List<PostImage> images = postImageRepository.findByPost(post);
-        images.forEach(img -> fileService.deleteFile(img.getImageUrl()));
-        postImageRepository.deleteAll(images);
+
+        fileService.deletePostImage(post);
         postRepository.delete(post);
     }
 

@@ -10,6 +10,10 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 @Component
 @RequiredArgsConstructor
 public class UnreferencedImageClearScheduler {
@@ -23,29 +27,39 @@ public class UnreferencedImageClearScheduler {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
+    // 한번에 처리할 작업의 크기(메모리 오버 대비)
+    private static final int BATCH_SIZE = 1000;
+
     // 매주 일 -> 월 사이의 새벽 3시에 실행 - 바꿀 수 있음
     @Scheduled(cron = "0 0 3 ? * MON", zone = "Asia/Seoul")
     public void deleteOrphanImages() {
+
+        Set<String> dbUrls = new HashSet<>(postImageRepository.findAllUrls());
+        processBatchDeletion(dbUrls);
+    }
+
+    private void processBatchDeletion(Set<String> dbUrls) {
         String continuationToken = null;
         do {
-            ListObjectsV2Response listRes = s3Client.listObjectsV2(
+            ListObjectsV2Response response = s3Client.listObjectsV2(
                     ListObjectsV2Request.builder()
                             .bucket(bucket)
+                            .maxKeys(BATCH_SIZE)
                             .continuationToken(continuationToken)
                             .build()
             );
 
-            for (S3Object obj : listRes.contents()) {
-                String key     = obj.key();
-                String fileUrl = publicUrl + "/" + key;
+            List<S3Object> objects = response.contents();
 
-                boolean existsInDb = postImageRepository.existsByUrl(fileUrl);
-                if (!existsInDb) {
+            for (S3Object obj : objects) {
+                String fileUrl = publicUrl + "/" + obj.key();
+                if (!dbUrls.contains(fileUrl)) {
                     fileService.deleteFile(fileUrl);
                 }
             }
 
-            continuationToken = listRes.nextContinuationToken();
+            continuationToken = response.nextContinuationToken();
+
         } while (continuationToken != null);
     }
 }

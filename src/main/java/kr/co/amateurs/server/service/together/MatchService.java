@@ -49,15 +49,6 @@ public class MatchService {
     private final FileService fileService;
 
     public PageResponseDTO<MatchPostResponseDTO> getMatchPostList(PostPaginationParam paginationParam) {
-        //TODO - 테스트 코드 수정 후 통과 시 삭제 예정
-//        String keyword = paginationParam.getKeyword();
-//        Pageable pageable = paginationParam.toPageable();
-//        Page<MatchingPost> mpPage = switch (paginationParam.getField()) {
-//            case LATEST -> matchRepository.findAllByKeyword(keyword, pageable);
-//            case POPULAR -> matchRepository.findAllByKeywordOrderByLikeCountDesc(keyword, pageable);
-//            case MOST_VIEW -> matchRepository.findAllByKeywordOrderByViewCountDesc(keyword, pageable);
-//            default -> matchRepository.findAllByKeyword(keyword, pageable);
-//        };
         Page<MatchingPost> mpPage = matchRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
         Page<MatchPostResponseDTO> response = mpPage.map(mp-> convertToDTO(mp, mp.getPost(), false, false));
         return convertPageToDTO(response);
@@ -115,9 +106,8 @@ public class MatchService {
         MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
         validateUser(post);
-        List<PostImage> images = postImageRepository.findByPost(post);
-        images.forEach(img -> fileService.deleteFile(img.getImageUrl()));
-        postImageRepository.deleteAll(images);
+
+        fileService.deletePostImage(post);
         postRepository.delete(post);
     }
 

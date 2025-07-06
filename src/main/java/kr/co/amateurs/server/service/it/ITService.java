@@ -112,10 +112,7 @@ public class ITService {
         Post post = itPost.getPost();
         validatePost(post);
 
-        List<PostImage> images = postImageRepository.findByPost(post);
-        images.forEach(img -> fileService.deleteFile(img.getImageUrl()));
-        postImageRepository.deleteAll(images);
-
+        fileService.deletePostImage(post);
         itRepository.delete(itPost);
     }
 
