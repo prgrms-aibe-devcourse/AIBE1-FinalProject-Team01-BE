@@ -28,4 +28,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findByUser(User user);
     boolean existsByUserIdAndCreatedAtAfter(Long userId, LocalDateTime createdAt);
+
+    List<Post> findByUserIdIn(List<Long> followingUserId);
 }

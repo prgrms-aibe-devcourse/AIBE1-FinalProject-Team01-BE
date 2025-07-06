@@ -19,24 +19,24 @@ import java.util.List;
 public class FollowController {
     private final FollowService followService;
 
-    @GetMapping("/users/{userId}/following")
+    @GetMapping("/users/following")
     @Operation(summary = "팔로잉 목록 조회", description = "특정 유저가 팔로우 하는 유저 목록을 조회합니다.")
-    public ResponseEntity<List<FollowResponseDTO>> getFollowingList(@PathVariable Long userId) {
-        List<FollowResponseDTO> followingList = followService.getFollowingList(userId);
+    public ResponseEntity<List<FollowResponseDTO>> getFollowingList() {
+        List<FollowResponseDTO> followingList = followService.getFollowingList();
         return ResponseEntity.ok(followingList);
     }
 
-    @GetMapping("/users/{userId}/follower")
+    @GetMapping("/users/follower")
     @Operation(summary = "팔로워 목록 조회", description = "특정 유저를 팔로우 하는 유저 목록을 조회합니다.")
-    public ResponseEntity<List<FollowResponseDTO>> getFollowerList(@PathVariable Long userId) {
-        List<FollowResponseDTO> followerList = followService.getFollowerList(userId);
+    public ResponseEntity<List<FollowResponseDTO>> getFollowerList() {
+        List<FollowResponseDTO> followerList = followService.getFollowerList();
         return ResponseEntity.ok(followerList);
     }
 
-    @GetMapping("/users/{userId}/followPost")
+    @GetMapping("/users/followPost")
     @Operation(summary = "팔로우 하는 유저의 게시글 목록 조회", description = "팔로우 하고 있는 유저들의 게시글을 모아 목록으로 조회합니다.")
-    public ResponseEntity<List<FollowPostResponseDTO>> getFollowPostList(@PathVariable Long userId) {
-        List<FollowPostResponseDTO> followPostList = followService.getFollowPostList(userId);
+    public ResponseEntity<List<FollowPostResponseDTO>> getFollowPostList() {
+        List<FollowPostResponseDTO> followPostList = followService.getFollowPostList();
         return ResponseEntity.ok(followPostList);
     }
 
