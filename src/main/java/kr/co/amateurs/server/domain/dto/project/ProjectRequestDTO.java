@@ -9,6 +9,7 @@ import kr.co.amateurs.server.domain.dto.post.PostRequest;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Builder
 public record ProjectRequestDTO(
@@ -19,7 +20,11 @@ public record ProjectRequestDTO(
         @NotBlank(message = "내용은 빈 내용일 수 없습니다.")
         @Schema(description = "게시글 내용", example = "test 내용")
         String content,
-        @Schema(description = "게시글 태그", example = "Spring boot")
+        @Schema(description = "게시글 태그", example = "[\"Java\", \"SpringBoot\", \"React\", \"WebSocket\"]")
+        @Pattern(
+                regexp = "^\\[\\s*(\"[^\"]*\"\\s*(,\\s*\"[^\"]*\"\\s*)*)?\\]$",
+                message = "올바른 JSON 배열 형식이 아닙니다. 예: [\"Java\", \"SpringBoot\"]"
+        )
         String tags,
         @Schema(description = "프로젝트 시작 일시", example = "2025-06-25T00:08:25")
         LocalDateTime startedAt,
@@ -39,10 +44,10 @@ public record ProjectRequestDTO(
         )
         @Schema(description = "데모 사이트 배포 URL", example = "https://test.com")
         String demoUrl,
-        @Schema(description = "프로젝트 참여 인원", example = "[\"홍길동\", \"김철수\"]")
+        @Schema(description = "프로젝트 참여 인원 (이름 또는 이름 - 역할)", example = "[\"김똥개 - CEO\", \"박똥개 - 굼뱅이\", \"홍길동 - 역할뭐임\", \"김뭐시기 - 프론트엔드\"]")
         @Pattern(
-                regexp = "^\\[\\s*(\"[^\"]*\"\\s*(,\\s*\"[^\"]*\"\\s*)*)?\\]$",
-                message = "올바른 JSON 배열 형식이 아닙니다. 예: [\"홍길동\", \"김철수\"]"
+                regexp = "^\\[\\s*(\"[^\"]*( - [^\"]*)?\"\\s*(,\\s*\"[^\"]*( - [^\"]*)?\"\\s*)*)?\\]$",
+                message = "올바른 JSON 배열 형식이 아닙니다. 예: [\"홍길동\", \"김철수 - 개발자\"]"
         )
         String projectMembers
 ) {

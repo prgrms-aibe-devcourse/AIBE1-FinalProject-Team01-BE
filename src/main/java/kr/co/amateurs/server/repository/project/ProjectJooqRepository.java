@@ -18,6 +18,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static org.jooq.generated.Tables.BOOKMARKS;
+import static org.jooq.generated.Tables.POST_IMAGES;
 import static org.jooq.generated.tables.Posts.POSTS;
 import static org.jooq.generated.tables.Projects.PROJECTS;
 import static org.jooq.generated.tables.Users.USERS;
@@ -65,7 +66,6 @@ public class ProjectJooqRepository {
 
         return finalQuery
                 .where(PROJECTS.ID.eq(projectId))
-                .groupBy(POSTS.ID)
                 .fetchOptionalInto(ProjectResponseDTO.class)
                 .orElseThrow(ErrorCode.POST_NOT_FOUND);
     }
@@ -74,7 +74,8 @@ public class ProjectJooqRepository {
         return selectQuery.from(PROJECTS)
                 .join(POSTS).on(PROJECTS.POST_ID.eq(POSTS.ID))
                 .join(USERS).on(POSTS.USER_ID.eq(USERS.ID))
-                .leftJoin(BOOKMARKS).on(BOOKMARKS.POST_ID.eq(POSTS.ID));
+                .leftJoin(BOOKMARKS).on(BOOKMARKS.POST_ID.eq(POSTS.ID))
+                .leftJoin(POST_IMAGES).on(POST_IMAGES.POST_ID.eq(POSTS.ID));
     }
 
     private List<ProjectResponseDTO> fetchProjectList(SelectJoinStep<?> query, ProjectSearchParam params) {
@@ -82,7 +83,6 @@ public class ProjectJooqRepository {
 
         return query
                 .where(condition)
-                .groupBy(POSTS.ID)
                 .orderBy(buildOrderBy(params))
                 .limit(params.getSize())
                 .offset(params.getPage() * params.getSize())

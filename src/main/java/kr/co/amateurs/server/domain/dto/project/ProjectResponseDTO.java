@@ -38,9 +38,8 @@ public record ProjectResponseDTO(
         String content,
         @Schema(description = "게시글 태그", example = "Spring Boot")
         String tags,
-// TODO: 조회수 로직 구현되면 주석 해제
-//        @Schema(description = "조회수", example = "15")
-//        Integer viewCount,
+        @Schema(description = "조회수", example = "15")
+        Integer viewCount,
         @Schema(description = "좋아요 수", example = "10")
         Integer likeCount,
         @Schema(description = "북마크 수", example = "3")
@@ -51,15 +50,12 @@ public record ProjectResponseDTO(
         LocalDateTime updatedAt,
         @Schema(description = "작성자 닉네임", example = "test닉네임")
         String nickname,
-        @Schema(description = "작성자 수강 코스 이름", example = "AIBE")
+        @Schema(description = "작성자 수강 코스 이름", example = "AI_BACKEND")
         String devcourseTrack,
         @Schema(description = "작성자 수강 코스 기수", example = "1")
         String devcourseBatch,
-// TODO: 이미지 로직 구현되면 주석 해제
-//        @Schema(description = "썸네일 이미지 URL", example = "https://placehold.co/400x400")
-//        String thumbnailImageUrl,
-//        @Schema(description = "썸네일 이미지 존재 여부", example = "false")
-//        boolean hasImages,
+        @Schema(description = "썸네일 이미지 URL", example = "https://placehold.co/400x400")
+        String thumbnailImageUrl,
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked,
         @Schema(description = "좋아요 여부", example = "false")
@@ -108,7 +104,7 @@ public record ProjectResponseDTO(
                 .title(record.get(POSTS.TITLE))
                 .content(record.get(POSTS.CONTENT))
                 .tags(record.get(POSTS.TAG))
-//                .viewCount(record.get(POSTS.VIEW_COUNT))
+                .viewCount(record.get(POSTS.VIEW_COUNT))
                 .likeCount(record.get(POSTS.LIKE_COUNT))
                 .bookmarkCount(record.get("bookmarkCount", Integer.class))
                 .createdAt(record.get(POSTS.CREATED_AT))
@@ -116,8 +112,7 @@ public record ProjectResponseDTO(
                 .nickname(record.get(USERS.NICKNAME))
                 .devcourseTrack(record.get(USERS.DEVCOURSE_NAME, String.class))
                 .devcourseBatch(record.get(USERS.DEVCOURSE_BATCH))
-//                .thumbnailImageUrl(record.get("thumbnailImageUrl", String.class))
-//                .hasImages(Boolean.TRUE.equals(record.get("hasImages", Boolean.class)))
+                .thumbnailImageUrl(record.get("thumbnailImageUrl", String.class))
                 .hasBookmarked(Boolean.TRUE.equals(record.get("hasBookmarked", Boolean.class)))
                 .hasLiked(Boolean.TRUE.equals(record.get("hasLiked", Boolean.class)));
     }
