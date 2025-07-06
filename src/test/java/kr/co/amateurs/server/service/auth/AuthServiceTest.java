@@ -1,5 +1,7 @@
 package kr.co.amateurs.server.service.auth;
 
+import kr.co.amateurs.server.config.jwt.JwtProvider;
+import kr.co.amateurs.server.domain.dto.auth.*;
 import kr.co.amateurs.server.fixture.auth.TokenTestFixture;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import jakarta.validation.ConstraintViolation;
@@ -7,10 +9,6 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
-import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.LoginResponseDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
@@ -44,6 +42,9 @@ public class AuthServiceTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtProvider jwtProvider;
 
     @BeforeEach
     void setUp() {
@@ -235,5 +236,30 @@ public class AuthServiceTest {
         assertThat(response.refreshToken()).isNotNull();
         assertThat(response.tokenType()).isEqualTo(TokenTestFixture.TOKEN_TYPE);
         assertThat(response.expiresIn()).isEqualTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION);
+    }
+
+    @Test
+    void 유효한_리프레시_토큰으로_토큰_재발급_시_새로운_액새스_토큰을_반환한다() {
+        // given
+        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        authService.signup(signupRequest);
+
+        LoginRequestDto loginRequest = LoginRequestDto.builder()
+                .email(signupRequest.email())
+                .password(signupRequest.password())
+                .build();
+
+        LoginResponseDto loginResponse = authService.login(loginRequest);
+
+        TokenReissueRequestDTO reissueRequest = new TokenReissueRequestDTO(loginResponse.refreshToken());
+
+        // when
+        TokenReissueResponseDTO response = authService.reissueToken(reissueRequest);
+
+        // then
+        assertThat(response.accessToken()).isNotNull();
+        assertThat(response.tokenType()).isEqualTo("Bearer");
+        assertThat(response.expiresIn()).isEqualTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION);
+        assertThat(response.accessToken()).isNotEqualTo(loginResponse.accessToken());
     }
 }
