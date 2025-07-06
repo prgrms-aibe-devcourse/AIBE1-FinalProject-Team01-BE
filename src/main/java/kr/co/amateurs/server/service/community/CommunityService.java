@@ -54,14 +54,9 @@ public class CommunityService {
         return convertPageToDTO(communityPage);    }
 
     public CommunityResponseDTO getPost(Long communityId) {
-        Optional<User> user = userService.getCurrentUser();
+        User user = userService.getCurrentLoginUser();
 
-        if (user.isPresent()) {
-            return communityRepository.findDTOByIdForUser(communityId, user.get().getId())
-                    .orElseThrow(ErrorCode.NOT_FOUND);
-        }
-
-        return communityRepository.findDTOByIdForGuest(communityId)
+        return communityRepository.findDTOByIdForUser(communityId, user.getId())
                 .orElseThrow(ErrorCode.NOT_FOUND);
     }
 

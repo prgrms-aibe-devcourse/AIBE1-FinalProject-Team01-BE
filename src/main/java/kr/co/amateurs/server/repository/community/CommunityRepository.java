@@ -100,19 +100,4 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
         """)
     Optional<CommunityResponseDTO> findDTOByIdForUser(@Param("communityId") Long communityId,
                                                       @Param("userId") Long userId);
-
-    @Query("""
-        SELECT new kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO(
-            cp.id, p.id, p.title, p.content, u.nickname, u.imageUrl, 
-            u.devcourseName, u.devcourseBatch, p.boardType, p.viewCount, 
-            p.likeCount, CAST(COUNT(DISTINCT c.id) AS int), p.createdAt, 
-            p.updatedAt, p.tags, false, false
-        )
-        FROM CommunityPost cp
-        JOIN cp.post p JOIN p.user u
-        LEFT JOIN Comment c ON c.post.id = p.id AND c.isDeleted = false
-        WHERE cp.id = :communityId
-        GROUP BY cp.id, p.id, u.id
-        """)
-    Optional<CommunityResponseDTO> findDTOByIdForGuest(@Param("communityId") Long communityId);
 }
