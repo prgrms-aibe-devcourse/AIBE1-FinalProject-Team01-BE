@@ -483,4 +483,36 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .body("tokenType", equalTo("Bearer"))
                 .body("expiresIn", equalTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION.intValue()));
     }
+
+    @Test
+    void 유효하지_않은_리프레시_토큰으로_재발급_요청_시_401_에러가_발생해야_한다() {
+        // given
+        Map<String, String> invalidRequest = Map.of("refreshToken", "invalid.token.here");
+
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(invalidRequest)
+                .when()
+                .post("/auth/reissue")
+                .then()
+                .statusCode(401)
+                .body("message", equalTo("유효하지 않은 인증 정보입니다."));
+    }
+
+    @Test
+    void 빈_리프레시_토큰으로_재발급_요청_시_400_에러가_발생해야_한다() {
+        // given
+        Map<String, String> emptyRequest = Map.of("refreshToken", "");
+
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(emptyRequest)
+                .when()
+                .post("/auth/reissue")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("리프레시 토큰은 필수입니다"));
+    }
 }
