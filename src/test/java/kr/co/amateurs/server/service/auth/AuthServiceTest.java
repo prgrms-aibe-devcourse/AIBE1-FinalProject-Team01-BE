@@ -262,4 +262,25 @@ public class AuthServiceTest {
         assertThat(response.expiresIn()).isEqualTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION);
         assertThat(response.accessToken()).isNotEqualTo(loginResponse.accessToken());
     }
+
+    @Test
+    void 유효하지_않은_리프레시_토큰으로_재발급_시_예외가_발생한다() {
+        // given
+        TokenReissueRequestDTO invalidRequest = new TokenReissueRequestDTO("invalid.token.here");
+
+        // when & then
+        assertThatThrownBy(() -> authService.reissueToken(invalidRequest))
+                .isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    void 존재하지_않는_사용자의_리프레시_토큰으로_재발급_시_예외가_발생한다() {
+        // given
+        String fakeRefreshToken = jwtProvider.generateRefreshToken("nonexistent@test.com");
+        TokenReissueRequestDTO request = new TokenReissueRequestDTO(fakeRefreshToken);
+
+        // when & then
+        assertThatThrownBy(() -> authService.reissueToken(request))
+                .isInstanceOf(CustomException.class);
+    }
 }
