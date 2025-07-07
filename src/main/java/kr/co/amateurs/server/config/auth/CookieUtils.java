@@ -25,33 +25,36 @@ public class CookieUtils {
     public void setAuthTokenCookie(HttpServletResponse response, TokenInfoDTO tokenInfoDTO) {
         log.debug("인증 토큰 쿠키 설정 시작");
 
-        Cookie accessTokenCookie = createSecureCookie(
+        String accessTokenCookie = buildCookieString(
                 ACCESS_TOKEN_COOKIE_NAME,
                 tokenInfoDTO.accessToken(),
                 Math.toIntExact(tokenInfoDTO.accessTokenExpiresIn() / 1000)
         );
-        response.addCookie(accessTokenCookie);
+        response.addHeader("Set-Cookie", accessTokenCookie);
 
-        // Refresh Token 쿠키 생성 (초 단위)
-        Cookie refreshTokenCookie = createSecureCookie(
+        String refreshTokenCookie = buildCookieString(
                 REFRESH_TOKEN_COOKIE_NAME,
                 tokenInfoDTO.refreshToken(),
                 Math.toIntExact(tokenInfoDTO.refreshTokenExpiresIn() / 1000)
         );
-        response.addCookie(refreshTokenCookie);
+        response.addHeader("Set-Cookie", refreshTokenCookie);
     }
 
-    private Cookie createSecureCookie(String name, String value, int maxAge) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setMaxAge(maxAge);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(secure);
+    private String buildCookieString(String name, String value, int maxAge) {
+        StringBuilder cookie = new StringBuilder();
+        cookie.append(name).append("=").append(value);
+        cookie.append("; Path=/; HttpOnly");
 
-        if (StringUtils.hasText(cookieDomain)) {
-            cookie.setDomain(cookieDomain);
+        if (secure) {
+            cookie.append("; Secure");
         }
 
-        return cookie;
+        if (StringUtils.hasText(cookieDomain)) {
+            cookie.append("; Domain=").append(cookieDomain);
+        }
+
+        cookie.append("; Max-Age=").append(maxAge);
+
+        return cookie.toString();
     }
 }
