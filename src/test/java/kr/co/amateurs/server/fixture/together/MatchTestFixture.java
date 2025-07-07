@@ -8,7 +8,7 @@ import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 import kr.co.amateurs.server.domain.entity.user.User;
 
-import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.makeTag;
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 
 public class MatchTestFixture {
@@ -16,7 +16,7 @@ public class MatchTestFixture {
         return new MatchPostRequestDTO(
                 "Spring 멘토링 모집",
                 "Spring 멘토링 해주실 분 구합니다.",
-                makeTag("Spring"),
+                convertTagToList("Spring"),
                 MatchingType.MENTORING,
                 MatchingStatus.OPEN,
                 "백엔드"

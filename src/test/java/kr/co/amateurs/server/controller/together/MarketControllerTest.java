@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.*;
 import static kr.co.amateurs.server.fixture.together.GatheringTestFixture.createGatheringRequestDTO;
 import static kr.co.amateurs.server.fixture.together.MarketTestFixture.createMarketPostRequestDTO;
@@ -104,7 +105,7 @@ class MarketControllerTest extends AbstractControllerTest {
         @Test
         void 학생유저가_필수필드누락된데이터로_글생성하면_400을_반환한다() {
             MarketPostRequestDTO invalid = new MarketPostRequestDTO(
-                    "", "내용", makeTag("Tag"), MarketStatus.SELLING, 1000, "장소");
+                    "", "내용", convertTagToList("Tag"), MarketStatus.SELLING, 1000, "장소");
 
             given()
                     .header("Authorization", "Bearer " + fakeStudentToken())
@@ -160,7 +161,7 @@ class MarketControllerTest extends AbstractControllerTest {
             Long marketId = marketRepository.findByPostId(id).getId();
 
             MarketPostRequestDTO update = new MarketPostRequestDTO(
-                    "수정", "수정내용", makeTag("Vue"),
+                    "수정", "수정내용", convertTagToList("Vue"),
                     MarketStatus.SELLING, 10000, "서울"
             );
 

@@ -69,10 +69,4 @@ public class CommonTogetherFixture {
                 .sortDirection(Sort.Direction.DESC)
                 .build();
     }
-
-    public static List<String> makeTag(String tag){
-        List<String> tags = new ArrayList<String>();
-        tags.add(tag);
-        return tags;
-    }
 }
