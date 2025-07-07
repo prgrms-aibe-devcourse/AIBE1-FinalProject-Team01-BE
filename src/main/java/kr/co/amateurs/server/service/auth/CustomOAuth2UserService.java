@@ -27,7 +27,6 @@ import java.util.*;
 
 
 @Service
-@Profile("!test")
 @RequiredArgsConstructor
 @Slf4j
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
