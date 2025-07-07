@@ -69,8 +69,8 @@ public class OAuth2JwtIntegrationTest {
         String githubApiResponse = OAuth2TestFixture.createGitHubApiResponse(
                 "12345", "testuser", "테스트유저", uniqueEmail
         );
-        enqueueMockResponse(githubApiResponse);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, githubApiResponse);
+        OAuth2UserRequest userRequest = OAuth2TestFixture.createGitHubOAuth2UserRequest(mockWebServer);
 
         // when: OAuth
         OAuth2User oAuth2User = customOAuth2UserService.loadUser(userRequest);
@@ -112,36 +112,6 @@ public class OAuth2JwtIntegrationTest {
         assertThat(userByEmail.get().getId()).isEqualTo(savedUser.getId());
     }
 
-    private void enqueueMockResponse(String jsonResponse) {
-        mockWebServer.enqueue(new MockResponse()
-                .setBody(jsonResponse)
-                .addHeader("Content-Type", "application/json"));
-    }
-
-    private OAuth2UserRequest createGitHubOAuth2UserRequest() {
-        String mockServerUrl = mockWebServer.url("/").toString().replaceAll("/$", "");
-
-        ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("github")
-                .clientId("test-client-id")
-                .clientSecret("test-client-secret")
-                .authorizationUri(mockServerUrl + "/login/oauth/authorize")
-                .tokenUri(mockServerUrl + "/login/oauth/access_token")
-                .userInfoUri(mockServerUrl + "/user")
-                .userNameAttributeName("login")
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("http://localhost:8080/login/oauth2/code/github")
-                .build();
-
-        OAuth2AccessToken accessToken = new OAuth2AccessToken(
-                OAuth2AccessToken.TokenType.BEARER,
-                "test-access-token",
-                Instant.now(),
-                Instant.now().plusMillis(3600000)
-        );
-
-        return new OAuth2UserRequest(clientRegistration, accessToken);
-    }
-
     @Test
     void 기존_OAuth_사용자_로그인_시_새로운_JWT_토큰이_생성된다() {
         // given
@@ -160,8 +130,8 @@ public class OAuth2JwtIntegrationTest {
         String githubApiResponse = OAuth2TestFixture.createGitHubApiResponse(
                 "12345", "testuser", "테스트유저", uniqueEmail
         );
-        enqueueMockResponse(githubApiResponse);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, githubApiResponse);
+        OAuth2UserRequest userRequest = OAuth2TestFixture.createGitHubOAuth2UserRequest(mockWebServer);
 
         // when
         OAuth2User oAuth2User = customOAuth2UserService.loadUser(userRequest);
@@ -199,9 +169,9 @@ public class OAuth2JwtIntegrationTest {
         String response1 = OAuth2TestFixture.createGitHubApiResponse(
                 "12345", "testuser", "테스트유저", email1
         );
-        enqueueMockResponse(response1);
-        OAuth2UserRequest request1 = createGitHubOAuth2UserRequest();
-        User user1 = ((CustomUserDetails) customOAuth2UserService.loadUser(request1)).getUser();
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, response1);
+        OAuth2UserRequest userRequest1 = OAuth2TestFixture.createGitHubOAuth2UserRequest(mockWebServer);
+        User user1 = ((CustomUserDetails) customOAuth2UserService.loadUser(userRequest1)).getUser();
         String token1 = jwtProvider.generateAccessToken(user1.getEmail());
 
         // given - User2
@@ -209,9 +179,9 @@ public class OAuth2JwtIntegrationTest {
         String response2 = OAuth2TestFixture.createGitHubApiResponse(
                 "67890", "testuser2", "테스트유저2", email2
         );
-        enqueueMockResponse(response2);
-        OAuth2UserRequest request2 = createGitHubOAuth2UserRequest();
-        User user2 = ((CustomUserDetails) customOAuth2UserService.loadUser(request2)).getUser();
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, response2);
+        OAuth2UserRequest userRequest2 = OAuth2TestFixture.createGitHubOAuth2UserRequest(mockWebServer);
+        User user2 = ((CustomUserDetails) customOAuth2UserService.loadUser(userRequest2)).getUser();
         String token2 = jwtProvider.generateAccessToken(user2.getEmail());
 
         // then

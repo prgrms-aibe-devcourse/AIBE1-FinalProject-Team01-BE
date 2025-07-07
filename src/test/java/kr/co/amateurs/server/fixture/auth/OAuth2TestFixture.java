@@ -3,9 +3,16 @@ package kr.co.amateurs.server.fixture.auth;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -105,5 +112,35 @@ public class OAuth2TestFixture {
 
         String uniqueSuffix = UUID.randomUUID().toString().substring(0, 6);
         return originalNickname + "_" + uniqueSuffix;
+    }
+
+    public static void enqueueMockResponse(MockWebServer mockWebServer, String jsonResponse) {
+        mockWebServer.enqueue(new MockResponse()
+                .setBody(jsonResponse)
+                .addHeader("Content-Type", "application/json"));
+    }
+
+    public static OAuth2UserRequest createGitHubOAuth2UserRequest(MockWebServer mockWebServer) {
+        String mockServerUrl = mockWebServer.url("/").toString().replaceAll("/$", "");
+
+        ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("github")
+                .clientId("test-client-id")
+                .clientSecret("test-client-secret")
+                .authorizationUri(mockServerUrl + "/login/oauth/authorize")
+                .tokenUri(mockServerUrl + "/login/oauth/access_token")
+                .userInfoUri(mockServerUrl + "/user")
+                .userNameAttributeName("login")
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .redirectUri("http://localhost:8080/login/oauth2/code/github")
+                .build();
+
+        OAuth2AccessToken accessToken = new OAuth2AccessToken(
+                OAuth2AccessToken.TokenType.BEARER,
+                "test-access-token",
+                Instant.now(),
+                Instant.now().plusMillis(3600000)
+        );
+
+        return new OAuth2UserRequest(clientRegistration, accessToken);
     }
 }

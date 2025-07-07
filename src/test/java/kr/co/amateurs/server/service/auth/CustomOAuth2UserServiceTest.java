@@ -64,8 +64,8 @@ public class CustomOAuth2UserServiceTest {
                 "12345", "newuser", "뉴깃헙", "newuser@github.com"
         );
 
-        enqueueMockResponse(githubApiResponse);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, githubApiResponse);
+        OAuth2UserRequest userRequest = OAuth2TestFixture.createGitHubOAuth2UserRequest(mockWebServer);
 
         // when
         OAuth2User result = customOAuth2UserService.loadUser(userRequest);
@@ -98,8 +98,8 @@ public class CustomOAuth2UserServiceTest {
                 "12345", "newuser", "뉴깃헙", "newuser@github.com"
         );
 
-        enqueueMockResponse(githubApiResponse);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, githubApiResponse);
+        OAuth2UserRequest userRequest = OAuth2TestFixture.createGitHubOAuth2UserRequest(mockWebServer);
 
         // when
         OAuth2User result = customOAuth2UserService.loadUser(userRequest);
@@ -121,8 +121,8 @@ public class CustomOAuth2UserServiceTest {
     void GitHub에서_사용자_ID가_없으면_예외가_발생한다() {
         String responseWithoutId = OAuth2TestFixture.createGitHubApiResponseWithoutId();
 
-        enqueueMockResponse(responseWithoutId);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, responseWithoutId);
+        OAuth2UserRequest userRequest = OAuth2TestFixture.createGitHubOAuth2UserRequest(mockWebServer);
 
         // when & then
         assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
@@ -133,8 +133,8 @@ public class CustomOAuth2UserServiceTest {
     void GitHub에서_로그인_정보가_없으면_예외가_발생한다() {
         String responseWithoutLogin = OAuth2TestFixture.createGitHubApiResponseWithoutLogin();
 
-        enqueueMockResponse(responseWithoutLogin);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, responseWithoutLogin);
+        OAuth2UserRequest userRequest = OAuth2TestFixture.createGitHubOAuth2UserRequest(mockWebServer);
 
         // when & then
         assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
@@ -157,8 +157,8 @@ public class CustomOAuth2UserServiceTest {
                 "99999", "newuser", "같은메일사용자", "duplicate@test.com"
         );
 
-        enqueueMockResponse(duplicateEmailResponse);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, duplicateEmailResponse);
+        OAuth2UserRequest userRequest = OAuth2TestFixture.createGitHubOAuth2UserRequest(mockWebServer);
 
         // when & then
         assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
@@ -174,8 +174,8 @@ public class CustomOAuth2UserServiceTest {
                 "55555", "noemail", "메일없는사용자"
         );
 
-        enqueueMockResponse(responseWithoutEmail);
-        OAuth2UserRequest userRequest = createGitHubOAuth2UserRequest();
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, responseWithoutEmail);
+        OAuth2UserRequest userRequest = OAuth2TestFixture.createGitHubOAuth2UserRequest(mockWebServer);
 
         // when
         OAuth2User result = customOAuth2UserService.loadUser(userRequest);
@@ -191,35 +191,5 @@ public class CustomOAuth2UserServiceTest {
         assertThat(generatedEmail).endsWith("@amateurs.com");
         assertThat(savedUser.get().getName()).isEqualTo("메일없는사용자");
         assertThat(savedUser.get().getNickname()).startsWith("noemail_");
-    }
-
-    private void enqueueMockResponse(String jsonResponse) {
-        mockWebServer.enqueue(new MockResponse()
-                .setBody(jsonResponse)
-                .addHeader("Content-Type", "application/json"));
-    }
-
-    private OAuth2UserRequest createGitHubOAuth2UserRequest() {
-        String mockServerUrl = mockWebServer.url("/").toString().replaceAll("/$", "");
-
-        ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("github")
-                .clientId("test-client-id")
-                .clientSecret("test-client-secret")
-                .authorizationUri(mockServerUrl + "/login/oauth/authorize")
-                .tokenUri(mockServerUrl + "/login/oauth/access_token")
-                .userInfoUri(mockServerUrl + "/user")
-                .userNameAttributeName("login")
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("http://localhost:8080/login/oauth2/code/github")
-                .build();
-
-        OAuth2AccessToken accessToken = new OAuth2AccessToken(
-                OAuth2AccessToken.TokenType.BEARER,
-                "test-access-token",
-                Instant.now(),
-                Instant.now().plusMillis(3600000)
-        );
-
-        return new OAuth2UserRequest(clientRegistration, accessToken);
     }
 }
