@@ -33,6 +33,7 @@ import java.util.Objects;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO.convertToDTO;
+import static kr.co.amateurs.server.domain.entity.post.Post.convertListToTag;
 
 
 @Service
@@ -72,7 +73,7 @@ public class MatchService {
                 .boardType(BoardType.MATCH)
                 .title(dto.title())
                 .content(dto.content())
-                .tags(dto.tags())
+                .tags(convertListToTag(dto.tags()))
                 .build();
         Post savedPost = postRepository.save(post);
 

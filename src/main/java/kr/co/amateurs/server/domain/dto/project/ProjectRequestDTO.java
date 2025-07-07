@@ -9,6 +9,7 @@ import kr.co.amateurs.server.domain.dto.post.PostRequest;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Builder
 public record ProjectRequestDTO(
@@ -20,7 +21,7 @@ public record ProjectRequestDTO(
         @Schema(description = "게시글 내용", example = "test 내용")
         String content,
         @Schema(description = "게시글 태그", example = "Spring boot")
-        String tags,
+        List<String> tags,
         @Schema(description = "프로젝트 시작 일시", example = "2025-06-25T00:08:25")
         LocalDateTime startedAt,
         @Schema(description = "프로젝트 종료 일시", example = "2025-06-25T00:08:25")

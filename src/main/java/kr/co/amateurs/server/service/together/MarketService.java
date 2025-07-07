@@ -32,6 +32,7 @@ import java.util.Objects;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO.convertToDTO;
+import static kr.co.amateurs.server.domain.entity.post.Post.convertListToTag;
 
 
 @Service
@@ -71,7 +72,7 @@ public class MarketService {
                 .boardType(BoardType.MARKET)
                 .title(dto.title())
                 .content(dto.content())
-                .tags(dto.tags())
+                .tags(convertListToTag(dto.tags()))
                 .build();
         Post savedPost = postRepository.save(post);
 
