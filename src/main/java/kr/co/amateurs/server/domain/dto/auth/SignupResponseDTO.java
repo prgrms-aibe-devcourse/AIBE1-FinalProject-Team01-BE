@@ -7,7 +7,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-public record SignupResponseDto(
+public record SignupResponseDTO(
         @Schema(description = "사용자 ID", example = "1")
         Long userId,
         @Schema(description = "이메일", example = "test@test.com")
@@ -22,8 +22,8 @@ public record SignupResponseDto(
         LocalDateTime createdAt
 ) {
 
-    public static SignupResponseDto fromEntity(User user, Set<Topic> topics) {
-        return new SignupResponseDto(
+    public static SignupResponseDTO fromEntity(User user, Set<Topic> topics) {
+        return new SignupResponseDTO(
                 user.getId(),
                 user.getEmail(),
                 user.getNickname(),

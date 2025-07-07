@@ -1,41 +1,41 @@
 package kr.co.amateurs.server.fixture.auth;
 
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
-import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
+import kr.co.amateurs.server.domain.dto.auth.LoginRequestDTO;
 
 public class AuthTestFixture {
 
-    public static LoginRequestDto.LoginRequestDtoBuilder defaultLoginRequest() {
-        return LoginRequestDto.builder()
+    public static LoginRequestDTO.LoginRequestDTOBuilder defaultLoginRequest() {
+        return LoginRequestDTO.builder()
                 .email(UserTestFixture.DEFAULT_EMAIL)
                 .password(UserTestFixture.DEFAULT_PASSWORD);
     }
 
-    public static LoginRequestDto createValidLoginRequest() {
+    public static LoginRequestDTO createValidLoginRequest() {
         return defaultLoginRequest().build();
     }
 
-    public static LoginRequestDto createLoginRequestWithEmail(String email) {
+    public static LoginRequestDTO createLoginRequestWithEmail(String email) {
         return defaultLoginRequest().email(email).build();
     }
 
-    public static LoginRequestDto createInvalidEmailLoginRequest() {
+    public static LoginRequestDTO createInvalidEmailLoginRequest() {
         return defaultLoginRequest().email("invalid-email").build();
     }
 
-    public static LoginRequestDto createEmptyEmailLoginRequest() {
+    public static LoginRequestDTO createEmptyEmailLoginRequest() {
         return defaultLoginRequest().email("").build();
     }
 
-    public static LoginRequestDto createWrongPasswordLoginRequest() {
+    public static LoginRequestDTO createWrongPasswordLoginRequest() {
         return defaultLoginRequest().password("wrongpassword").build();
     }
 
-    public static LoginRequestDto createEmptyPasswordLoginRequest() {
+    public static LoginRequestDTO createEmptyPasswordLoginRequest() {
         return defaultLoginRequest().password("").build();
     }
 
-    public static LoginRequestDto createNonExistentUserLoginRequest() {
+    public static LoginRequestDTO createNonExistentUserLoginRequest() {
         return defaultLoginRequest().email("nonexistent@test.com").build();
     }
 }

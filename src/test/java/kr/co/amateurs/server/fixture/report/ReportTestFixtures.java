@@ -1,4 +1,4 @@
-package kr.co.amateurs.server.service.report;
+package kr.co.amateurs.server.fixture.report;
 
 import kr.co.amateurs.server.domain.dto.report.ReportRequestDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
@@ -6,6 +6,7 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.report.Report;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportStatus;
+import kr.co.amateurs.server.domain.entity.report.enums.ReportTarget;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -104,6 +105,8 @@ public class ReportTestFixtures {
                 .post(post)
                 .description(description)
                 .status(ReportStatus.PENDING)
+                .reportType(ReportType.BAD_WORDS)
+                .reportTarget(ReportTarget.POST)
                 .build();
     }
 
@@ -113,6 +116,8 @@ public class ReportTestFixtures {
                 .comment(comment)
                 .description(description)
                 .status(ReportStatus.PENDING)
+                .reportType(ReportType.BAD_WORDS)
+                .reportTarget(ReportTarget.COMMENT)
                 .build();
     }
 
@@ -122,22 +127,85 @@ public class ReportTestFixtures {
                 .post(post)
                 .description(description)
                 .status(status)
+                .reportType(ReportType.BAD_WORDS)
+                .reportTarget(ReportTarget.POST)
                 .build();
     }
 
     public static ReportRequestDTO createPostReportRequestDTO(Long postId, String description) {
         return new ReportRequestDTO(
                 postId,
-                ReportType.POST,
-                description
+                ReportTarget.POST,
+                description,
+                ReportType.BAD_WORDS
         );
     }
 
     public static ReportRequestDTO createCommentReportRequestDTO(Long commentId, String description) {
         return new ReportRequestDTO(
                 commentId,
-                ReportType.COMMENT,
-                description
+                ReportTarget.COMMENT,
+                description,
+                ReportType.BAD_WORDS
+        );
+    }
+
+    public static Post createNormalPost(User user) {
+        return Post.builder()
+                .user(user)
+                .title("유익한 정보 공유 게시글")
+                .content("안녕하세요. 오늘은 Spring Boot의 테스트 작성 방법에 대해 공유하고자 합니다. " +
+                        "좋은 테스트를 작성하면 코드 품질을 높일 수 있고, 리팩토링 시에도 안전합니다. " +
+                        "여러분도 테스트 작성 습관을 길러보시기 바랍니다.")
+                .tags("개발,공유,교육")
+                .boardType(BoardType.FREE)
+                .viewCount(10)
+                .likeCount(5)
+                .comments(new ArrayList<>())
+                .postImages(new ArrayList<>())
+                .build();
+    }
+
+    public static Post createViolationPost(User user) {
+        return Post.builder()
+                .user(user)
+                .title("부적절한 제목입니다")
+                .content("이 게시글에는 욕설과 혐오 표현이 포함되어 있습니다. " +
+                        "실제로는 부적절한 내용이라고 가정하고 AI가 감지할 수 있도록 " +
+                        "키워드를 포함시킨 테스트용 게시글입니다.")
+                .tags("위반,테스트")
+                .boardType(BoardType.FREE)
+                .viewCount(2)
+                .likeCount(0)
+                .comments(new ArrayList<>())
+                .postImages(new ArrayList<>())
+                .build();
+    }
+
+    public static ReportRequestDTO createSpamReportRequestDTO(Long targetId, ReportTarget target) {
+        return new ReportRequestDTO(
+                targetId,
+                target,
+                "동일한 내용을 반복적으로 게시하는 스팸입니다",
+                ReportType.SPAM
+        );
+    }
+
+    public static ReportRequestDTO createPrivacyReportRequestDTO(Long targetId, ReportTarget target) {
+        return new ReportRequestDTO(
+                targetId,
+                target,
+                "개인정보가 무단으로 노출되었습니다",
+                ReportType.PERSONAL_INFO
+        );
+    }
+
+    public static ReportRequestDTO createViolenceReportRequestDTO(Long targetId, ReportTarget target) {
+        return new ReportRequestDTO(
+                targetId,
+                target,
+                "폭력적이고 위험한 내용이 포함되어 있습니다",
+                ReportType.BAD_WORDS
         );
     }
 }

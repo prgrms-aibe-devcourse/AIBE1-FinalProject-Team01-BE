@@ -8,11 +8,10 @@ import jakarta.validation.constraints.Size;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import lombok.Builder;
 
-import java.util.List;
 import java.util.Set;
 
 @Builder
-public record SignupRequestDto(
+public record SignupRequestDTO(
         @Schema(description = "이메일", example = "test@test.com")
         @NotBlank(message = "이메일은 필수입니다")
         @Email(message = "올바른 이메일 형식이 아닙니다")
