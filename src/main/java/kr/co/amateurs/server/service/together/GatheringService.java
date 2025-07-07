@@ -97,7 +97,7 @@ public class GatheringService {
         GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
         validateUser(post);
-        CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
+        CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.tags(), dto.content());
         post.update(updatePostDTO);
         gp.update(dto);
     }

@@ -95,7 +95,7 @@ public class MarketService {
         MarketItem mi = marketRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mi.getPost();
         validateUser(post);
-        CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.content(), dto.tags());
+        CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.tags(), dto.content());
         post.update(updatePostDTO);
         mi.update(dto);
 
