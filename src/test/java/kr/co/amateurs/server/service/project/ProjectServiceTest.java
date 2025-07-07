@@ -1,7 +1,6 @@
 package kr.co.amateurs.server.service.project;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import jakarta.persistence.EntityManager;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
@@ -64,9 +63,6 @@ class ProjectServiceTest {
 
     @Autowired
     private BookmarkRepository bookmarkRepository;
-
-    @Autowired
-    private EntityManager entityManager;
 
     private User backendUser;
     private User frontendUser;
