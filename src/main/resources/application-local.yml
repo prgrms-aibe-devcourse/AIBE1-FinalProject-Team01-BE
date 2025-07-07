@@ -87,3 +87,7 @@ oauth:
 
 cookie:
   domain: localhost
+
+swagger:
+  server:
+    url: ${SERVER_URL}
