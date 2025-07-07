@@ -65,7 +65,12 @@ public class FileService {
         );
     }
 
-    //TODO - 파일 삭제는 필요 시 컨트롤러에 API 추가
+    public void deletePostImage(Post post){
+        List<PostImage> images = postImageRepository.findByPost(post);
+        images.forEach(img -> deleteFile(img.getImageUrl()));
+        postImageRepository.deleteAll(images);
+    }
+
     public boolean deleteFile(String fileUrl) {
         if (fileUrl == null || !fileUrl.startsWith(publicUrl)) {
             return false;
@@ -86,9 +91,6 @@ public class FileService {
         }
     }
 
-    /*
-     *  content HTML 텍스트에서 <img> 태그의 url 추출해서 저장하는 메서드들
-     */
     private static final Pattern IMG_SRC_PATTERN =
             Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
 
