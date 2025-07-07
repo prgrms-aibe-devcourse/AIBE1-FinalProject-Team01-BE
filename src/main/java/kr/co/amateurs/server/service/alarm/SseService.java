@@ -41,7 +41,7 @@ public class SseService {
         });
     }
 
-    public SseEmitter createConnection() {
+    public SseEmitter connect() {
         long currentUserId = userService.getCurrentLoginUser().getId();
         connections.remove(currentUserId);
 
@@ -61,6 +61,14 @@ public class SseService {
         }
 
         return emitter;
+    }
+
+    public void disconnect() {
+        long currentUserId = userService.getCurrentLoginUser().getId();
+        SseEmitter emitter = connections.remove(currentUserId);
+        if (emitter != null) {
+            emitter.complete();
+        }
     }
 
     public void sendAlarmToUser(long userId, Alarm alarm) {
