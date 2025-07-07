@@ -16,17 +16,20 @@ import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.project.ProjectJooqRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.file.FileService;
-import kr.co.amateurs.server.utils.JsonUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProjectService {
     private final ProjectRepository projectRepository;
     private final PostRepository postRepository;
@@ -35,6 +38,8 @@ public class ProjectService {
 
     private final UserService userService;
     private final FileService fileService;
+
+    private final PostEmbeddingService postEmbeddingService;
 
     private final JsonUtil jsonUtil;
 
@@ -77,6 +82,14 @@ public class ProjectService {
                 .build();
 
         projectRepository.save(project);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.createPostEmbeddings(savedPost);
+            } catch (Exception e) {
+                log.warn("커뮤니티 게시글 임베딩 생성 실패: postId={}", savedPost.getId(), e);
+            }
+        });
 
         List<String> imgUrls = fileService.extractImageUrls(projectRequestDTO.content());
         fileService.savePostImage(savedPost, imgUrls);

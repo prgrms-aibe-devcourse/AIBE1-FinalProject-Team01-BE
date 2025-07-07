@@ -8,7 +8,9 @@ import lombok.Builder;
 import org.jooq.Record;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 import static org.jooq.generated.tables.Posts.POSTS;
 import static org.jooq.generated.tables.Projects.PROJECTS;
 import static org.jooq.generated.tables.Users.USERS;

@@ -11,7 +11,10 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "posts")
@@ -106,7 +109,7 @@ public class Post extends BaseEntity {
                 .user(user)
                 .title(requestDTO.title())
                 .content(requestDTO.content())
-                .tags(requestDTO.tags())
+                .tags(convertListToTag(requestDTO.tags()))
                 .boardType(boardType)
                 .build();
     }
@@ -114,10 +117,30 @@ public class Post extends BaseEntity {
     public void update(PostRequest requestDTO) {
         this.title = requestDTO.title();
         this.content = requestDTO.content();
-        this.tags = requestDTO.tags();
+        this.tags = convertListToTag(requestDTO.tags());
     }
 
     public void updateBlinded(boolean isBlinded) {
         this.isBlinded = isBlinded;
+    }
+
+    public static List<String> convertTagToList(String tag) {
+        if (tag == null || tag.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(tag.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    public static String convertListToTag(List<String> tags) {
+        if (tags == null || tags.isEmpty()) {
+            return "";
+        }
+        return tags.stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.joining(", "));
     }
 }

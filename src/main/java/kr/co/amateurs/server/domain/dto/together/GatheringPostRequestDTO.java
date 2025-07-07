@@ -7,13 +7,15 @@ import jakarta.validation.constraints.PositiveOrZero;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 
+import java.util.List;
+
 public record GatheringPostRequestDTO(
         @Schema(description = "게시글 제목", example = "test 제목")
         @NotBlank String title,
         @Schema(description = "게시글 내용", example = "test 내용")
         @NotBlank String content,
         @Schema(description = "게시글 태그", example = "Spring Boot")
-        String tags,
+        List<String> tags,
         @Schema(description = "팀원 모집 종류", example = "STUDY")
         @NotNull GatheringType gatheringType,
         @Schema(description = "팀원 모집 상태", example = "RECRUITING")
