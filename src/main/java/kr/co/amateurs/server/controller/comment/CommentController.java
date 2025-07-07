@@ -47,7 +47,7 @@ public class CommentController {
     public ResponseEntity<CommentPageDTO> getReplies(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @RequestParam(required = false) Long cursor,  // 대댓글 커서
+            @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "5") int size
     ) {
         CommentPageDTO replies = commentService.getReplies(postId, commentId, cursor, size);

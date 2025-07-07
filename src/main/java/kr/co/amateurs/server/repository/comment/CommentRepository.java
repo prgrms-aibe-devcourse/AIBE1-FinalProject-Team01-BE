@@ -1,26 +1,22 @@
 package kr.co.amateurs.server.repository.comment;
 
-import kr.co.amateurs.server.domain.dto.comment.ReplyCount;
+import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
-import kr.co.amateurs.server.domain.entity.post.Post;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Set;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    List<Comment> findByPostAndParentCommentIsNullOrderByCreatedAtAsc(Post post, PageRequest pageRequest);
+    @Modifying
+    @Query("UPDATE Comment c SET c.replyCount = c.replyCount + 1 WHERE c.id = :commentId")
+    void increaseReplyCount(@Param("commentId") Long commentId);
 
-    List<Comment> findByPostAndParentCommentIsNullAndIdGreaterThanOrderByCreatedAtAsc(Post post, Long cursor, PageRequest pageRequest);
-
-    List<Comment> findByParentCommentOrderByCreatedAtAsc(Comment parentComment, PageRequest pageRequest);
-
-    List<Comment> findByParentCommentAndIdGreaterThanOrderByCreatedAtAsc(Comment parentComment, Long cursor, PageRequest pageRequest);
-
-    @Query("SELECT c.parentComment.id as parentCommentId, COUNT(c) as count FROM Comment c " +
-            "WHERE c.parentComment.id IN :parentIds " +
-            "GROUP BY c.parentComment.id")
-    List<ReplyCount> countRepliesByParentIds(@Param("parentIds") List<Long> parentIds);
+    @Modifying
+    @Query("UPDATE Comment c SET c.replyCount = GREATEST(c.replyCount - 1, 0) WHERE c.id = :commentId")
+    void decreaseReplyCount(@Param("commentId") Long commentId);
 }

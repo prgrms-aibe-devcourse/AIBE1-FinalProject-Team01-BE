@@ -55,7 +55,8 @@ public class Post extends BaseEntity {
     private String tags;
 
     @Builder.Default
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "post_id")
     private List<Comment> comments = new ArrayList<>();
 
     @Builder.Default
