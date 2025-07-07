@@ -8,8 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface PostImageRepository extends JpaRepository<PostImage, Long> {
-    boolean existsByUrl(String fileUrl);
-
     List<PostImage> findByPost(Post post);
 
     @Query("SELECT pi.imageUrl FROM PostImage pi")
