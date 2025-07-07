@@ -27,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Component
-@Profile("!test")
 @RequiredArgsConstructor
 @Slf4j
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {

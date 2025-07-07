@@ -208,6 +208,8 @@ class CommunityServiceTest {
         // given
         Long communityId = testFreeCommunityPost.getId();
 
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
+
         // when
         CommunityResponseDTO result = communityService.getPost(communityId);
 
@@ -228,6 +230,8 @@ class CommunityServiceTest {
     void 유저가_존재하지_않는_communityId로_조회하면_예외가_발생해야_한다() {
         // given
         Long nonExistentCommunityId = 999L;
+
+        given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when & then
         assertThatThrownBy(() -> communityService.getPost(nonExistentCommunityId))
@@ -315,15 +319,15 @@ class CommunityServiceTest {
     void 유저가_본인_게시글을_삭제하면_게시글이_삭제되어야_한다() {
         // given
         Long communityId = testFreeCommunityPost.getId();
-
+        Long postId = testFreeCommunityPost.getPost().getId();
         given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when
         communityService.deletePost(communityId);
 
         // then
-        assertThatThrownBy(() -> communityService.getPost(communityId))
-                .isInstanceOf(CustomException.class);
+        assertThat(postRepository.findById(postId)).isEmpty();
+
     }
 
     @Test

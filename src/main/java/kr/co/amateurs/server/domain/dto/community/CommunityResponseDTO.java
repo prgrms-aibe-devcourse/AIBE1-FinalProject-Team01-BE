@@ -53,37 +53,32 @@ public record CommunityResponseDTO(
 
         @Schema(description = "게시글 태그", example = "Spring,Java,백엔드", nullable = true)
         String tags,
-
-        @Schema(description = "이미지 포함 여부", example = "true")
-        boolean hasImages,
-
         @Schema(description = "현재 사용자가 좋아요를 눌렀는지 여부", example = "false")
         boolean hasLiked,
 
         @Schema(description = "현재 사용자가 북마크했는지 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static CommunityResponseDTO from(CommunityPost communityPost, boolean hasLiked, boolean hasBookmarked) {
+        public static CommunityResponseDTO from(CommunityPost communityPost, boolean hasLiked, boolean hasBookmarked) {
                 Post post = communityPost.getPost();
-            return new CommunityResponseDTO(
-                communityPost.getId(),
-                post.getId(),
-                post.getTitle(),
-                post.getContent(),
-                post.getUser().getNickname(),
-                post.getUser().getImageUrl(),
-                post.getUser().getDevcourseName(),
-                post.getUser().getDevcourseBatch(),
-                post.getBoardType(),
-                post.getViewCount(),
-                post.getLikeCount(),
-                post.getComments().size(),
-                post.getCreatedAt(),
-                post.getUpdatedAt(),
-                post.getTags(),
-                post.getPostImages() != null && !post.getPostImages().isEmpty(),
-                hasLiked,
-                hasBookmarked
-        );
-    }
+                return new CommunityResponseDTO(
+                        communityPost.getId(),
+                        post.getId(),
+                        post.getTitle(),
+                        post.getContent(),
+                        post.getUser().getNickname(),
+                        post.getUser().getImageUrl(),
+                        post.getUser().getDevcourseName(),
+                        post.getUser().getDevcourseBatch(),
+                        post.getBoardType(),
+                        post.getViewCount(),
+                        post.getLikeCount(),
+                        0,
+                        post.getCreatedAt(),
+                        post.getUpdatedAt(),
+                        post.getTags(),
+                        hasLiked,
+                        hasBookmarked
+                );
+        }
 }

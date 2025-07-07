@@ -2,7 +2,7 @@ package kr.co.amateurs.server.domain.dto.auth;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-public record LoginResponseDto (
+public record LoginResponseDTO(
         @Schema(description = "JWT 액세스 토큰")
         String accessToken,
 
@@ -16,7 +16,7 @@ public record LoginResponseDto (
         Long expiresIn
 ) {
 
-    public static LoginResponseDto of(String accessToken, String refreshToken, Long expiresIn) {
-        return new LoginResponseDto(accessToken, refreshToken, "Bearer", expiresIn);
+    public static LoginResponseDTO of(String accessToken, String refreshToken, Long expiresIn) {
+        return new LoginResponseDTO(accessToken, refreshToken, "Bearer", expiresIn);
     }
 }

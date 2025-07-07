@@ -7,16 +7,16 @@ import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.ITPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.repository.file.PostImageRepository;
 import kr.co.amateurs.server.repository.it.ITRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.file.FileService;
-import kr.co.amateurs.server.service.bookmark.BookmarkService;
-import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -38,9 +38,7 @@ import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPag
 public class ITService {
     private final ITRepository itRepository;
     private final PostRepository postRepository;
-
-    private final BookmarkService bookmarkService;
-    private final LikeService likeService;
+    private final PostImageRepository postImageRepository;
 
     private final UserService userService;
     private final FileService fileService;
@@ -48,30 +46,27 @@ public class ITService {
     public PageResponseDTO<ITResponseDTO> searchPosts(BoardType boardType, PostPaginationParam paginationParam) {
         Pageable pageable = paginationParam.toPageable();
         String keyword = paginationParam.getKeyword();
-        Page<ITPost> itPage;
+        Page<ITResponseDTO> itPage;
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            itPage = itRepository.findByContentAndBoardType(keyword.trim(), boardType, pageable);
+            itPage = itRepository.findDTOByContentAndBoardType(keyword.trim(), boardType, pageable);
         } else {
-            itPage = itRepository.findByBoardType(boardType, pageable);
+            itPage = itRepository.findDTOByBoardType(boardType, pageable);
         }
 
-        return convertPageToDTO(itPage.map(itPost -> ITResponseDTO.from(itPost, false, false)));
+        return convertPageToDTO(itPage);
     }
 
     public ITResponseDTO getPost(Long itId) {
         Optional<User> user = userService.getCurrentUser();
 
-        ITPost itPost = findById(itId);
-
-        boolean hasBookmarked = false;
-        boolean hasLiked = false;
         if (user.isPresent()) {
-            hasBookmarked = bookmarkService.checkHasBookmarked(itPost.getPost().getId(), user.get().getId());
-            hasLiked = likeService.checkHasLiked(itPost.getPost().getId(), user.get().getId());
+            return itRepository.findDTOByIdForUser(itId, user.get().getId())
+                    .orElseThrow(ErrorCode.NOT_FOUND);
         }
 
-        return ITResponseDTO.from(itPost, hasLiked, hasBookmarked);
+        return itRepository.findDTOByIdForGuest(itId)
+                .orElseThrow(ErrorCode.NOT_FOUND);
     }
 
     @Transactional
@@ -109,6 +104,7 @@ public class ITService {
         Post post = itPost.getPost();
         validatePost(post);
 
+        fileService.deletePostImage(post);
         itRepository.delete(itPost);
     }
 
