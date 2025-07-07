@@ -2,6 +2,7 @@ package kr.co.amateurs.server.service.auth;
 
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.auth.OAuthUserInfo;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -22,11 +23,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 
-import java.security.SecureRandom;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 
 @Service
@@ -37,6 +34,9 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     private final UserRepository userRepository;
     private final RestClient restClient;
+
+    private static final int MAX_NICKNAME_RETRY = 5;
+    private static final String DEFAULT_PROFILE_IMAGE_URL = "https://via.placeholder.com/150/cccccc/969696?text=Profile";
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -50,57 +50,69 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         log.info("OAuth2 로그인 시도: provider={}", providerType.getProviderName());
         log.info("{} OAuth2 로그인 사용자 정보 획득 완료", providerType.getProviderName());
 
-        String providerId = getProviderId(oAuth2User, providerType);
-        String email = getEmailWithFallback(userRequest, oAuth2User, providerType, providerId);
-        String nickname = getNickname(oAuth2User, providerType);
-        String name = getName(oAuth2User, providerType);
-        String imageUrl = getImageUrl(oAuth2User, providerType);
-
         try {
-            saveOrUpdateUser(providerType, providerId, email, nickname, name, imageUrl);
+            OAuthUserInfo userInfo = extractUserInfo(userRequest, oAuth2User, providerType);
+            User user = saveOrGetUser(userInfo);
+
+            return new CustomUserDetails(user, oAuth2User.getAttributes());
         } catch (Exception e) {
             log.error("OAuth 사용자 등록 실패: {}", e.getMessage());
             throw new OAuth2AuthenticationException(
                     new OAuth2Error("user_registration_error"),
                     ErrorCode.OAUTH_USER_REGISTRATION_FAILED.getMessage());
         }
-
-        User user = userRepository.findByProviderIdAndProviderType(providerId, providerType)
-                .orElseThrow(ErrorCode.USER_NOT_FOUND);
-
-        return new CustomUserDetails(user, oAuth2User.getAttributes());
     }
 
-    private void saveOrUpdateUser(ProviderType providerType, String providerId, String email, String nickname, String name, String imageUrl) {
+    private OAuthUserInfo extractUserInfo(OAuth2UserRequest userRequest, OAuth2User oAuth2User, ProviderType providerType) {
+        String providerId = getProviderId(oAuth2User, providerType);
+        String email = getEmailWithFallback(userRequest, oAuth2User, providerType, providerId);
+        String nickname = getNickname(oAuth2User, providerType);
+        String name = getName(oAuth2User, providerType);
+        String imageUrl = getImageUrl(oAuth2User, providerType);
 
-        Optional<User> existingUser = userRepository.findByProviderIdAndProviderType(providerId, providerType);
+        return OAuthUserInfo.builder()
+                .providerType(providerType)
+                .providerId(providerId)
+                .email(email)
+                .nickname(nickname)
+                .name(name)
+                .imageUrl(imageUrl)
+                .build();
+    }
+
+    private User saveOrGetUser(OAuthUserInfo userInfo) {
+
+        Optional<User> existingUser = userRepository.findByProviderIdAndProviderType(
+                userInfo.providerId(), userInfo.providerType());
 
         if (existingUser.isPresent()) {
             log.info("기존 사용자 로그인: userId={}", existingUser.get().getId());
-            return;
+            return existingUser.get();
         }
 
-        if (email != null && !email.isEmpty()) {
-            if (userRepository.existsByEmail(email)) {
-                log.warn("이미 다른 계정으로 가입된 이메일: {}", email);
+        if (userInfo.email() != null && !userInfo.email().isEmpty()) {
+            if (userRepository.existsByEmail(userInfo.email())) {
+                log.warn("이미 다른 계정으로 가입된 이메일: {}", userInfo.email());
                 throw ErrorCode.OAUTH_EMAIL_ALREADY_EXISTS.get();
             }
         }
 
-        String uniqueNickname = generateUniqueNickname(nickname);
+        String uniqueNickname = generateUniqueNickname(userInfo.nickname());
 
         User newUser = User.builder()
-                .providerId(providerId)
-                .providerType(providerType)
-                .email(email)
+                .providerId(userInfo.providerId())
+                .providerType(userInfo.providerType())
+                .email(userInfo.email())
                 .nickname(uniqueNickname)
-                .name(name)
-                .imageUrl(imageUrl)
+                .name(userInfo.name())
+                .imageUrl(userInfo.imageUrl())
                 .role(Role.GUEST)
                 .build();
 
-        userRepository.save(newUser);
-        log.info("신규 사용자 등록: userId={}, 닉네임={}", newUser.getId(), uniqueNickname);
+        User savedUser = userRepository.save(newUser);
+        log.info("신규 사용자 등록: userId={}, 닉네임={}", savedUser.getId(), uniqueNickname);
+
+        return savedUser;
     }
 
 
@@ -113,8 +125,23 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             originalNickname = originalNickname.substring(0, 8);
         }
 
-        String uniqueSuffix = UUID.randomUUID().toString().substring(0, 6);
-        return String.format("%s_%s", originalNickname, uniqueSuffix);
+
+        String baseNickname = originalNickname;
+
+        for (int attempt = 0; attempt < MAX_NICKNAME_RETRY; attempt++) {
+            String uniqueSuffix = UUID.randomUUID().toString().substring(0, 6);
+            String candidateNickname = String.format("%s_%s", baseNickname, uniqueSuffix);
+
+            if (!userRepository.existsByNickname(candidateNickname)) {
+                return candidateNickname;
+            }
+
+            log.warn("닉네임 중복 발생, 재시도 {}/{}: {}", attempt + 1, MAX_NICKNAME_RETRY, candidateNickname);
+        }
+
+        String fallbackNickname = String.format("%s_%s", baseNickname, System.currentTimeMillis());
+        log.warn("닉네임 재시도 한계 도달, 타임스탬프 사용: {}", fallbackNickname);
+        return fallbackNickname;
     }
 
     private String generateFakeEmail(String provider, String providerId) {
@@ -124,13 +151,13 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     private String getProviderId(OAuth2User oAuth2User, ProviderType providerType) {
         Map<String, Object> attributes = validateAndGetAttributes(oAuth2User, providerType);
 
-        Object id = attributes.get("id");
-        if (id == null) {
+        String id = String.valueOf(attributes.get("id"));
+        if ("null".equals(id) || id.isEmpty()) {
             log.error("{}에서 사용자 ID를 받지 못했습니다", providerType.getProviderName());
             throw ErrorCode.OAUTH_USER_REGISTRATION_FAILED.get();
         }
 
-        return String.valueOf(id);
+        return id;
     }
 
     private String getEmailWithFallback(OAuth2UserRequest userRequest, OAuth2User oAuth2User, ProviderType providerType, String providerId) {
@@ -161,10 +188,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
         Map<String, Object> kakaoAccount = getKakaoAccount(attributes);
-        if (kakaoAccount == null) {
-            log.warn("{} 계정 정보가 Map 형식이 아닙니다", providerType.getProviderName());
-            return generateFakeEmail(providerType.getProviderName(), providerId);
-        }
 
         String email = (String) kakaoAccount.get("email");
         if (email != null && !email.isEmpty()) {
@@ -227,17 +250,9 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         if (providerType == ProviderType.GITHUB) {
             String nickname = (String) attributes.get("login");
-            if (nickname == null) {
-                log.error("{}에서 닉네임을 받지 못했습니다", providerType.getProviderName());
-                throw ErrorCode.OAUTH_USER_REGISTRATION_FAILED.get();
-            }
-            return nickname;
+            return nickname != null ? nickname : "GitHub사용자";
         } else if (providerType == ProviderType.KAKAO) {
             Map<String, Object> profile = getKakaoProfile(attributes);
-            if (profile == null) {
-                return "카카오사용자";
-            }
-
             String nickname = (String) profile.get("nickname");
             return nickname != null ? nickname : "카카오사용자";
         }
@@ -253,23 +268,26 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             return name != null ? name : (String) attributes.get("login");
         } else if (providerType == ProviderType.KAKAO) {
             Map<String, Object> profile = getKakaoProfile(attributes);
-            return profile != null ? (String) profile.get("nickname") : null;
+            String name = (String) profile.get("nickname");
+            return name != null ? name : "카카오사용자";
         }
 
-        return null;
+        return "사용자";
     }
 
     private String getImageUrl(OAuth2User oAuth2User, ProviderType providerType) {
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
         if (providerType == ProviderType.GITHUB) {
-            return (String) attributes.get("avatar_url");
+            String imageUrl = (String) attributes.get("avatar_url");
+            return imageUrl != null ? imageUrl : DEFAULT_PROFILE_IMAGE_URL;
         } else if (providerType == ProviderType.KAKAO) {
             Map<String, Object> profile = getKakaoProfile(attributes);
-            return profile != null ? (String) profile.get("profile_image_url") : null;
+            String imageUrl = (String) profile.get("profile_image_url");
+            return imageUrl != null ? imageUrl : DEFAULT_PROFILE_IMAGE_URL;
         }
 
-        return null;
+        return DEFAULT_PROFILE_IMAGE_URL;
     }
 
     private Map<String, Object> validateAndGetAttributes(OAuth2User oAuth2User, ProviderType providerType) {
@@ -282,35 +300,37 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     }
 
     private Map<String, Object> getKakaoProfile(Map<String, Object> attributes) {
-        Object kakaoAccountObj = attributes.get("kakao_account");
-        if (!(kakaoAccountObj instanceof Map)) {
-            return null;
+        Map<String, Object> kakaoAccount = getKakaoAccount(attributes);
+
+        try {
+            Object profileObj = kakaoAccount.get("profile");
+            if (profileObj == null) {
+                return Collections.emptyMap();
+            }
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> profile = (Map<String, Object>) profileObj;
+            return profile;
+        } catch (ClassCastException e) {
+            log.warn("카카오 프로필 정보 파싱 실패: {}", e.getMessage());
+            return Collections.emptyMap();
         }
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> kakaoAccount = (Map<String, Object>) kakaoAccountObj;
-
-        Object profileObj = kakaoAccount.get("profile");
-        if (!(profileObj instanceof Map)) {
-            return null;
-        }
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> profile = (Map<String, Object>) profileObj;
-
-        return profile;
     }
 
     private Map<String, Object> getKakaoAccount(Map<String, Object> attributes) {
-        Object kakaoAccountObj = attributes.get("kakao_account");
-        if (!(kakaoAccountObj instanceof Map)) {
-            return null;
+        try {
+            Object kakaoAccountObj = attributes.get("kakao_account");
+            if (kakaoAccountObj == null) {
+                return Collections.emptyMap();
+            }
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> kakaoAccount = (Map<String, Object>) kakaoAccountObj;
+
+            return kakaoAccount;
+        } catch (ClassCastException e) {
+            log.warn("카카오 계정 정보 파싱 실패: {}", e.getMessage());
+            return Collections.emptyMap();
         }
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> kakaoAccount = (Map<String, Object>) kakaoAccountObj;
-
-        return kakaoAccount;
     }
-
 }
