@@ -8,6 +8,9 @@ import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 public record GatheringBookmarkDTO(
         Long postId,

@@ -10,6 +10,9 @@ import lombok.Builder;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 
 @Builder

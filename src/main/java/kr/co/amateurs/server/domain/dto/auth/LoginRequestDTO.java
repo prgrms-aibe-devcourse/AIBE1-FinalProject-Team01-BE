@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
 @Builder
-public record LoginRequestDto (
+public record LoginRequestDTO(
     @Schema(description = "이메일", example = "test@test.com")
     @NotBlank(message = "이메일은 필수입니다")
     @Email(message = "올바른 이메일 형식이 아닙니다")

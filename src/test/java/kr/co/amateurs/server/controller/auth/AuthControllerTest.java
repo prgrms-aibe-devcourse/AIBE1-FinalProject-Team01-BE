@@ -7,8 +7,8 @@ import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
-import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
+import kr.co.amateurs.server.domain.dto.auth.LoginRequestDTO;
+import kr.co.amateurs.server.domain.dto.auth.SignupRequestDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 
@@ -23,7 +23,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 정상적인_로그인_요청_시_JWT_토큰이_반환되어야_한다() {
         // given
-        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
@@ -32,7 +32,7 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .then()
                 .statusCode(201);
 
-        LoginRequestDto loginRequest = AuthTestFixture.defaultLoginRequest()
+        LoginRequestDTO loginRequest = AuthTestFixture.defaultLoginRequest()
                 .email(signupRequest.email())
                 .build();
 
@@ -52,7 +52,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 존재하지_않는_사용자로_로그인_시_404_에러가_발생해야_한다() {
         // given
-        LoginRequestDto request = AuthTestFixture.createNonExistentUserLoginRequest();
+        LoginRequestDTO request = AuthTestFixture.createNonExistentUserLoginRequest();
 
         // when & then
         RestAssured.given()
@@ -68,7 +68,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 잘못된_비밀번호로_로그인_시_400_에러가_발생해야_한다() {
         // given
-        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
@@ -77,7 +77,7 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .then()
                 .statusCode(201);
 
-        LoginRequestDto wrongPasswordRequest = AuthTestFixture.defaultLoginRequest()
+        LoginRequestDTO wrongPasswordRequest = AuthTestFixture.defaultLoginRequest()
                 .email(signupRequest.email())
                 .password(TokenTestFixture.getWrongPassword())
                 .build();
@@ -96,7 +96,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 잘못된_이메일_형식으로_로그인_시_400_에러가_발생해야_한다() {
         // given
-        LoginRequestDto invalidEmailRequest = AuthTestFixture.createInvalidEmailLoginRequest();
+        LoginRequestDTO invalidEmailRequest = AuthTestFixture.createInvalidEmailLoginRequest();
 
         // when & then
         RestAssured.given()
@@ -112,7 +112,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 빈_이메일로_로그인_시_400_에러가_발생해야_한다() {
         // given
-        LoginRequestDto emptyEmailRequest = AuthTestFixture.createEmptyEmailLoginRequest();
+        LoginRequestDTO emptyEmailRequest = AuthTestFixture.createEmptyEmailLoginRequest();
 
         // when & then
         RestAssured.given()
@@ -128,7 +128,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 빈_비밀번호로_로그인_시_400_에러가_발생해야_한다() {
         // given
-        LoginRequestDto emptyPasswordRequest = AuthTestFixture.createEmptyPasswordLoginRequest();
+        LoginRequestDTO emptyPasswordRequest = AuthTestFixture.createEmptyPasswordLoginRequest();
 
         // when & then
         RestAssured.given()
@@ -144,7 +144,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 정상적인_회원가입_요청_시_성공해야_한다() {
         // given
-        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
 
         // when & then
         RestAssured.given()
@@ -163,7 +163,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 이메일_중복_시_400_에러가_발생해야_한다() {
         // given
-        SignupRequestDto firstSignupRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO firstSignupRequest = UserTestFixture.createUniqueSignupRequest();
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(firstSignupRequest)
@@ -172,7 +172,7 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .then()
                 .statusCode(201);
 
-        SignupRequestDto duplicateEmailRequest = UserTestFixture.defaultSignupRequest()
+        SignupRequestDTO duplicateEmailRequest = UserTestFixture.defaultSignupRequest()
                 .email(firstSignupRequest.email())
                 .nickname(UserTestFixture.generateUniqueNickname())
                 .build();
@@ -191,7 +191,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 닉네임_중복_시_400_에러가_발생해야_한다() {
         // given
-        SignupRequestDto firstSignupRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO firstSignupRequest = UserTestFixture.createUniqueSignupRequest();
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(firstSignupRequest)
@@ -200,7 +200,7 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .then()
                 .statusCode(201);
 
-        SignupRequestDto duplicateNicknameRequest = UserTestFixture.defaultSignupRequest()
+        SignupRequestDTO duplicateNicknameRequest = UserTestFixture.defaultSignupRequest()
                 .email(UserTestFixture.generateUniqueEmail())
                 .nickname(firstSignupRequest.nickname())
                 .build();
@@ -219,7 +219,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 잘못된_이메일_형식으로_회원가입_시_400_에러가_발생해야_한다() {
         // given
-        SignupRequestDto invalidEmailRequest = UserTestFixture.defaultSignupRequest()
+        SignupRequestDTO invalidEmailRequest = UserTestFixture.defaultSignupRequest()
                 .email("invalid-email")
                 .nickname(UserTestFixture.generateUniqueNickname())
                 .build();
@@ -238,7 +238,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 빈_이메일로_회원가입_시_400_에러가_발생해야_한다() {
         // given
-        SignupRequestDto emptyEmailRequest = UserTestFixture.defaultSignupRequest()
+        SignupRequestDTO emptyEmailRequest = UserTestFixture.defaultSignupRequest()
                 .email("")
                 .nickname(UserTestFixture.generateUniqueNickname())
                 .build();
@@ -257,7 +257,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 짧은_비밀번호로_회원가입_시_400_에러가_발생해야_한다() {
         // given
-        SignupRequestDto shortPasswordRequest = UserTestFixture.defaultSignupRequest()
+        SignupRequestDTO shortPasswordRequest = UserTestFixture.defaultSignupRequest()
                 .email(UserTestFixture.generateUniqueEmail())
                 .nickname(UserTestFixture.generateUniqueNickname())
                 .password("1234567")
@@ -277,7 +277,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 정상적인_로그인_시_리프레시_토큰도_함께_반환되어야_한다() {
         // given
-        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
@@ -286,7 +286,7 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .then()
                 .statusCode(201);
 
-        LoginRequestDto loginRequest = AuthTestFixture.defaultLoginRequest()
+        LoginRequestDTO loginRequest = AuthTestFixture.defaultLoginRequest()
                 .email(signupRequest.email())
                 .build();
 
@@ -323,7 +323,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 이미_사용중인_이메일_확인_시_false를_반환한다() {
         // given
-        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
@@ -362,7 +362,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 이미_사용중인_닉네임_확인_시_false를_반환한다() {
         // given
-        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(signupRequest)

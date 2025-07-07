@@ -30,7 +30,6 @@ import java.util.UUID;
 
 
 @Service
-@Profile("!test")
 @RequiredArgsConstructor
 @Slf4j
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
@@ -122,16 +121,19 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     }
 
     private String generateFakeEmail(String providerId) {
-        return "github_" + providerId + "@amateurs.local";
+        return "github_" + providerId + "@amateurs.com";
     }
 
     private String getProviderId(OAuth2User oAuth2User, String provider) {
         Map<String, Object> attributes = validateAndGetAttributes(oAuth2User, provider);
 
-        return attributes.computeIfAbsent("id", key -> {
+        Object id = attributes.get("id");
+        if (id == null) {
             log.error("GitHub에서 사용자 ID를 받지 못했습니다: {}", attributes);
             throw ErrorCode.OAUTH_USER_REGISTRATION_FAILED.get();
-        }).toString();
+        }
+
+        return String.valueOf(id);
     }
 
     private String getEmailWithFallback(OAuth2UserRequest userRequest, OAuth2User oAuth2User, String provider, String providerId) {

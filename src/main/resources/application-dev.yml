@@ -52,8 +52,12 @@ springdoc:
 
 langchain4j:
   google-ai-gemini:
-    api-key: ${GEMINI_API_KEY}
-    model-name: ${GEMINI_MODEL}
+    recommend:
+      api-key: ${GEMINI_API_KEY}
+      model-name: ${GEMINI_MODEL}
+    report:
+      api-key: ${GEMINI_REPORT_API_KEY}
+      model-name: ${GEMINI_REPORT_MODEL}
 
 openai:
   api-key: ${OPENAI_API_KEY}
@@ -130,3 +134,7 @@ oauth:
 
 cookie:
   domain: .amateurs.co.kr
+
+app:
+  cors:
+    allowed-origins: https://dev.amateurs.co.kr
