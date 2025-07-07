@@ -7,10 +7,12 @@ import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.ITPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.repository.file.PostImageRepository;
 import kr.co.amateurs.server.repository.it.ITRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
@@ -36,6 +38,7 @@ import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPag
 public class ITService {
     private final ITRepository itRepository;
     private final PostRepository postRepository;
+    private final PostImageRepository postImageRepository;
 
     private final UserService userService;
     private final FileService fileService;
@@ -101,6 +104,7 @@ public class ITService {
         Post post = itPost.getPost();
         validatePost(post);
 
+        fileService.deletePostImage(post);
         itRepository.delete(itPost);
     }
 
