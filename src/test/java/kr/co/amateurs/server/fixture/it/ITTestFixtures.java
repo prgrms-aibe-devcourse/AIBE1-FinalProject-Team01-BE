@@ -11,6 +11,8 @@ import kr.co.amateurs.server.domain.entity.user.enums.Role;
 
 import java.util.ArrayList;
 
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
+
 public class ITTestFixtures {
     public static User createAdminUser() {
         return User.builder()
@@ -112,6 +114,6 @@ public class ITTestFixtures {
     }
 
     public static ITRequestDTO createRequestDTO(String title, String tags, String content) {
-        return new ITRequestDTO(title, tags, content);
+        return new ITRequestDTO(title, convertTagToList(tags), content);
     }
 }

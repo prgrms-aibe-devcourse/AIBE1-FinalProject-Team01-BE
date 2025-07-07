@@ -8,6 +8,9 @@ import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 public record MarketBookmarkDTO(
         Long postId,

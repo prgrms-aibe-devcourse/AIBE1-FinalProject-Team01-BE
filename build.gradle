@@ -157,6 +157,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation 'com.h2database:h2'
+	testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
 	testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring3x:4.20.0'
 	testImplementation 'com.github.codemonstur:embedded-redis:1.4.3'
 	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
@@ -173,6 +174,8 @@ dependencies {
 
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation 'org.awaitility:awaitility:4.2.0'
 }
 
 tasks.named('test') {

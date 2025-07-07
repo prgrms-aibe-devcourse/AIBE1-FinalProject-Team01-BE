@@ -7,7 +7,7 @@ import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.report.ReportRequestDTO;
 import kr.co.amateurs.server.domain.dto.report.ReportResponseDTO;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportStatus;
-import kr.co.amateurs.server.domain.entity.report.enums.ReportType;
+import kr.co.amateurs.server.domain.entity.report.enums.ReportTarget;
 import kr.co.amateurs.server.service.report.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,23 +25,21 @@ import org.springframework.web.bind.annotation.*;
 public class ReportController {
     private final ReportService reportService;
 
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     @Operation(
             summary = "신고 목록 조회 (관리자 전용)",
             description = "모든 신고 목록을 페이지네이션으로 조회합니다. 신고 타입과 상태로 필터링할 수 있습니다"
     )
     public ResponseEntity<Page<ReportResponseDTO>> getReports(
-            @RequestParam(required = false) ReportType reportType,
+            @RequestParam(required = false) ReportTarget reportTarget,
             @RequestParam(required = false) ReportStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Page<ReportResponseDTO> reports = reportService.getReports(reportType, status, page, size);
+        Page<ReportResponseDTO> reports = reportService.getReports(reportTarget, status, page, size);
         return ResponseEntity.ok(reports);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @PostMapping
     @Operation(
             summary = "신고 접수",
@@ -59,7 +57,6 @@ public class ReportController {
             description = "특정 신고의 상태를 변경합니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{reportId}/{status}")
     public ResponseEntity<Void> updateStatusReport(
             @PathVariable Long reportId,
@@ -74,7 +71,6 @@ public class ReportController {
             description = "특정 신고를 삭제합니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
-    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{reportId}")
     public ResponseEntity<Void> deleteReport(@PathVariable Long reportId) {
         reportService.deleteReport(reportId);

@@ -6,17 +6,18 @@ import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.CommunityPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.repository.community.CommunityRepository;
+import kr.co.amateurs.server.repository.file.PostImageRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingService;
-import kr.co.amateurs.server.service.file.FileService;
-import kr.co.amateurs.server.service.post.PostService;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
+import kr.co.amateurs.server.service.file.FileService;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
@@ -38,6 +38,7 @@ import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPag
 public class CommunityService {
     private final CommunityRepository communityRepository;
     private final PostRepository postRepository;
+    private final PostImageRepository postImageRepository;
     private final BookmarkService bookmarkService;
     private final LikeService likeService;
 
@@ -48,30 +49,21 @@ public class CommunityService {
     public PageResponseDTO<CommunityResponseDTO> searchPosts(BoardType boardType, PostPaginationParam paginationParam) {
         Pageable pageable = paginationParam.toPageable();
         String keyword = paginationParam.getKeyword();
-        Page<CommunityPost> communityPage;
+        Page<CommunityResponseDTO> communityPage;
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            communityPage = communityRepository.findByContentAndBoardType(keyword.trim(), boardType, pageable);
+            communityPage = communityRepository.findDTOByContentAndBoardType(keyword.trim(), boardType, pageable);
         } else {
-            communityPage = communityRepository.findByBoardType(boardType, pageable);
+            communityPage = communityRepository.findDTOByBoardType(boardType, pageable);
         }
 
-        return convertPageToDTO(communityPage.map(communityPost -> CommunityResponseDTO.from(communityPost, false, false)));
-    }
+        return convertPageToDTO(communityPage);    }
 
     public CommunityResponseDTO getPost(Long communityId) {
-        Optional<User> user = userService.getCurrentUser();
+        User user = userService.getCurrentLoginUser();
 
-        CommunityPost communityPost = findById(communityId);
-
-        boolean hasBookmarked = false;
-        boolean hasLiked = false;
-        if (user.isPresent()) {
-            hasBookmarked = bookmarkService.checkHasBookmarked(communityPost.getPost().getId(), user.get().getId());
-            hasLiked = likeService.checkHasLiked(communityPost.getPost().getId(), user.get().getId());
-        }
-
-        return CommunityResponseDTO.from(communityPost, hasLiked, hasBookmarked);
+        return communityRepository.findDTOByIdForUser(communityId, user.getId())
+                .orElseThrow(ErrorCode.NOT_FOUND);
     }
 
     @Transactional
@@ -116,7 +108,8 @@ public class CommunityService {
         Post post = communityPost.getPost();
         validatePost(post);
 
-        communityRepository.delete(communityPost);
+        fileService.deletePostImage(post);
+        postRepository.delete(post);
     }
 
     private void validatePost(Post post) {
@@ -134,12 +127,5 @@ public class CommunityService {
     public CommunityPost findById(Long communityId) {
         return communityRepository.findById(communityId)
                 .orElseThrow(ErrorCode.NOT_FOUND);
-    }
-
-    // TODO - 사용자가 한 게시글을 여러번 조회할 경우 viewCount를 중복으로 올라가도록 할 지 한 명당 1회만 올라가게 할 지 정해야 함
-    //         + 조회수 증가를 별도의 API로 할 지 다른 곳에다 붙일 지 정해야 함
-    @Transactional
-    public void increaseViewCount(Long postId) {
-        postRepository.increaseViewCount(postId);
     }
 }

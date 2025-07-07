@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
@@ -263,7 +264,7 @@ class ProjectServiceTest {
             ProjectRequestDTO requestDTO = ProjectRequestDTO.builder()
                     .title("새로운 프로젝트")
                     .content("프로젝트 내용")
-                    .tags("태그1, 태그2")
+                    .tags(convertTagToList("태그1, 태그2"))
                     .startedAt(LocalDateTime.of(2025, 1, 1, 13, 20))
                     .endedAt(LocalDateTime.of(2025, 1, 31, 13, 20))
                     .githubUrl("https://github.com/example/new-project")

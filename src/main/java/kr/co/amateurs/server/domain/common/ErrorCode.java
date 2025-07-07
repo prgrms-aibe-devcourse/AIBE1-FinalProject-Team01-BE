@@ -15,9 +15,8 @@ public enum ErrorCode implements Supplier<CustomException> {
 
     // dm 관련 에러
     USER_NOT_IN_ROOM(HttpStatus.BAD_REQUEST, "해당 채팅방의 참여자가 아닙니다."),
-    ROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 채팅방에 접근할 권한이 없습니다."),
-    NOT_FOUND_OTHER_USER(HttpStatus.NOT_FOUND, "DM 대상을 찾을 수 없습니다."),
     NOT_FOUND_ROOM(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),
+    INVALID_USER_ID(HttpStatus.BAD_REQUEST,"잘못된 사용자 ID 입니다."),
 
     // 알람 관련 에러
     ALARM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 알림입니다."),
@@ -63,11 +62,12 @@ public enum ErrorCode implements Supplier<CustomException> {
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "이미지 파일 크기 제한을 초과하였습니다."),
 
     // POST
-    POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시글을 찾을 수 없습니다."),
+    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 정보입니다."),
 
     // REPORT
     REPORT_NOT_FOUND(HttpStatus.BAD_REQUEST, "신고 글을 찾을 수 없습니다."),
+    DUPLICATE_REPORT(HttpStatus.CONFLICT, "이미 신고한 내용입니다."),
 
     // 댓글
     INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "자식 댓글에는 댓글을 달 수 없습니다."),
@@ -84,7 +84,10 @@ public enum ErrorCode implements Supplier<CustomException> {
     DUPLICATE_LIKE(HttpStatus.CONFLICT, "좋아요가 이미 있습니다."),
 
     // 북마크 관련
-    DUPLICATE_BOOKMARK(HttpStatus.CONFLICT, "북마크가 이미 있습니다.");
+    DUPLICATE_BOOKMARK(HttpStatus.CONFLICT, "북마크가 이미 있습니다."),
+
+    // 팔로우 관련
+    SELF_FOLLOW(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
