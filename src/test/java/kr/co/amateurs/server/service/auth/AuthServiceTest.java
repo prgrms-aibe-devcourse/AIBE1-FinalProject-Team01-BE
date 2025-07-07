@@ -7,10 +7,10 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
-import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.LoginResponseDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
+import kr.co.amateurs.server.domain.dto.auth.LoginRequestDTO;
+import kr.co.amateurs.server.domain.dto.auth.LoginResponseDTO;
+import kr.co.amateurs.server.domain.dto.auth.SignupRequestDTO;
+import kr.co.amateurs.server.domain.dto.auth.SignupResponseDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
@@ -53,10 +53,10 @@ public class AuthServiceTest {
     @Test
     void 정상적인_유저_등록_시_회원가입이_성공한다() {
         // given
-        SignupRequestDto request = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO request = UserTestFixture.createUniqueSignupRequest();
 
         // when
-        SignupResponseDto response = authService.signup(request);
+        SignupResponseDTO response = authService.signup(request);
 
         // then
         assertThat(response.email()).isEqualTo(request.email());
@@ -73,10 +73,10 @@ public class AuthServiceTest {
     @Test
     void 중복된_이메일로_회원가입_시_예외가_발생한다() {
         // given
-        SignupRequestDto firstRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO firstRequest = UserTestFixture.createUniqueSignupRequest();
         authService.signup(firstRequest);
 
-        SignupRequestDto duplicateEmailRequest = UserTestFixture.defaultSignupRequest()
+        SignupRequestDTO duplicateEmailRequest = UserTestFixture.defaultSignupRequest()
                 .email(firstRequest.email())
                 .nickname(UserTestFixture.generateUniqueNickname())
                 .build();
@@ -89,10 +89,10 @@ public class AuthServiceTest {
     @Test
     void 중복된_닉네임으로_회원가입_시_예외가_발생한다() {
         // given
-        SignupRequestDto firstRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO firstRequest = UserTestFixture.createUniqueSignupRequest();
         authService.signup(firstRequest);
 
-        SignupRequestDto duplicateNicknameRequest = UserTestFixture.defaultSignupRequest()
+        SignupRequestDTO duplicateNicknameRequest = UserTestFixture.defaultSignupRequest()
                 .email(UserTestFixture.generateUniqueEmail())
                 .nickname(firstRequest.nickname())
                 .build();
@@ -105,10 +105,10 @@ public class AuthServiceTest {
     @Test
     void 회원가입_시_비밀번호가_실제로_BCrypt_암호화된다() {
         // given
-        SignupRequestDto request = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO request = UserTestFixture.createUniqueSignupRequest();
 
         // when
-        SignupResponseDto response = authService.signup(request);
+        SignupResponseDTO response = authService.signup(request);
 
         // then
         Optional<User> savedUser = userRepository.findByEmail(request.email());
@@ -126,14 +126,14 @@ public class AuthServiceTest {
     void 토픽이_올바르게_User에_설정되어_저장된다() {
         // given
         Set<Topic> topics = Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.AI);
-        SignupRequestDto request = UserTestFixture.defaultSignupRequest()
+        SignupRequestDTO request = UserTestFixture.defaultSignupRequest()
                 .email(UserTestFixture.generateUniqueEmail())
                 .nickname(UserTestFixture.generateUniqueNickname())
                 .topics(topics)
                 .build();
 
         // when
-        SignupResponseDto response = authService.signup(request);
+        SignupResponseDTO response = authService.signup(request);
 
         // then
         assertThat(response.topics()).hasSize(3);
@@ -147,7 +147,7 @@ public class AuthServiceTest {
                 Topic.FRONTEND, Topic.BACKEND, Topic.AI, Topic.MOBILE
         );
 
-        SignupRequestDto request = SignupRequestDto.builder()
+        SignupRequestDTO request = SignupRequestDTO.builder()
                 .email(UserTestFixture.generateUniqueEmail())
                 .nickname(UserTestFixture.generateUniqueNickname())
                 .name("김테스트")
@@ -158,7 +158,7 @@ public class AuthServiceTest {
         // when
         try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {
             Validator validator = factory.getValidator();
-            Set<ConstraintViolation<SignupRequestDto>> violations = validator.validate(request);
+            Set<ConstraintViolation<SignupRequestDTO>> violations = validator.validate(request);
 
             // then
             assertThat(violations).hasSize(1);
@@ -170,16 +170,16 @@ public class AuthServiceTest {
     @Test
     void 정상적인_로그인_시_JWT_토큰을_반환한다() {
         // given
-        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
         authService.signup(signupRequest);
 
-        LoginRequestDto loginRequest = LoginRequestDto.builder()
+        LoginRequestDTO loginRequest = LoginRequestDTO.builder()
                 .email(signupRequest.email())
                 .password(signupRequest.password())
                 .build();
 
         // when
-        LoginResponseDto response = authService.login(loginRequest);
+        LoginResponseDTO response = authService.login(loginRequest);
 
         // then
         assertThat(response.accessToken()).isNotNull();
@@ -190,7 +190,7 @@ public class AuthServiceTest {
     @Test
     void 존재하지_않는_이메일로_로그인_시_예외가_발생한다() {
         // given
-        LoginRequestDto request = LoginRequestDto.builder()
+        LoginRequestDTO request = LoginRequestDTO.builder()
                 .email(TokenTestFixture.getNonExistentEmail())
                 .password(TokenTestFixture.getTestPassword())
                 .build();
@@ -203,10 +203,10 @@ public class AuthServiceTest {
     @Test
     void 잘못된_비밀번호로_로그인_시_예외가_발생한다() {
         // given
-        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
         authService.signup(signupRequest);
 
-        LoginRequestDto wrongPasswordRequest = LoginRequestDto.builder()
+        LoginRequestDTO wrongPasswordRequest = LoginRequestDTO.builder()
                 .email(signupRequest.email())
                 .password(TokenTestFixture.getWrongPassword())
                 .build();
@@ -219,16 +219,16 @@ public class AuthServiceTest {
     @Test
     void 정상적인_로그인_시_리프레시_토큰도_함께_반환한다() {
         // given
-        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
         authService.signup(signupRequest);
 
-        LoginRequestDto loginRequest = LoginRequestDto.builder()
+        LoginRequestDTO loginRequest = LoginRequestDTO.builder()
                 .email(signupRequest.email())
                 .password(signupRequest.password())
                 .build();
 
         // when
-        LoginResponseDto response = authService.login(loginRequest);
+        LoginResponseDTO response = authService.login(loginRequest);
 
         // then
         assertThat(response.accessToken()).isNotNull();
