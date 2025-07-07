@@ -26,40 +26,5 @@ public interface GatheringRepository extends JpaRepository<GatheringPost, Long> 
             Pageable pageable
     );
 
-
-    // TODO - 테스트 코드 수정 후 통과 시 삭제 예정
-//    @Query("""
-//        select g
-//        from GatheringPost g
-//        join fetch g.post p
-//        where (:keyword is null
-//               or :keyword = ''
-//               or p.title   like concat('%', :keyword, '%')
-//               or p.content like concat('%', :keyword, '%')
-//             )
-//        order by p.likeCount desc
-//    """)
-//    Page<GatheringPost> findAllByKeywordOrderByLikeCountDesc(
-//            @Param("keyword") String keyword,
-//            Pageable pageable
-//    );
-//
-//    @Query("""
-//        select g
-//        from GatheringPost g
-//        join fetch g.post p
-//        where (:keyword is null
-//               or :keyword = ''
-//               or p.title   like concat('%', :keyword, '%')
-//               or p.content like concat('%', :keyword, '%')
-//             )
-//        order by p.viewCount desc
-//    """)
-//    Page<GatheringPost> findAllByKeywordOrderByViewCountDesc(
-//            @Param("keyword") String keyword,
-//            Pageable pageable
-//    );
-
     GatheringPost findByPostId(Long postId);
-
 }
