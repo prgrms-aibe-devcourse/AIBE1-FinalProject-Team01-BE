@@ -34,6 +34,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createAdmin;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createStudent;
 import static kr.co.amateurs.server.fixture.together.MatchTestFixture.*;
@@ -213,7 +214,7 @@ class MatchServiceTest {
             MatchPostRequestDTO updateDto = new MatchPostRequestDTO(
                     "커피챗 모집 마감",
                     "더 이상 모집하지 않습니다.",
-                    "커피챗",
+                    convertTagToList("커피챗"),
                     MatchingType.COFFEE_CHAT,
                     MatchingStatus.MATCHED,
                     "백엔드"
@@ -232,7 +233,7 @@ class MatchServiceTest {
             MatchPostRequestDTO updateDto = new MatchPostRequestDTO(
                     "커피챗 모집 마감",
                     "더 이상 모집하지 않습니다.",
-                    "커피챗",
+                    convertTagToList("커피챗"),
                     MatchingType.COFFEE_CHAT,
                     MatchingStatus.MATCHED,
                     "백엔드"
@@ -247,7 +248,7 @@ class MatchServiceTest {
             MatchPostRequestDTO updateDto = new MatchPostRequestDTO(
                     "제목",
                     "내용",
-                    "태그",
+                    convertTagToList("태그"),
                     MatchingType.COFFEE_CHAT,
                     MatchingStatus.OPEN,
                     "분야"

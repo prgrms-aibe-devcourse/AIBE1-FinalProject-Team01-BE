@@ -106,7 +106,7 @@ class MatchControllerTest extends AbstractControllerTest {
         @Test
         void 학생유저가_필수필드누락된데이터로_글생성하면_400을_반환한다() {
             MatchPostRequestDTO invalid = new MatchPostRequestDTO(
-                    "", "내용", "Tag", MatchingType.COFFEE_CHAT,
+                    "", "내용", makeTag("Tag"), MatchingType.COFFEE_CHAT,
                     MatchingStatus.OPEN, "분야"
             );
 
@@ -164,7 +164,7 @@ class MatchControllerTest extends AbstractControllerTest {
             Long matchId = matchRepository.findByPostId(id).getId();
 
             MatchPostRequestDTO update = new MatchPostRequestDTO(
-                    "수정", "수정내용", "Vue", MatchingType.COFFEE_CHAT,
+                    "수정", "수정내용", makeTag("Vue"), MatchingType.COFFEE_CHAT,
                     MatchingStatus.OPEN, "프론트엔드"
             );
 

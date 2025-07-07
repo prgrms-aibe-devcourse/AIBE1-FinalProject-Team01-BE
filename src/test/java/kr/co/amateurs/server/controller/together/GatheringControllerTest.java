@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -107,7 +108,7 @@ class GatheringControllerTest extends AbstractControllerTest {
         @Test
         void 학생유저가_필수필드누락된데이터로_글생성하면_400을_반환한다() {
             GatheringPostRequestDTO invalid = new GatheringPostRequestDTO(
-                    "", "내용", "Tag", GatheringType.SIDE_PROJECT,
+                    "", "내용", makeTag("Tag"), GatheringType.SIDE_PROJECT,
                     GatheringStatus.RECRUITING, 4, "장소", "기간", "일정"
             );
 
@@ -165,7 +166,7 @@ class GatheringControllerTest extends AbstractControllerTest {
             Long gatheringId = gatheringRepository.findByPostId(id).getId();
 
             GatheringPostRequestDTO update = new GatheringPostRequestDTO(
-                    "수정", "수정내용", "Vue", GatheringType.STUDY,
+                    "수정", "수정내용", makeTag("Vue"), GatheringType.STUDY,
                     GatheringStatus.RECRUITING, 5, "오프라인", "2개월", "주3회"
             );
 

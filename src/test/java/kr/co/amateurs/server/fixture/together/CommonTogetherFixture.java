@@ -10,6 +10,9 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import org.springframework.data.domain.Sort;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CommonTogetherFixture {
     private static int seq = 0;
     public static Post createPost(User user, String title, String content, String tags, BoardType boardType) {
@@ -65,5 +68,11 @@ public class CommonTogetherFixture {
                 .field(sortType)
                 .sortDirection(Sort.Direction.DESC)
                 .build();
+    }
+
+    public static List<String> makeTag(String tag){
+        List<String> tags = new ArrayList<String>();
+        tags.add(tag);
+        return tags;
     }
 }

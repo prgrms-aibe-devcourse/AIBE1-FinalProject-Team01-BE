@@ -104,7 +104,7 @@ class MarketControllerTest extends AbstractControllerTest {
         @Test
         void 학생유저가_필수필드누락된데이터로_글생성하면_400을_반환한다() {
             MarketPostRequestDTO invalid = new MarketPostRequestDTO(
-                    "", "내용", "Tag", MarketStatus.SELLING, 1000, "장소");
+                    "", "내용", makeTag("Tag"), MarketStatus.SELLING, 1000, "장소");
 
             given()
                     .header("Authorization", "Bearer " + fakeStudentToken())
@@ -160,7 +160,7 @@ class MarketControllerTest extends AbstractControllerTest {
             Long marketId = marketRepository.findByPostId(id).getId();
 
             MarketPostRequestDTO update = new MarketPostRequestDTO(
-                    "수정", "수정내용", "Vue",
+                    "수정", "수정내용", makeTag("Vue"),
                     MarketStatus.SELLING, 10000, "서울"
             );
 
