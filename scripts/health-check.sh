@@ -21,7 +21,7 @@ source "$STATE_FILE"
 
 health_check() {
     local port=$1
-    local max_attempts=30
+    local max_attempts=10
     local attempt=1
     
     echo "$STANDBY_ENV 환경 (포트: $port) 헬스체크 중..."
