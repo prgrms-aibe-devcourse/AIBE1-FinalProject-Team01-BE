@@ -87,3 +87,9 @@ oauth:
 
 cookie:
   domain: localhost
+
+# Tesseract OCR 설정
+tesseract:
+  data-path: classpath:testdata
+  language: kor+eng
+  fallback-language: eng

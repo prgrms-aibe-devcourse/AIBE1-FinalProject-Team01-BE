@@ -131,6 +131,9 @@ dependencies {
 	implementation 'dev.langchain4j:langchain4j-open-ai:1.0.0-alpha1'
 	implementation 'dev.langchain4j:langchain4j-qdrant:1.0.0-alpha1'
 
+	// Vision 인증
+	implementation 'net.sourceforge.tess4j:tess4j:5.16.0'
+
     // AWS S3 관련 의존성
     implementation 'software.amazon.awssdk:s3:2.31.68'
     implementation 'software.amazon.awssdk:auth:2.31.68'
