@@ -32,6 +32,8 @@ public record ProjectResponseDTO(
         String demoUrl,
         @Schema(description = "프로젝트 참여 인원", example = "홍길동")
         String projectMembers,
+        @Schema(description = "작성자 유저 ID", example = "1")
+        Long authorId,
         @Schema(description = "게시글 제목", example = "test 제목")
         String title,
         @Schema(description = "게시글 내용", example = "test 내용")
@@ -80,6 +82,7 @@ public record ProjectResponseDTO(
                 .simpleContent(project.getSimpleContent())
                 .demoUrl(project.getDemoUrl())
                 .projectMembers(project.getProjectMembers())
+                .authorId(post.getUser().getId())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .tags(post.getTags())

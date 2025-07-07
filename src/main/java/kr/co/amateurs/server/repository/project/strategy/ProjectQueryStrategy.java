@@ -23,6 +23,7 @@ public interface ProjectQueryStrategy {
                 PROJECTS.DEMO_URL,
                 PROJECTS.PROJECT_MEMBERS,
 
+                POSTS.USER_ID.as("authorId"),
                 POSTS.TITLE,
                 POSTS.CONTENT,
                 POSTS.TAG,
