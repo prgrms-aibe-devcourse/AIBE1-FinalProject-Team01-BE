@@ -7,8 +7,10 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.ai.AiProfileRepository;
 import kr.co.amateurs.server.repository.ai.AiRecommendPostRepository;
+import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.fixture.ai.AiTestFixture;
+import kr.co.amateurs.server.service.post.PostService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,7 +46,9 @@ class PostRecommendServiceTest {
     @MockitoBean
     private UserService userService;
     @MockitoBean
-    private kr.co.amateurs.server.service.post.PostService postService;
+    private PostService postService;
+    @MockitoBean
+    private PostRepository postRepository;
 
     private User testUser;
     private AiProfile testProfile;
@@ -128,16 +132,27 @@ class PostRecommendServiceTest {
         void AI_프로필이_있고_유사_게시글이_여러_개면_limit_개수만큼_반환한다() {
             // given
             given(aiProfileRepository.findByUserId(anyLong())).willReturn(Optional.of(testProfile));
-            Post post1 = AiTestFixture.createTestPost(testUser);
-            Post post2 = AiTestFixture.createTestPost(testUser);
+
+            User otherUser1 = AiTestFixture.createTestUser();
+            AiTestFixture.setId(otherUser1, 2L);
+
+            User otherUser2 = AiTestFixture.createTestUser();
+            AiTestFixture.setId(otherUser2, 3L);
+            
+            Post post1 = AiTestFixture.createTestPostWithId(otherUser1, 100L);
+            Post post2 = AiTestFixture.createTestPostWithId(otherUser2, 101L);
+
+            given(postService.findById(post1.getId())).willReturn(post1);
+            given(postService.findById(post2.getId())).willReturn(post2);
+
             // EmbeddingMatch<TextSegment> mock 생성
             TextSegment segment1 = TextSegment.from("content1");
             TextSegment segment2 = TextSegment.from("content2");
-            // postId, userId 메타데이터 세팅
+            // postId, userId 메타데이터 세팅 (다른 사용자들의 ID로 설정)
             segment1.metadata().put("postId", post1.getId().toString());
-            segment1.metadata().put("userId", testUser.getId().toString());
+            segment1.metadata().put("userId", otherUser1.getId().toString());
             segment2.metadata().put("postId", post2.getId().toString());
-            segment2.metadata().put("userId", testUser.getId().toString());
+            segment2.metadata().put("userId", otherUser2.getId().toString());
             EmbeddingMatch<TextSegment> match1 = new EmbeddingMatch<TextSegment>(0.95, "embedding1", null, segment1);
             EmbeddingMatch<TextSegment> match2 = new EmbeddingMatch<TextSegment>(0.93, "embedding2", null, segment2);
             given(postEmbeddingService.findSimilarPosts(anyString(), anyInt())).willReturn(List.of(match1, match2));
@@ -146,7 +161,7 @@ class PostRecommendServiceTest {
             List<Post> result = postRecommendService.getAiPersonalRecommendedPosts(1L, 10);
 
             // then
-            assertThat(result).isNotNull();
+            assertThat(result).hasSize(2);
         }
     }
 
