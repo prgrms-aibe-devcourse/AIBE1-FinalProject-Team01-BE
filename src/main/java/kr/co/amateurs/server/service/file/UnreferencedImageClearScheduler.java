@@ -2,6 +2,7 @@ package kr.co.amateurs.server.service.file;
 
 import kr.co.amateurs.server.repository.file.PostImageRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class UnreferencedImageClearScheduler {
     private final S3Client s3Client;
     private final PostImageRepository postImageRepository;
@@ -30,8 +32,8 @@ public class UnreferencedImageClearScheduler {
     // 한번에 처리할 작업의 크기(메모리 오버 대비)
     private static final int BATCH_SIZE = 1000;
 
-    // 매주 일 -> 월 사이의 새벽 3시에 실행 - 바꿀 수 있음
-    @Scheduled(cron = "0 0 3 ? * MON", zone = "Asia/Seoul")
+    // 매주 일 -> 월 사이의 새벽 2시에 실행 - 바꿀 수 있음
+    @Scheduled(cron = "0 0 2 ? * MON", zone = "Asia/Seoul")
     public void deleteOrphanImages() {
 
         Set<String> dbUrls = new HashSet<>(postImageRepository.findAllUrls());
@@ -41,24 +43,29 @@ public class UnreferencedImageClearScheduler {
     private void processBatchDeletion(Set<String> dbUrls) {
         String continuationToken = null;
         do {
-            ListObjectsV2Response response = s3Client.listObjectsV2(
-                    ListObjectsV2Request.builder()
-                            .bucket(bucket)
-                            .maxKeys(BATCH_SIZE)
-                            .continuationToken(continuationToken)
-                            .build()
-            );
+            try {
+                ListObjectsV2Response response = s3Client.listObjectsV2(
+                        ListObjectsV2Request.builder()
+                                .bucket(bucket)
+                                .maxKeys(BATCH_SIZE)
+                                .continuationToken(continuationToken)
+                                .build()
+                );
 
-            List<S3Object> objects = response.contents();
+                List<S3Object> objects = response.contents();
 
-            for (S3Object obj : objects) {
-                String fileUrl = publicUrl + "/" + obj.key();
-                if (!dbUrls.contains(fileUrl)) {
-                    fileService.deleteFile(fileUrl);
+                for (S3Object obj : objects) {
+                    String fileUrl = publicUrl + "/" + obj.key();
+                    if (!dbUrls.contains(fileUrl)) {
+                        fileService.deleteFile(fileUrl);
+                    }
                 }
-            }
 
-            continuationToken = response.nextContinuationToken();
+                continuationToken = response.nextContinuationToken();
+            }
+            catch (Exception e) {
+                log.error("이미지 삭제 스케줄러 실행 중 오류 발생");
+            }
 
         } while (continuationToken != null);
     }
