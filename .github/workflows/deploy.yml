@@ -13,21 +13,35 @@ on:
         value: ${{ jobs.summary.outputs.final_status }}
       health_check_status:
         description: "헬스체크 결과"
-        value: ${{ jobs.summary.outputs.health_check_status }}
+        value: ${{ jobs.deploy.outputs.health_check_status }}
 
 jobs:
-  execute:
+  deploy:
     name: 배포 실행
     uses: ./.github/workflows/deploy-run.yml
     secrets: inherit
     with:
       environment: ${{ inputs.environment }}
 
-  health_check:
-    name: 애플리케이션 헬스체크
-    needs: execute
-    if: needs.execute.outputs.status == 'success'
-    uses: ./.github/workflows/deploy-health.yml
-    secrets: inherit
-    with:
-      environment: ${{ inputs.environment }}
+  summary:
+    name: 배포 결과
+    needs: deploy
+    if: always()
+    runs-on: ubuntu-latest
+    outputs:
+      final_status: ${{ steps.summary.outputs.final_status }}
+      health_check_status: ${{ needs.deploy.outputs.health_check_status }}
+    steps:
+      - name: 배포 결과 요약
+        id: summary
+        run: |
+          if [[ "${{ needs.deploy.result }}" == "success" ]]; then
+            echo "final_status=success" >> $GITHUB_OUTPUT
+            echo "Blue-Green 배포가 성공적으로 완료되었습니다"
+          else
+            echo "final_status=failure" >> $GITHUB_OUTPUT
+            echo "Blue-Green 배포 중 오류가 발생했습니다"
+          fi
+          
+          echo "배포 상태: ${{ needs.deploy.outputs.status }}"
+          echo "헬스체크 상태: ${{ needs.deploy.outputs.health_check_status }}"
