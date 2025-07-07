@@ -1,18 +1,13 @@
 package kr.co.amateurs.server.config.ai;
 
 import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.request.ResponseFormat;
 import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
 import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.output.JsonSchemas;
-import kr.co.amateurs.server.domain.dto.report.AIRespone;
 import kr.co.amateurs.server.service.ai.AiPostAnalysis;
 import kr.co.amateurs.server.service.report.llm.ReportAnalysis;
 import org.springframework.context.annotation.Bean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
-import static dev.langchain4j.model.chat.request.ResponseFormatType.JSON;
 
 @Configuration
 public class LangChain4jConfig {
@@ -42,10 +37,6 @@ public class LangChain4jConfig {
         return GoogleAiGeminiChatModel.builder()
                 .apiKey(geminiReportKey)
                 .modelName(geminiReportModel)
-                .responseFormat(ResponseFormat.builder()
-                        .type(JSON)
-                        .jsonSchema(JsonSchemas.jsonSchemaFrom(AIRespone.class).get())
-                        .build())
                 .build();
     }
 

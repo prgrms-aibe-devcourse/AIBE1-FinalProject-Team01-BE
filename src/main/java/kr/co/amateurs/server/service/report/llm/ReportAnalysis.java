@@ -3,6 +3,7 @@ package kr.co.amateurs.server.service.report.llm;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
+import kr.co.amateurs.server.domain.dto.report.ReportAIResponse;
 
 public interface ReportAnalysis {
     @SystemMessage("""
@@ -24,7 +25,7 @@ public interface ReportAnalysis {
         신고자 설명: {{description}} (참고용, 판단은 주로 '분석할 내용'을 기준으로)
         분석할 내용: {{content}}
         """)
-    String analyzeReport(
+    ReportAIResponse analyzeReport(
             @V("content") String content,
             @V("reportType") String reportType,
             @V("reportTypeDescription") String reportTypeDescription,

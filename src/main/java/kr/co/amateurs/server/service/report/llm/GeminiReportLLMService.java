@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.service.report.llm;
 
+import kr.co.amateurs.server.domain.dto.report.ReportAIResponse;
 import kr.co.amateurs.server.domain.dto.report.LLMAnalysisResult;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportType;
 import lombok.RequiredArgsConstructor;
@@ -15,26 +16,18 @@ public class GeminiReportLLMService implements ReportLLMService {
     @Override
     public LLMAnalysisResult analyzeContent(String content, ReportType reportType, String description) {
         try {
-            log.info("신고 분석 시작 - 타입: {}, 콘텐츠 길이: {}", reportType, content.length());
-
             String typeDescription = getTypeDescription(reportType);
 
-            String response = reportAnalysis.analyzeReport(
+            ReportAIResponse response = reportAnalysis.analyzeReport(
                     content,
                     reportType.name(),
                     typeDescription,
                     description
             );
 
-            LLMAnalysisResult result = parseGeminiResponse(response);
-
-            log.info("신고 분석 완료 - 위반여부: {}, 신뢰도: {}",
-                    result.isViolation(), result.confidenceScore());
-
-            return result;
+            return new LLMAnalysisResult(response.isViolation(), response.reason(), response.confidenceScore(), true);
 
         } catch (Exception e) {
-            log.error("Gemini 신고 분석 중 오류 발생: ", e);
             return new LLMAnalysisResult(
                     false,
                     "LLM 분석 실패: " + e.getMessage(),
@@ -54,58 +47,4 @@ public class GeminiReportLLMService implements ReportLLMService {
             case OTHER -> "기타 커뮤니티 규정 위반";
         };
     }
-
-    private LLMAnalysisResult parseGeminiResponse(String response) {
-        try {
-            String cleanedResponse = response.replaceAll("```json\\s*", "").replaceAll("```", "").trim();
-
-            boolean isViolation = cleanedResponse.contains("\"isViolation\": true") ||
-                    cleanedResponse.contains("\"isViolation\":true");
-
-            String reason = extractJsonValue(cleanedResponse, "reason");
-            double confidenceScore = parseConfidenceScore(cleanedResponse);
-
-            return new LLMAnalysisResult(isViolation, reason, confidenceScore, true);
-
-        } catch (Exception e) {
-            log.error("Gemini 응답 파싱 실패: ", e);
-            return new LLMAnalysisResult(
-                    false,
-                    "응답 파싱 실패",
-                    0.0,
-                    false
-            );
-        }
-    }
-
-    private String extractJsonValue(String json, String key) {
-        try {
-            String pattern = "\"" + key + "\"\\s*:\\s*\"([^\"]+)\"";
-            java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern);
-            java.util.regex.Matcher m = p.matcher(json);
-            if (m.find()) {
-                return m.group(1);
-            }
-            log.warn("JSON에서 키 '{}' 값을 찾을 수 없음", key);
-            return "분석 결과 없음";
-        } catch (Exception e) {
-            return "파싱 오류 발생";
-        }
-    }
-
-    private double parseConfidenceScore(String json) {
-        try {
-            String pattern = "\"confidenceScore\"\\s*:\\s*([0-9.]+)";
-            java.util.regex.Pattern p = java.util.regex.Pattern.compile(pattern);
-            java.util.regex.Matcher m = p.matcher(json);
-            if (m.find()) {
-                double score = Double.parseDouble(m.group(1));
-                return Math.max(0.0, Math.min(1.0, score));
-            }
-            return 0.0;
-        } catch (Exception e) {
-            return 0.0;
-        }
-    }
-
 }
