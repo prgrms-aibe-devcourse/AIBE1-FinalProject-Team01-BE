@@ -7,10 +7,12 @@ import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.domain.entity.post.Project;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.file.PostImageRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.project.ProjectJooqRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
@@ -28,6 +30,7 @@ import java.util.List;
 public class ProjectService {
     private final ProjectRepository projectRepository;
     private final PostRepository postRepository;
+    private final PostImageRepository postImageRepository;
 
     private final ProjectJooqRepository projectJooqRepository;
 
@@ -109,6 +112,7 @@ public class ProjectService {
 
         validatePost(project.getPost(), user.getEmail());
 
+        fileService.deletePostImage(project.getPost());
         projectRepository.deleteById(projectId);
     }
 
