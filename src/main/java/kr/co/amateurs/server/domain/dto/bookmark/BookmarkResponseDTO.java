@@ -11,7 +11,6 @@ import kr.co.amateurs.server.domain.entity.post.enums.*;
 
 import java.time.LocalDateTime;
 
-//TODO - null 사용을 줄이기 위한 인터페이스화
 
 public interface BookmarkResponseDTO {
     @Schema(description = "게시글 ID", example = "1")
