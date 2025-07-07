@@ -38,7 +38,7 @@ public record MatchPostResponseDTO(
         MatchingType matchingType,
         @Schema(description = "모집 상태", example = "OPEN")
         MatchingStatus status,
-        @Schema(description = "마감 기한", example = "250628")
+        @Schema(description = "전문 분야", example = "백엔드")
         String expertiseArea,
         @Schema(description = "생성 일시", example = "2025-06-25T00:08:25")
         LocalDateTime createdAt,

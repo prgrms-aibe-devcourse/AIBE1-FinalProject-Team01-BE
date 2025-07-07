@@ -7,9 +7,10 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.report.Report;
 import kr.co.amateurs.server.domain.entity.report.enums.ReportStatus;
-import kr.co.amateurs.server.domain.entity.report.enums.ReportType;
+import kr.co.amateurs.server.domain.entity.report.enums.ReportTarget;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.fixture.report.ReportTestFixtures;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
@@ -59,11 +60,12 @@ class ReportServiceTest {
     private User adminUser;
     private Post testPost;
     private Post testPost2;
+    private Post testPost3;
     private Comment testComment;
     private Comment testComment2;
     private Report testPostReport;
     private Report testCommentReport;
-    private Report reviewedReport;
+    private Report resolvedReport;
 
     @BeforeEach
     void setUp() {
@@ -73,13 +75,14 @@ class ReportServiceTest {
 
         testPost = postRepository.save(ReportTestFixtures.createTestPost(testUser));
         testPost2 = postRepository.save(ReportTestFixtures.createCustomPost(testUser, "다른 게시글", "다른 내용", BoardType.GATHER));
+        testPost3 = postRepository.save(ReportTestFixtures.createCustomPost(testUser, "다른 게시글", "다른 내용", BoardType.GATHER));
 
         testComment = commentRepository.save(ReportTestFixtures.createTestComment(testPost, testUser));
         testComment2 = commentRepository.save(ReportTestFixtures.createCustomComment(testPost2, testUser, "다른 댓글"));
 
         testPostReport = reportRepository.save(ReportTestFixtures.createPostReport(reporterUser, testPost, "부적절한 게시글"));
         testCommentReport = reportRepository.save(ReportTestFixtures.createCommentReport(reporterUser, testComment, "부적절한 댓글"));
-        reviewedReport = reportRepository.save(ReportTestFixtures.createReportWithStatus(reporterUser, testPost2, "검토 완료된 신고", ReportStatus.REVIEWED));
+        resolvedReport = reportRepository.save(ReportTestFixtures.createReportWithStatus(reporterUser, testPost2, "검토 완료된 신고", ReportStatus.RESOLVED));
     }
 
     @Test
@@ -89,7 +92,7 @@ class ReportServiceTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).hasSize(3); // testPostReport, testCommentReport, reviewedReport
+        assertThat(result.getContent()).hasSize(3);
         assertThat(result.getTotalElements()).isEqualTo(3);
     }
 
@@ -107,7 +110,7 @@ class ReportServiceTest {
     @Test
     void 특정_타입의_신고목록을_조회하면_해당_타입의_신고만_반환되어야_한다() {
         // when
-        Page<ReportResponseDTO> result = reportService.getReports(ReportType.POST, null, 0, 10);
+        Page<ReportResponseDTO> result = reportService.getReports(ReportTarget.POST, null, 0, 10);
 
         // then
         assertThat(result).isNotNull();
@@ -118,7 +121,7 @@ class ReportServiceTest {
     @Test
     void 상태와_타입_모두_지정하여_신고목록을_조회하면_조건에_맞는_신고만_반환되어야_한다() {
         // when
-        Page<ReportResponseDTO> result = reportService.getReports(ReportType.POST, ReportStatus.PENDING, 0, 10);
+        Page<ReportResponseDTO> result = reportService.getReports(ReportTarget.POST, ReportStatus.PENDING, 0, 10);
 
         // then
         assertThat(result).isNotNull();
@@ -131,7 +134,7 @@ class ReportServiceTest {
     @Test
     void 유효한_게시글_신고_요청으로_신고를_생성하면_신고가_생성되어야_한다() {
         // given
-        ReportRequestDTO requestDTO = ReportTestFixtures.createPostReportRequestDTO(testPost2.getId(), "스팸 게시글");
+        ReportRequestDTO requestDTO = ReportTestFixtures.createPostReportRequestDTO(testPost3.getId(), "스팸 게시글");
         given(userService.getCurrentLoginUser()).willReturn(reporterUser);
 
         // when
@@ -141,7 +144,7 @@ class ReportServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.description()).isEqualTo("스팸 게시글");
         assertThat(result.postTitle()).isNotNull();
-        assertThat(result.postId()).isEqualTo(testPost2.getId());
+        assertThat(result.postId()).isEqualTo(testPost3.getId());
         assertThat(result.reportStatus()).isEqualTo(ReportStatus.PENDING);
         assertThat(result.reporterName()).isEqualTo("student");
     }
@@ -203,7 +206,7 @@ class ReportServiceTest {
     void 유효한_reportId로_신고상태를_수정하면_상태가_변경되어야_한다() {
         // given
         Long reportId = testPostReport.getId();
-        ReportStatus newStatus = ReportStatus.REVIEWED;
+        ReportStatus newStatus = ReportStatus.RESOLVED;
 
         // when
         reportService.updateStatusReport(reportId, newStatus);
@@ -217,7 +220,7 @@ class ReportServiceTest {
     void 존재하지않는_reportId로_신고상태를_수정하면_예외가_발생해야_한다() {
         // given
         Long nonExistentReportId = 999L;
-        ReportStatus newStatus = ReportStatus.REVIEWED;
+        ReportStatus newStatus = ReportStatus.RESOLVED;
 
         // when & then
         assertThatThrownBy(() -> reportService.updateStatusReport(nonExistentReportId, newStatus))
@@ -252,7 +255,7 @@ class ReportServiceTest {
     @Test
     void 조건에_맞는_신고가_없으면_빈_페이지가_반환되어야_한다() {
         // when
-        Page<ReportResponseDTO> result = reportService.getReports(ReportType.COMMENT, ReportStatus.RESOLVED, 0, 10);
+        Page<ReportResponseDTO> result = reportService.getReports(ReportTarget.COMMENT, ReportStatus.RESOLVED, 0, 10);
 
         // then
         assertThat(result).isNotNull();
