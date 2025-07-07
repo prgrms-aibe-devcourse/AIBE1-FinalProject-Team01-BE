@@ -85,4 +85,8 @@ public class Comment extends BaseEntity {
     public void updateBlinded(boolean isBlinded) {
         this.isBlinded = isBlinded;
     }
+
+    public void incrementReplyCount() {
+        this.replyCount++;
+    }
 }

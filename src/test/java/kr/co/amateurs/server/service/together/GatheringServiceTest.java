@@ -16,6 +16,7 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
+import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
@@ -72,6 +73,9 @@ class GatheringServiceTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private CommentRepository commentRepository;
+
     @MockitoBean
     private UserService userService;
     @MockitoBean
@@ -85,8 +89,10 @@ class GatheringServiceTest {
     private GatheringPost studyGatheringPost;
     private GatheringPost projectGatheringPost;
 
+
     @BeforeEach
     void setUp() throws JsonProcessingException {
+        commentRepository.deleteAll();
         gatheringRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();

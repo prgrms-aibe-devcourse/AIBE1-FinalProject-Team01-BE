@@ -34,7 +34,6 @@ public class PostFixture {
                 .isDeleted(false)
                 .boardType(boardType)
                 .tags(objectMapper.writeValueAsString(tags))
-                .comments(new ArrayList<>())
                 .postImages(new ArrayList<>())
                 .build();
     }

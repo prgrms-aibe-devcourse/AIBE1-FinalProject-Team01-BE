@@ -86,7 +86,11 @@ public class CommentService {
         Comment comment = Comment.from(requestDTO, postId, user, requestDTO.parentCommentId());
 
         if (requestDTO.parentCommentId() != null) {
-            commentRepository.increaseReplyCount(requestDTO.parentCommentId());
+            Comment parentComment = commentRepository.findById(requestDTO.parentCommentId()).orElseThrow(ErrorCode.NOT_FOUND);
+            if (parentComment.getParentCommentId() != null){
+                throw ErrorCode.INVALID_PARENT_COMMENT.get();
+            }
+            parentComment.incrementReplyCount();
         }
 
         Comment savedComment = commentRepository.save(comment);
