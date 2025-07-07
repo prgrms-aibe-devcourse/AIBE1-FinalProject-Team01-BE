@@ -13,4 +13,5 @@ public class VerificationDTO {
     private boolean isValid;
     private String extractedText;
     private String message;
+    private String detailMessage;
 }

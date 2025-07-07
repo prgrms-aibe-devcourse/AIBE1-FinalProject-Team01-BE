@@ -21,7 +21,6 @@ public class OcrService {
         this.tesseract = new Tesseract();
 
         try {
-            // 리소스를 임시 폴더로 복사
             File tempTessDataDir = copyTessDataToTemp();
             tesseract.setDatapath(tempTessDataDir.getAbsolutePath());
             tesseract.setLanguage("kor+eng");
@@ -37,14 +36,10 @@ public class OcrService {
     }
 
     private File copyTessDataToTemp() throws IOException {
-        // 임시 디렉토리 생성
         File tempDir = Files.createTempDirectory("tessdata").toFile();
         tempDir.deleteOnExit();
 
-        // eng.traineddata 복사
         copyResourceToFile("/tessdata/eng.traineddata", new File(tempDir, "eng.traineddata"));
-
-        // kor.traineddata 복사
         copyResourceToFile("/tessdata/kor.traineddata", new File(tempDir, "kor.traineddata"));
 
         log.info("언어팩 파일들을 임시 폴더로 복사 완료: {}", tempDir.getAbsolutePath());
@@ -73,21 +68,16 @@ public class OcrService {
     public String extractText(MultipartFile imageFile) {
         File tempFile = null;
         try {
-            // 임시 파일로 변환
             tempFile = File.createTempFile("ocr_", ".jpg");
             imageFile.transferTo(tempFile);
 
-            // OCR 실행
             String result = tesseract.doOCR(tempFile);
-            log.info("OCR 추출 완료: {}", result);
-
             return result.trim();
 
         } catch (Exception e) {
             log.error("OCR 실패: ", e);
             throw new RuntimeException("텍스트 추출 실패", e);
         } finally {
-            // 임시 파일 삭제
             if (tempFile != null && tempFile.exists()) {
                 tempFile.delete();
             }

@@ -87,3 +87,7 @@ oauth:
 
 cookie:
   domain: localhost
+
+huggingface:
+  api:
+    token: ${HUGGINGFACE_API_TOKEN}
