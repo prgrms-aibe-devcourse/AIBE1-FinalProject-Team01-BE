@@ -1,6 +1,5 @@
 package kr.co.amateurs.server.controller.report;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
@@ -13,13 +12,14 @@ import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
-import kr.co.amateurs.server.service.report.ReportTestFixtures;
+import kr.co.amateurs.server.fixture.report.ReportTestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 
 
@@ -91,7 +91,7 @@ public class ReportControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void GUEST_권한으로_신고를_생성하면_실패해야_한다() {
+    void GUEST_권한으로_신고를_생성하면_성공해야_한다() {
         ReportRequestDTO requestDTO = ReportTestFixtures.createPostReportRequestDTO(
                 testPost.getId(),
                 "부적절한 게시글 내용입니다"
@@ -105,13 +105,16 @@ public class ReportControllerTest extends AbstractControllerTest {
                 .when()
                 .post("/reports")
                 .then()
-                .statusCode(403);
+                .body("reporterName", notNullValue())
+                .body("description", equalTo("부적절한 게시글 내용입니다"))
+                .body("reportStatus", equalTo("PENDING"))
+                .body("postTitle", equalTo("테스트 제목"));
 
-        assert reportRepository.count() == 0;
+        assert reportRepository.count() == 1;
     }
 
     @Test
-    void 권한_없이_신고를_생성하면_403에러가_발생해야_한다() {
+    void 권한_없이_신고를_생성하면_401에러가_발생해야_한다() {
         // given
         ReportRequestDTO requestDTO = ReportTestFixtures.createPostReportRequestDTO(
                 testPost.getId(),
@@ -125,7 +128,7 @@ public class ReportControllerTest extends AbstractControllerTest {
                 .when()
                 .post("/reports")
                 .then()
-                .statusCode(403);
+                .statusCode(401);
     }
 
     @Test
@@ -135,7 +138,7 @@ public class ReportControllerTest extends AbstractControllerTest {
                 ReportTestFixtures.createPostReport(studentUser, testPost, "부적절한 내용")
         );
         Report report2 = reportRepository.save(
-                ReportTestFixtures.createReportWithStatus(studentUser, testPost, "스팸 게시글", ReportStatus.REVIEWED)
+                ReportTestFixtures.createReportWithStatus(studentUser, testPost, "스팸 게시글", ReportStatus.RESOLVED)
         );
 
         // when & then
@@ -153,7 +156,7 @@ public class ReportControllerTest extends AbstractControllerTest {
                 .body("content[0].description", equalTo("부적절한 내용"))
                 .body("content[0].reportStatus", equalTo("PENDING"))
                 .body("content[1].description", equalTo("스팸 게시글"))
-                .body("content[1].reportStatus", equalTo("REVIEWED"));
+                .body("content[1].reportStatus", equalTo("RESOLVED"));
     }
 
     @Test
@@ -171,7 +174,7 @@ public class ReportControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void 권한_없이_신고_목록을_조회하면_403에러가_발생해야_한다() {
+    void 권한_없이_신고_목록을_조회하면_401에러가_발생해야_한다() {
         // when & then
         given()
                 .param("reportType", "POST")
@@ -180,7 +183,7 @@ public class ReportControllerTest extends AbstractControllerTest {
                 .when()
                 .get("/reports")
                 .then()
-                .statusCode(403);
+                .statusCode(401);
     }
 
     @Test
@@ -194,13 +197,13 @@ public class ReportControllerTest extends AbstractControllerTest {
         given()
                 .header("Authorization", "Bearer " + adminToken)
                 .when()
-                .put("/reports/{reportId}/{status}", report.getId(), ReportStatus.REVIEWED)
+                .put("/reports/{reportId}/{status}", report.getId(), ReportStatus.RESOLVED)
                 .then()
                 .statusCode(204);
 
 
         Report updatedReport = reportRepository.findById(report.getId()).orElseThrow();
-        assert updatedReport.getStatus() == ReportStatus.REVIEWED;
+        assert updatedReport.getStatus() == ReportStatus.RESOLVED;
     }
 
     @Test
@@ -214,7 +217,7 @@ public class ReportControllerTest extends AbstractControllerTest {
         given()
                 .header("Authorization", "Bearer " + studentToken)
                 .when()
-                .put("/reports/{reportId}/{status}", report.getId(), ReportStatus.REVIEWED)
+                .put("/reports/{reportId}/{status}", report.getId(), ReportStatus.RESOLVED)
                 .then()
                 .statusCode(403);
     }
@@ -291,9 +294,4 @@ public class ReportControllerTest extends AbstractControllerTest {
                 .then()
                 .statusCode(404);
     }
-
-
-
-
-
 }

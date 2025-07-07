@@ -33,6 +33,10 @@ public class Comment extends BaseEntity {
     @Builder.Default
     private List<Comment> childComments = new ArrayList<>();
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean isBlinded = false;
+
     @Column(nullable = false)
     @Builder.Default
     private Integer likeCount = 0;
@@ -66,5 +70,9 @@ public class Comment extends BaseEntity {
 
     public void updateContent(String content) {
         this.content = content;
+    }
+
+    public void updateBlinded(boolean isBlinded) {
+        this.isBlinded = isBlinded;
     }
 }

@@ -54,9 +54,6 @@ public record ITResponseDTO(
         @Schema(description = "게시글 태그", example = "데브코스,백엔드,프로그래머스,모집", nullable = true)
         String tags,
 
-        @Schema(description = "이미지 포함 여부", example = "true")
-        boolean hasImages,
-
         @Schema(description = "현재 사용자가 좋아요를 눌렀는지 여부", example = "false")
         boolean hasLiked,
 
@@ -77,11 +74,10 @@ public record ITResponseDTO(
                 post.getBoardType(),
                 post.getViewCount(),
                 post.getLikeCount(),
-                post.getComments().size(),
+                0,
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
                 post.getTags(),
-                post.getPostImages() != null && !post.getPostImages().isEmpty(),
                 hasLiked,
                 hasBookmarked
         );

@@ -67,6 +67,7 @@ public enum ErrorCode implements Supplier<CustomException> {
 
     // REPORT
     REPORT_NOT_FOUND(HttpStatus.BAD_REQUEST, "신고 글을 찾을 수 없습니다."),
+    DUPLICATE_REPORT(HttpStatus.CONFLICT, "이미 신고한 내용입니다."),
 
     // 댓글
     INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "자식 댓글에는 댓글을 달 수 없습니다."),
