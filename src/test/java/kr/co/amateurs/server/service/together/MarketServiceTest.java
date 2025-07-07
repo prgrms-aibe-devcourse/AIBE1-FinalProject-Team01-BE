@@ -1,373 +1,284 @@
 package kr.co.amateurs.server.service.together;
 
-import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
+import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
-import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
-import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
+import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.like.LikeService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
+import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createAdmin;
+import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createStudent;
+import static kr.co.amateurs.server.fixture.together.MarketTestFixture.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
 
-@ExtendWith(MockitoExtension.class)
-public class MarketServiceTest {
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+class MarketServiceTest {
 
-    @Mock
-    private MarketRepository marketRepository;
-
-    @Mock
-    private PostRepository postRepository;
-
-    @Mock
-    private UserRepository userRepository;
-
-    @InjectMocks
+    @Autowired
     private MarketService marketService;
 
-    private User user;
+    @Autowired
+    private MarketRepository marketRepository;
+
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private UserService userService;
+
+    @MockitoBean
+    private LikeService likeService;
+
+    private User sellerUser;
+    private User otherUser;
+    private User adminUser;
+    private Post javaPost;
+    private Post pythonPost;
+    private MarketItem javaMarketItem;
+    private MarketItem pythonMarketItem;
 
     @BeforeEach
-    void setUp() {
-        user = User.builder()
-                .email("test@email.com")
-                .password("password")
-                .nickname("testUser")
-                .name("이름")
-                .role(Role.STUDENT)
-                .build();
-        ReflectionTestUtils.setField(user, "id", 1L);
-        CustomUserDetails currentUser = new CustomUserDetails(user);
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(currentUser, null, currentUser.getAuthorities());
+    void setUp() throws JsonProcessingException {
+        marketRepository.deleteAll();
+        postRepository.deleteAll();
+        userRepository.deleteAll();
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        sellerUser = createStudent();
+        otherUser = createStudent();
+        adminUser = createAdmin();
+        sellerUser = userRepository.save(sellerUser);
+        otherUser = userRepository.save(otherUser);
+        adminUser = userRepository.save(adminUser);
+
+        javaPost = createJavaPost(sellerUser);
+        pythonPost = createPythonPost(sellerUser);
+
+        javaPost = postRepository.save(javaPost);
+        pythonPost = postRepository.save(pythonPost);
+
+        javaMarketItem = createJavaMarketItem(javaPost);
+        pythonMarketItem = createPythonMarketItem(pythonPost);
+
+        javaMarketItem = marketRepository.save(javaMarketItem);
+        pythonMarketItem = marketRepository.save(pythonMarketItem);
+
+        given(likeService.checkHasLiked(javaPost.getId(), sellerUser.getId())).willReturn(false);
+        given(likeService.checkHasLiked(pythonPost.getId(), sellerUser.getId())).willReturn(false);
     }
 
-    /*
-    TODO - 테스트 코드 오류가 너무 많아 개발 진행이 힘들어 테스트 코드 수정을 별도의 작업으로 분리
-    */
-//    @Test
-//    void 검색어없이_전체목록조회하면_모든게시글페이지반환() {
-//        // given
-//        List<MarketItem> marketPosts = Arrays.asList(
-//                createMarketPost("첫 번째 물건"),
-//                createMarketPost("두 번째 물건")
-//        );
-//        Page<MarketItem> page = new PageImpl<>(marketPosts);
-//        PostPaginationParam paginationParam = PostPaginationParam.builder()
-//                .keyword(null)
-//                .page(0)
-//                .size(10)
-//                .sortDirection(Sort.Direction.DESC)
-//                .field(PaginationSortType.LATEST)
-//                .build();
-//        Pageable expectedPageable = paginationParam.toPageable();
-//
-//        given(marketRepository.findAllByKeyword(isNull(), any(Pageable.class))).willReturn(page);
-//
-//        // when
-//        PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(paginationParam);
-//
-//        // then
-//        assertThat(result.content()).hasSize(2);
-//        assertThat(result.content().get(0).title()).isEqualTo("첫 번째 물건");
-//        assertThat(result.content().get(1).title()).isEqualTo("두 번째 물건");
-//        verify(marketRepository).findAllByKeyword(null, expectedPageable);
-//    }
-//
-//    @Test
-//    void 빈검색어로_전체목록조회하면_모든게시글페이지반환() {
-//        // given
-//        List<MarketItem> marketPosts = Arrays.asList(
-//                createMarketPost("테스트 물건")
-//        );
-//        Page<MarketItem> page = new PageImpl<>(marketPosts);
-//        PostPaginationParam paginationParam = PostPaginationParam.builder()
-//                .keyword("")
-//                .page(0)
-//                .size(10)
-//                .sortDirection(Sort.Direction.DESC)
-//                .field(PaginationSortType.LATEST)
-//                .build();
-//        Pageable expectedPageable = paginationParam.toPageable();
-//
-//        given(marketRepository.findAllByKeyword(eq(""), any(Pageable.class))).willReturn(page);
-//
-//        // when
-//        PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(paginationParam);
-//
-//        // then
-//        assertThat(result.content()).hasSize(1);
-//        verify(marketRepository).findAllByKeyword("", expectedPageable);
-//    }
-//
-//    @Test
-//    void 검색어입력하면_해당키워드포함게시글페이지반환() {
-//        // given
-//        String keyword = "책";
-//        List<MarketItem> searchResults = Arrays.asList(
-//                createMarketPost("Java 책")
-//        );
-//        Page<MarketItem> page = new PageImpl<>(searchResults);
-//        PostPaginationParam paginationParam = PostPaginationParam.builder()
-//                .keyword(keyword)
-//                .page(0)
-//                .size(10)
-//                .sortDirection(Sort.Direction.DESC)
-//                .field(PaginationSortType.LATEST)
-//                .build();
-//        Pageable expectedPageable = paginationParam.toPageable();
-//
-//        given(marketRepository.findAllByKeyword(eq(keyword), any(Pageable.class))).willReturn(page);
-//
-//        // when
-//        PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(paginationParam);
-//
-//        // then
-//        assertThat(result.content()).hasSize(1);
-//        assertThat(result.content().get(0).title()).isEqualTo("Java 책");
-//        verify(marketRepository).findAllByKeyword(keyword, expectedPageable);
-//    }
-//
-//    @Test
-//    void 인기순정렬로_목록조회하면_좋아요수기준내림차순정렬() {
-//        // given
-//        List<MarketItem> marketPosts = Arrays.asList(createMarketPost("인기 물건"));
-//        Page<MarketItem> page = new PageImpl<>(marketPosts);
-//        PostPaginationParam paginationParam = PostPaginationParam.builder()
-//                .keyword(null)
-//                .page(0)
-//                .size(10)
-//                .sortDirection(Sort.Direction.DESC)
-//                .field(PaginationSortType.POPULAR)
-//                .build();
-//        Pageable expectedPageable = paginationParam.toPageable();
-//
-//        given(marketRepository.findAllByKeywordOrderByLikeCountDesc(isNull(), any(Pageable.class))).willReturn(page);
-//
-//
-//        // when
-//        PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(paginationParam);
-//
-//        // then
-//        assertThat(result.content()).hasSize(1);
-//        verify(marketRepository).findAllByKeywordOrderByLikeCountDesc(null, expectedPageable);
-//    }
-//
-//    @Test
-//    void 조회수순정렬로_목록조회하면_조회수기준내림차순정렬() {
-//        // given
-//        List<MarketItem> marketPosts = Arrays.asList(createMarketPost("조회 많은 물건"));
-//        Page<MarketItem> page = new PageImpl<>(marketPosts);
-//        PostPaginationParam paginationParam = PostPaginationParam.builder()
-//                .keyword(null)
-//                .page(0)
-//                .size(10)
-//                .sortDirection(Sort.Direction.DESC)
-//                .field(PaginationSortType.MOST_VIEW)
-//                .build();
-//        Pageable expectedPageable = paginationParam.toPageable();
-//
-//        given(marketRepository.findAllByKeywordOrderByViewCountDesc(isNull(), any(Pageable.class))).willReturn(page);
-//
-//        // when
-//        PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(paginationParam);
-//
-//        // then
-//        assertThat(result.content()).hasSize(1);
-//        verify(marketRepository).findAllByKeywordOrderByViewCountDesc(null, expectedPageable);
-//    }
-//
-//
-//    @Test
-//    void 존재하는게시글ID로_단건조회하면_해당게시글정보반환() {
-//        // given
-//
-//        Post post = createPost(user, "테스트 물건");
-//        MarketItem marketPost = createMarketPost( "테스트 물건");
-//        Long marketId = marketPost.getId();
-//
-//        given(marketRepository.findById(marketId)).willReturn(Optional.of(marketPost));
-//
-//        // when
-//        MarketPostResponseDTO result = marketService.getMarketPost(marketId);
-//
-//        // then
-//        assertThat(result.postId()).isEqualTo(marketId);
-//        assertThat(result.title()).isEqualTo("테스트 물건");
-//        verify(marketRepository).findById(marketId);
-//    }
-//
-//    @Test
-//    void 존재하지않는게시글ID로_단건조회하면_예외발생() {
-//        // given
-//        Long nonExistentId = 999L;
-//        given(marketRepository.findById(nonExistentId)).willReturn(Optional.empty());
-//
-//        // when & then
-//        assertThatThrownBy(() -> marketService.getMarketPost(nonExistentId))
-//                .isInstanceOf(IllegalArgumentException.class)
-//                .hasMessage("Post not found: " + nonExistentId);
-//    }
-//
-//    @Test
-//    void 유효한데이터로_게시글생성하면_게시글과물건정보모두저장() {
-//        // given
-//        MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
-//
-//        Post savedPost = createPost(user, "테스트 물건");
-//        MarketItem savedMarketItem = createMarketPost("테스트 물건");
-//
-//        given(postRepository.save(any(Post.class))).willReturn(savedPost);
-//        given(marketRepository.save(any(MarketItem.class))).willReturn(savedMarketItem);
-//
-//        // when
-//        MarketPostResponseDTO result = marketService.createMarketPost(requestDTO);
-//
-//        // then
-//        assertThat(result.title()).isEqualTo(requestDTO.title());
-//        assertThat(result.content()).isEqualTo(requestDTO.content());
-//        assertThat(result.status()).isEqualTo(MarketStatus.SELLING);
-//
-//        // Post 저장 검증
-//        ArgumentCaptor<Post> postCaptor = ArgumentCaptor.forClass(Post.class);
-//        verify(postRepository).save(postCaptor.capture());
-//        Post capturedPost = postCaptor.getValue();
-//        assertThat(capturedPost.getTitle()).isEqualTo(requestDTO.title());
-//        assertThat(capturedPost.getBoardType()).isEqualTo(BoardType.MARKET);
-//
-//        // MarketItem 저장 검증
-//        ArgumentCaptor<MarketItem> marketCaptor = ArgumentCaptor.forClass(MarketItem.class);
-//        verify(marketRepository).save(marketCaptor.capture());
-//        MarketItem capturedMarket = marketCaptor.getValue();
-//        assertThat(capturedMarket.getStatus()).isEqualTo(MarketStatus.SELLING);
-//    }
-//
-//    @Test
-//    void 존재하는게시글_수정하면_게시글과물건정보모두업데이트() {
-//        // given
-//        MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
-//
-//        Post post = createPost(user, "기존 제목");
-//        MarketItem marketPost = createMarketPostWithPost(post);
-//
-//        given(marketRepository.findByPostId(post.getId())).willReturn(marketPost);
-//
-//        // when
-//        marketService.updateMarketPost(post.getId(), requestDTO);
-//
-//        // then
-//        verify(marketRepository).findByPostId(post.getId());
-//    }
-//
-//    @Test
-//    void 존재하지않는게시글_수정하면_예외발생() {
-//        // given
-//        Long nonExistentId = 999L;
-//        MarketPostRequestDTO requestDTO = createMarketPostRequestDTO();
-//        given(marketRepository.findByPostId(nonExistentId)).willReturn(null);
-//
-//        // when & then
-//        assertThatThrownBy(() -> marketService.updateMarketPost(nonExistentId, requestDTO))
-//                .isInstanceOf(IllegalArgumentException.class)
-//                .hasMessage("Market Post not found: " + nonExistentId);
-//    }
-//
-//    @Test
-//    void 존재하는게시글_삭제하면_repository에서삭제호출() {
-//        // given
-//        Long postId = 1L;
-//        Long marketId = 1L;
-//        Post post = createPost(user, "기존 제목");
-//        ReflectionTestUtils.setField(post, "id", postId);
-//        MarketItem marketItem = createMarketPostWithPost(post);
-//        ReflectionTestUtils.setField(marketItem, "id", marketId);
-//        given(marketRepository.findByPostId(postId)).willReturn(marketItem);
-//
-//        // when
-//        marketService.deleteMarketPost(postId);
-//
-//        // then
-//        verify(marketRepository).deleteById(marketId);
-//    }
-//
-//    @Test
-//    void DTO변환이_올바르게_수행됨() {
-//        // given
-//
-//        Post post = createPost(user, "테스트 제목");
-//        MarketItem marketPost = createMarketPostWithPost(post);
-//
-//        given(marketRepository.findById(1L)).willReturn(Optional.of(marketPost));
-//
-//        // when
-//        MarketPostResponseDTO result = marketService.getMarketPost(1L);
-//
-//        // then
-//        assertThat(result.postId()).isEqualTo(post.getId());
-//        assertThat(result.userId()).isEqualTo(user.getId());
-//        assertThat(result.title()).isEqualTo(post.getTitle());
-//        assertThat(result.content()).isEqualTo(post.getContent());
-//        assertThat(result.tags()).isEqualTo(post.getTags());
-//        assertThat(result.viewCount()).isEqualTo(post.getViewCount());
-//        assertThat(result.likeCount()).isEqualTo(post.getLikeCount());
-//        assertThat(result.status()).isEqualTo(marketPost.getStatus());
-//        assertThat(result.price()).isEqualTo(marketPost.getPrice());
-//        assertThat(result.place()).isEqualTo(marketPost.getPlace());
-//        assertThat(result.createdAt()).isEqualTo(post.getCreatedAt());
-//        assertThat(result.updatedAt()).isEqualTo(post.getUpdatedAt());
-//    }
+    @Nested
+    class 장터_게시글_목록_조회를 {
+        @Test
+        void 키워드없이_조회하면_모든_장터_게시글이_반환되어야_한다() {
+            PostPaginationParam paginationParam = PostPaginationParam.builder()
+                    .page(0)
+                    .size(10)
+                    .sortDirection(Sort.Direction.DESC)
+                    .build();
 
+            PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(paginationParam);
 
-    private Post createPost(User user, String title) {
-        return Post.builder()
-                .user(user)
-                .boardType(BoardType.MARKET)
-                .title(title)
-                .content("테스트 내용")
-                .tags("태그1,태그2")
-                .viewCount(0)
-                .likeCount(0)
-                .isDeleted(false)
-                .build();
+            assertThat(result.content()).hasSize(2);
+            assertThat(result.pageInfo().getTotalElements()).isEqualTo(2);
+            assertThat(result.pageInfo().getPageNumber()).isEqualTo(0);
+        }
 
+        @Test
+        void 제목으로_조회하면_키워드일치_게시글반환() {
+            PostPaginationParam param = PostPaginationParam.builder()
+                    .keyword("Java")
+                    .page(0)
+                    .size(10)
+                    .sortDirection(Sort.Direction.DESC)
+                    .build();
+
+            PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(param);
+
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.content().get(0).title()).contains("Java");
+        }
+
+        @Test
+        void 내용으로_조회하면_키워드일치_게시글반환() {
+            PostPaginationParam param = PostPaginationParam.builder()
+                    .keyword("Python")
+                    .page(0)
+                    .size(10)
+                    .sortDirection(Sort.Direction.DESC)
+                    .build();
+
+            PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(param);
+
+            assertThat(result.content()).hasSize(1);
+            assertThat(result.content().get(0).content()).contains("Python");
+        }
+
+        @Test
+        void 빈_키워드로_조회하면_모든_게시글이_반환되어야_한다() {
+            PostPaginationParam param = PostPaginationParam.builder()
+                    .keyword("")
+                    .page(0)
+                    .size(10)
+                    .sortDirection(Sort.Direction.DESC)
+                    .build();
+
+            PageResponseDTO<MarketPostResponseDTO> result = marketService.getMarketPostList(param);
+
+            assertThat(result.content()).hasSize(2);
+        }
     }
 
-    private MarketItem createMarketPost(String title) {
-        
-        Post post = createPost(user, title);
-        return createMarketPostWithPost(post);
+    @Nested
+    class 장터_게시글_상세_조회를 {
+        @Test
+        void 존재하는_ID로_조회하면_해당_장터_게시글이_반환되어야_한다() {
+            given(userService.getCurrentLoginUser()).willReturn(sellerUser);
+
+            MarketPostResponseDTO dto = marketService.getMarketPost(javaMarketItem.getId());
+
+            assertThat(dto.postId()).isEqualTo(javaPost.getId());
+            assertThat(dto.title()).isEqualTo("Java 책");
+            assertThat(dto.status()).isEqualTo(MarketStatus.SELLING);
+            assertThat(dto.price()).isEqualTo(10000);
+            assertThat(dto.place()).isEqualTo("서울");
+        }
+
+        @Test
+        void 존재하지_않는_ID로_조회하면_예외가_발생해야_한다() {
+            assertThatThrownBy(() -> marketService.getMarketPost(999L))
+                    .isInstanceOf(CustomException.class);
+        }
     }
 
-    private MarketItem createMarketPostWithPost(Post post) {
-        return MarketItem.builder()
-                .post(post)
-                .status(MarketStatus.SELLING)
-                .price(1000)
-                .place("서울")
-                .build();
+    @Nested
+    class 장터_게시글_생성을 {
+        @Test
+        void 유효한_데이터로_생성하면_새로운_장터_게시글이_생성되어야_한다() {
+            given(userService.getCurrentLoginUser()).willReturn(sellerUser);
+            MarketPostRequestDTO dto = createMarketPostRequestDTO();
+
+            MarketPostResponseDTO result = marketService.createMarketPost(dto);
+
+            assertThat(result.title()).isEqualTo("Java 책");
+            assertThat(result.content()).isEqualTo("Java 책 중고로 팝니다.");
+            assertThat(result.status()).isEqualTo(MarketStatus.SELLING);
+            assertThat(result.price()).isEqualTo(10000);
+            assertThat(result.place()).isEqualTo("서울");
+            assertThat(marketRepository.count()).isEqualTo(3);
+        }
     }
 
-    private MarketPostRequestDTO createMarketPostRequestDTO() {
-        return new MarketPostRequestDTO(
-                "테스트 물건", "테스트 내용", "태그1,태그2",
-                MarketStatus.SELLING,
-                1000, "서울"
-        );
+    @Nested
+    class 장터_게시글_수정을 {
+        @Test
+        void 작성자가_수정하면_게시글이_수정되어야_한다() {
+            given(userService.getCurrentLoginUser()).willReturn(sellerUser);
+            MarketPostRequestDTO updateDto = new MarketPostRequestDTO(
+                    "Java 책 판매완료",
+                    "Java 책이 판매되었습니다.",
+                    "책,자바",
+                    MarketStatus.SOLD_OUT,
+                    10000,
+                    "서울"
+            );
+
+            marketService.updateMarketPost(javaMarketItem.getId(), updateDto);
+
+            MarketItem updated = marketRepository.findById(javaMarketItem.getId()).orElseThrow();
+            assertThat(updated.getStatus()).isEqualTo(MarketStatus.SOLD_OUT);
+            assertThat(updated.getPrice()).isEqualTo(10000);
+            assertThat(updated.getPlace()).isEqualTo("서울");
+        }
+
+        @Test
+        void 작성자가_아닌_사용자가_수정하면_예외가_발생해야_한다() {
+            given(userService.getCurrentLoginUser()).willReturn(otherUser);
+            MarketPostRequestDTO updateDto = new MarketPostRequestDTO(
+                    "Java 책 판매완료",
+                    "Java 책이 판매되었습니다.",
+                    "책,자바",
+                    MarketStatus.SOLD_OUT,
+                    10000,
+                    "서울"
+            );
+
+            assertThatThrownBy(() -> marketService.updateMarketPost(javaMarketItem.getId(), updateDto))
+                    .isInstanceOf(CustomException.class);
+        }
+
+        @Test
+        void 존재하지_않는_게시글을_수정하면_예외가_발생해야_한다() {
+            MarketPostRequestDTO updateDto = new MarketPostRequestDTO(
+                    "title",
+                    "content",
+                    "tags",
+                    MarketStatus.SELLING,
+                    5000,
+                    "부산"
+            );
+            given(userService.getCurrentLoginUser()).willReturn(sellerUser);
+
+            assertThatThrownBy(() -> marketService.updateMarketPost(999L, updateDto))
+                    .isInstanceOf(CustomException.class);
+        }
+    }
+
+    @Nested
+    class 장터_게시글_삭제를 {
+        @Test
+        void 작성자가_삭제하면_게시글이_삭제되어야_한다() {
+            given(userService.getCurrentLoginUser()).willReturn(sellerUser);
+
+            marketService.deleteMarketPost(javaMarketItem.getId());
+
+            assertThat(postRepository.findById(javaPost.getId())).isEmpty();
+        }
+
+        @Test
+        void 작성자가_아닌_사용자가_삭제하면_예외가_발생해야_한다() {
+            given(userService.getCurrentLoginUser()).willReturn(otherUser);
+
+            assertThatThrownBy(() -> marketService.deleteMarketPost(javaMarketItem.getId()))
+                    .isInstanceOf(CustomException.class);
+        }
+
+        @Test
+        void 존재하지_않는_게시글을_삭제하면_예외가_발생해야_한다() {
+            given(userService.getCurrentLoginUser()).willReturn(sellerUser);
+
+            assertThatThrownBy(() -> marketService.deleteMarketPost(999L))
+                    .isInstanceOf(CustomException.class);
+        }
     }
 }
