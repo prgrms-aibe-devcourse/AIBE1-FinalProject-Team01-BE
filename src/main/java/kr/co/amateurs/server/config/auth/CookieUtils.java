@@ -55,14 +55,14 @@ public class CookieUtils {
 
         } catch (Exception e) {
             log.error("쿠키 설정 중 오류 발생", e);
-            throw new RuntimeException("쿠키 설정 실패", e);
+            throw ErrorCode.COOKIE_SETTING_FAILED.get();
         }
     }
 
     private String buildSecureCookieString(String name, String value, int maxAge) {
         StringBuilder cookie = new StringBuilder();
 
-        String encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8);
+        String encodedValue = encodeCookieValue(value);
         cookie.append(name).append("=").append(encodedValue);
 
         cookie.append("; Path=/");
@@ -72,9 +72,10 @@ public class CookieUtils {
             cookie.append("; Secure");
         }
 
+        cookie.append("; SameSite=Strict");
+
         if (StringUtils.hasText(cookieDomain)) {
             cookie.append("; Domain=").append(cookieDomain);
-            log.debug("쿠키 도메인 설정: {}", cookieDomain);
         }
 
         cookie.append("; Max-Age=").append(maxAge);
@@ -97,6 +98,13 @@ public class CookieUtils {
         }
 
         return (int) expiresInSeconds;
+    }
+
+    private String encodeCookieValue(String value) {
+        if (value.contains(";") || value.contains(",") || value.contains(" ") || value.contains("\"")) {
+            throw ErrorCode.INVALID_COOKIE_VALUE_FORMAT.get();
+        }
+        return value;
     }
 
     private void validateTokenInfo(TokenInfoDTO tokenInfoDTO) {
