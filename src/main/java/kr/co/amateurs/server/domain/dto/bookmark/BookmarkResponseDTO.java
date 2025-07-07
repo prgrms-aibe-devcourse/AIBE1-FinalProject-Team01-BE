@@ -10,6 +10,7 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 public interface BookmarkResponseDTO {
@@ -25,7 +26,7 @@ public interface BookmarkResponseDTO {
     Integer likeCount();
     @Schema(description = "조회수", example = "3")
     Integer viewCount();
-    @Schema(description = "게시글 태그", example = "Spring Boot")
+    @Schema(description = "게시글 태그", example = "[\"Spring Boot\", \"Java\"]")
     String tag();
     @Schema(description = "생성 일시", example = "2025-06-25T00:08:25")
     LocalDateTime createdAt();

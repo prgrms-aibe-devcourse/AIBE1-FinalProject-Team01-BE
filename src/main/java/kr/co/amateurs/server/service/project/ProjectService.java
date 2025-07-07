@@ -7,32 +7,41 @@ import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.domain.entity.post.Project;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.file.PostImageRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.project.ProjectJooqRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProjectService {
     private final ProjectRepository projectRepository;
     private final PostRepository postRepository;
+    private final PostImageRepository postImageRepository;
 
     private final ProjectJooqRepository projectJooqRepository;
 
     private final UserService userService;
     private final FileService fileService;
+
+    private final PostEmbeddingService postEmbeddingService;
 
     public PageResponseDTO<ProjectResponseDTO> getProjects(ProjectSearchParam params) {
         Page<ProjectResponseDTO> projects = userService.getCurrentUser()
@@ -73,6 +82,14 @@ public class ProjectService {
 
         projectRepository.save(project);
 
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.createPostEmbeddings(savedPost);
+            } catch (Exception e) {
+                log.warn("커뮤니티 게시글 임베딩 생성 실패: postId={}", savedPost.getId(), e);
+            }
+        });
+
         List<String> imgUrls = fileService.extractImageUrls(projectRequestDTO.content());
         fileService.savePostImage(savedPost, imgUrls);
 
@@ -109,6 +126,7 @@ public class ProjectService {
 
         validatePost(project.getPost(), user.getEmail());
 
+        fileService.deletePostImage(project.getPost());
         projectRepository.deleteById(projectId);
     }
 

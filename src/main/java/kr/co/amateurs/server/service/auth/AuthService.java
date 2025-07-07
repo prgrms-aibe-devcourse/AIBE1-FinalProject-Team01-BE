@@ -1,11 +1,10 @@
 package kr.co.amateurs.server.service.auth;
 
+import jakarta.servlet.http.HttpServletResponse;
+import kr.co.amateurs.server.config.auth.CookieUtils;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.common.ErrorCode;
-import kr.co.amateurs.server.domain.dto.auth.LoginRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.LoginResponseDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupRequestDto;
-import kr.co.amateurs.server.domain.dto.auth.SignupResponseDto;
+import kr.co.amateurs.server.domain.dto.auth.*;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -29,9 +28,10 @@ public class AuthService {
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
     private final AiProfileService aiProfileService;
+    private final CookieUtils cookieUtils;
 
     @Transactional
-    public SignupResponseDto signup(SignupRequestDto request){
+    public SignupResponseDTO signup(SignupRequestDTO request){
         userService.validateEmailDuplicate(request.email());
         userService.validateNicknameDuplicate(request.nickname());
 
@@ -59,11 +59,17 @@ public class AuthService {
             }
         });
 
-        return SignupResponseDto.fromEntity(savedUser, request.topics());
+        return SignupResponseDTO.fromEntity(savedUser, request.topics());
     }
 
     @Transactional
-    public LoginResponseDto login(LoginRequestDto request){
+    public LoginResponseDTO login(LoginRequestDTO request){
+        return login(request, null);
+    }
+
+    @Transactional
+    public LoginResponseDTO login(LoginRequestDTO request,
+                                  HttpServletResponse response) {
         User user = userService.findByEmail(request.email());
 
         if(!passwordEncoder.matches(request.password(), user.getPassword())){
@@ -74,10 +80,14 @@ public class AuthService {
         Long expiresIn = jwtProvider.getAccessTokenExpirationMs();
 
         String refreshToken = jwtProvider.generateRefreshToken(user.getEmail());
-        Long refreshExpiresIn = jwtProvider.getRefreshTokenExpirationMs() / 1000;
+        Long refreshExpiresIn = jwtProvider.getRefreshTokenExpirationMs();
 
         refreshTokenService.saveRefreshToken(user.getEmail(), refreshToken, refreshExpiresIn);
 
-        return LoginResponseDto.of(accessToken, refreshToken, expiresIn);
+        if (response != null) {
+            TokenInfoDTO tokenInfoDTO = TokenInfoDTO.of(accessToken, expiresIn, refreshToken, refreshExpiresIn);
+            cookieUtils.setAuthTokenCookie(response, tokenInfoDTO);
+        }
+        return LoginResponseDTO.of(accessToken, refreshToken, expiresIn);
     }
 }

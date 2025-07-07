@@ -10,38 +10,48 @@ import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.file.PostImageRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.file.FileService;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO.convertToDTO;
+import static kr.co.amateurs.server.domain.entity.post.Post.convertListToTag;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GatheringService {
 
     private final GatheringRepository gatheringRepository;
     private final PostRepository postRepository;
+    private final PostImageRepository postImageRepository;
     private final LikeService likeService;
     private final BookmarkService bookmarkService;
 
     private final UserService userService;
     private final FileService fileService;
+
+    private final PostEmbeddingService postEmbeddingService;
 
     public PageResponseDTO<GatheringPostResponseDTO> getGatheringPostList(PostPaginationParam paginationParam) {
         Page<GatheringPost> gpPage = gatheringRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
@@ -67,7 +77,7 @@ public class GatheringService {
                 .boardType(BoardType.GATHER)
                 .title(dto.title())
                 .content(dto.content())
-                .tags(dto.tags())
+                .tags(convertListToTag(dto.tags()))
                 .build();
         Post savedPost = postRepository.save(post);
 
@@ -81,6 +91,14 @@ public class GatheringService {
                 .schedule(dto.schedule())
                 .build();
         GatheringPost savedGp = gatheringRepository.save(gp);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.createPostEmbeddings(savedPost);
+            } catch (Exception e) {
+                log.warn("커뮤니티 게시글 임베딩 생성 실패: postId={}", savedPost.getId(), e);
+            }
+        });
 
         List<String> imgUrls = fileService.extractImageUrls(dto.content());
         fileService.savePostImage(savedPost, imgUrls);
@@ -104,6 +122,8 @@ public class GatheringService {
         GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
         validateUser(post);
+
+        fileService.deletePostImage(post);
         postRepository.delete(post);
     }
 

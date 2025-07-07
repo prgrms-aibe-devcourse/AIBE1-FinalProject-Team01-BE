@@ -20,10 +20,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE (p.title LIKE %:keyword% OR p.content LIKE %:keyword%) AND p.boardType = :boardType")
     Page<Post> findByContentAndBoardType(@Param("keyword") String content, @Param("boardType") BoardType boardType, Pageable pageable);
 
-    @Modifying
-    @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = :postId")
-    int increaseViewCount(@Param("postId") Long postId);
-
     List<Post> findTop3ByUserIdOrderByCreatedAtDesc(Long userId);
 
     List<Post> findByUser(User user);
