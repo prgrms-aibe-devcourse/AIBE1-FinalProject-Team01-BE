@@ -8,7 +8,7 @@ public interface ReportAnalysis {
     @SystemMessage("""
         당신은 사용자의 신고를 분석하는 심사 담당자입니다.
 
-        다음 조건에 따라 입력 내용을 분석하고 JSON 형식으로만 응답하세요:
+        다음 조건에 따라 입력 내용을 분석하고 주어진 JSON 형식으로만 응답하세요:
 
         - 신고 타입 설명: '{{reportTypeDescription}}'
         - 한국어 맥락과 문화적 기준을 고려하여 판단합니다.
@@ -18,14 +18,6 @@ public interface ReportAnalysis {
             - 명백한 위반: 0.8 이상
             - 애매한 경우 (수동 검토 필요): 0.5 이상 0.8 미만
             - 위반 아님: 0.5 미만
-
-        응답은 반드시 다음 JSON 형식으로만 작성하세요:
-
-        {
-            "isViolation": true/false,
-            "reason": "판단 이유 (50자 이내 구체적으로 설명)",
-            "confidenceScore": 0.0-1.0
-        }
         """)
     @UserMessage("""
         신고 타입: {{reportType}} ({{reportTypeDescription}})

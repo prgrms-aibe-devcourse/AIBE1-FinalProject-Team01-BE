@@ -74,7 +74,6 @@ public class ReportProcessingManager {
             processingThread = new Thread(this::processReports, "report-processor");
             processingThread.setDaemon(true);
             processingThread.start();
-            log.info("신고 처리 스레드 시작됨");
         }
     }
 
@@ -88,30 +87,23 @@ public class ReportProcessingManager {
                     Thread.currentThread().interrupt();
                 }
             }
-            log.info("신고 처리 스레드 중지됨");
         }
     }
 
     private void processReports() {
-        log.info("신고 처리 루프 시작");
-
         while (running.get() && !Thread.currentThread().isInterrupted()) {
             try {
                 Long reportId = processingQueue.take();
 
-                log.info("신고 처리 시작 - Report ID: {}", reportId);
                 processReportWithRetry(reportId);
 
             } catch (InterruptedException e) {
-                log.info("신고 처리 스레드 인터럽트됨");
                 Thread.currentThread().interrupt();
                 break;
             } catch (Exception e) {
                 log.error("신고 처리 중 예상치 못한 오류 발생", e);
             }
         }
-
-        log.info("신고 처리 루프 종료");
     }
 
     private void processReportWithRetry(Long reportId) {
@@ -128,19 +120,13 @@ public class ReportProcessingManager {
 
                 ///  429 에러 발생 시 1분 대기 후 다시 시작
                 if (isRateLimitException(e)) {
-                    log.warn("Rate limit 에러 발생 - Report ID: {}, 시도 횟수: {}/{}. 1분 대기 후 재시도",
-                            reportId, attempt, MAX_RETRY_ATTEMPTS);
+                    log.warn("Rate limit 에러 발생");
 
                     waitForRateLimit();
 
                 } else if (attempt < MAX_RETRY_ATTEMPTS) {
-                    log.warn("신고 처리 재시도 - Report ID: {}, 시도 횟수: {}/{}, 오류: {}",
-                            reportId, attempt, MAX_RETRY_ATTEMPTS, e.getMessage());
-
                     waitForRetry();
-
                 } else {
-                    log.error("신고 처리 최대 재시도 횟수 초과 - Report ID: {}", reportId, e);
                     handleProcessingError(reportId, "최대 재시도 횟수 초과: " + e.getMessage());
                     break;
                 }
@@ -160,12 +146,9 @@ public class ReportProcessingManager {
 
     private void waitForRateLimit() {
         try {
-            log.info("Rate limit으로 인한 대기 시작 - {}초 대기", RATE_LIMIT_WAIT_MS / 1000);
             Thread.sleep(RATE_LIMIT_WAIT_MS);
-            log.info("Rate limit 대기 완료");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            log.info("Rate limit 대기 중 인터럽트됨");
         }
     }
 
@@ -203,9 +186,6 @@ public class ReportProcessingManager {
             report.startProcessing();
             reportRepository.save(report);
 
-            log.info("신고 처리 시작 - Report ID: {}, Type: {}",
-                    reportId, report.getReportType());
-
             LLMAnalysisResult result = reportProcessor.process(report);
             handleProcessingResult(report, result, handler);
 
@@ -220,8 +200,6 @@ public class ReportProcessingManager {
                                         ReportTargetHandler handler) {
         if (result.needsManualReview()) {
             report.manualProcessing(result.reason(), result.confidenceScore());
-            log.info("수동 검토 필요 - Report ID: {}, 신뢰도: {}",
-                    report.getId(), result.confidenceScore());
         } else {
             report.completeProcessing(
                     result.isViolation(),
@@ -229,15 +207,10 @@ public class ReportProcessingManager {
                     result.confidenceScore()
             );
 
-            log.info("신고 처리 완료 - Report ID: {}, 위반여부: {}, 신뢰도: {}",
-                    report.getId(), result.isViolation(), result.confidenceScore());
-
             if (result.isHighConfidence()) {
                 Long targetId = handler.getTargetId(report);
                 handler.blindTarget(report);
 
-                log.info("블라인드 처리 완료 - Report ID: {}, 신고 대상 타입: {}, 신고 대상 Id: {}",
-                        report.getId(), handler.getTargetType(), targetId);
             }
         }
 
@@ -248,17 +221,12 @@ public class ReportProcessingManager {
         Report report = reportRepository.findById(reportId).orElseThrow(ErrorCode.REPORT_NOT_FOUND);
         report.errorProcessing(errorMessage);
         reportRepository.save(report);
-
-        log.error("신고 처리 오류 - Report ID: {}, 오류: {}",
-                report.getId(), errorMessage);
     }
 
     private void handleAlreadyProcessedReport(Report report) {
         String reason = String.format("이미 처리된 신고입니다. 현재 상태: %s", report.getStatus());
         report.completeProcessing(false, reason, null);
         reportRepository.save(report);
-
-        log.info("이미 처리된 신고 상태 업데이트 완료 - Report ID: {}", report.getId());
     }
 
     private void handleAlreadyBlindedReport(Report report, ReportTargetHandler handler) {
@@ -267,8 +235,5 @@ public class ReportProcessingManager {
 
         report.completeProcessing(true, reason, 1.0);
         reportRepository.save(report);
-
-        log.info("이미 블라인드된 대상 신고 처리 완료 - Report ID: {}, Target: {} ID: {}",
-                report.getId(), handler.getTargetType(), handler.getTargetId(report));
     }
 }
