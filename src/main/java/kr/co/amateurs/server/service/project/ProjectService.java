@@ -3,6 +3,8 @@ package kr.co.amateurs.server.service.project;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
+import kr.co.amateurs.server.domain.dto.post.PostRequest;
+import kr.co.amateurs.server.domain.dto.project.ProjectMember;
 import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
@@ -10,12 +12,12 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.Project;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
-import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.project.ProjectJooqRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.file.FileService;
+import kr.co.amateurs.server.utils.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,8 @@ public class ProjectService {
 
     private final UserService userService;
     private final FileService fileService;
+
+    private final JsonUtil jsonUtil;
 
     public PageResponseDTO<ProjectResponseDTO> getProjects(ProjectSearchParam params) {
         Page<ProjectResponseDTO> projects = userService.getCurrentUser()
@@ -52,9 +56,10 @@ public class ProjectService {
     public ProjectResponseDTO createProject(ProjectRequestDTO projectRequestDTO) {
         User user = userService.getCurrentLoginUser();
 
-        CommunityRequestDTO postRequestDto = new CommunityRequestDTO(
+        // TODO: PostRequest DTO의 tags 가 String 이라서
+        PostRequest postRequestDto = new CommunityRequestDTO(
                 projectRequestDTO.title(),
-                projectRequestDTO.tags(),
+                convertTagsToJSON(projectRequestDTO.tags()),
                 projectRequestDTO.content()
         );
 
@@ -68,7 +73,7 @@ public class ProjectService {
                 .simpleContent(projectRequestDTO.simpleContent())
                 .githubUrl(projectRequestDTO.githubUrl())
                 .demoUrl(projectRequestDTO.demoUrl())
-                .projectMembers(projectRequestDTO.projectMembers())
+                .projectMembers(convertProjectMembersToJSON(projectRequestDTO.projectMembers()))
                 .build();
 
         projectRepository.save(project);
@@ -90,7 +95,7 @@ public class ProjectService {
 
         CommunityRequestDTO postRequestDto = new CommunityRequestDTO(
                 projectRequestDTO.title(),
-                projectRequestDTO.tags(),
+                convertTagsToJSON(projectRequestDTO.tags()),
                 projectRequestDTO.content()
         );
 
@@ -98,6 +103,7 @@ public class ProjectService {
 
         post.update(postRequestDto);
         project.update(projectRequestDTO);
+        project.updateProjectMembers(convertProjectMembersToJSON(projectRequestDTO.projectMembers()));
     }
 
     @Transactional
@@ -107,14 +113,24 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(ErrorCode.POST_NOT_FOUND);
 
-        validatePost(project.getPost(), user.getEmail());
+        Post post = project.getPost();
 
-        projectRepository.deleteById(projectId);
+        validatePost(post, user.getEmail());
+
+        postRepository.delete(post);
     }
 
     private void validatePost(Post post, String email) {
         if (!post.getUser().getEmail().equals(email)) {
             throw ErrorCode.ACCESS_DENIED.get();
         }
+    }
+
+    private String convertProjectMembersToJSON(List<ProjectMember> projectMembers) {
+        return jsonUtil.listToJson(projectMembers);
+    }
+
+    private String convertTagsToJSON(List<String> tags) {
+        return jsonUtil.listToJson(tags);
     }
 }

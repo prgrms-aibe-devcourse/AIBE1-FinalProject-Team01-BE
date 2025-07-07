@@ -10,8 +10,6 @@ import static org.jooq.generated.Tables.POST_IMAGES;
 import static org.jooq.generated.tables.Posts.POSTS;
 import static org.jooq.generated.tables.Projects.PROJECTS;
 import static org.jooq.generated.tables.Users.USERS;
-import static org.jooq.impl.DSL.count;
-import static org.jooq.impl.DSL.partitionBy;
 
 public interface ProjectQueryStrategy {
     default SelectSelectStep<?> buildSelectQuery(DSLContext dslContext) {
@@ -30,7 +28,10 @@ public interface ProjectQueryStrategy {
                 POSTS.TAG,
                 POSTS.VIEW_COUNT,
                 POSTS.LIKE_COUNT,
-                count(BOOKMARKS.ID).over(partitionBy(POSTS.ID)).as("bookmarkCount"),
+                dslContext.selectCount()
+                        .from(BOOKMARKS)
+                        .where(BOOKMARKS.POST_ID.eq(POSTS.ID))
+                        .asField("bookmarkCount"),
 
                 POSTS.CREATED_AT,
                 POSTS.UPDATED_AT,
