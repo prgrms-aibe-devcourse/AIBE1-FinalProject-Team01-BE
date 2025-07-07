@@ -32,6 +32,7 @@ import java.util.Objects;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO.convertToDTO;
+import static kr.co.amateurs.server.domain.entity.post.Post.convertListToTag;
 
 @Service
 @RequiredArgsConstructor
@@ -70,7 +71,7 @@ public class GatheringService {
                 .boardType(BoardType.GATHER)
                 .title(dto.title())
                 .content(dto.content())
-                .tags(dto.tags())
+                .tags(convertListToTag(dto.tags()))
                 .build();
         Post savedPost = postRepository.save(post);
 
