@@ -1,10 +1,11 @@
 package kr.co.amateurs.server.service.project;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
+import kr.co.amateurs.server.domain.dto.project.ProjectMember;
 import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
@@ -65,7 +66,7 @@ class ProjectServiceTest {
     private BookmarkRepository bookmarkRepository;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private EntityManager entityManager;
 
     private User backendUser;
     private User frontendUser;
@@ -263,13 +264,17 @@ class ProjectServiceTest {
             ProjectRequestDTO requestDTO = ProjectRequestDTO.builder()
                     .title("새로운 프로젝트")
                     .content("프로젝트 내용")
-                    .tags("태그1, 태그2")
+                    .tags(List.of("스프링", "초보환영"))
                     .startedAt(LocalDateTime.of(2025, 1, 1, 13, 20))
                     .endedAt(LocalDateTime.of(2025, 1, 31, 13, 20))
                     .githubUrl("https://github.com/example/new-project")
                     .simpleContent("간단한 설명")
                     .demoUrl("https://demo.example.com")
-                    .projectMembers(objectMapper.writeValueAsString(List.of("김개발", "이디자인")))
+                    .projectMembers(List.of(
+                            new ProjectMember("김개발", "백엔드"),
+                            new ProjectMember("박개발", "프론트엔드"),
+                            new ProjectMember("홍길동", "DevOps")
+                    ))
                     .build();
 
             when(userService.getCurrentLoginUser()).thenReturn(backendUser);
@@ -282,7 +287,7 @@ class ProjectServiceTest {
             assertThat(result.postId()).isNotNull();
             assertThat(result.title()).isEqualTo("새로운 프로젝트");
             assertThat(result.content()).isEqualTo("프로젝트 내용");
-            assertThat(result.tags()).isEqualTo("태그1, 태그2");
+            assertThat(result.tags()).isEqualTo("[\"스프링\",\"초보환영\"]");
             assertThat(result.githubUrl()).isEqualTo("https://github.com/example/new-project");
             assertThat(result.simpleContent()).isEqualTo("간단한 설명");
             assertThat(result.demoUrl()).isEqualTo("https://demo.example.com");
@@ -318,7 +323,11 @@ class ProjectServiceTest {
                     .githubUrl("https://github.com/example/updated-project")
                     .simpleContent("수정된 심플 소개 쏼라쏼라")
                     .demoUrl("https://updated-demo.example.com")
-                    .projectMembers(objectMapper.writeValueAsString(List.of("홍홍홍", "김김김")))
+                    .projectMembers(List.of(
+                            new ProjectMember("김개발", "백엔드"),
+                            new ProjectMember("박개발", "프론트엔드"),
+                            new ProjectMember("홍길동", "DevOps")
+                    ))
                     .build();
             when(userService.getCurrentLoginUser()).thenReturn(backendUser);
 

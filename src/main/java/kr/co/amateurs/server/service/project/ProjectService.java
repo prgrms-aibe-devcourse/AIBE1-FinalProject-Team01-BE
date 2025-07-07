@@ -67,7 +67,7 @@ public class ProjectService {
         Post savedPost = postRepository.save(post);
 
         Project project = Project.builder()
-                .post(post)
+                .post(savedPost)
                 .startedAt(projectRequestDTO.startedAt())
                 .endedAt(projectRequestDTO.endedAt())
                 .simpleContent(projectRequestDTO.simpleContent())
@@ -117,7 +117,7 @@ public class ProjectService {
         validatePost(post, user.getEmail());
 
         fileService.deletePostImage(post);
-        projectRepository.deleteById(projectId);
+        projectRepository.delete(project);
         postRepository.delete(post);
     }
 
