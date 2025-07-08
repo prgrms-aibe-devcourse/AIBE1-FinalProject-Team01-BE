@@ -446,7 +446,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     @Test
     void 유효한_리프레시_토큰으로_요청_시_새로운_액세스_토큰이_반환되어야_한다() {
         // given
-        SignupRequestDto signupRequest = UserTestFixture.createUniqueSignupRequest();
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(signupRequest)
@@ -455,7 +455,7 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .then()
                 .statusCode(201);
 
-        LoginRequestDto loginRequest = AuthTestFixture.defaultLoginRequest()
+        LoginRequestDTO loginRequest = AuthTestFixture.defaultLoginRequest()
                 .email(signupRequest.email())
                 .build();
 
