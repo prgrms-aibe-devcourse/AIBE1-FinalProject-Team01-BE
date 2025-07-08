@@ -479,13 +479,13 @@ public class AuthControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    void 인증_토큰_없이_로그아웃_시_401_에러가_발생해야_한다() {
+    void 인증_토큰_없이_로그아웃_시_403_에러가_발생해야_한다() {
         // when & then
         RestAssured.given()
                 .contentType(ContentType.JSON)
                 .when()
                 .post("/auth/logout")
                 .then()
-                .statusCode(401);
+                .statusCode(403);
     }
 }
