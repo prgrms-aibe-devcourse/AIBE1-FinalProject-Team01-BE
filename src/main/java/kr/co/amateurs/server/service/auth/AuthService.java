@@ -101,7 +101,7 @@ public class AuthService {
 
         String email = jwtProvider.getEmailFromToken(refreshToken);
 
-        if (!refreshTokenService.existsByEmail(email)) {
+        if (!refreshTokenService.validateRefreshToken(email, refreshToken)) {
             throw ErrorCode.UNAUTHORIZED.get();
         }
 
