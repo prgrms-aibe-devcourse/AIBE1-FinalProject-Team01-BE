@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -108,5 +110,18 @@ public class KakaoOAuth2UserServiceTest {
 
         long userCount = userRepository.count();
         assertThat(userCount).isEqualTo(1);
+    }
+
+    @Test
+    void 카카오에서_사용자_ID가_없으면_예외가_발생한다() {
+        // given
+        String kakaoApiResponseWithoutId = OAuth2TestFixture.createKakaoApiResponseWithoutId();
+
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, kakaoApiResponseWithoutId);
+        OAuth2UserRequest userRequest = OAuth2TestFixture.createKakaoOAuth2UserRequest(mockWebServer);
+
+        // when & then
+        assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }
