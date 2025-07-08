@@ -90,4 +90,10 @@ public class AuthService {
         }
         return LoginResponseDTO.of(accessToken, refreshToken, expiresIn);
     }
+
+    @Transactional
+    public void logout() {
+        User currentUser = userService.getCurrentLoginUser();
+        refreshTokenService.deleteByEmail(currentUser.getEmail());
+    }
 }
