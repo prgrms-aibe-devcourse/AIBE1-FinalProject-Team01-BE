@@ -5,7 +5,7 @@ positions:
   filename: /tmp/positions.yaml
 
 clients:
-  - url: https://${LOKI_HOST}:3100/loki/api/v1/push
+  - url: https://${LOKI_HOST}/loki/api/v1/push
 
 scrape_configs:
   - job_name: spring-boot
@@ -20,18 +20,19 @@ scrape_configs:
 
     pipeline_stages:
       - regex:
-          expression: '(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+(?P<level>TRACE|DEBUG|INFO|WARN|ERROR)\s+(?P<pid>\d+)\s+---\s+\[\s*(?P<thread>[^\]]*)\]\s+(?P<logger>\S+)\s*:\s+(?P<message>.*)'
+          expression: '(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\s+(?P<level>TRACE|DEBUG|INFO|WARN|ERROR)\s+(?P<pid>\d+)\s+---\s+\[(?P<service>[^\]]+)\]\s+\[(?P<thread>[^\]]+)\]\s+(?P<logger>\S+)\s*:\s+(?P<message>.*)'
 
       - labels:
           level:
+          service:
           thread:
           logger:
 
       - timestamp:
           source: timestamp
-          format: '2006-01-02 15:04:05.000'
-          location: Asia/Seoul
+          format: '2006-01-02T15:04:05.000Z'
+          location: UTC
 
       - multiline:
-          firstline: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}'
+          firstline: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z'
           max_wait_time: 3s

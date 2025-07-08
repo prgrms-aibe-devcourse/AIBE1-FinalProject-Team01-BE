@@ -44,7 +44,7 @@ spring:
           kakao:
             client-id: ${KAKAO_CLIENT_ID}
             client-secret: ${KAKAO_CLIENT_SECRET}
-            redirect-uri: "http://localhost:8080/login/oauth2/code/kakao"
+            redirect-uri: ${SERVER_URL:http://localhost:8080/}login/oauth2/code/kakao
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             client-name: Kakao
@@ -101,7 +101,10 @@ cloud:
       domain: ${CLOUD_FRONT_DOMAIN_NAME}
 
 oauth:
-  success-redirect-url: http://localhost:5173
+  success-redirect-url: ${OAUTH_SUCCESS_REDIRECT_URL:http://localhost:5173}
+
+cookie:
+  domain: ${COOKIE_DOMAIN:localhost}
 
 swagger:
   server:

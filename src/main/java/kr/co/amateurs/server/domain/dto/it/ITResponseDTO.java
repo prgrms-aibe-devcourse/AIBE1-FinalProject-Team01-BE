@@ -7,6 +7,9 @@ import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 public record ITResponseDTO(
         @Schema(description = "IT ID", example = "1")

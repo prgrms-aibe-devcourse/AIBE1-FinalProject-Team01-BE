@@ -36,7 +36,7 @@ public class AiController {
     @Operation(summary = "AI 개인화 게시글 조회", description = "사용자의 AI 프로필을 기반으로 맞춤 게시글을 추천합니다")
     public ResponseEntity<List<PostRecommendationResponse>> getAiRecommendations(
             @AuthenticationPrincipal CustomUserDetails currentUser,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(name="limit", defaultValue="10") int limit) {
 
         Long userId = currentUser.getUser().getId();
         List<PostRecommendationResponse> recommendations = postRecommendService.getStoredRecommendations(userId, limit);
@@ -46,7 +46,7 @@ public class AiController {
     @GetMapping("/posts/popular")
     @Operation(summary="일반 인기글 조회", description= "인기 게시글을 조회합니다. (조회수 + 좋아요 + 댓글 기반)")
     public ResponseEntity<List<PopularPostResponse>> getPopularPosts(
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(name="limit", defaultValue="10") int limit) {
 
         List<PopularPostResponse> popularPosts = popularPostService.getPopularPosts(limit);
         return ResponseEntity.ok(popularPosts);

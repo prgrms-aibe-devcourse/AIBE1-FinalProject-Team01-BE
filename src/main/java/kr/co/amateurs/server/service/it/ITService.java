@@ -16,6 +16,7 @@ import kr.co.amateurs.server.repository.file.PostImageRepository;
 import kr.co.amateurs.server.repository.it.ITRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 
@@ -42,6 +44,8 @@ public class ITService {
 
     private final UserService userService;
     private final FileService fileService;
+
+    private final PostEmbeddingService postEmbeddingService;
 
     public PageResponseDTO<ITResponseDTO> searchPosts(BoardType boardType, PostPaginationParam paginationParam) {
         Pageable pageable = paginationParam.toPageable();
@@ -79,6 +83,14 @@ public class ITService {
 
         ITPost itPost = ITPost.from(savedPost);
         ITPost savedITPost = itRepository.save(itPost);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.createPostEmbeddings(savedPost);
+            } catch (Exception e) {
+                log.warn("커뮤니티 게시글 임베딩 생성 실패: postId={}", savedPost.getId(), e);
+            }
+        });
 
         List<String> imgUrls = fileService.extractImageUrls(requestDTO.content());
         fileService.savePostImage(savedPost, imgUrls);

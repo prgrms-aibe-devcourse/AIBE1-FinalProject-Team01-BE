@@ -28,6 +28,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createAdmin;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createStudent;
 import static kr.co.amateurs.server.fixture.together.MarketTestFixture.*;
@@ -207,7 +208,7 @@ class MarketServiceTest {
             MarketPostRequestDTO updateDto = new MarketPostRequestDTO(
                     "Java 책 판매완료",
                     "Java 책이 판매되었습니다.",
-                    "책,자바",
+                    convertTagToList("책,자바"),
                     MarketStatus.SOLD_OUT,
                     10000,
                     "서울"
@@ -227,7 +228,7 @@ class MarketServiceTest {
             MarketPostRequestDTO updateDto = new MarketPostRequestDTO(
                     "Java 책 판매완료",
                     "Java 책이 판매되었습니다.",
-                    "책,자바",
+                    convertTagToList("책,자바"),
                     MarketStatus.SOLD_OUT,
                     10000,
                     "서울"
@@ -242,7 +243,7 @@ class MarketServiceTest {
             MarketPostRequestDTO updateDto = new MarketPostRequestDTO(
                     "title",
                     "content",
-                    "tags",
+                    convertTagToList("tags"),
                     MarketStatus.SELLING,
                     5000,
                     "부산"

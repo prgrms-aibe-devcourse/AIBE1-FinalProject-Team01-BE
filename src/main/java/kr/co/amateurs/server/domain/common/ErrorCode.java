@@ -56,6 +56,14 @@ public enum ErrorCode implements Supplier<CustomException> {
     EMPTY_TOKEN(HttpStatus.BAD_REQUEST, "토큰은 필수입니다."),
     INVALID_EXPIRATION_TIME(HttpStatus.BAD_REQUEST, "만료시간은 양수여야 합니다."),
 
+    // 쿠키 관련 에러
+    INVALID_TOKEN_INFO(HttpStatus.BAD_REQUEST, "토큰 정보가 유효하지 않습니다."),
+    MISSING_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "Access Token이 필요합니다."),
+    MISSING_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "Refresh Token이 필요합니다."),
+    INVALID_HTTP_RESPONSE(HttpStatus.INTERNAL_SERVER_ERROR, "HTTP 응답 객체가 유효하지 않습니다."),
+    COOKIE_SETTING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "쿠키 설정에 실패했습니다"),
+    INVALID_COOKIE_VALUE_FORMAT(HttpStatus.BAD_REQUEST, "쿠키 값에 허용되지 않는 문자가 포함되어 있습니다"),
+
     // 시스템 에러
     HASH_ALGORITHM_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "해시 알고리즘을 찾을 수 없습니다."),
 
