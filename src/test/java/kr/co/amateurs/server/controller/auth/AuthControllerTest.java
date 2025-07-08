@@ -440,4 +440,52 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .statusCode(400)
                 .body("message", equalTo("닉네임은 2자 이상 20자 이하여야 합니다."));
     }
+
+    @Test
+    void 정상적인_로그아웃_시_성공_응답이_반환되어야_한다() {
+        // given
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/auth/signup")
+                .then()
+                .statusCode(201);
+
+        LoginRequestDTO loginRequest = AuthTestFixture.defaultLoginRequest()
+                .email(signupRequest.email())
+                .build();
+
+        String accessToken = RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(loginRequest)
+                .when()
+                .post("/auth/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("accessToken");
+
+        // when & then
+        RestAssured.given()
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(ContentType.JSON)
+                .when()
+                .post("/auth/logout")
+                .then()
+                .statusCode(200)
+                .body("message", equalTo("로그아웃이 성공적으로 완료되었습니다"));
+    }
+
+    @Test
+    void 인증_토큰_없이_로그아웃_시_401_에러가_발생해야_한다() {
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .when()
+                .post("/auth/logout")
+                .then()
+                .statusCode(401);
+    }
 }
