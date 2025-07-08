@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByBoardType(BoardType boardType, Pageable pageable);
@@ -29,4 +30,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT COUNT(p) > 0 FROM Post p WHERE p.id = :id")
     boolean existsByIdUsingCount(@Param("id") Long id);
+
+    @Query("SELECT p.boardType FROM Post p WHERE p.id = :postId")
+    Optional<BoardType> findBoardTypeById(Long postId);
 }

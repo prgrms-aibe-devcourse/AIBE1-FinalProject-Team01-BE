@@ -55,10 +55,11 @@ public class CommentService {
     }
 
     public CommentPageDTO getReplies(Long postId, Long parentCommentId, Long cursor, int size) {
-        Comment parentComment = findCommentById(parentCommentId);
-        validateCommentBelongsToPost(parentComment, postId);
+        Comment parentComment = commentRepository.findByIdAndPostId(parentCommentId, postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_COMMENT_POST_RELATION));
 
         Optional<User> currentUser = userService.getCurrentUser();
+
         PageRequest pageRequest = PageRequest.of(0, size + CURSOR_OFFSET);
 
         List<CommentJooqDTO> replies = fetchReplies(
@@ -100,9 +101,9 @@ public class CommentService {
 
     @Transactional
     public void updateComment(Long postId, Long commentId, CommentRequestDTO requestDTO) {
-        Comment comment = findCommentById(commentId);
+        Comment comment = commentRepository.findByIdAndPostId(commentId, postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
-        validateCommentBelongsToPost(comment, postId);
         validateCommentAccess(comment.getUser().getId());
 
         comment.updateContent(requestDTO.content());
@@ -110,9 +111,9 @@ public class CommentService {
 
     @Transactional
     public void deleteComment(Long postId, Long commentId) {
-        Comment comment = findCommentById(commentId);
+        Comment comment = commentRepository.findByIdAndPostId(commentId, postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
-        validateCommentBelongsToPost(comment, postId);
         validateCommentAccess(comment.getUser().getId());
 
         if (comment.getParentCommentId() != null) {
@@ -151,12 +152,6 @@ public class CommentService {
 
         if (!(commentUserId.equals(user.getId()) || user.getRole() == Role.ADMIN)) {
             throw new CustomException(ErrorCode.ACCESS_DENIED);
-        }
-    }
-
-    private void validateCommentBelongsToPost(Comment comment, Long postId) {
-        if (!comment.getPostId().equals(postId)) {
-            throw new CustomException(ErrorCode.INVALID_COMMENT_POST_RELATION);
         }
     }
 
