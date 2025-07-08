@@ -90,7 +90,8 @@ oauth:
   success-redirect-url: ${OAUTH_SUCCESS_REDIRECT_URL:http://localhost:5173}
 
 cookie:
-  domain: ${COOKIE_DOMAIN:localhost}
+  domain: localhost
+  secure: false
 
 swagger:
   server:
