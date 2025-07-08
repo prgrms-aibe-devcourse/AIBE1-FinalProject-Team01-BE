@@ -87,10 +87,11 @@ cloud:
       domain: ${CLOUD_FRONT_DOMAIN_NAME}
 
 oauth:
-  success-redirect-url: http://localhost:3000
+  success-redirect-url: ${OAUTH_SUCCESS_REDIRECT_URL:http://localhost:5173}
 
 cookie:
   domain: localhost
+  secure: false
 
 swagger:
   server:

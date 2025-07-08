@@ -130,10 +130,11 @@ logging:
       total-size-cap: 1GB
 
 oauth:
-  success-redirect-url: https://dev.amateurs.co.kr
+  success-redirect-url: ${OAUTH_SUCCESS_REDIRECT_URL}
 
 cookie:
-  domain: .amateurs.co.kr
+  domain: ${COOKIE_DOMAIN}
+  secure: true
 
 app:
   cors:
