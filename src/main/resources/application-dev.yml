@@ -148,6 +148,7 @@ oauth:
 
 cookie:
   domain: ${COOKIE_DOMAIN}
+  secure: true
 
 app:
   cors:
