@@ -34,11 +34,7 @@ public class CommentController {
             @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "10") int size
     ) {
-        long startTime = System.currentTimeMillis();
-        log.info("=== getComment 컨트롤러 ===");
         CommentPageDTO comments = commentService.getCommentsByPostId(postId, cursor, size);
-        long endTime = System.currentTimeMillis();
-        log.info("=== getComment 컨트롤러 완료: {}ms 소요 ===", endTime - startTime);
 
         return ResponseEntity.ok(comments);
     }
@@ -55,11 +51,7 @@ public class CommentController {
             @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "5") int size
     ) {
-        long startTime = System.currentTimeMillis();
-        log.info("=== getReplies 컨트롤러 ===");
         CommentPageDTO replies = commentService.getReplies(postId, commentId, cursor, size);
-        long endTime = System.currentTimeMillis();
-        log.info("=== getReplies 컨트롤러 완료: {}ms 소요 ===", endTime - startTime);
 
         return ResponseEntity.ok(replies);
     }
