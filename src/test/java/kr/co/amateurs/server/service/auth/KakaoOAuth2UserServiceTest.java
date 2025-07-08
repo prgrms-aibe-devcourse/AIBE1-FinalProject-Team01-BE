@@ -77,4 +77,36 @@ public class KakaoOAuth2UserServiceTest {
         assertThat(savedUser.get().getName()).isEqualTo("김카카오");
         assertThat(savedUser.get().getNickname()).startsWith("김카카오_");
     }
+
+    @Test
+    void 기존_카카오_사용자는_로그인이_가능하다() {
+        // given
+        User existingUser = OAuth2TestFixture.defaultKakaoUser()
+                .providerId("123456789")
+                .email("existing@kakao.com")
+                .nickname("기존카카오_abc123")
+                .name("기존카카오")
+                .build();
+        userRepository.save(existingUser);
+
+        String kakaoApiResponse = OAuth2TestFixture.createKakaoApiResponse(
+                "123456789", "existing@kakao.com", "기존카카오"
+        );
+
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, kakaoApiResponse);
+        OAuth2UserRequest userRequest = OAuth2TestFixture.createKakaoOAuth2UserRequest(mockWebServer);
+
+        // when
+        OAuth2User result = customOAuth2UserService.loadUser(userRequest);
+
+        // then
+        assertThat(result).isInstanceOf(CustomUserDetails.class);
+        CustomUserDetails userDetails = (CustomUserDetails) result;
+        User returnedUser = userDetails.getUser();
+        assertThat(returnedUser.getEmail()).isEqualTo("existing@kakao.com");
+        assertThat(returnedUser.getNickname()).isEqualTo("기존카카오_abc123");
+
+        long userCount = userRepository.count();
+        assertThat(userCount).isEqualTo(1);
+    }
 }
