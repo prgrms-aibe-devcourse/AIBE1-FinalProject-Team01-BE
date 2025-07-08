@@ -4,8 +4,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kr.co.amateurs.server.config.auth.CookieUtils;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.auth.TokenInfoDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.exception.CustomException;
@@ -14,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -34,6 +35,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtProvider jwtProvider;
     private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
+    private final CookieUtils cookieUtils;
 
     @Value("${oauth.success-redirect-url:http://localhost:5173}")
     private String successRedirectUrl;
@@ -66,8 +68,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             refreshTokenService.saveRefreshToken(user.getEmail(), refreshToken, refreshExpiresIn / 1000);
 
-            addSecureCookie(response, "accessToken", accessToken, accessExpiresIn);
-            addSecureCookie(response, "refreshToken", refreshToken, refreshExpiresIn);
+            TokenInfoDTO tokenInfoDTO = TokenInfoDTO.of(accessToken, accessExpiresIn, refreshToken, refreshExpiresIn);
+            cookieUtils.setAuthTokenCookie(response, tokenInfoDTO);
 
             String redirectUrl = successRedirectUrl + "/oauth/callback";
             response.sendRedirect(redirectUrl);
@@ -109,18 +111,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         }
 
         return ProviderType.GITHUB;
-    }
-
-    private void addSecureCookie(HttpServletResponse response, String name, String value, long expirationMs) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setMaxAge(Math.toIntExact(expirationMs / 1000));
-        if (StringUtils.hasText(cookieDomain)) {
-            cookie.setDomain(cookieDomain);
-        }
-        cookie.setPath("/");
-        cookie.setSecure(true);
-        cookie.setHttpOnly(true);
-        response.addCookie(cookie);
     }
 
     private void redirectWithError(HttpServletResponse response, ProviderType providerType, String message) throws IOException {
