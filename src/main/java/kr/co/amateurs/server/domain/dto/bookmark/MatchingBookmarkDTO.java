@@ -9,6 +9,9 @@ import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 public record MatchingBookmarkDTO(
         Long postId,

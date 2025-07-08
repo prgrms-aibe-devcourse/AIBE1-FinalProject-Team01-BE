@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createAdmin;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createStudent;
 import static kr.co.amateurs.server.fixture.together.GatheringTestFixture.*;
@@ -234,7 +235,7 @@ class GatheringServiceTest {
             GatheringPostRequestDTO requestDTO = new GatheringPostRequestDTO(
                     "새로운 스터디 모집",
                     "새로운 스터디를 시작합니다.",
-                    "Java,Spring",
+                    convertTagToList("Java,Spring"),
                     GatheringType.STUDY,
                     GatheringStatus.RECRUITING,
                     6,
@@ -269,7 +270,7 @@ class GatheringServiceTest {
             GatheringPostRequestDTO updateDTO = new GatheringPostRequestDTO(
                     "수정된 스터디 모집",
                     "수정된 내용입니다.",
-                    "Java,Spring,Algorithm",
+                    convertTagToList("Java,Spring,Algorithm"),
                     GatheringType.STUDY,
                     GatheringStatus.COMPLETED,
                     3,
@@ -298,7 +299,7 @@ class GatheringServiceTest {
             GatheringPostRequestDTO updateDTO = new GatheringPostRequestDTO(
                     "수정된 제목",
                     "수정된 내용",
-                    "태그",
+                    convertTagToList("태그"),
                     GatheringType.STUDY,
                     GatheringStatus.RECRUITING,
                     5,
@@ -320,7 +321,7 @@ class GatheringServiceTest {
             GatheringPostRequestDTO updateDTO = new GatheringPostRequestDTO(
                     "수정된 제목",
                     "수정된 내용",
-                    "태그",
+                    convertTagToList("태그"),
                     GatheringType.STUDY,
                     GatheringStatus.RECRUITING,
                     5,

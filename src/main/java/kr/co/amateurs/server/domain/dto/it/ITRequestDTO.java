@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import kr.co.amateurs.server.domain.dto.post.PostRequest;
 
+import java.util.List;
+
 public record ITRequestDTO (
         @Schema(
                 description = "게시글 제목",
@@ -18,7 +20,7 @@ public record ITRequestDTO (
                 nullable = true,
                 maxLength = 100
         )
-   String tags,
+        List<String> tags,
         @Schema(
                 description = "게시글 내용",
                 example = "프로그래머스 데브코스 백엔드 6기에서 함께 공부할 동료를 모집합니다...",

@@ -8,12 +8,15 @@ import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import kr.co.amateurs.server.domain.entity.user.User;
 
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
+
+
 public class GatheringTestFixture {
     public static GatheringPostRequestDTO createGatheringRequestDTO() {
         return new GatheringPostRequestDTO(
                 "팀원 모집합니다",
                 "React 스터디 팀원을 모집합니다.",
-                "React",
+                convertTagToList("React"),
                 GatheringType.STUDY,
                 GatheringStatus.RECRUITING,
                 4,

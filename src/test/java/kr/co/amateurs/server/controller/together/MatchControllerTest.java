@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.*;
 import static kr.co.amateurs.server.fixture.together.MarketTestFixture.createMarketPostRequestDTO;
 import static kr.co.amateurs.server.fixture.together.MatchTestFixture.createMatchPostRequestDTO;
@@ -106,7 +107,7 @@ class MatchControllerTest extends AbstractControllerTest {
         @Test
         void 학생유저가_필수필드누락된데이터로_글생성하면_400을_반환한다() {
             MatchPostRequestDTO invalid = new MatchPostRequestDTO(
-                    "", "내용", "Tag", MatchingType.COFFEE_CHAT,
+                    "", "내용", convertTagToList("Tag"), MatchingType.COFFEE_CHAT,
                     MatchingStatus.OPEN, "분야"
             );
 
@@ -164,7 +165,7 @@ class MatchControllerTest extends AbstractControllerTest {
             Long matchId = matchRepository.findByPostId(id).getId();
 
             MatchPostRequestDTO update = new MatchPostRequestDTO(
-                    "수정", "수정내용", "Vue", MatchingType.COFFEE_CHAT,
+                    "수정", "수정내용", convertTagToList("Vue"), MatchingType.COFFEE_CHAT,
                     MatchingStatus.OPEN, "프론트엔드"
             );
 
