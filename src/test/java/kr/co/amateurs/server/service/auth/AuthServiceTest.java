@@ -30,6 +30,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -267,5 +268,18 @@ public class AuthServiceTest {
 
         // then
         assertThat(refreshTokenService.existsByEmail(saveUser.getEmail())).isFalse();
+    }
+
+    @Test
+    void 인증되지_않은_사용자가_로그아웃_시도_시_예외가_발생한다() {
+        // given
+        TestAuthHelper.clearAuthentication();
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            authService.logout();
+        });
+
+        assertThat(exception.getMessage()).isEqualTo("로그인이 필요합니다.");
     }
 }
