@@ -2,6 +2,7 @@ package kr.co.amateurs.server.service.auth;
 
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
+import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +39,9 @@ public class KakaoOAuth2UserServiceTest {
     private UserRepository userRepository;
 
     private MockWebServer mockWebServer;
+
+    @Autowired
+    private JwtProvider jwtProvider;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -123,5 +126,39 @@ public class KakaoOAuth2UserServiceTest {
         // when & then
         assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void 카카오_OAuth_로그인_후_JWT_토큰_생성이_완료된다() {
+        // given
+        String uniqueEmail = "kakaotest" + System.currentTimeMillis() + "@kakao.com";
+        String kakaoApiResponse = OAuth2TestFixture.createKakaoApiResponse(
+                "789456123", uniqueEmail, "카카오테스트"
+        );
+
+        OAuth2TestFixture.enqueueMockResponse(mockWebServer, kakaoApiResponse);
+        OAuth2UserRequest userRequest = OAuth2TestFixture.createKakaoOAuth2UserRequest(mockWebServer);
+
+        // when: OAuth 로그인
+        OAuth2User oAuth2User = customOAuth2UserService.loadUser(userRequest);
+
+        // then: 사용자 생성
+        assertThat(oAuth2User).isInstanceOf(CustomUserDetails.class);
+        CustomUserDetails userDetails = (CustomUserDetails) oAuth2User;
+        User savedUser = userDetails.getUser();
+
+        assertThat(savedUser.getEmail()).isEqualTo(uniqueEmail);
+        assertThat(savedUser.getProviderType()).isEqualTo(ProviderType.KAKAO);
+        assertThat(savedUser.getProviderId()).isEqualTo("789456123");
+
+        // when: JWT
+        String accessToken = jwtProvider.generateAccessToken(savedUser.getEmail());
+        String refreshToken = jwtProvider.generateRefreshToken(savedUser.getEmail());
+
+        // then: JWT
+        assertThat(accessToken).isNotNull();
+        assertThat(refreshToken).isNotNull();
+        assertThat(jwtProvider.validateToken(accessToken)).isTrue();
+        assertThat(jwtProvider.getEmailFromToken(accessToken)).isEqualTo(uniqueEmail);
     }
 }
