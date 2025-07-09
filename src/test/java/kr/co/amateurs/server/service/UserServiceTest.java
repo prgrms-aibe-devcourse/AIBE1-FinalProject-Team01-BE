@@ -5,6 +5,7 @@ import kr.co.amateurs.server.config.TestAuthHelper;
 import kr.co.amateurs.server.domain.dto.user.*;
 import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
@@ -202,5 +203,28 @@ public class UserServiceTest {
         User deletedUser = userRepository.findByEmail(testUser.getEmail()).orElseThrow();
         assertThat(deletedUser.isDeleted()).isTrue();
         assertThat(deletedUser.getDeletedAt()).isNotNull();
+    }
+
+    @Test
+    void 잘못된_현재_비밀번호로_탈퇴_시_예외가_발생한다() {
+        // given
+        UserDeleteRequestDTO request = new UserDeleteRequestDTO("wrongPassword");
+
+        // when & then
+        assertThatThrownBy(() -> userService.deleteUser(request))
+                .isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    void 이미_탈퇴한_사용자_재탈퇴_시_예외가_발생한다() {
+        // given
+        testUser.softDelete();
+        userRepository.save(testUser);
+
+        UserDeleteRequestDTO request = new UserDeleteRequestDTO(UserTestFixture.DEFAULT_PASSWORD);
+
+        // when & then
+        assertThatThrownBy(() -> userService.deleteUser(request))
+                .isInstanceOf(CustomException.class);
     }
 }
