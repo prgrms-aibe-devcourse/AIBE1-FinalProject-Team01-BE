@@ -59,7 +59,6 @@ public class CommunityTestFixtures {
                 .boardType(boardType)
                 .viewCount(0)
                 .likeCount(0)
-                .comments(new ArrayList<>())
                 .postImages(new ArrayList<>())
                 .build();
     }
@@ -74,7 +73,6 @@ public class CommunityTestFixtures {
                 .boardType(boardType)
                 .viewCount(viewCount)
                 .likeCount(likeCount)
-                .comments(new ArrayList<>())
                 .postImages(new ArrayList<>())
                 .build();
     }
@@ -98,7 +96,7 @@ public class CommunityTestFixtures {
 
     public static Comment createComment(Post post, User user, String content) {
         return Comment.builder()
-                .post(post)
+                .postId(post.getId())
                 .user(user)
                 .content(content)
                 .build();

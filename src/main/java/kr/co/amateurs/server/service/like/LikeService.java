@@ -128,7 +128,7 @@ public class LikeService {
     }
 
     private void validateCommentBelongsToPost(Comment comment, Long postId) {
-        if (!comment.getPost().getId().equals(postId)) {
+        if (!comment.getPostId().equals(postId)) {
             throw new CustomException(ErrorCode.INVALID_COMMENT_POST_RELATION);
         }
     }

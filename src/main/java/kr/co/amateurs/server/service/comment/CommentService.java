@@ -2,18 +2,17 @@ package kr.co.amateurs.server.service.comment;
 
 import kr.co.amateurs.server.annotation.alarmtrigger.AlarmTrigger;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.comment.CommentJooqDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentPageDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
 import kr.co.amateurs.server.domain.dto.comment.CommentResponseDTO;
-import kr.co.amateurs.server.domain.dto.like.CommentLikeStatusDTO;
 import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
-import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.comment.CommentJooqRepository;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
-import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,39 +33,67 @@ public class CommentService {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-    private final LikeRepository likeRepository;
-
+    private final CommentJooqRepository commentJooqRepository;
     private final UserService userService;
 
     public CommentPageDTO getCommentsByPostId(Long postId, Long cursor, int size) {
-        Post post = findPostById(postId);
+        Optional<User> currentUser = userService.getCurrentUser();
+        PageRequest pageRequest = PageRequest.of(0, size + CURSOR_OFFSET);
 
-        List<Comment> comments = fetchRootComments(post, cursor, size + CURSOR_OFFSET);
-        List<CommentResponseDTO> commentDTOs = convertToRootCommentDTOs(comments);
+        List<CommentJooqDTO> comments = fetchRootComments(
+                postId,
+                currentUser.map(User::getId).orElse(null),
+                cursor,
+                pageRequest
+        );
 
-        return createCommentPageDTO(commentDTOs, size);
+        List<CommentResponseDTO> responseComments = comments.stream()
+                .map(CommentJooqDTO::toResponseDTO)
+                .collect(Collectors.toList());
+
+        return createCommentPageDTO(responseComments, size);
     }
 
     public CommentPageDTO getReplies(Long postId, Long parentCommentId, Long cursor, int size) {
-        Comment parentComment = findCommentById(parentCommentId);
+        Comment parentComment = commentRepository.findByIdAndPostId(parentCommentId, postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_COMMENT_POST_RELATION));
 
-        validateCommentBelongsToPost(parentComment, postId);
-        List<Comment> comments = fetchReplies(parentComment, cursor, size + CURSOR_OFFSET);
-        List<CommentResponseDTO> commentDTOs = convertToReplyDTOs(comments);
+        Optional<User> currentUser = userService.getCurrentUser();
 
-        return createCommentPageDTO(commentDTOs, size);
+        PageRequest pageRequest = PageRequest.of(0, size + CURSOR_OFFSET);
+
+        List<CommentJooqDTO> replies = fetchReplies(
+                parentCommentId,
+                currentUser.map(User::getId).orElse(null),
+                cursor,
+                pageRequest
+        );
+
+        List<CommentResponseDTO> responseReplies = replies.stream()
+                .map(CommentJooqDTO::toResponseDTO)
+                .collect(Collectors.toList());
+
+        return createCommentPageDTO(responseReplies, size);
     }
 
     @Transactional
     @AlarmTrigger(type = AlarmType.COMMENT)
     public CommentResponseDTO createComment(Long postId, CommentRequestDTO requestDTO) {
         User user = userService.getCurrentLoginUser();
+        if (!postRepository.existsByIdUsingCount(postId)) {
+            throw new CustomException(ErrorCode.POST_NOT_FOUND);
+        }
 
-        Post post = findPostById(postId);
+        Comment comment = Comment.from(requestDTO, postId, user, requestDTO.parentCommentId());
 
-        Comment parentComment = getParentComment(requestDTO.parentCommentId()).orElse(null);
+        if (requestDTO.parentCommentId() != null) {
+            Comment parentComment = commentRepository.findById(requestDTO.parentCommentId()).orElseThrow(ErrorCode.NOT_FOUND);
+            if (parentComment.getParentCommentId() != null){
+                throw ErrorCode.INVALID_PARENT_COMMENT.get();
+            }
+            parentComment.incrementReplyCount();
+        }
 
-        Comment comment = Comment.from(requestDTO, post, user, parentComment);
         Comment savedComment = commentRepository.save(comment);
 
         return CommentResponseDTO.from(savedComment, 0, false);
@@ -73,9 +101,9 @@ public class CommentService {
 
     @Transactional
     public void updateComment(Long postId, Long commentId, CommentRequestDTO requestDTO) {
-        Comment comment = findCommentById(commentId);
+        Comment comment = commentRepository.findByIdAndPostId(commentId, postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
-        validateCommentBelongsToPost(comment, postId);
         validateCommentAccess(comment.getUser().getId());
 
         comment.updateContent(requestDTO.content());
@@ -83,12 +111,40 @@ public class CommentService {
 
     @Transactional
     public void deleteComment(Long postId, Long commentId) {
-        Comment comment = findCommentById(commentId);
+        Comment comment = commentRepository.findByIdAndPostId(commentId, postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
-        validateCommentBelongsToPost(comment, postId);
         validateCommentAccess(comment.getUser().getId());
 
+        if (comment.getParentCommentId() != null) {
+            commentRepository.decreaseReplyCount(comment.getParentCommentId());
+        }
+
         commentRepository.delete(comment);
+    }
+
+    private List<CommentJooqDTO> fetchRootComments(Long postId, Long userId, Long cursor, PageRequest pageRequest) {
+        if (userId != null) {
+            return (cursor == null)
+                    ? commentJooqRepository.findRootCommentsWithLikes(postId, userId, pageRequest)
+                    : commentJooqRepository.findRootCommentsAfterCursorWithLikes(postId, cursor, userId, pageRequest);
+        } else {
+            return (cursor == null)
+                    ? commentJooqRepository.findRootCommentsForGuest(postId, pageRequest)
+                    : commentJooqRepository.findRootCommentsAfterCursorForGuest(postId, cursor, pageRequest);
+        }
+    }
+
+    private List<CommentJooqDTO> fetchReplies(Long parentCommentId, Long userId, Long cursor, PageRequest pageRequest) {
+        if (userId != null) {
+            return (cursor == null)
+                    ? commentJooqRepository.findRepliesWithLikes(parentCommentId, userId, pageRequest)
+                    : commentJooqRepository.findRepliesAfterCursorWithLikes(parentCommentId, cursor, userId, pageRequest);
+        } else {
+            return (cursor == null)
+                    ? commentJooqRepository.findRepliesForGuest(parentCommentId, pageRequest)
+                    : commentJooqRepository.findRepliesAfterCursorForGuest(parentCommentId, cursor, pageRequest);
+        }
     }
 
     private void validateCommentAccess(Long commentUserId) {
@@ -96,12 +152,6 @@ public class CommentService {
 
         if (!(commentUserId.equals(user.getId()) || user.getRole() == Role.ADMIN)) {
             throw new CustomException(ErrorCode.ACCESS_DENIED);
-        }
-    }
-
-    private void validateCommentBelongsToPost(Comment comment, Long postId) {
-        if (!comment.getPost().getId().equals(postId)) {
-            throw new CustomException(ErrorCode.INVALID_COMMENT_POST_RELATION);
         }
     }
 
@@ -116,110 +166,8 @@ public class CommentService {
         return new CommentPageDTO(commentDTOs, nextCursor, hasMore);
     }
 
-    private Optional<Comment> getParentComment(Long parentCommentId) {
-        if (parentCommentId == null) {
-            return Optional.empty();
-        }
-
-        Comment parentComment = findCommentById(parentCommentId);
-        if (parentComment.getParentComment() != null) {
-            throw new CustomException(ErrorCode.INVALID_PARENT_COMMENT);
-        }
-
-        return Optional.of(parentComment);
-    }
-
-    private Post findPostById(Long postId) {
-        return postRepository.findById(postId)
-                .orElseThrow(ErrorCode.NOT_FOUND);
-    }
-
     public Comment findCommentById(Long commentId) {
         return commentRepository.findById(commentId)
                 .orElseThrow(ErrorCode.NOT_FOUND);
-    }
-
-    private List<Comment> fetchRootComments(Post post, Long cursor, int size) {
-        if (cursor == null) {
-            return commentRepository.findByPostAndParentCommentIsNullOrderByCreatedAtAsc(post, PageRequest.of(0, size));
-        } else{
-            return commentRepository.findByPostAndParentCommentIsNullAndIdGreaterThanOrderByCreatedAtAsc(post, cursor, PageRequest.of(0, size));
-        }
-    }
-
-    private List<Comment> fetchReplies(Comment parentComment, Long cursor, int size) {
-        if (cursor == null) {
-            return commentRepository.findByParentCommentOrderByCreatedAtAsc(parentComment, PageRequest.of(0, size));
-        } else {
-            return commentRepository.findByParentCommentAndIdGreaterThanOrderByCreatedAtAsc(parentComment, cursor, PageRequest.of(0, size));
-        }
-    }
-
-    private List<CommentResponseDTO> convertToRootCommentDTOs(List<Comment> comments) {
-        if (comments.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        Map<Long, Integer> replyCountMap = getReplyCountMap(comments);
-        Map<Long, Boolean> likeStatusMap = getUserLikeStatusMap(comments);
-
-
-        return comments.stream()
-                .map(comment -> CommentResponseDTO.from(
-                        comment,
-                        replyCountMap.getOrDefault(comment.getId(), 0),
-                        likeStatusMap.getOrDefault(comment.getId(), false)
-                ))
-                .toList();
-    }
-
-    private List<CommentResponseDTO> convertToReplyDTOs(List<Comment> comments) {
-        if (comments.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        Map<Long, Boolean> likeStatusMap = getUserLikeStatusMap(comments);
-
-        return comments.stream()
-                .map(comment -> CommentResponseDTO.from(
-                        comment,
-                        0,
-                        likeStatusMap.getOrDefault(comment.getId(), false)
-                ))
-                .toList();
-    }
-
-    private Map<Long, Integer> getReplyCountMap(List<Comment> comments) {
-        List<Long> commentIds = comments.stream()
-                .map(Comment::getId)
-                .toList();
-
-        return commentRepository.countRepliesByParentIds(commentIds).stream()
-                .filter(replyCount -> replyCount.getParentCommentId()!=null && replyCount.getCount() != null)
-                .collect(Collectors.toMap(
-                        replyCount -> replyCount.getParentCommentId(),
-                        replyCount -> replyCount.getCount().intValue()
-                ));
-    }
-
-    private Map<Long, Boolean> getUserLikeStatusMap(List<Comment> comments) {
-        User user = userService.getCurrentUser().orElse(null);
-
-        if (user == null) {
-            return comments.stream()
-                    .collect(Collectors.toMap(Comment::getId, comment -> false));
-        }
-
-        List<Long> commentIds = comments.stream()
-                .map(Comment::getId)
-                .toList();
-
-        List<CommentLikeStatusDTO> commentLikeStatus = likeRepository.findCommentLikeStatusByCommentIdsAndUserId(commentIds, user.getId());
-
-        return commentLikeStatus.stream()
-                .collect(Collectors.toMap(
-                        CommentLikeStatusDTO::commentId,
-                        CommentLikeStatusDTO::isLiked
-                ));
     }
 }
