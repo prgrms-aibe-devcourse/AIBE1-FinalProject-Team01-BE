@@ -114,7 +114,7 @@ public class UserService {
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);
 
         if(request.nickname() != null && !request.nickname().equals(userFromDb.getNickname())) {
-            validateEmailDuplicate(request.nickname());
+            validateNicknameDuplicate(request.nickname());
             validateNicknameFormat(request.nickname());
         }
 
