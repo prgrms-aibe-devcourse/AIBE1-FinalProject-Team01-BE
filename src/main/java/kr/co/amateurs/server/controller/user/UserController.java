@@ -51,4 +51,13 @@ public class UserController {
         UserTopicsEditResponseDto response = userService.updateTopics(request);
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "회원 탈퇴", description = "현재 로그인한 사용자의 계정을 탈퇴합니다")
+    @DeleteMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserDeleteResponseDTO> deleteUser(
+            @RequestBody UserDeleteRequestDTO request) {
+        UserDeleteResponseDTO response = userService.deleteUser(request);
+        return ResponseEntity.ok(response);
+    }
 }
