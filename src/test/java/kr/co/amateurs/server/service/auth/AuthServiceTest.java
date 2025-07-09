@@ -264,7 +264,7 @@ public class AuthServiceTest {
         assertThat(refreshTokenService.existsByEmail(saveUser.getEmail())).isTrue();
 
         // when
-        authService.logout();
+        authService.logout(null);
 
         // then
         assertThat(refreshTokenService.existsByEmail(saveUser.getEmail())).isFalse();
@@ -277,7 +277,7 @@ public class AuthServiceTest {
 
         // when & then
         CustomException exception = assertThrows(CustomException.class, () -> {
-            authService.logout();
+            authService.logout(null);
         });
 
         assertThat(exception.getMessage()).isEqualTo("로그인이 필요합니다.");
