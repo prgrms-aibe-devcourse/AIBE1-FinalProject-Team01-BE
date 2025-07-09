@@ -28,7 +28,7 @@ jobs:
   test:
     name: 테스트 워크플로우
     needs: check-changes
-    if: needs.check-changes.outputs.should-run == 'true'
+    # if: needs.check-changes.outputs.should-run == 'true'
     uses: ./.github/workflows/test.yml
     secrets: inherit
     permissions:
@@ -40,7 +40,8 @@ jobs:
   build:
     name: 빌드 워크플로우
     needs: test
-    if: needs.check-changes.outputs.should-run == 'true' && (github.event_name == 'push') # 빌드는 푸시 이벤트에서만 실행
+    # if: needs.check-changes.outputs.should-run == 'true' && (github.event_name == 'push') # 빌드는 푸시 이벤트에서만 실행
+    if: github.event_name == 'push' # main 테스트용
     uses: ./.github/workflows/build.yml
     secrets: inherit
     permissions:
@@ -52,7 +53,7 @@ jobs:
 
   notify:
     name: CI 결과 알림
-    if: needs.check-changes.outputs.should-run == 'true'
+    # if: needs.check-changes.outputs.should-run == 'true'
     needs: [test, build]
     runs-on: ubuntu-latest
     permissions:
