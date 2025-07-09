@@ -126,7 +126,7 @@ public class CustomOAuth2UserServiceTest {
 
         // when & then
         assertThatThrownBy(() -> customOAuth2UserService.loadUser(userRequest))
-                .isInstanceOf(CustomException.class);
+                .isInstanceOf(OAuth2AuthenticationException.class);
     }
 
     @Test
@@ -188,7 +188,7 @@ public class CustomOAuth2UserServiceTest {
 
         String generatedEmail = savedUser.get().getEmail();
         assertThat(generatedEmail).startsWith("github_55555@");
-        assertThat(generatedEmail).endsWith("@amateurs.com");
+        assertThat(generatedEmail).endsWith("@amateurs.local");
         assertThat(savedUser.get().getName()).isEqualTo("메일없는사용자");
         assertThat(savedUser.get().getNickname()).startsWith("noemail_");
     }

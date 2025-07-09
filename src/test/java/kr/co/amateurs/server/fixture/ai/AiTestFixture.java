@@ -42,6 +42,16 @@ public class AiTestFixture {
         return post;
     }
 
+    public static Post createTestPostWithId(User user, Long id) {
+        Post post = Post.builder()
+                .user(user)
+                .title("AI 추천 게시글")
+                .content("AI 내용")
+                .build();
+        setId(post, id);
+        return post;
+    }
+
     public static RecommendedPost createRecommendedPost(User user, Post post) {
         RecommendedPost rec = RecommendedPost.builder()
                 .user(user)
@@ -63,7 +73,7 @@ public class AiTestFixture {
         return new AiProfileResponse(personaDescription, interestKeywords);
     }
 
-    private static void setId(Object entity, Long id) {
+    public static void setId(Object entity, Long id) {
         try {
             java.lang.reflect.Field idField = entity.getClass().getSuperclass().getDeclaredField("id");
             idField.setAccessible(true);
