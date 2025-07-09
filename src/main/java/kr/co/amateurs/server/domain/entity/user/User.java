@@ -96,4 +96,19 @@ public class User extends BaseEntity {
     public boolean isDeleted() {
         return this.isDeleted != null && this.isDeleted;
     }
+
+    public void anonymizeAndDelete(String anonymousEmail, String anonymousNickname) {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+
+        this.email = anonymousEmail;
+        this.nickname = anonymousNickname;
+        this.name = "탈퇴한회원";
+
+        this.imageUrl = null;
+        this.providerId = null;
+        this.devcourseBatch = null;
+
+        this.userTopics.clear();
+    }
 }

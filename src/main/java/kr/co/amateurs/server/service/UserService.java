@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Set;
 
@@ -174,7 +175,6 @@ public class UserService {
 
     public UserDeleteResponseDTO deleteUser(UserDeleteRequestDTO request) {
         User currentUser = getCurrentLoginUser();
-
         User userFromDb = userRepository.findById(currentUser.getId())
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);
 
@@ -190,10 +190,24 @@ public class UserService {
             validateCurrentPassword(userFromDb, request.currentPassword());
         }
 
-        userFromDb.softDelete();
+        String anonymousEmail = generateAnonymousEmail();
+        String anonymousNickname = generateAnonymousNickname();
+
+        userFromDb.anonymizeAndDelete(anonymousEmail, anonymousNickname);
         userRepository.save(userFromDb);
 
         return UserDeleteResponseDTO.success();
+    }
+
+    private String generateAnonymousEmail() {
+        String uniqueId = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        return "deleted_" + uniqueId + "@anonymous.amateurs.com";
+    }
+
+    private String generateAnonymousNickname() {
+        String prefix = "탈퇴한회원_";
+        String uniqueSuffix = UUID.randomUUID().toString().replace("-", "").substring(0, 9);
+        return prefix + uniqueSuffix;
     }
 
     private void validateTopicsCount(Set<Topic> topics) {
