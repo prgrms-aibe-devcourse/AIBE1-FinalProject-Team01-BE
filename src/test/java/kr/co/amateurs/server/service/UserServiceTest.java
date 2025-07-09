@@ -227,4 +227,29 @@ public class UserServiceTest {
         assertThatThrownBy(() -> userService.deleteUser(request))
                 .isInstanceOf(CustomException.class);
     }
+
+    @Test
+    void 소셜_로그인_사용자_탈퇴_시_정상적으로_처리된다() {
+        // given
+        User socialUser = UserTestFixture.defaultUser()
+                .email(UserTestFixture.generateUniqueEmail())
+                .nickname(UserTestFixture.generateUniqueNickname())
+                .providerType(ProviderType.GITHUB)
+                .password(null)
+                .build();
+        socialUser.addUserTopics(Set.of(Topic.FRONTEND, Topic.BACKEND));
+        socialUser = TestAuthHelper.setAuthentication(socialUser, userRepository);
+
+        UserDeleteRequestDTO request = new UserDeleteRequestDTO(null);
+
+        // when
+        UserDeleteResponseDTO response = userService.deleteUser(request);
+
+        // then
+        assertThat(response.message()).isEqualTo("회원 탈퇴가 성공적으로 처리되었습니다");
+
+        User deletedUser = userRepository.findByEmail(socialUser.getEmail()).orElseThrow();
+        assertThat(deletedUser.isDeleted()).isTrue();
+        assertThat(deletedUser.getDeletedAt()).isNotNull();
+    }
 }
