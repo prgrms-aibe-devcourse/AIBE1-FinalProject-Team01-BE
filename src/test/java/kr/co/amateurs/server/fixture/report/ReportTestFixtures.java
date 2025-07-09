@@ -64,7 +64,6 @@ public class ReportTestFixtures {
                 .boardType(BoardType.FREE)
                 .viewCount(10)
                 .likeCount(5)
-                .comments(new ArrayList<>())
                 .postImages(new ArrayList<>())
                 .build();
     }
@@ -78,14 +77,13 @@ public class ReportTestFixtures {
                 .boardType(boardType)
                 .viewCount(0)
                 .likeCount(0)
-                .comments(new ArrayList<>())
                 .postImages(new ArrayList<>())
                 .build();
     }
 
     public static Comment createTestComment(Post post, User user) {
         return Comment.builder()
-                .post(post)
+                .postId(post.getId())
                 .user(user)
                 .content("테스트 댓글")
                 .build();
@@ -93,7 +91,7 @@ public class ReportTestFixtures {
 
     public static Comment createCustomComment(Post post, User user, String content) {
         return Comment.builder()
-                .post(post)
+                .postId(post.getId())
                 .user(user)
                 .content(content)
                 .build();
@@ -161,7 +159,6 @@ public class ReportTestFixtures {
                 .boardType(BoardType.FREE)
                 .viewCount(10)
                 .likeCount(5)
-                .comments(new ArrayList<>())
                 .postImages(new ArrayList<>())
                 .build();
     }
@@ -177,7 +174,6 @@ public class ReportTestFixtures {
                 .boardType(BoardType.FREE)
                 .viewCount(2)
                 .likeCount(0)
-                .comments(new ArrayList<>())
                 .postImages(new ArrayList<>())
                 .build();
     }

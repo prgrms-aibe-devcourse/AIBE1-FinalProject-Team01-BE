@@ -110,4 +110,14 @@ public class AuthService {
 
         return TokenReissueResponseDTO.of(newAccessToken, expiresIn);
     }
+
+    @Transactional
+    public void logout(HttpServletResponse response) {
+        User currentUser = userService.getCurrentLoginUser();
+        refreshTokenService.deleteByEmail(currentUser.getEmail());
+
+        if (response != null) {
+            cookieUtils.clearAuthTokenCookie(response);
+        }
+    }
 }
