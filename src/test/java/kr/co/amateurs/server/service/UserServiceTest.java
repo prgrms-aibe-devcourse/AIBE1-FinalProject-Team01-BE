@@ -187,4 +187,20 @@ public class UserServiceTest {
         assertThatThrownBy(() -> userService.updateTopics(request))
                 .isInstanceOf(CustomException.class);
     }
+
+    @Test
+    void 올바른_비밀번호로_탈퇴_시_정상적으로_처리된다() {
+        // given
+        UserDeleteRequestDTO request = new UserDeleteRequestDTO(UserTestFixture.DEFAULT_PASSWORD);
+
+        // when
+        UserDeleteResponseDTO response = userService.deleteUser(request);
+
+        // then
+        assertThat(response.message()).isEqualTo("회원 탈퇴가 성공적으로 처리되었습니다");
+
+        User deletedUser = userRepository.findByEmail(testUser.getEmail()).orElseThrow();
+        assertThat(deletedUser.isDeleted()).isTrue();
+        assertThat(deletedUser.getDeletedAt()).isNotNull();
+    }
 }
