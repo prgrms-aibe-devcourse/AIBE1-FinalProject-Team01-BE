@@ -46,7 +46,7 @@ public class DirectMessageService {
     public DirectMessageRoomResponse createRoom(long partnerId) {
         User currentUser = userService.getCurrentLoginUser();
         if (currentUser.getId().equals(partnerId)) {
-            throw new CustomException(ErrorCode.INVALID_USER_ID);
+            throw new CustomException(ErrorCode.CANNOT_CHAT_WITH_SELF);
         }
 
         User partner = userService.findById(partnerId);
@@ -56,7 +56,7 @@ public class DirectMessageService {
                 .map(this::reEntryParticipants)
                 .orElseGet(() -> directMessageRoomRepository.save(DirectMessageRoom.from(participants)));
 
-        return DirectMessageRoomResponse.fromCollection(room, partner);
+        return DirectMessageRoomResponse.fromCollection(room, currentUser);
     }
 
     public DirectMessageRoomResponse createTestRoom() {
