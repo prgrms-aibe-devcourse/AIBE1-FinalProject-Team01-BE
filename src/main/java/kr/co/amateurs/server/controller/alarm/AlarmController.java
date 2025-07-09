@@ -25,6 +25,12 @@ public class AlarmController {
         return ResponseEntity.ok(alarmService.readAlarms(param));
     }
 
+    @PostMapping
+    @Operation(summary = "테스트용 알람 생성")
+    public void createTestAlarm() {
+        alarmService.createTestAlarm();
+    }
+
     @PatchMapping
     @Operation(summary = "알람 전체 읽기 처리")
     public ResponseEntity<Void> markAllAsRead() {
