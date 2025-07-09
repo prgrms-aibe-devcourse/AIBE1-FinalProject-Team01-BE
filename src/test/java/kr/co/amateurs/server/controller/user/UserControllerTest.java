@@ -4,6 +4,7 @@ import io.restassured.http.ContentType;
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.user.UserBasicProfileEditRequestDTO;
+import kr.co.amateurs.server.domain.dto.user.UserDeleteRequestDTO;
 import kr.co.amateurs.server.domain.dto.user.UserPasswordEditRequestDTO;
 import kr.co.amateurs.server.domain.dto.user.UserTopicsEditRequestDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -224,5 +225,53 @@ public class UserControllerTest extends AbstractControllerTest {
                 .put("/users/me/topics")
                 .then()
                 .statusCode(400);
+    }
+
+    @Test
+    void 인증된_사용자가_올바른_비밀번호로_탈퇴_요청_시_정상적으로_처리된다() {
+        // given
+        UserDeleteRequestDTO deleteRequest = new UserDeleteRequestDTO(rawPassword);
+
+        // when & then
+        given()
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(ContentType.JSON)
+                .body(deleteRequest)
+                .when()
+                .delete("/users/me")
+                .then()
+                .statusCode(200)
+                .body("message", equalTo("회원 탈퇴가 성공적으로 처리되었습니다"));
+    }
+
+    @Test
+    void 인증된_사용자가_잘못된_비밀번호로_탈퇴_요청_시_400_에러가_발생한다() {
+        // given
+        UserDeleteRequestDTO deleteRequest = new UserDeleteRequestDTO("wrongPassword");
+
+        // when & then
+        given()
+                .header("Authorization", "Bearer " + accessToken)
+                .contentType(ContentType.JSON)
+                .body(deleteRequest)
+                .when()
+                .delete("/users/me")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    void 인증_토큰_없이_탈퇴_요청_시_403_에러가_발생한다() {
+        // given
+        UserDeleteRequestDTO deleteRequest = new UserDeleteRequestDTO(rawPassword);
+
+        // when & then
+        given()
+                .contentType(ContentType.JSON)
+                .body(deleteRequest)
+                .when()
+                .delete("/users/me")
+                .then()
+                .statusCode(403);
     }
 }
