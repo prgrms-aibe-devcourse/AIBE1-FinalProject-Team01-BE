@@ -12,6 +12,7 @@ import kr.co.amateurs.server.fixture.comment.CommentTestFixtures;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -34,6 +35,9 @@ public class CommentControllerTest extends AbstractControllerTest {
 
     @Autowired
     private LikeRepository likeRepository;
+
+    @Autowired
+    private PostStatisticsRepository postStatisticsRepository;
 
     @Autowired
     private JwtProvider jwtProvider;
@@ -653,6 +657,7 @@ public class CommentControllerTest extends AbstractControllerTest {
     }
 
     private void cleanUpData() {
+        postStatisticsRepository.deleteAll();
         likeRepository.deleteAll();
         commentRepository.deleteAll();
         postRepository.deleteAll();

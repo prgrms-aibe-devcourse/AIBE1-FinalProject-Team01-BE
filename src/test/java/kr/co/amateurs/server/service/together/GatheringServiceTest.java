@@ -8,34 +8,30 @@ import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
-import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import kr.co.amateurs.server.domain.entity.user.User;
-import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.like.LikeService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +40,7 @@ import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createAdmin;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createStudent;
 import static kr.co.amateurs.server.fixture.together.GatheringTestFixture.*;
+import static kr.co.amateurs.server.fixture.together.GatheringTestFixture.createStudyPost;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 
@@ -73,6 +70,12 @@ class GatheringServiceTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private PostStatisticsRepository postStatisticsRepository;
+
     @MockitoBean
     private UserService userService;
     @MockitoBean
@@ -88,6 +91,9 @@ class GatheringServiceTest {
 
     @BeforeEach
     void setUp() throws JsonProcessingException {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+        postStatisticsRepository.deleteAll();
         gatheringRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();
@@ -99,17 +105,33 @@ class GatheringServiceTest {
         projectUser = userRepository.save(projectUser);
         adminUser = userRepository.save(adminUser);
 
-        studyPost = createStudyPost(studyUser);
-        projectPost = createProjectPost(projectUser);
+        studyPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    createStudyPost(studyUser)
+            );
 
-        studyPost = postRepository.save(studyPost);
-        projectPost = postRepository.save(projectPost);
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
+
+        projectPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    createProjectPost(projectUser)
+            );
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
 
         studyGatheringPost = createStudyGatheringPost(studyPost);
         projectGatheringPost = createProjectGatheringPost(projectPost);
 
-        studyGatheringPost = gatheringRepository.save(studyGatheringPost);
-        projectGatheringPost = gatheringRepository.save(projectGatheringPost);
+        gatheringRepository.save(studyGatheringPost);
+        gatheringRepository.save(projectGatheringPost);
 
         given(likeService.checkHasLiked(studyPost.getId(), studyUser.getId())).willReturn(false);
     }
@@ -199,7 +221,7 @@ class GatheringServiceTest {
             given(userService.getCurrentLoginUser()).willReturn(studyUser);
 
             // when
-            GatheringPostResponseDTO result = gatheringService.getGatheringPost(gatheringPostId);
+            GatheringPostResponseDTO result = gatheringService.getGatheringPost(gatheringPostId, "`");
 
             // then
             assertThat(result.postId()).isEqualTo(studyPost.getId());
@@ -216,7 +238,7 @@ class GatheringServiceTest {
             Long nonExistentId = 999L;
 
             // when & then
-            assertThatThrownBy(() -> gatheringService.getGatheringPost(nonExistentId))
+            assertThatThrownBy(() -> gatheringService.getGatheringPost(nonExistentId, "`"))
                     .isInstanceOf(CustomException.class);
         }
     }

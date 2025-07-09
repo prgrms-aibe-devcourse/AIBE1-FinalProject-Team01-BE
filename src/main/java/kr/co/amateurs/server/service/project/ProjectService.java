@@ -3,17 +3,19 @@ package kr.co.amateurs.server.service.project;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
+import kr.co.amateurs.server.domain.dto.post.PostViewedEvent;
 import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.domain.entity.post.Post;
-import kr.co.amateurs.server.domain.entity.post.PostImage;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.Project;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
-import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.file.PostImageRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.project.ProjectJooqRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
 import kr.co.amateurs.server.service.UserService;
@@ -21,6 +23,7 @@ import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +38,8 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
+    private final PostStatisticsRepository postStatisticsRepository;
+    private final BookmarkRepository bookmarkRepository;
 
     private final ProjectJooqRepository projectJooqRepository;
 
@@ -42,6 +47,8 @@ public class ProjectService {
     private final FileService fileService;
 
     private final PostEmbeddingService postEmbeddingService;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     public PageResponseDTO<ProjectResponseDTO> getProjects(ProjectSearchParam params) {
         Page<ProjectResponseDTO> projects = userService.getCurrentUser()
@@ -51,10 +58,14 @@ public class ProjectService {
         return PageResponseDTO.convertPageToDTO(projects);
     }
 
-    public ProjectResponseDTO getProjectDetails(Long projectId) {
-        return userService.getCurrentUser()
+    public ProjectResponseDTO getProjectDetails(Long projectId, String ipAddress) {
+        ProjectResponseDTO result = userService.getCurrentUser()
                 .map(user -> projectJooqRepository.findByIdAndUserId(projectId, user.getId()))
                 .orElseGet(() -> projectJooqRepository.findById(projectId));
+
+        eventPublisher.publishEvent(new PostViewedEvent(result.postId(), ipAddress));
+
+        return result;
     }
 
     @Transactional
@@ -81,6 +92,9 @@ public class ProjectService {
                 .build();
 
         projectRepository.save(project);
+
+        PostStatistics postStatistics = PostStatistics.from(savedPost);
+        postStatisticsRepository.save(postStatistics);
 
         CompletableFuture.runAsync(() -> {
             try {
@@ -126,8 +140,12 @@ public class ProjectService {
 
         validatePost(project.getPost(), user.getEmail());
 
+        //TODO cascade 설정 필요
+        postStatisticsRepository.deleteById(project.getPost().getId());
+        bookmarkRepository.deleteByPost_Id(project.getPost().getId());
         fileService.deletePostImage(project.getPost());
         projectRepository.deleteById(projectId);
+        postRepository.deleteById(project.getPost().getId());
     }
 
     private void validatePost(Post post, String email) {

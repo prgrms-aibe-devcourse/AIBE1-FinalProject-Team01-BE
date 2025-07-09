@@ -6,6 +6,7 @@ import org.jooq.SelectJoinStep;
 import org.jooq.SelectSelectStep;
 
 import static org.jooq.generated.Tables.BOOKMARKS;
+import static org.jooq.generated.Tables.POST_STATISTICS;
 import static org.jooq.generated.tables.Posts.POSTS;
 import static org.jooq.generated.tables.Projects.PROJECTS;
 import static org.jooq.generated.tables.Users.USERS;
@@ -26,7 +27,7 @@ public interface ProjectQueryStrategy {
                 POSTS.TITLE,
                 POSTS.CONTENT,
                 POSTS.TAG,
-//                POSTS.VIEW_COUNT, // TODO: 조회수 로직 구현되면 주석 해제
+                POST_STATISTICS.VIEW_COUNT,
                 POSTS.LIKE_COUNT,
                 count(BOOKMARKS.ID).as("bookmarkCount"),
                 POSTS.CREATED_AT,

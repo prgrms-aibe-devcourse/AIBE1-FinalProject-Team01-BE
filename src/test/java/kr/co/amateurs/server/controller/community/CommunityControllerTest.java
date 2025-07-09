@@ -5,14 +5,13 @@ import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.CommunityPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
-import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
-import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.community.CommunityRepository;
-import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.fixture.community.CommunityTestFixtures;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +19,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -36,13 +37,10 @@ public class CommunityControllerTest extends AbstractControllerTest {
     private UserRepository userRepository;
 
     @Autowired
-    private CommentRepository commentRepository;
+    private PostStatisticsRepository postStatisticsRepository;
 
     @Autowired
-    private LikeRepository likeRepository;
-
-    @Autowired
-    private BookmarkRepository bookmarkRepository;
+    private PlatformTransactionManager transactionManager;
 
     private User guestUser;
     private User studentUser;
@@ -173,16 +171,30 @@ public class CommunityControllerTest extends AbstractControllerTest {
 
         @Test
         void 일반_유저는_게시글_상세를_조회할_수_있다() {
+            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+            CommunityPost freshPost = transactionTemplate.execute(status -> {
+                Post post = postRepository.save(
+                        CommunityTestFixtures.createPost(studentUser, "테스트 게시글 제목", "테스트 게시글 내용", BoardType.FREE));
+
+                CommunityPost communityPost = communityRepository.save(
+                        CommunityTestFixtures.createCommunityPost(post));
+
+                PostStatistics postStatistics = PostStatistics.from(post);
+                postStatisticsRepository.save(postStatistics);
+
+                return communityPost;
+            });
             // when & then
             given()
                     .header("Authorization", "Bearer " + guestToken)
                     .when()
-                    .get("/community/{boardType}/{communityId}", BoardType.FREE, testCommunityPost.getId())
+                    .get("/community/{boardType}/{communityId}", BoardType.FREE, freshPost.getId())
                     .then()
                     .statusCode(HttpStatus.OK.value())
-                    .body("postId", equalTo(testPost.getId().intValue()))
-                    .body("title", equalTo(testPost.getTitle()))
-                    .body("content", equalTo(testPost.getContent()))
+                    .body("communityId", equalTo(freshPost.getId().intValue()))
+                    .body("title", equalTo("테스트 게시글 제목"))
+                    .body("content", equalTo("테스트 게시글 내용"))
                     .body("boardType", equalTo("FREE"));
         }
 
@@ -278,15 +290,28 @@ public class CommunityControllerTest extends AbstractControllerTest {
 
         @Test
         void 학생_유저는_게시글_상세를_조회할_수_있다() {
+            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+            CommunityPost freshPost = transactionTemplate.execute(status -> {
+                Post post = postRepository.save(
+                        CommunityTestFixtures.createPost(studentUser, "테스트 게시글 제목", "테스트 게시글 내용", BoardType.FREE));
+
+                CommunityPost communityPost = communityRepository.save(
+                        CommunityTestFixtures.createCommunityPost(post));
+
+                PostStatistics postStatistics = PostStatistics.from(post);
+                postStatisticsRepository.save(postStatistics);
+
+                return communityPost;
+            });
             // when & then
             given()
                     .header("Authorization", "Bearer " + studentToken)
                     .when()
-                    .get("/community/{boardType}/{communityId}", BoardType.FREE, testCommunityPost.getId())
+                    .get("/community/{boardType}/{communityId}", BoardType.FREE, freshPost.getId())
                     .then()
                     .statusCode(HttpStatus.OK.value())
-                    .body("postId", equalTo(testPost.getId().intValue()))
-                    .body("nickname", equalTo(studentUser.getNickname()));
+                    .body("communityId", equalTo(freshPost.getId().intValue()));
         }
 
         @Test
@@ -357,14 +382,30 @@ public class CommunityControllerTest extends AbstractControllerTest {
 
         @Test
         void 관리자는_게시글_상세를_조회할_수_있다() {
+
+            TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+            CommunityPost freshPost = transactionTemplate.execute(status -> {
+                Post post = postRepository.save(
+                        CommunityTestFixtures.createPost(studentUser, "테스트 게시글 제목", "테스트 게시글 내용", BoardType.FREE));
+
+                CommunityPost communityPost = communityRepository.save(
+                        CommunityTestFixtures.createCommunityPost(post));
+
+                PostStatistics postStatistics = PostStatistics.from(post);
+                postStatisticsRepository.save(postStatistics);
+
+                return communityPost;
+            });
+
             // when & then
             given()
                     .header("Authorization", "Bearer " + adminToken)
                     .when()
-                    .get("/community/{boardType}/{communityId}", BoardType.FREE, testCommunityPost.getId())
+                    .get("/community/{boardType}/{communityId}", BoardType.FREE, freshPost.getId())
                     .then()
                     .statusCode(HttpStatus.OK.value())
-                    .body("postId", equalTo(testPost.getId().intValue()));
+                    .body("communityId", equalTo(freshPost.getId().intValue()));
         }
 
         @Test
@@ -515,9 +556,7 @@ public class CommunityControllerTest extends AbstractControllerTest {
     }
 
     private void cleanUpData() {
-        bookmarkRepository.deleteAll();
-        likeRepository.deleteAll();
-        commentRepository.deleteAll();
+        postStatisticsRepository.deleteAll();
         communityRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();

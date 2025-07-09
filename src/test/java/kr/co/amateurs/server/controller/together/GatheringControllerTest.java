@@ -1,7 +1,5 @@
 package kr.co.amateurs.server.controller.together;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
@@ -9,18 +7,16 @@ import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.repository.together.GatheringJooqRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
-import kr.co.amateurs.server.service.together.GatheringService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -41,6 +37,8 @@ class GatheringControllerTest extends AbstractControllerTest {
     private ReportRepository reportRepository;
     @Autowired
     private GatheringJooqRepository gatheringJooqRepository;
+    @Autowired
+    private PostStatisticsRepository postStatisticsRepository;
 
     private String guestEmail;
     private String adminEmail;
@@ -48,6 +46,7 @@ class GatheringControllerTest extends AbstractControllerTest {
 
     @BeforeEach
     void setUp() {
+        postStatisticsRepository.deleteAll();
         reportRepository.deleteAll();
         gatheringRepository.deleteAll();
         postRepository.deleteAll();

@@ -8,9 +8,8 @@ import lombok.Builder;
 import org.jooq.Record;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
+import static org.jooq.generated.Tables.POST_STATISTICS;
 import static org.jooq.generated.tables.Posts.POSTS;
 import static org.jooq.generated.tables.Projects.PROJECTS;
 import static org.jooq.generated.tables.Users.USERS;
@@ -40,9 +39,8 @@ public record ProjectResponseDTO(
         String content,
         @Schema(description = "게시글 태그", example = "Spring Boot")
         String tags,
-// TODO: 조회수 로직 구현되면 주석 해제
-//        @Schema(description = "조회수", example = "15")
-//        Integer viewCount,
+        @Schema(description = "조회수", example = "15")
+        Integer viewCount,
         @Schema(description = "좋아요 수", example = "10")
         Integer likeCount,
         @Schema(description = "북마크 수", example = "3")
@@ -110,7 +108,7 @@ public record ProjectResponseDTO(
                 .title(record.get(POSTS.TITLE))
                 .content(record.get(POSTS.CONTENT))
                 .tags(record.get(POSTS.TAG))
-//                .viewCount(record.get(POSTS.VIEW_COUNT))
+                .viewCount(record.get(POST_STATISTICS.VIEW_COUNT))
                 .likeCount(record.get(POSTS.LIKE_COUNT))
                 .bookmarkCount(record.get("bookmarkCount", Integer.class))
                 .createdAt(record.get(POSTS.CREATED_AT))

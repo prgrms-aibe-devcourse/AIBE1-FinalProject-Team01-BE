@@ -4,21 +4,17 @@ package kr.co.amateurs.server.service.together;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
-import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
-import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
-import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
-import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
-import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 import kr.co.amateurs.server.domain.entity.user.User;
-import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
@@ -31,7 +27,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 
 import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
@@ -61,11 +59,18 @@ class MatchServiceTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private PostStatisticsRepository postStatisticsRepository;
+
     @MockitoBean
     private UserService userService;
 
     @MockitoBean
     private LikeService likeService;
+
 
     private User coffeeUser;
     private User mentoringUser;
@@ -77,6 +82,9 @@ class MatchServiceTest {
 
     @BeforeEach
     void setUp() {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+        postStatisticsRepository.deleteAll();
         matchRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();
@@ -88,11 +96,26 @@ class MatchServiceTest {
         mentoringUser = userRepository.save(mentoringUser);
         adminUser = userRepository.save(adminUser);
 
-        coffeePost = createCoffeeChatPost(coffeeUser);
-        mentoringPost = createMentoringPost(coffeeUser);
+        coffeePost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    createCoffeeChatPost(coffeeUser)
+            );
 
-        coffeePost = postRepository.save(coffeePost);
-        mentoringPost = postRepository.save(mentoringPost);
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
+        mentoringPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    createMentoringPost(coffeeUser)
+            );
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
 
         coffeeMatching = createCoffeeChatMatchingPost(coffeePost);
         mentoringMatching = createMentoringMatchingPost(mentoringPost);
@@ -172,7 +195,7 @@ class MatchServiceTest {
         void 존재하는_ID로_조회하면_해당_모임_게시글이_반환되어야_한다() {
             given(userService.getCurrentLoginUser()).willReturn(coffeeUser);
 
-            MatchPostResponseDTO dto = matchService.getMatchPost(coffeeMatching.getId());
+            MatchPostResponseDTO dto = matchService.getMatchPost(coffeeMatching.getId(), "1");
 
             assertThat(dto.postId()).isEqualTo(coffeePost.getId());
             assertThat(dto.title()).isEqualTo("커피챗 참가자 모집");
@@ -183,7 +206,7 @@ class MatchServiceTest {
 
         @Test
         void 존재하지_않는_ID로_조회하면_예외가_발생해야_한다() {
-            assertThatThrownBy(() -> matchService.getMatchPost(999L))
+            assertThatThrownBy(() -> matchService.getMatchPost(999L, "1"))
                     .isInstanceOf(CustomException.class);
         }
     }

@@ -7,25 +7,27 @@ import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.ITPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.fixture.it.ITTestFixtures;
 import kr.co.amateurs.server.repository.it.ITRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Optional;
 
@@ -49,6 +51,12 @@ class ITServiceTest {
     @Autowired
     private ITRepository itRepository;
 
+    @Autowired
+    private PostStatisticsRepository postStatisticsRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
     @MockitoBean
     private UserService userService;
 
@@ -60,13 +68,45 @@ class ITServiceTest {
 
     @BeforeEach
     void setUp() throws InterruptedException {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
         testStudentUser = userRepository.save(ITTestFixtures.createStudentUser());
         testOtherUser = userRepository.save(ITTestFixtures.createCustomUser("other@other.com", "other", "other", Role.STUDENT));
 
-        Post testReviewPost = postRepository.save(ITTestFixtures.createPostWithCounts(testStudentUser, "리뷰1", "리뷰1", BoardType.REVIEW, 10, 10));
+        Post testReviewPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    ITTestFixtures.createPostWithCounts(testStudentUser, "리뷰1", "리뷰1", BoardType.REVIEW, 10, 10)
+            );
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
+
         Thread.sleep(10);
-        Post testReviewPost2 = postRepository.save(ITTestFixtures.createPost(testStudentUser, "리뷰2", "리뷰2", BoardType.REVIEW));
-        Post testInfoPost = postRepository.save(ITTestFixtures.createPost(testStudentUser, "정보1", "정보2", BoardType.INFO));
+        Post testReviewPost2 = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    ITTestFixtures.createPost(testStudentUser, "리뷰2", "리뷰2", BoardType.REVIEW)
+            );
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
+
+        Post testInfoPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    ITTestFixtures.createPost(testStudentUser, "정보1", "정보2", BoardType.INFO)
+            );
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
+
 
         testReviewITPost = itRepository.save(ITTestFixtures.createITPost(testReviewPost));
         testReviewITPost2 = itRepository.save(ITTestFixtures.createITPost(testReviewPost2));
@@ -202,7 +242,7 @@ class ITServiceTest {
         Long itId = testReviewITPost.getId();
 
         // when
-        ITResponseDTO result = itService.getPost(itId);
+        ITResponseDTO result = itService.getPost(itId, "1");
 
         // then
         assertThat(result).isNotNull();
@@ -210,7 +250,7 @@ class ITServiceTest {
         assertThat(result.content()).isEqualTo("리뷰1");
         assertThat(result.nickname()).isEqualTo("student");
         assertThat(result.boardType()).isEqualTo(BoardType.REVIEW);
-        assertThat(result.viewCount()).isEqualTo(10);
+        assertThat(result.viewCount()).isEqualTo(0);
         assertThat(result.likeCount()).isEqualTo(10);
         assertThat(result.tags()).isEqualTo("테스트,태그");
         assertThat(result.hasLiked()).isFalse();
@@ -223,7 +263,7 @@ class ITServiceTest {
         Long nonExistentItId = 999L;
 
         // when & then
-        assertThatThrownBy(() -> itService.getPost(nonExistentItId))
+        assertThatThrownBy(() -> itService.getPost(nonExistentItId, "1"))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -272,7 +312,7 @@ class ITServiceTest {
         itService.updatePost(requestDTO, itId);
 
         // then
-        ITResponseDTO result = itService.getPost(itId);
+        ITResponseDTO result = itService.getPost(itId, "1");
         assertThat(result.title()).isEqualTo("수정된 제목");
         assertThat(result.tags()).isEqualTo("수정 태그");
         assertThat(result.content()).isEqualTo("수정된 내용");
@@ -315,7 +355,7 @@ class ITServiceTest {
         itService.deletePost(itId);
 
         // then
-        assertThatThrownBy(() -> itService.getPost(itId))
+        assertThatThrownBy(() -> itService.getPost(itId, "1"))
                 .isInstanceOf(CustomException.class);
     }
 
