@@ -3,7 +3,6 @@ package kr.co.amateurs.server.service;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.user.*;
-import kr.co.amateurs.server.domain.dto.user.UserProfileResponseDto;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
@@ -170,6 +169,26 @@ public class UserService {
 
         User savedUser = userRepository.save(userFromDb);
         return UserTopicsEditResponseDto.from(savedUser);
+    }
+
+    public UserDeleteResponseDTO deleteUser(UserDeleteRequestDTO request) {
+        User currentUser = getCurrentLoginUser();
+
+        if (currentUser.isDeleted()) {
+            throw ErrorCode.USER_ALREADY_DELETED.get();
+        }
+
+        if (currentUser.getProviderType() == null) {
+            if (request.currentPassword() == null || request.currentPassword().trim().isEmpty()) {
+                throw ErrorCode.EMPTY_CURRENT_PASSWORD.get();
+            }
+            validateCurrentPassword(currentUser, request.currentPassword());
+        }
+
+        currentUser.softDelete();
+        userRepository.save(currentUser);
+
+        return UserDeleteResponseDTO.success();
     }
 
     private void validateTopicsCount(Set<Topic> topics) {
