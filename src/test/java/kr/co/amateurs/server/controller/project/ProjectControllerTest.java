@@ -18,6 +18,7 @@ import kr.co.amateurs.server.fixture.project.PostFixture;
 import kr.co.amateurs.server.fixture.project.ProjectFixture;
 import kr.co.amateurs.server.fixture.project.UserFixture;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
+import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
@@ -54,6 +55,9 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
     @Autowired
     private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
     private Long backendPostId;
     private Long frontendPostId;
@@ -607,6 +611,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
     private void cleanUpData() {
         postStatisticsRepository.deleteAll();
+        commentRepository.deleteAll();
         bookmarkRepository.deleteAll();
         projectRepository.deleteAll();
         postRepository.deleteAll();

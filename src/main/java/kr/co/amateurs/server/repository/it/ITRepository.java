@@ -36,7 +36,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             JOIN ip.post p
             JOIN p.user u
             JOIN PostStatistics ps ON p.id = ps.postId
-            LEFT JOIN Comment c ON c.post.id = p.id AND c.isDeleted = false
+            LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
             WHERE p.boardType = :boardType
             GROUP BY p.id, p.title, p.content, u.nickname, u.imageUrl,
                      u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,
@@ -68,7 +68,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             JOIN ip.post p
             JOIN p.user u
             JOIN PostStatistics ps ON p.id = ps.postId
-            LEFT JOIN Comment c ON c.post.id = p.id AND c.isDeleted = false
+            LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
             WHERE p.boardType = :boardType
               AND (:keyword IS NULL
                    OR :keyword = ''
@@ -94,7 +94,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
         FROM ITPost ip
         JOIN ip.post p JOIN p.user u
         JOIN PostStatistics ps ON p.id = ps.postId
-        LEFT JOIN Comment c ON c.post.id = p.id AND c.isDeleted = false
+        LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
         LEFT JOIN Like pl ON pl.post.id = p.id AND pl.user.id = :userId
         LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = :userId
         WHERE ip.id = :itId
@@ -113,7 +113,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
         FROM ITPost ip
         JOIN ip.post p JOIN p.user u
         JOIN PostStatistics ps ON p.id = ps.postId
-        LEFT JOIN Comment c ON c.post.id = p.id AND c.isDeleted = false
+        LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
         WHERE ip.id = :itId
         GROUP BY ip.id, p.id, u.id
         """)
@@ -143,7 +143,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             JOIN ip.post p
             JOIN p.user u
             JOIN PostStatistics ps ON p.id = ps.postId
-            LEFT JOIN Comment c ON c.post.id = p.id AND c.isDeleted = false
+            LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
             WHERE p.boardType = :boardType
               AND (:keyword IS NULL
                    OR :keyword = ''
@@ -182,7 +182,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             JOIN ip.post p
             JOIN p.user u
             JOIN PostStatistics ps ON p.id = ps.postId
-            LEFT JOIN Comment c ON c.post.id = p.id AND c.isDeleted = false
+            LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
             WHERE p.boardType = :boardType
             GROUP BY p.id, p.title, p.content, u.nickname, u.imageUrl,
                      u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,

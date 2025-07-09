@@ -58,7 +58,6 @@ public class CommunityTestFixtures {
                 .tags("태그1, 태그2")
                 .boardType(boardType)
                 .likeCount(0)
-                .comments(new ArrayList<>())
                 .postImages(new ArrayList<>())
                 .build();
     }
@@ -72,7 +71,6 @@ public class CommunityTestFixtures {
                 .tags("테스트,태그")
                 .boardType(boardType)
                 .likeCount(likeCount)
-                .comments(new ArrayList<>())
                 .postImages(new ArrayList<>())
                 .build();
     }
@@ -96,7 +94,7 @@ public class CommunityTestFixtures {
 
     public static Comment createComment(Post post, User user, String content) {
         return Comment.builder()
-                .post(post)
+                .postId(post.getId())
                 .user(user)
                 .content(content)
                 .build();

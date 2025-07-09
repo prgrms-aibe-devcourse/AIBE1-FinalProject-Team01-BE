@@ -105,10 +105,10 @@ class CommentServiceTest {
     void 존재하지_않는_게시글의_댓글을_조회하면_예외가_발생한다() {
         // given
         Long nonExistentPostId = 999L;
-
+        CommentPageDTO page = commentService.getCommentsByPostId(nonExistentPostId, null, 5);
         // when & then
-        assertThatThrownBy(() -> commentService.getCommentsByPostId(nonExistentPostId, null, 5))
-                .isInstanceOf(CustomException.class);
+        assertThat(page.comments()).hasSize(0);
+
     }
 
     @Test

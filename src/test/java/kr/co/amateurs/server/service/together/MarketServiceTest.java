@@ -12,6 +12,7 @@ import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
@@ -55,6 +56,9 @@ class MarketServiceTest {
     private UserRepository userRepository;
 
     @Autowired
+    private CommentRepository commentRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @MockitoBean
@@ -82,6 +86,7 @@ class MarketServiceTest {
         TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 
         postStatisticsRepository.deleteAll();
+        commentRepository.deleteAll();
         marketRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();

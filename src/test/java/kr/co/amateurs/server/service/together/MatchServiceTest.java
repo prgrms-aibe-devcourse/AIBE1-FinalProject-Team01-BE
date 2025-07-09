@@ -13,6 +13,7 @@ import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
@@ -55,6 +56,8 @@ class MatchServiceTest {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private CommentRepository commentRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -85,6 +88,7 @@ class MatchServiceTest {
         TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 
         postStatisticsRepository.deleteAll();
+        commentRepository.deleteAll();
         matchRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();

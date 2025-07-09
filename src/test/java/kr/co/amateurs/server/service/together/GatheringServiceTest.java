@@ -14,6 +14,7 @@ import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
+import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
@@ -76,6 +77,9 @@ class GatheringServiceTest {
     @Autowired
     private PostStatisticsRepository postStatisticsRepository;
 
+    @Autowired
+    private CommentRepository commentRepository;
+
     @MockitoBean
     private UserService userService;
     @MockitoBean
@@ -94,6 +98,7 @@ class GatheringServiceTest {
         TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 
         postStatisticsRepository.deleteAll();
+        commentRepository.deleteAll();
         gatheringRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();

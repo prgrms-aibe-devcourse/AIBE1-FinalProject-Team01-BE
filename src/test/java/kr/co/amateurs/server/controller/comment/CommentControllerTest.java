@@ -645,10 +645,15 @@ public class CommentControllerTest extends AbstractControllerTest {
     }
 
     private Comment createComment(Post post, String content, Comment parentComment, User user) {
+        Long parentId = null;
+        if (parentComment != null) {
+            parentId = parentComment.getId();
+        }
+
         Comment comment = Comment.builder()
                 .user(user)
-                .post(post)
-                .parentComment(parentComment)
+                .postId(post.getId())
+                .parentCommentId(parentId)
                 .content(content)
                 .likeCount(0)
                 .isDeleted(false)
