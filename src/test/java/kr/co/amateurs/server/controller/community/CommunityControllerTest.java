@@ -9,6 +9,7 @@ import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.community.CommunityRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
@@ -41,6 +42,9 @@ public class CommunityControllerTest extends AbstractControllerTest {
 
     @Autowired
     private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
     private User guestUser;
     private User studentUser;
@@ -556,6 +560,7 @@ public class CommunityControllerTest extends AbstractControllerTest {
     }
 
     private void cleanUpData() {
+        commentRepository.deleteAll();
         postStatisticsRepository.deleteAll();
         communityRepository.deleteAll();
         postRepository.deleteAll();
