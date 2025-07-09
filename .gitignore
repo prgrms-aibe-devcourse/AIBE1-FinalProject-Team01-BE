@@ -48,3 +48,7 @@ application*.properties
 
 ### jOOQ ###
 generated/
+
+
+### testdata ###
+src/main/resources/reference-images/
