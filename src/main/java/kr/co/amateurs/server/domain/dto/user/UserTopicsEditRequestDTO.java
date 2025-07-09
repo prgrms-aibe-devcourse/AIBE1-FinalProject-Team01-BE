@@ -7,7 +7,7 @@ import lombok.Builder;
 import java.util.Set;
 
 @Builder
-public record UserTopicsEditRequestDto(
+public record UserTopicsEditRequestDTO(
 
         @Schema(description = "관심 주제 목록", example = "[\"FRONTEND\", \"BACKEND\"]")
         Set<Topic> topics

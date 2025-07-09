@@ -3,9 +3,9 @@ package kr.co.amateurs.server.controller.user;
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
-import kr.co.amateurs.server.domain.dto.user.UserBasicProfileEditRequestDto;
-import kr.co.amateurs.server.domain.dto.user.UserPasswordEditRequestDto;
-import kr.co.amateurs.server.domain.dto.user.UserTopicsEditRequestDto;
+import kr.co.amateurs.server.domain.dto.user.UserBasicProfileEditRequestDTO;
+import kr.co.amateurs.server.domain.dto.user.UserPasswordEditRequestDTO;
+import kr.co.amateurs.server.domain.dto.user.UserTopicsEditRequestDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
@@ -94,7 +94,7 @@ public class UserControllerTest extends AbstractControllerTest {
     void 인증된_사용자가_기본_정보_수정_요청_시_정상적으로_업데이트된다() {
         // given
         String uniqueNickname = UserTestFixture.generateUniqueNickname();
-        UserBasicProfileEditRequestDto updateRequest = UserBasicProfileEditRequestDto.builder()
+        UserBasicProfileEditRequestDTO updateRequest = UserBasicProfileEditRequestDTO.builder()
                 .name("변경된이름")
                 .nickname(uniqueNickname)
                 .imageUrl("https://example.com/new-profile.jpg")
@@ -117,7 +117,7 @@ public class UserControllerTest extends AbstractControllerTest {
     @Test
     void 인증_토큰_없이_기본_정보_수정_요청_시_403_에러가_발생한다() {
         // given
-        UserBasicProfileEditRequestDto updateRequest = UserBasicProfileEditRequestDto.builder()
+        UserBasicProfileEditRequestDTO updateRequest = UserBasicProfileEditRequestDTO.builder()
                 .name("변경된이름")
                 .build();
 
@@ -134,7 +134,7 @@ public class UserControllerTest extends AbstractControllerTest {
     @Test
     void 인증된_사용자가_올바른_비밀번호로_변경_요청_시_정상적으로_업데이트된다() {
         // given
-        UserPasswordEditRequestDto passwordRequest = UserPasswordEditRequestDto.builder()
+        UserPasswordEditRequestDTO passwordRequest = UserPasswordEditRequestDTO.builder()
                 .currentPassword(rawPassword)
                 .newPassword("newPassword123")
                 .build();
@@ -154,7 +154,7 @@ public class UserControllerTest extends AbstractControllerTest {
     @Test
     void 인증된_사용자가_잘못된_현재_비밀번호로_변경_요청_시_400_에러가_발생한다() {
         // given
-        UserPasswordEditRequestDto passwordRequest = UserPasswordEditRequestDto.builder()
+        UserPasswordEditRequestDTO passwordRequest = UserPasswordEditRequestDTO.builder()
                 .currentPassword("wrongPassword")
                 .newPassword("newPassword123")
                 .build();
@@ -173,7 +173,7 @@ public class UserControllerTest extends AbstractControllerTest {
     @Test
     void 인증된_사용자가_유효한_토픽으로_변경_요청_시_정상적으로_업데이트된다() {
         // given
-        UserTopicsEditRequestDto topicsRequest = UserTopicsEditRequestDto.builder()
+        UserTopicsEditRequestDTO topicsRequest = UserTopicsEditRequestDTO.builder()
                 .topics(Set.of(Topic.BACKEND, Topic.DATA, Topic.MOBILE))
                 .build();
 
@@ -193,7 +193,7 @@ public class UserControllerTest extends AbstractControllerTest {
     @Test
     void 인증된_사용자가_빈_토픽으로_변경_요청_시_400_에러가_발생한다() {
         // given
-        UserTopicsEditRequestDto topicsRequest = UserTopicsEditRequestDto.builder()
+        UserTopicsEditRequestDTO topicsRequest = UserTopicsEditRequestDTO.builder()
                 .topics(Set.of())
                 .build();
 
@@ -211,7 +211,7 @@ public class UserControllerTest extends AbstractControllerTest {
     @Test
     void 인증된_사용자가_4개_이상_토픽으로_변경_요청_시_400_에러가_발생한다() {
         // given
-        UserTopicsEditRequestDto topicsRequest = UserTopicsEditRequestDto.builder()
+        UserTopicsEditRequestDTO topicsRequest = UserTopicsEditRequestDTO.builder()
                 .topics(Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.DATA, Topic.MOBILE))
                 .build();
 

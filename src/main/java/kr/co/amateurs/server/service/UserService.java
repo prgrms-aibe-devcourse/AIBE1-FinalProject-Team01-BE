@@ -98,16 +98,16 @@ public class UserService {
         }
     }
 
-    public UserProfileResponseDto getCurrentUserProfile() {
+    public UserProfileResponseDTO getCurrentUserProfile() {
         Long userId = getCurrentLoginUser().getId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);
 
-        return UserProfileResponseDto.from(user);
+        return UserProfileResponseDTO.from(user);
     }
 
-    public UserBasicProfileEditResponseDto updateBasicProfile(UserBasicProfileEditRequestDto request) {
+    public UserBasicProfileEditResponseDTO updateBasicProfile(UserBasicProfileEditRequestDTO request) {
         User currentUser = getCurrentLoginUser();
 
         User userFromDb = userRepository.findById(currentUser.getId())
@@ -125,10 +125,10 @@ public class UserService {
         );
 
         User savedUser = userRepository.save(userFromDb);
-        return UserBasicProfileEditResponseDto.from(savedUser);
+        return UserBasicProfileEditResponseDTO.from(savedUser);
     }
 
-    public UserPasswordEditResponseDto updatePassword(UserPasswordEditRequestDto request) {
+    public UserPasswordEditResponseDTO updatePassword(UserPasswordEditRequestDTO request) {
         User currentUser = getCurrentLoginUser();
 
         User userFromDb = userRepository.findById(currentUser.getId())
@@ -141,7 +141,7 @@ public class UserService {
 
         userRepository.save(userFromDb);
 
-        return UserPasswordEditResponseDto.builder()
+        return UserPasswordEditResponseDTO.builder()
                 .message("비밀번호가 성공적으로 변경되었습니다")
                 .build();
     }
@@ -156,7 +156,7 @@ public class UserService {
         }
     }
 
-    public UserTopicsEditResponseDto updateTopics(UserTopicsEditRequestDto request) {
+    public UserTopicsEditResponseDTO updateTopics(UserTopicsEditRequestDTO request) {
         User currentUser = getCurrentLoginUser();
 
         User userFromDb = userRepository.findById(currentUser.getId())
@@ -168,7 +168,7 @@ public class UserService {
         userFromDb.addUserTopics(request.topics());
 
         User savedUser = userRepository.save(userFromDb);
-        return UserTopicsEditResponseDto.from(savedUser);
+        return UserTopicsEditResponseDTO.from(savedUser);
     }
 
     public UserDeleteResponseDTO deleteUser(UserDeleteRequestDTO request) {

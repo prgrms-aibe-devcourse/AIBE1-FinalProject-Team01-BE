@@ -9,13 +9,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Builder
-public record UserTopicsEditResponseDto(
+public record UserTopicsEditResponseDTO(
 
         @Schema(description = "관심 주제 목록", example = "[\"FRONTEND\", \"BACKEND\"]")
         Set<Topic> topics
 ) {
-    public static UserTopicsEditResponseDto from(User user) {
-        return UserTopicsEditResponseDto.builder()
+    public static UserTopicsEditResponseDTO from(User user) {
+        return UserTopicsEditResponseDTO.builder()
                 .topics(user.getUserTopics().stream()
                         .map(userTopic -> userTopic.getTopic())
                         .collect(Collectors.toSet()))

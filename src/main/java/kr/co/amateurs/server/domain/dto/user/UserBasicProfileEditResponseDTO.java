@@ -7,7 +7,7 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Builder
-public record UserBasicProfileEditResponseDto(
+public record UserBasicProfileEditResponseDTO(
 
         @Schema(description = "사용자 ID", example = "1")
         Long id,
@@ -24,8 +24,8 @@ public record UserBasicProfileEditResponseDto(
         @Schema(description = "수정 날짜")
         LocalDateTime updatedAt
 ) {
-    public static UserBasicProfileEditResponseDto from(User user) {
-        return UserBasicProfileEditResponseDto.builder()
+    public static UserBasicProfileEditResponseDTO from(User user) {
+        return UserBasicProfileEditResponseDTO.builder()
                 .id(user.getId())
                 .name(user.getName())
                 .nickname(user.getNickname())
