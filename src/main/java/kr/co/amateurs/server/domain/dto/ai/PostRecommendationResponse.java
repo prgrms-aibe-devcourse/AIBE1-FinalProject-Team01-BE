@@ -22,7 +22,7 @@ public record PostRecommendationResponse(
                 post.getUser().getNickname(),
                 post.getLikeCount(),
                 post.getViewCount(),
-                post.getComments().size(),
+                0, //TODO 댓글 수 가져오기
                 post.getBoardType(),
                 post.getCreatedAt()
         );

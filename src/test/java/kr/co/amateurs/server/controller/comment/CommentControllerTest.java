@@ -669,4 +669,60 @@ public class CommentControllerTest extends AbstractControllerTest {
                     .statusCode(400);
         }
     }
+
+    private void setUpData() {
+        createUsers();
+        createPosts();
+        createTokens();
+    }
+
+    private void createUsers() {
+        guestUser = userRepository.save(CommentTestFixtures.createGuestUser());
+        studentUser = userRepository.save(CommentTestFixtures.createStudentUser());
+        adminUser = userRepository.save(CommentTestFixtures.createAdminUser());
+    }
+
+    private void createPosts() {
+        communityPost = postRepository.save(
+                CommentTestFixtures.createCustomPost(studentUser, "커뮤니티 게시글", "내용", BoardType.FREE));
+
+        togetherPost = postRepository.save(
+                CommentTestFixtures.createCustomPost(studentUser, "함께해요 게시글", "내용", BoardType.MARKET));
+
+        itPost = postRepository.save(
+                CommentTestFixtures.createCustomPost(studentUser, "IT 게시글", "내용", BoardType.REVIEW));
+
+        projectPost = postRepository.save(
+                CommentTestFixtures.createCustomPost(studentUser, "프로젝트 게시글", "내용", BoardType.PROJECT_HUB));
+    }
+
+    private void createTokens() {
+        guestToken = jwtProvider.generateAccessToken(guestUser.getEmail());
+        studentToken = jwtProvider.generateAccessToken(studentUser.getEmail());
+        adminToken = jwtProvider.generateAccessToken(adminUser.getEmail());
+    }
+
+    private Comment createComment(Post post, String content, Comment parentComment, User user) {
+        Long parentId = null;
+        if (parentComment != null) {
+            parentId = parentComment.getId();
+        }
+
+        Comment comment = Comment.builder()
+                .user(user)
+                .postId(post.getId())
+                .parentCommentId(parentId)
+                .content(content)
+                .likeCount(0)
+                .isDeleted(false)
+                .build();
+        return commentRepository.save(comment);
+    }
+
+    private void cleanUpData() {
+        likeRepository.deleteAll();
+        commentRepository.deleteAll();
+        postRepository.deleteAll();
+        userRepository.deleteAll();
+    }
 }
