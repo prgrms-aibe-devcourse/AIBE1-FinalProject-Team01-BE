@@ -5,6 +5,7 @@ import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.user.*;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.user.UserRepository;
@@ -174,19 +175,23 @@ public class UserService {
     public UserDeleteResponseDTO deleteUser(UserDeleteRequestDTO request) {
         User currentUser = getCurrentLoginUser();
 
-        if (currentUser.isDeleted()) {
+        User userFromDb = userRepository.findById(currentUser.getId())
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        if (userFromDb.isDeleted()) {
             throw ErrorCode.USER_ALREADY_DELETED.get();
         }
 
-        if (currentUser.getProviderType() == null) {
+        if (userFromDb.getProviderType() != ProviderType.GITHUB &&
+                userFromDb.getProviderType() != ProviderType.KAKAO) {
             if (request.currentPassword() == null || request.currentPassword().trim().isEmpty()) {
                 throw ErrorCode.EMPTY_CURRENT_PASSWORD.get();
             }
-            validateCurrentPassword(currentUser, request.currentPassword());
+            validateCurrentPassword(userFromDb, request.currentPassword());
         }
 
-        currentUser.softDelete();
-        userRepository.save(currentUser);
+        userFromDb.softDelete();
+        userRepository.save(userFromDb);
 
         return UserDeleteResponseDTO.success();
     }
