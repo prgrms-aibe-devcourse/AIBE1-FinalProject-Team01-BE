@@ -92,8 +92,12 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout() {
+    public void logout(HttpServletResponse response) {
         User currentUser = userService.getCurrentLoginUser();
         refreshTokenService.deleteByEmail(currentUser.getEmail());
+
+        if (response != null) {
+            cookieUtils.clearAuthTokenCookie(response);
+        }
     }
 }

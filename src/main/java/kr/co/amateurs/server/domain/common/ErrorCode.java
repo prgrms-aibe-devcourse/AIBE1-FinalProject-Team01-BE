@@ -62,6 +62,7 @@ public enum ErrorCode implements Supplier<CustomException> {
     MISSING_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "Refresh Token이 필요합니다."),
     INVALID_HTTP_RESPONSE(HttpStatus.INTERNAL_SERVER_ERROR, "HTTP 응답 객체가 유효하지 않습니다."),
     COOKIE_SETTING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "쿠키 설정에 실패했습니다"),
+    COOKIE_CLEAR_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "쿠키 삭제에 실패했습니다"),
     INVALID_COOKIE_VALUE_FORMAT(HttpStatus.BAD_REQUEST, "쿠키 값에 허용되지 않는 문자가 포함되어 있습니다"),
 
     // 시스템 에러

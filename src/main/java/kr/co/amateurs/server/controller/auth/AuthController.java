@@ -58,8 +58,8 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(summary = "로그아웃", description = "사용자를 로그아웃하고 Refresh Token을 삭제합니다")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<LogoutResponseDTO> logout() {
-        authService.logout();
+    public ResponseEntity<LogoutResponseDTO> logout(HttpServletResponse response) {
+        authService.logout(response);
         return ResponseEntity.ok(LogoutResponseDTO.success());
     }
 }
