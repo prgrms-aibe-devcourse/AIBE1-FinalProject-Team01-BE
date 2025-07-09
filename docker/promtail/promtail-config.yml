@@ -1,0 +1,38 @@
+server:
+  http_listen_port: 9080
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: https://${LOKI_HOST}/loki/api/v1/push
+
+scrape_configs:
+  - job_name: spring-boot
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: spring-boot
+          application: amateurs-api-server
+          environment: "${ENVIRONMENT}"
+          __path__: /var/log/spring-boot/*.log
+
+    pipeline_stages:
+      - regex:
+          expression: '(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\s+(?P<level>TRACE|DEBUG|INFO|WARN|ERROR)\s+(?P<pid>\d+)\s+---\s+\[(?P<service>[^\]]+)\]\s+\[(?P<thread>[^\]]+)\]\s+(?P<logger>\S+)\s*:\s+(?P<message>.*)'
+
+      - labels:
+          level:
+          service:
+          thread:
+          logger:
+
+      - timestamp:
+          source: timestamp
+          format: '2006-01-02T15:04:05.000Z'
+          location: UTC
+
+      - multiline:
+          firstline: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z'
+          max_wait_time: 3s

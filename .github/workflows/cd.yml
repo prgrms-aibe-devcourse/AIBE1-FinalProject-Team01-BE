@@ -1,0 +1,48 @@
+name: CD Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '배포 환경'
+        required: true
+        type: choice
+        options:
+          - 'spring-prod'
+        default: 'spring-prod'
+
+jobs:
+  deploy:
+    name: 배포 워크플로우
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: read
+      actions: read
+    with:
+      environment: ${{ github.event.inputs.environment }}
+
+  # CD 결과 알림 전송
+  notify:
+    name: CD 결과 알림
+    if: always()
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: 알림 전송
+        uses: ./.github/actions/send-notification
+        with:
+          workflow-type: 'cd'
+          status: ${{ needs.deploy.outputs.status == 'success' && 'success' || 'failure' }}
+          details: |
+            {
+              "environment": "${{ github.event.inputs.environment }}",
+              "deploy_status": "${{ needs.deploy.outputs.status || 'unknown' }}",
+              "health_check_status": "${{ needs.deploy.outputs.health_check_status || 'skipped' }}",
+              "rollback_performed": "${{ needs.deploy.outputs.status != 'success' && 'true' || 'false' }}"
+            }
+          webhook-url: ${{ secrets.ACTIONS_WEBHOOK_URL }}

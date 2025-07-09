@@ -1,0 +1,143 @@
+name: Blue-Green 배포 실행
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: '배포 환경'
+        required: true
+        type: string
+    outputs:
+      status:
+        description: "배포 실행 결과"
+        value: ${{ jobs.deploy.outputs.status }}
+      health_check_status:
+        description: "헬스체크 결과"
+        value: ${{ jobs.deploy.outputs.health_check_status }}
+
+jobs:
+  deploy:
+    name: Blue-Green 배포
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    outputs:
+      status: ${{ steps.set-result.outputs.status }}
+      health_check_status: ${{ steps.set-result.outputs.health_check_status }}
+
+    steps:
+      - name: EC2 연결 테스트
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.ACTIONS_EC2_HOST }}
+          username: ${{ secrets.ACTIONS_EC2_USER }}
+          key: ${{ secrets.ACTIONS_EC2_SSH_KEY }}
+          port: ${{ secrets.ACTIONS_EC2_PORT || 22 }}
+          script: |
+            echo "EC2 서버 연결 테스트 - Environment: ${{ inputs.environment }}"
+            echo "연결 테스트 성공"
+
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: 배포 준비
+        id: prepare
+        uses: appleboy/ssh-action@v1
+        env:
+          SERVICE_NAME: ${{ inputs.environment }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        with:
+          host: ${{ secrets.ACTIONS_EC2_HOST }}
+          username: ${{ secrets.ACTIONS_EC2_USER }}
+          key: ${{ secrets.ACTIONS_EC2_SSH_KEY }}
+          port: ${{ secrets.ACTIONS_EC2_PORT || 22 }}
+          script_path: scripts/prepare.sh
+          envs: SERVICE_NAME,GITHUB_TOKEN,GITHUB_ACTOR
+
+      - name: 새 버전 배포
+        id: deploy-new
+        uses: appleboy/ssh-action@v1
+        env:
+          SERVICE_NAME: ${{ inputs.environment }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        with:
+          host: ${{ secrets.ACTIONS_EC2_HOST }}
+          username: ${{ secrets.ACTIONS_EC2_USER }}
+          key: ${{ secrets.ACTIONS_EC2_SSH_KEY }}
+          port: ${{ secrets.ACTIONS_EC2_PORT || 22 }}
+          script_path: scripts/deploy.sh
+          envs: SERVICE_NAME,GITHUB_TOKEN,GITHUB_ACTOR
+
+      - name: 헬스체크
+        id: health-check
+        uses: appleboy/ssh-action@v1
+        env:
+          SERVICE_NAME: ${{ inputs.environment }}
+        with:
+          host: ${{ secrets.ACTIONS_EC2_HOST }}
+          username: ${{ secrets.ACTIONS_EC2_USER }}
+          key: ${{ secrets.ACTIONS_EC2_SSH_KEY }}
+          port: ${{ secrets.ACTIONS_EC2_PORT || 22 }}
+          script_path: scripts/health-check.sh
+          envs: SERVICE_NAME
+
+      - name: 트래픽 전환
+        id: switch-traffic
+        uses: appleboy/ssh-action@v1
+        env:
+          SERVICE_NAME: ${{ inputs.environment }}
+        with:
+          host: ${{ secrets.ACTIONS_EC2_HOST }}
+          username: ${{ secrets.ACTIONS_EC2_USER }}
+          key: ${{ secrets.ACTIONS_EC2_SSH_KEY }}
+          port: ${{ secrets.ACTIONS_EC2_PORT || 22 }}
+          script_path: scripts/switch.sh
+          envs: SERVICE_NAME
+
+      - name: 이전 버전 정리
+        id: cleanup
+        if: steps.switch-traffic.outcome == 'success'
+        uses: appleboy/ssh-action@v1
+        env:
+          SERVICE_NAME: ${{ inputs.environment }}
+        with:
+          host: ${{ secrets.ACTIONS_EC2_HOST }}
+          username: ${{ secrets.ACTIONS_EC2_USER }}
+          key: ${{ secrets.ACTIONS_EC2_SSH_KEY }}
+          port: ${{ secrets.ACTIONS_EC2_PORT || 22 }}
+          script_path: scripts/cleanup.sh
+          envs: SERVICE_NAME
+
+      - name: 배포 실패로 인한 롤백 실행
+        id: rollback
+        if: failure()
+        uses: appleboy/ssh-action@v1
+        env:
+          SERVICE_NAME: ${{ inputs.environment }}
+        with:
+          host: ${{ secrets.ACTIONS_EC2_HOST }}
+          username: ${{ secrets.ACTIONS_EC2_USER }}
+          key: ${{ secrets.ACTIONS_EC2_SSH_KEY }}
+          port: ${{ secrets.ACTIONS_EC2_PORT || 22 }}
+          script_path: scripts/rollback.sh
+          envs: SERVICE_NAME
+
+      - name: 배포 결과
+        id: set-result
+        if: always()
+        run: |
+          if [[ "${{ steps.switch-traffic.outcome }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "${{ inputs.environment }} Blue-Green 배포가 성공적으로 완료되었습니다"
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "${{ inputs.environment }} Blue-Green 배포 중 오류가 발생했습니다"
+          fi
+          
+          if [[ "${{ steps.health-check.outcome }}" == "success" ]]; then
+            echo "health_check_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "health_check_status=failure" >> $GITHUB_OUTPUT
+          fi
