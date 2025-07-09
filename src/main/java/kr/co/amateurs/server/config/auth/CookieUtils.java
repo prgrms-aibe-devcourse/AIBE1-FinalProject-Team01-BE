@@ -134,4 +134,41 @@ public class CookieUtils {
             throw ErrorCode.INVALID_HTTP_RESPONSE.get();
         }
     }
+
+    public void clearAuthTokenCookie(HttpServletResponse response) {
+
+        try {
+            String accessTokenClearCookie = buildClearCookieString(ACCESS_TOKEN_COOKIE_NAME);
+            response.addHeader("Set-Cookie", accessTokenClearCookie);
+
+            String refreshTokenClearCookie = buildClearCookieString(REFRESH_TOKEN_COOKIE_NAME);
+            response.addHeader("Set-Cookie", refreshTokenClearCookie);
+
+        } catch (Exception e) {
+            log.error("쿠키 삭제 중 오류 발생", e);
+            throw ErrorCode.COOKIE_CLEAR_FAILED.get();
+        }
+    }
+
+    private String buildClearCookieString(String name) {
+        StringBuilder cookie = new StringBuilder();
+
+        cookie.append(name).append("=");
+        cookie.append("; Path=/");
+        cookie.append("; HttpOnly");
+
+        if (secure) {
+            cookie.append("; Secure");
+        }
+
+        cookie.append("; SameSite=Strict");
+
+        if (StringUtils.hasText(cookieDomain)) {
+            cookie.append("; Domain=").append(cookieDomain);
+        }
+
+        cookie.append("; Max-Age=0");
+
+        return cookie.toString();
+    }
 }
