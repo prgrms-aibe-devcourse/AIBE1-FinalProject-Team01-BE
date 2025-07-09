@@ -11,7 +11,7 @@ import java.util.List;
 public interface AiRecommendPostRepository extends JpaRepository<RecommendedPost, Long> {
     @Query("SELECT new kr.co.amateurs.server.domain.dto.ai.PostRecommendationResponse(" +
             "p.id, p.title, u.nickname, p.likeCount, p.viewCount, " +
-            "CAST((SELECT COUNT(c) FROM Comment c WHERE c.post = p) AS integer), " +
+            "CAST((SELECT COUNT(c) FROM Comment c WHERE c.postId = p.id) AS integer), " +
             "p.boardType, p.createdAt) " +
             "FROM RecommendedPost rp " +
             "JOIN rp.post p " +

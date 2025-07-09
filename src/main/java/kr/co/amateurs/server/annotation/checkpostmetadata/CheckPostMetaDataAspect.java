@@ -49,8 +49,7 @@ public class CheckPostMetaDataAspect {
     }
 
     private BoardType getBoardType(JoinPoint joinPoint, CheckPostMetaData checkPostMetaData) {
-        Post post = findPostById(joinPoint);
-        return post.getBoardType();
+        return findBoardTypeById(joinPoint);
     }
 
     private void validateBoardAccess(Role userRole, BoardType targetBoardType, CheckPostMetaData checkPostMetaData) {
@@ -58,9 +57,9 @@ public class CheckPostMetaDataAspect {
     }
 
 
-    private Post findPostById(JoinPoint joinPoint) {
+    private BoardType findBoardTypeById(JoinPoint joinPoint) {
         Long postId = extractParameterValue(joinPoint, "postId", Long.class);
-        return postRepository.findById(postId)
+        return postRepository.findBoardTypeById(postId)
                 .orElseThrow(ErrorCode.NOT_FOUND);
     }
 

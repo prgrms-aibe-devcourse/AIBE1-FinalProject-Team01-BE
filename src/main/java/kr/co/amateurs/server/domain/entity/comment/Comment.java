@@ -11,27 +11,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "comments")
+@Table(name = "comments", indexes = {
+        @Index(name = "idx_comment_post_parent_deleted",
+                columnList = "post_id, parent_comment_id, is_deleted"),
+
+        @Index(name = "idx_comment_parent_deleted",
+                columnList = "parent_comment_id, is_deleted"),
+
+        @Index(name = "idx_comment_created_at",
+                columnList = "created_at"),
+
+        @Index(name = "idx_comment_cursor_paging",
+                columnList = "post_id, parent_comment_id, is_deleted, id, created_at")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class Comment extends BaseEntity {
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    private Post post;
+    @Column(name = "post_id", nullable = false)
+    private Long postId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Comment parentComment;
-
-    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    @Builder.Default
-    private List<Comment> childComments = new ArrayList<>();
+    @Column(name = "parent_comment_id")
+    private Long parentCommentId;
 
     @Builder.Default
     @Column(nullable = false)
@@ -40,6 +46,10 @@ public class Comment extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private Integer likeCount = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer replyCount = 0;
 
     @Lob
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -59,12 +69,12 @@ public class Comment extends BaseEntity {
         }
     }
 
-    public static Comment from(CommentRequestDTO requestDTO, Post post, User user, Comment parentComment) {
+    public static Comment from(CommentRequestDTO requestDTO, Long postId, User user, Long parentCommentId) {
         return Comment.builder()
                 .user(user)
-                .post(post)
+                .postId(postId)
                 .content(requestDTO.content())
-                .parentComment(parentComment)
+                .parentCommentId(parentCommentId)
                 .build();
     }
 
@@ -74,5 +84,9 @@ public class Comment extends BaseEntity {
 
     public void updateBlinded(boolean isBlinded) {
         this.isBlinded = isBlinded;
+    }
+
+    public void incrementReplyCount() {
+        this.replyCount++;
     }
 }
