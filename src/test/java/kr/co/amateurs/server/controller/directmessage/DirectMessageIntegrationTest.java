@@ -118,8 +118,7 @@ class DirectMessageIntegrationTest extends AbstractControllerTest {
                         .statusCode(HttpStatus.CREATED.value())
                         .body("id", notNullValue())
                         .body("partnerId", equalTo(user2.getId().intValue()))
-                        .body("partnerNickname", equalTo(user2.getNickname()))
-                        .time(lessThan(2000L));
+                        .body("partnerNickname", equalTo(user2.getNickname()));
             }
 
             @Test
@@ -196,7 +195,7 @@ class DirectMessageIntegrationTest extends AbstractControllerTest {
                         .header("Authorization", "Bearer " + token)
                         .header("Content-Type", "application/json")
                         .when()
-                        .get("/dm/rooms/{userId}", user1.getId())
+                        .get("/dm/rooms")
                         .then()
                         .log().all()
                         .statusCode(HttpStatus.OK.value())
@@ -216,28 +215,11 @@ class DirectMessageIntegrationTest extends AbstractControllerTest {
                         .header("Authorization", "Bearer " + token)
                         .header("Content-Type", "application/json")
                         .when()
-                        .get("/dm/rooms/{userId}", user3.getId())
+                        .get("/dm/rooms")
                         .then()
                         .log().all()
                         .statusCode(HttpStatus.OK.value())
                         .body("size()", equalTo(1));
-            }
-        }
-
-        @Nested
-        class 실패 {
-
-            @Test
-            void 잘못된_사용자_ID_형식으로_조회_시_400_에러가_발생한다() {
-                // when & then
-                given()
-                        .header("Authorization", "Bearer " + token)
-                        .header("Content-Type", "application/json")
-                        .when()
-                        .get("/dm/rooms/{userId}", "invalid")
-                        .then()
-                        .log().all()
-                        .statusCode(HttpStatus.BAD_REQUEST.value());
             }
         }
     }

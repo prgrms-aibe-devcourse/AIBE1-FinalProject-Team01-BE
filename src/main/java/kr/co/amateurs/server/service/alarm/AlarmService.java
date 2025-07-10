@@ -3,6 +3,7 @@ package kr.co.amateurs.server.service.alarm;
 import kr.co.amateurs.server.domain.dto.alarm.AlarmPageResponse;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.entity.alarm.Alarm;
+import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.alarm.AlarmRepository;
 import kr.co.amateurs.server.service.UserService;
@@ -19,6 +20,16 @@ public class AlarmService {
     private final UserService userService;
 
     public void saveAlarm(Alarm alarm) {
+        alarmRepository.save(alarm);
+    }
+
+    public void createTestAlarm() {
+        Alarm alarm = Alarm.builder()
+                .userId(userService.getCurrentLoginUser().getId())
+                .type(AlarmType.COMMENT)
+                .title("테스트용 더미 알람 데이터")
+                .content("개발개밥계발")
+                .build();
         alarmRepository.save(alarm);
     }
 
