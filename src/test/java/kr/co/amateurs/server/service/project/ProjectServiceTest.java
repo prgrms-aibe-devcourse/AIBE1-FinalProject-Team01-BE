@@ -283,7 +283,7 @@ class ProjectServiceTest {
             assertThat(result.postId()).isNotNull();
             assertThat(result.title()).isEqualTo("새로운 프로젝트");
             assertThat(result.content()).isEqualTo("프로젝트 내용");
-            assertThat(result.tags()).isEqualTo("[\"스프링\",\"초보환영\"]");
+            assertThat(result.tags()).isEqualTo("스프링, 초보환영");
             assertThat(result.githubUrl()).isEqualTo("https://github.com/example/new-project");
             assertThat(result.simpleContent()).isEqualTo("간단한 설명");
             assertThat(result.demoUrl()).isEqualTo("https://demo.example.com");

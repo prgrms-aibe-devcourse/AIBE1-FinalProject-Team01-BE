@@ -18,6 +18,7 @@ import kr.co.amateurs.server.repository.project.ProjectRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.file.FileService;
+import kr.co.amateurs.server.utils.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -64,7 +65,7 @@ public class ProjectService {
         // TODO: PostRequest DTO의 tags 가 String 이라서
         PostRequest postRequestDto = new CommunityRequestDTO(
                 projectRequestDTO.title(),
-                convertTagsToJSON(projectRequestDTO.tags()),
+                projectRequestDTO.tags(),
                 projectRequestDTO.content()
         );
 
@@ -108,7 +109,7 @@ public class ProjectService {
 
         CommunityRequestDTO postRequestDto = new CommunityRequestDTO(
                 projectRequestDTO.title(),
-                convertTagsToJSON(projectRequestDTO.tags()),
+                projectRequestDTO.tags(),
                 projectRequestDTO.content()
         );
 
