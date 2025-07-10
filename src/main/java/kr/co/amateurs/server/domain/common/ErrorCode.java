@@ -99,7 +99,11 @@ public enum ErrorCode implements Supplier<CustomException> {
     DUPLICATE_BOOKMARK(HttpStatus.CONFLICT, "북마크가 이미 있습니다."),
 
     // 팔로우 관련
-    SELF_FOLLOW(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다.");
+    SELF_FOLLOW(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다."),
+
+    // 인증 관련 에러
+    VERIFICATION_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "인증 서비스 연결에 실패했습니다."),
+    VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "인증에 실패했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
