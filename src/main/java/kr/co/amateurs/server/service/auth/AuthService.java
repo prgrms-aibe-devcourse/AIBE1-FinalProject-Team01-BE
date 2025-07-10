@@ -130,13 +130,15 @@ public class AuthService {
     public ProfileCompleteResponseDTO completeProfile(ProfileCompleteRequestDTO request) {
         User currentUser = userService.getCurrentLoginUser();
 
-        if (!currentUser.getNickname().equals(request.nickname())) {
+        User managedUser = userService.findById(currentUser.getId());
+
+        if (!managedUser.getNickname().equals(request.nickname())) {
             userService.validateNicknameDuplicate(request.nickname());
         }
 
-        currentUser.completeProfile(request.name(), request.nickname(), request.topics());
+        managedUser.completeProfile(request.name(), request.nickname(), request.topics());
 
-        User savedUser = userService.saveUser(currentUser);
+        User savedUser = userService.saveUser(managedUser);
 
         CompletableFuture.runAsync(() -> {
             try {
