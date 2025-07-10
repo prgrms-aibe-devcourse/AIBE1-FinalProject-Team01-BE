@@ -39,6 +39,15 @@ jobs:
       - name: Gradle 테스트 실행
         run: ./gradlew test
 
+      - name: 테스트 커버리지 게시
+        uses: madrapps/jacoco-report@v1.7.2
+        with:
+          paths: |
+            ${{ github.workspace }}/**/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 50
+          min-coverage-changed-files: 50
+
       - name: 테스트 결과 게시
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
