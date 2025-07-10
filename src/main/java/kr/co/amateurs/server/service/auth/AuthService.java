@@ -125,4 +125,30 @@ public class AuthService {
             cookieUtils.clearAuthTokenCookie(response);
         }
     }
+
+    @Transactional
+    public ProfileCompleteResponseDTO completeProfile(ProfileCompleteRequestDTO request) {
+        User currentUser = userService.getCurrentLoginUser();
+
+        if (!currentUser.getNickname().equals(request.nickname())) {
+            userService.validateNicknameDuplicate(request.nickname());
+        }
+
+        currentUser.completeProfile(request.name(), request.nickname(), request.topics());
+
+        User savedUser = userService.saveUser(currentUser);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                aiProfileService.generateInitialProfile(savedUser.getId());
+                log.info("소셜 프로필 완성 시 AI 프로필 생성 완료: userId={}", savedUser.getId());
+            } catch (Exception e) {
+                log.warn("소셜 프로필 완성 시 AI 프로필 생성 실패: userId={}", savedUser.getId(), e);
+            }
+        });
+
+        log.info("소셜 사용자 프로필 완성: userId={}, nickname={}", savedUser.getId(), request.nickname());
+
+        return ProfileCompleteResponseDTO.fromEntity(savedUser);
+    }
 }
