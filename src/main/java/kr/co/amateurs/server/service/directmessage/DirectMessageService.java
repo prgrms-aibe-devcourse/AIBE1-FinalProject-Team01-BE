@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -96,6 +97,7 @@ public class DirectMessageService {
         User currentUser = userService.getCurrentLoginUser();
         List<DirectMessageRoom> rooms = directMessageRoomRepository.findActiveRoomsByUserId(currentUser.getId());
         return rooms.stream()
+                .sorted(Comparator.comparing(DirectMessageRoom::getSentAt).reversed())
                 .map(room -> DirectMessageRoomResponse.fromCollection(room, currentUser))
                 .toList();
     }
