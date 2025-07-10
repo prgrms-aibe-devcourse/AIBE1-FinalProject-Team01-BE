@@ -14,10 +14,12 @@ import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.alarm.SseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -41,6 +43,9 @@ public class CommentControllerTest extends AbstractControllerTest {
 
     @Autowired
     private JwtProvider jwtProvider;
+
+    @MockitoBean
+    private SseService sseService;
 
     private User guestUser;
     private User studentUser;

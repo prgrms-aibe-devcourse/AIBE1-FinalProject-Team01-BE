@@ -11,6 +11,7 @@ import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.service.project.ProjectService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,7 @@ public class ProjectController {
 
     @GetMapping
     @Operation(summary = "프로젝트 글 리스트", description = "프로젝트 허브 게시판의 글 목록을 불러옵니다.")
-    public ResponseEntity<PageResponseDTO<ProjectResponseDTO>> getProjects(@Valid ProjectSearchParam params) {
+    public ResponseEntity<PageResponseDTO<ProjectResponseDTO>> getProjects(@ParameterObject @Valid ProjectSearchParam params) {
         PageResponseDTO<ProjectResponseDTO> projectPageResponseDTO = projectService.getProjects(params);
         return ResponseEntity.ok(projectPageResponseDTO);
     }

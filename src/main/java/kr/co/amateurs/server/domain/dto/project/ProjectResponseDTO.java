@@ -8,6 +8,7 @@ import lombok.Builder;
 import org.jooq.Record;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.jooq.generated.Tables.POST_STATISTICS;
 import static org.jooq.generated.tables.Posts.POSTS;
@@ -33,6 +34,8 @@ public record ProjectResponseDTO(
         String demoUrl,
         @Schema(description = "프로젝트 참여 인원", example = "홍길동")
         String projectMembers,
+        @Schema(description = "작성자 유저 ID", example = "1")
+        Long authorId,
         @Schema(description = "게시글 제목", example = "test 제목")
         String title,
         @Schema(description = "게시글 내용", example = "test 내용")
@@ -51,15 +54,12 @@ public record ProjectResponseDTO(
         LocalDateTime updatedAt,
         @Schema(description = "작성자 닉네임", example = "test닉네임")
         String nickname,
-        @Schema(description = "작성자 수강 코스 이름", example = "AIBE")
+        @Schema(description = "작성자 수강 코스 이름", example = "AI_BACKEND")
         String devcourseTrack,
         @Schema(description = "작성자 수강 코스 기수", example = "1")
         String devcourseBatch,
-// TODO: 이미지 로직 구현되면 주석 해제
-//        @Schema(description = "썸네일 이미지 URL", example = "https://placehold.co/400x400")
-//        String thumbnailImageUrl,
-//        @Schema(description = "썸네일 이미지 존재 여부", example = "false")
-//        boolean hasImages,
+        @Schema(description = "썸네일 이미지 URL", example = "https://placehold.co/400x400")
+        String thumbnailImageUrl,
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked,
         @Schema(description = "좋아요 여부", example = "false")
@@ -84,6 +84,7 @@ public record ProjectResponseDTO(
                 .simpleContent(project.getSimpleContent())
                 .demoUrl(project.getDemoUrl())
                 .projectMembers(project.getProjectMembers())
+                .authorId(post.getUser().getId())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .tags(post.getTags())
@@ -116,8 +117,7 @@ public record ProjectResponseDTO(
                 .nickname(record.get(USERS.NICKNAME))
                 .devcourseTrack(record.get(USERS.DEVCOURSE_NAME, String.class))
                 .devcourseBatch(record.get(USERS.DEVCOURSE_BATCH))
-//                .thumbnailImageUrl(record.get("thumbnailImageUrl", String.class))
-//                .hasImages(Boolean.TRUE.equals(record.get("hasImages", Boolean.class)))
+                .thumbnailImageUrl(record.get("thumbnailImageUrl", String.class))
                 .hasBookmarked(Boolean.TRUE.equals(record.get("hasBookmarked", Boolean.class)))
                 .hasLiked(Boolean.TRUE.equals(record.get("hasLiked", Boolean.class)));
     }

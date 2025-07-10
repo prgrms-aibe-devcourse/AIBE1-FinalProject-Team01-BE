@@ -49,6 +49,10 @@ public class Project extends BaseEntity {
         Optional.ofNullable(projectRequestDTO.githubUrl()).ifPresent(this::setGithubUrl);
         Optional.ofNullable(projectRequestDTO.simpleContent()).ifPresent(this::setSimpleContent);
         Optional.ofNullable(projectRequestDTO.demoUrl()).ifPresent(this::setDemoUrl);
-        Optional.ofNullable(projectRequestDTO.projectMembers()).ifPresent(this::setProjectMembers);
+    }
+
+    // Json 문자열로 저장하기 위해 메서드 분리
+    public void updateProjectMembers(String projectMembers){
+        this.projectMembers = projectMembers;
     }
 }
