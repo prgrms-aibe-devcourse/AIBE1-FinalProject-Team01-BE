@@ -1,5 +1,7 @@
 package kr.co.amateurs.server.annotation.alarmtrigger;
 
+import kr.co.amateurs.server.config.jwt.CustomUserDetailsService;
+import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.directmessage.DirectMessageRequest;
 import kr.co.amateurs.server.domain.entity.alarm.Alarm;
 import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
@@ -12,25 +14,23 @@ import kr.co.amateurs.server.fixture.project.UserFixture;
 import kr.co.amateurs.server.repository.alarm.AlarmRepository;
 import kr.co.amateurs.server.repository.directmessage.DirectMessageRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.alarm.SseService;
 import kr.co.amateurs.server.service.directmessage.DirectMessageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-class AlarmAspectTest {
 
+class AlarmAspectTest extends AbstractControllerTest {
 
     @Autowired
     private DirectMessageService directMessageService;
@@ -43,6 +43,12 @@ class AlarmAspectTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
+
+    @Autowired
+    private SseService sseService;
 
     @Autowired
     private DirectMessageRoomFixture directMessageRoomFixture;
@@ -76,6 +82,9 @@ class AlarmAspectTest {
         @Test
         void 다이렉트_메시지_전송_시_수신자에게_알람이_자동으로_생성된다() {
             // given
+            setAuthentication(messageReceiver.getEmail());
+            sseService.connect();
+
             directMessageRoomFixture.createAndSaveRoom(
                     DirectMessageRoomFixture.ROOM_1,
                     messageReceiver.getId(),
@@ -140,5 +149,16 @@ class AlarmAspectTest {
             List<Alarm> alarms = alarmRepository.findAll();
             assertThat(alarms).isEmpty();
         }
+    }
+
+    private void setAuthentication(String email) {
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null,
+                        userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }

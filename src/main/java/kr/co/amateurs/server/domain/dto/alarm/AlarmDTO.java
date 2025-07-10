@@ -5,7 +5,7 @@ import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 
 import java.time.LocalDateTime;
 
-public record AlarmResponse(
+public record AlarmDTO(
         String id,
         AlarmType type,
         String title,
@@ -13,8 +13,8 @@ public record AlarmResponse(
         boolean isRead,
         LocalDateTime sentAt
 ) {
-    public static AlarmResponse from(Alarm alarm) {
-        return new AlarmResponse(
+    public static AlarmDTO from(Alarm alarm) {
+        return new AlarmDTO(
                 alarm.getId(),
                 alarm.getType(),
                 alarm.getTitle(),
