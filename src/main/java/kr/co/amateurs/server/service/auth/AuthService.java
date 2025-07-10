@@ -72,6 +72,10 @@ public class AuthService {
                                   HttpServletResponse response) {
         User user = userService.findByEmail(request.email());
 
+        if (user.isDeleted()) {
+            throw ErrorCode.USER_NOT_FOUND.get();
+        }
+
         if(!passwordEncoder.matches(request.password(), user.getPassword())){
             throw ErrorCode.INVALID_PASSWORD.get();
         }
