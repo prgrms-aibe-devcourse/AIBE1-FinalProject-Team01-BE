@@ -153,13 +153,14 @@ public class FileService {
             String key = folder + "/" + fileName;
 
             try (InputStream inputStream = connection.getInputStream()) {
+                byte[] imageBytes = inputStream.readAllBytes();
                 PutObjectRequest request = PutObjectRequest.builder()
                         .bucket(bucket)
                         .key(key)
                         .contentType(contentType)
                         .build();
 
-                s3Client.putObject(request, RequestBody.fromInputStream(inputStream, inputStream.available()));
+                s3Client.putObject(request, RequestBody.fromBytes(imageBytes));
 
                 String s3Url = publicUrl + "/" + key;
                 log.info("소셜 이미지 S3 업로드 성공: {} -> {}", imageUrl, s3Url);
