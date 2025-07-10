@@ -88,11 +88,6 @@ public class User extends BaseEntity {
         }
     }
 
-    public void softDelete() {
-        this.isDeleted = true;
-        this.deletedAt = LocalDateTime.now();
-    }
-
     public boolean isDeleted() {
         return this.isDeleted != null && this.isDeleted;
     }

@@ -9,16 +9,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Builder
-public record UserTopicsEditResponseDTO(
-
+public record UserTopicsEditDTO(
         @Schema(description = "관심 주제 목록", example = "[\"FRONTEND\", \"BACKEND\"]")
         Set<Topic> topics
 ) {
-    public static UserTopicsEditResponseDTO from(User user) {
-        return UserTopicsEditResponseDTO.builder()
-                .topics(user.getUserTopics().stream()
-                        .map(userTopic -> userTopic.getTopic())
-                        .collect(Collectors.toSet()))
-                .build();
-    }
+        public static UserTopicsEditDTO from(User user) {
+                return UserTopicsEditDTO.builder()
+                        .topics(user.getUserTopics().stream()
+                                .map(userTopic -> userTopic.getTopic())
+                                .collect(Collectors.toSet()))
+                        .build();
+        }
 }

@@ -158,7 +158,7 @@ public class UserService {
         }
     }
 
-    public UserTopicsEditResponseDTO updateTopics(UserTopicsEditRequestDTO request) {
+    public UserTopicsEditDTO updateTopics(UserTopicsEditDTO request) {
         User currentUser = getCurrentLoginUser();
 
         User userFromDb = userRepository.findById(currentUser.getId())
@@ -170,7 +170,7 @@ public class UserService {
         userFromDb.addUserTopics(request.topics());
 
         User savedUser = userRepository.save(userFromDb);
-        return UserTopicsEditResponseDTO.from(savedUser);
+        return UserTopicsEditDTO.from(savedUser);
     }
 
     public UserDeleteResponseDTO deleteUser(UserDeleteRequestDTO request) {
@@ -184,9 +184,6 @@ public class UserService {
 
         if (userFromDb.getProviderType() != ProviderType.GITHUB &&
                 userFromDb.getProviderType() != ProviderType.KAKAO) {
-            if (request.currentPassword() == null || request.currentPassword().trim().isEmpty()) {
-                throw ErrorCode.EMPTY_CURRENT_PASSWORD.get();
-            }
             validateCurrentPassword(userFromDb, request.currentPassword());
         }
 

@@ -150,12 +150,12 @@ public class UserServiceTest {
     @Test
     void 유효한_토픽_목록으로_변경_시_정상적으로_업데이트된다() {
         // given
-        UserTopicsEditRequestDTO request = UserTopicsEditRequestDTO.builder()
+        UserTopicsEditDTO request = UserTopicsEditDTO.builder()
                 .topics(Set.of(Topic.BACKEND, Topic.DATA, Topic.MOBILE))
                 .build();
 
         // when
-        UserTopicsEditResponseDTO response = userService.updateTopics(request);
+        UserTopicsEditDTO response = userService.updateTopics(request);
 
         // then
         assertThat(response.topics()).hasSize(3);
@@ -168,7 +168,7 @@ public class UserServiceTest {
     @Test
     void 빈_토픽_목록으로_변경_시_예외가_발생한다() {
         // given
-        UserTopicsEditRequestDTO request = UserTopicsEditRequestDTO.builder()
+        UserTopicsEditDTO request = UserTopicsEditDTO.builder()
                 .topics(Set.of())
                 .build();
 
@@ -180,7 +180,7 @@ public class UserServiceTest {
     @Test
     void 토픽_4개_이상_변경_시_예외가_발생한다() {
         // given
-        UserTopicsEditRequestDTO request = UserTopicsEditRequestDTO.builder()
+        UserTopicsEditDTO request = UserTopicsEditDTO.builder()
                 .topics(Set.of(Topic.FRONTEND, Topic.DEVOPS, Topic.AI, Topic.BACKEND))
                 .build();
 
@@ -218,7 +218,9 @@ public class UserServiceTest {
     @Test
     void 이미_탈퇴한_사용자_재탈퇴_시_예외가_발생한다() {
         // given
-        testUser.softDelete();
+        String anonymousEmail = "deleted_test@anonymous.amateurs.com";
+        String anonymousNickname = "탈퇴한회원_test123";
+        testUser.anonymizeAndDelete(anonymousEmail, anonymousNickname);
         userRepository.save(testUser);
 
         UserDeleteRequestDTO request = new UserDeleteRequestDTO(UserTestFixture.DEFAULT_PASSWORD);
