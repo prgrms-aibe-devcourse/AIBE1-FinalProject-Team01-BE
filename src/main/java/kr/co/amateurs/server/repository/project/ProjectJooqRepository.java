@@ -75,8 +75,7 @@ public class ProjectJooqRepository {
         return selectQuery.from(PROJECTS)
                 .join(POSTS).on(PROJECTS.POST_ID.eq(POSTS.ID))
                 .join(USERS).on(POSTS.USER_ID.eq(USERS.ID))
-                .join(POST_STATISTICS).on(POSTS.ID.eq(POST_STATISTICS.POST_ID))
-                .leftJoin(BOOKMARKS).on(BOOKMARKS.POST_ID.eq(POSTS.ID));
+                .join(POST_STATISTICS).on(POSTS.ID.eq(POST_STATISTICS.POST_ID));
     }
 
     private List<ProjectResponseDTO> fetchProjectList(SelectJoinStep<?> query, ProjectSearchParam params) {
