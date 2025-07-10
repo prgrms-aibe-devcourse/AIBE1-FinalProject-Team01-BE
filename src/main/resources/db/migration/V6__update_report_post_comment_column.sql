@@ -13,5 +13,19 @@ ALTER TABLE reports
 ALTER TABLE posts
     ADD COLUMN is_blinded BOOLEAN NOT NULL DEFAULT FALSE;
 
+
 ALTER TABLE comments
-    ADD COLUMN is_blinded BOOLEAN NOT NULL DEFAULT FALSE;
+    ADD COLUMN is_blinded BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN reply_count INT NOT NULL DEFAULT 0;
+
+CREATE INDEX idx_comment_post_parent_deleted_created
+    ON comments(post_id, parent_comment_id, is_deleted, created_at);
+
+CREATE INDEX idx_comment_post_parent_deleted_id
+    ON comments(post_id, parent_comment_id, is_deleted, id);
+
+CREATE INDEX idx_comment_like_user_comment
+    ON post_like(comment_id, user_id);
+
+CREATE INDEX idx_user_id_performance
+    ON users(id);

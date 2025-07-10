@@ -8,9 +8,8 @@ on:
         required: true
         type: choice
         options:
-          - 'spring-dev'
           - 'spring-prod'
-        default: 'spring-dev'
+        default: 'spring-prod'
 
 jobs:
   deploy:

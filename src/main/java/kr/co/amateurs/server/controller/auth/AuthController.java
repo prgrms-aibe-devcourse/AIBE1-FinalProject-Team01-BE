@@ -10,6 +10,7 @@ import kr.co.amateurs.server.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -52,5 +53,20 @@ public class AuthController {
         return ResponseEntity.ok(available ?
                 CheckResponseDTO.available("닉네임") :
                 CheckResponseDTO.unavailable("닉네임"));
+    }
+
+    @PostMapping("/reissue")
+    @Operation(summary = "토큰 재발급", description = "리프레시 토큰을 이용하여 새로운 액세스 토큰을 발급합니다")
+    public ResponseEntity<TokenReissueResponseDTO> reissueToken(@Valid @RequestBody TokenReissueRequestDTO request) {
+        TokenReissueResponseDTO response = authService.reissueToken(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "로그아웃", description = "사용자를 로그아웃하고 Refresh Token을 삭제합니다")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<LogoutResponseDTO> logout(HttpServletResponse response) {
+        authService.logout(response);
+        return ResponseEntity.ok(LogoutResponseDTO.success());
     }
 }

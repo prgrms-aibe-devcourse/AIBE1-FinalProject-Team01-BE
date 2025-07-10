@@ -3,7 +3,7 @@ package kr.co.amateurs.server.controller.alarm;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kr.co.amateurs.server.domain.dto.alarm.AlarmPageResponse;
+import kr.co.amateurs.server.domain.dto.alarm.AlarmPageDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.service.alarm.AlarmService;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Alarm", description = "실시간 알림 관련 API")
+@Tag(name = "Alarm", description = "알림 API")
 @RestController
 @RequestMapping("api/v1/alarms")
 @RequiredArgsConstructor
@@ -21,8 +21,14 @@ public class AlarmController {
 
     @GetMapping
     @Operation(summary = "알람 목록 조회")
-    public ResponseEntity<AlarmPageResponse> readAlarms(@ParameterObject @Valid PaginationParam param) {
+    public ResponseEntity<AlarmPageDTO> readAlarms(@ParameterObject @Valid PaginationParam param) {
         return ResponseEntity.ok(alarmService.readAlarms(param));
+    }
+
+    @PostMapping
+    @Operation(summary = "테스트용 알람 생성")
+    public void createTestAlarm() {
+        alarmService.createTestAlarm();
     }
 
     @PatchMapping

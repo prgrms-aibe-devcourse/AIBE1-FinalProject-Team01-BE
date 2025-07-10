@@ -17,6 +17,10 @@ public enum ErrorCode implements Supplier<CustomException> {
     USER_NOT_IN_ROOM(HttpStatus.BAD_REQUEST, "해당 채팅방의 참여자가 아닙니다."),
     NOT_FOUND_ROOM(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),
     INVALID_USER_ID(HttpStatus.BAD_REQUEST,"잘못된 사용자 ID 입니다."),
+    CANNOT_CHAT_WITH_SELF (HttpStatus.BAD_REQUEST,"다른 사용자 ID를 입력해주세요."),
+
+    // sse 관련 에러
+    SSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 SSE 에러입니다."),
 
     // 알람 관련 에러
     ALARM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 알림입니다."),
@@ -31,6 +35,9 @@ public enum ErrorCode implements Supplier<CustomException> {
     OAUTH_USER_REGISTRATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 사용자 등록 중 오류가 발생했습니다."),
     OAUTH_PROVIDER_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 로그인 제공업체입니다."),
     OAUTH_EMAIL_API_CALL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "GitHub 이메일 정보 조회 중 오류가 발생했습니다."),
+    OAUTH_INVALID_PROVIDER(HttpStatus.BAD_REQUEST, "지원하지 않는 로그인 제공자입니다."),
+    OAUTH_SYSTEM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "로그인 처리 중 시스템 오류가 발생했습니다."),
+    OAUTH_REDIRECT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "OAuth 리다이렉트 처리 중 오류가 발생했습니다."),
 
     // 회원 정보 수정 관련 에러
     EMPTY_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호를 입력해주세요."),
@@ -52,6 +59,15 @@ public enum ErrorCode implements Supplier<CustomException> {
     INVALID_NICKNAME_LENGTH(HttpStatus.BAD_REQUEST, "닉네임은 2자 이상 20자 이하여야 합니다."),
     EMPTY_TOKEN(HttpStatus.BAD_REQUEST, "토큰은 필수입니다."),
     INVALID_EXPIRATION_TIME(HttpStatus.BAD_REQUEST, "만료시간은 양수여야 합니다."),
+
+    // 쿠키 관련 에러
+    INVALID_TOKEN_INFO(HttpStatus.BAD_REQUEST, "토큰 정보가 유효하지 않습니다."),
+    MISSING_ACCESS_TOKEN(HttpStatus.BAD_REQUEST, "Access Token이 필요합니다."),
+    MISSING_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "Refresh Token이 필요합니다."),
+    INVALID_HTTP_RESPONSE(HttpStatus.INTERNAL_SERVER_ERROR, "HTTP 응답 객체가 유효하지 않습니다."),
+    COOKIE_SETTING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "쿠키 설정에 실패했습니다"),
+    COOKIE_CLEAR_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "쿠키 삭제에 실패했습니다"),
+    INVALID_COOKIE_VALUE_FORMAT(HttpStatus.BAD_REQUEST, "쿠키 값에 허용되지 않는 문자가 포함되어 있습니다"),
 
     // 시스템 에러
     HASH_ALGORITHM_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "해시 알고리즘을 찾을 수 없습니다."),

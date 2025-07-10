@@ -1,5 +1,8 @@
 package kr.co.amateurs.server.service.auth;
 
+import kr.co.amateurs.server.config.jwt.JwtProvider;
+import kr.co.amateurs.server.domain.dto.auth.*;
+import kr.co.amateurs.server.config.TestAuthHelper;
 import kr.co.amateurs.server.fixture.auth.TokenTestFixture;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import jakarta.validation.ConstraintViolation;
@@ -29,6 +32,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -44,6 +48,12 @@ public class AuthServiceTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
+
+    @Autowired
+    private JwtProvider jwtProvider;
 
     @BeforeEach
     void setUp() {
@@ -235,5 +245,93 @@ public class AuthServiceTest {
         assertThat(response.refreshToken()).isNotNull();
         assertThat(response.tokenType()).isEqualTo(TokenTestFixture.TOKEN_TYPE);
         assertThat(response.expiresIn()).isEqualTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION);
+    }
+
+    @Test
+    void 유효한_리프레시_토큰으로_토큰_재발급_시_새로운_액새스_토큰을_반환한다() throws InterruptedException {
+        // given
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
+        authService.signup(signupRequest);
+
+        LoginRequestDTO loginRequest = LoginRequestDTO.builder()
+                .email(signupRequest.email())
+                .password(signupRequest.password())
+                .build();
+
+        LoginResponseDTO loginResponse = authService.login(loginRequest);
+        Thread.sleep(1000);
+
+        TokenReissueRequestDTO reissueRequest = new TokenReissueRequestDTO(loginResponse.refreshToken());
+
+        // when
+        TokenReissueResponseDTO response = authService.reissueToken(reissueRequest);
+
+        // then
+        assertThat(response.accessToken()).isNotNull();
+        assertThat(response.tokenType()).isEqualTo("Bearer");
+        assertThat(response.expiresIn()).isEqualTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION);
+        assertThat(response.accessToken()).isNotEqualTo(loginResponse.accessToken());
+    }
+
+    @Test
+    void 유효하지_않은_리프레시_토큰으로_재발급_시_예외가_발생한다() {
+        // given
+        TokenReissueRequestDTO invalidRequest = new TokenReissueRequestDTO("invalid.token.here");
+
+        // when & then
+        assertThatThrownBy(() -> authService.reissueToken(invalidRequest))
+                .isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    void 존재하지_않는_사용자의_리프레시_토큰으로_재발급_시_예외가_발생한다() {
+        // given
+        String fakeRefreshToken = jwtProvider.generateRefreshToken("nonexistent@test.com");
+        TokenReissueRequestDTO request = new TokenReissueRequestDTO(fakeRefreshToken);
+
+        // when & then
+        assertThatThrownBy(() -> authService.reissueToken(request))
+                .isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    void 정상적인_로그아웃_시_리프레시_토큰이_삭제된다() {
+        // given
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
+        User saveUser = TestAuthHelper.setAuthentication(
+                UserTestFixture.defaultUser()
+                        .email(signupRequest.email())
+                        .nickname(signupRequest.nickname())
+                        .password(passwordEncoder.encode(signupRequest.password()))
+                        .build(),
+                userRepository
+        );
+
+        LoginRequestDTO loginRequest = LoginRequestDTO.builder()
+                .email(signupRequest.email())
+                .password(signupRequest.password())
+                .build();
+        authService.login(loginRequest);
+
+        assertThat(refreshTokenService.existsByEmail(saveUser.getEmail())).isTrue();
+
+        // when
+        authService.logout(null);
+
+        // then
+        assertThat(refreshTokenService.existsByEmail(saveUser.getEmail())).isFalse();
+    }
+
+    @Test
+    void 인증되지_않은_사용자가_로그아웃_시도_시_예외가_발생한다() {
+        // given
+        TestAuthHelper.clearAuthentication();
+
+        // when & then
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            authService.logout(null);
+        });
+
+        assertThat(exception.getMessage()).isEqualTo("로그인이 필요합니다.");
     }
 }

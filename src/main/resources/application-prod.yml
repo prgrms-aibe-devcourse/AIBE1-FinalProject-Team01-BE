@@ -40,13 +40,31 @@ spring:
       client:
         registration:
           github:
-            client-id: ${GITHUB_CLIENT_ID}
-            client-secret: ${GITHUB_CLIENT_SECRET}
+            client-id: ${GIT_CLIENT_ID}
+            client-secret: ${GIT_CLIENT_SECRET}
             scope: read:user,user:email
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            redirect-uri: ${SERVER_URL}login/oauth2/code/kakao
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            client-name: Kakao
+            scope: profile_nickname, profile_image, account_email
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
 
 springdoc:
   swagger-ui:
-    enabled: false
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    docExpansion: none
   enable-kotlin: false
 
   output:
@@ -124,10 +142,11 @@ logging:
       total-size-cap: 1GB
 
 oauth:
-  success-redirect-url: https://dev.amateurs.co.kr
+  success-redirect-url: ${OAUTH_SUCCESS_REDIRECT_URL}
 
 cookie:
-  domain: .amateurs.co.kr
+  domain: ${COOKIE_DOMAIN}
+  secure: true
 
 app:
   cors:

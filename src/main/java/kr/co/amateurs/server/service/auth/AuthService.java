@@ -90,4 +90,34 @@ public class AuthService {
         }
         return LoginResponseDTO.of(accessToken, refreshToken, expiresIn);
     }
+
+    @Transactional
+    public TokenReissueResponseDTO reissueToken (TokenReissueRequestDTO request){
+        String refreshToken = request.refreshToken();
+
+        if (!jwtProvider.validateToken(refreshToken)) {
+            throw ErrorCode.UNAUTHORIZED.get();
+        }
+
+        String email = jwtProvider.getEmailFromToken(refreshToken);
+
+        if (!refreshTokenService.validateRefreshToken(email, refreshToken)) {
+            throw ErrorCode.UNAUTHORIZED.get();
+        }
+
+        String newAccessToken = jwtProvider.generateAccessToken(email);
+        Long expiresIn = jwtProvider.getAccessTokenExpirationMs();
+
+        return TokenReissueResponseDTO.of(newAccessToken, expiresIn);
+    }
+
+    @Transactional
+    public void logout(HttpServletResponse response) {
+        User currentUser = userService.getCurrentLoginUser();
+        refreshTokenService.deleteByEmail(currentUser.getEmail());
+
+        if (response != null) {
+            cookieUtils.clearAuthTokenCookie(response);
+        }
+    }
 }

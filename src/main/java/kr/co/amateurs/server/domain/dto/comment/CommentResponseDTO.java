@@ -47,11 +47,11 @@ public record CommentResponseDTO(
     public static CommentResponseDTO from(Comment comment, int replyCount, boolean hasLiked) {
         return new CommentResponseDTO(
                 comment.getId(),
-                comment.getPost().getId(),
+                comment.getPostId(),
                 comment.getUser().getNickname(),
                 comment.getUser().getImageUrl(),
                 comment.getUser().getDevcourseName(),
-                comment.getParentComment() != null ? comment.getParentComment().getId() : null,
+                comment.getParentCommentId(),
                 comment.getContent(),
                 replyCount,
                 comment.getLikeCount(),
