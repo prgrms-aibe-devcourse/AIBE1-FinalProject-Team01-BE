@@ -18,6 +18,9 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -109,6 +112,63 @@ public class FileService {
                     .imageUrl(imageUrl)
                     .build()
             );
+        }
+    }
+
+    // 소셜가입 유저의 프로필 이미지를 다운로드하여 S3에 업로드
+    public String downloadAndUploadToS3(String imageUrl, String directoryPath) {
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            return null;
+        }
+
+        if (imageUrl.startsWith(publicUrl)) {
+            return imageUrl;
+        }
+
+        try {
+            URL url = new URL(imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(10000);
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+            if (connection.getResponseCode() != 200) {
+                log.warn("이미지 다운로드 실패: {}, 응답코드: {}", imageUrl, connection.getResponseCode());
+                return imageUrl;
+            }
+
+            String contentType = connection.getContentType();
+
+            if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+                log.warn("지원하지 않는 이미지 타입: {} for URL: {}", contentType, imageUrl);
+                return imageUrl;
+            }
+
+            String extension = contentType.equals("image/jpeg") ? ".jpg" :
+                    "." + contentType.substring(contentType.lastIndexOf("/") + 1);
+
+            String folder = (directoryPath != null && !directoryPath.isEmpty()) ? directoryPath : "profile-images";
+            String fileName = UUID.randomUUID().toString() + extension;
+            String key = folder + "/" + fileName;
+
+            try (InputStream inputStream = connection.getInputStream()) {
+                PutObjectRequest request = PutObjectRequest.builder()
+                        .bucket(bucket)
+                        .key(key)
+                        .contentType(contentType)
+                        .build();
+
+                s3Client.putObject(request, RequestBody.fromInputStream(inputStream, inputStream.available()));
+
+                String s3Url = publicUrl + "/" + key;
+                log.info("소셜 이미지 S3 업로드 성공: {} -> {}", imageUrl, s3Url);
+                return s3Url;
+            }
+
+        } catch (Exception e) {
+            log.error("이미지 S3 업로드 실패: {} - {}", imageUrl, e.getMessage(), e);
+            return imageUrl;
         }
     }
 
