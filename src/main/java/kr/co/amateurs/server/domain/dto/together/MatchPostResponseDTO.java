@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 
 @Builder
 public record MatchPostResponseDTO(
+        @Schema(description = "팀원구하기 글 ID", example = "1")
+        Long id,
         @Schema(description = "게시글 ID", example = "1")
         Long postId,
         @Schema(description = "작성자 닉네임", example = "test닉네임")
@@ -53,6 +55,7 @@ public record MatchPostResponseDTO(
 ) {
     public static MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked) {
         return new MatchPostResponseDTO(
+                mp.getId(),
                 post.getId(),
                 post.getUser().getNickname(),
                 post.getUser().getDevcourseName(),

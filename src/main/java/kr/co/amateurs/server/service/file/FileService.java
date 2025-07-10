@@ -61,7 +61,7 @@ public class FileService {
         return new FileResponseDTO(
                 true,
                 "File uploaded",
-                publicUrl + "/" + key
+                "https://" + publicUrl + "/" + key
         );
     }
 
