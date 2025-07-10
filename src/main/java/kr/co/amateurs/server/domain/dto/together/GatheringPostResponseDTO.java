@@ -17,6 +17,8 @@ import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 @Builder
 public record GatheringPostResponseDTO(
+        @Schema(description = "팀원구하기 글 ID", example = "1")
+        Long id,
         @Schema(description = "게시글 ID", example = "1")
         Long postId,
         @Schema(description = "작성자 닉네임", example = "test닉네임")
@@ -57,6 +59,7 @@ public record GatheringPostResponseDTO(
 ) {
     public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post, boolean hasLiked, boolean hasBookmarked) {
         return new GatheringPostResponseDTO(
+                gp.getId(),
                 post.getId(),
                 post.getUser().getNickname(),
                 post.getUser().getDevcourseName(),
