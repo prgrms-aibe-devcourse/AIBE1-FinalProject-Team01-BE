@@ -44,6 +44,7 @@ public class AuthService {
                 .password(encodedPassword)
                 .role(Role.GUEST)
                 .providerType(ProviderType.LOCAL)
+                .isProfileCompleted(true)
                 .build();
 
         user.addUserTopics(request.topics());
