@@ -1,27 +1,40 @@
 package kr.co.amateurs.server.service.verify;
 
-import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.verify.PythonServiceResponseDTO;
+import kr.co.amateurs.server.domain.dto.verify.VerifyMapper;
 import kr.co.amateurs.server.domain.dto.verify.VerifyResultDTO;
+import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.domain.entity.verify.Verify;
+import kr.co.amateurs.server.domain.entity.verify.VerifyStatus;
+import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.repository.verify.VerifyRepository;
+import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+
+import kr.co.amateurs.server.domain.common.ErrorCode;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class VerifyService {
-
     private final RestTemplate restTemplate;
+    private final VerifyRepository verifyRepository;
+    private final FileService fileService;
+    private final UserService userService;
 
     @Value("${verification.service.url}")
     private String verificationServiceUrl;
@@ -29,64 +42,86 @@ public class VerifyService {
     @Value("${verification.service.endpoint}")
     private String verificationEndpoint;
 
-    public VerifyResultDTO verifyStudent(MultipartFile image) {
+    @Transactional
+    public VerifyResultDTO verifyStudent(User user, MultipartFile image) {
+        validateUserForVerification(user);
+
+        try {
+            String imageUrl = uploadImageToS3(image);
+
+            PythonServiceResponseDTO.DataDTO data = callPythonVerificationService(image);
+
+            VerifyStatus status = determineStatusAndUpdateRole(user, data.totalScore());
+            Verify verify = VerifyMapper.createEntity(
+                    user, data, status, imageUrl, LocalDateTime.now()
+            );
+            verifyRepository.save(verify);
+
+            log.info("사용자 {} 인증 완료 - 상태: {}, 점수: {}", user.getEmail(), status, data.totalScore());
+
+            return VerifyResultDTO.from(verify);
+
+        } catch (IOException e) {
+        throw ErrorCode.FILE_PROCESSING_ERROR.get();
+        } catch (Exception e) {
+        throw ErrorCode.VERIFICATION_PROCESSING_ERROR.get();
+        }
+    }
+
+    /**
+     * Python 인증 서비스 호출
+     */
+    private PythonServiceResponseDTO.DataDTO callPythonVerificationService(MultipartFile image) throws IOException {
         String url = verificationServiceUrl + verificationEndpoint;
-        
-        ByteArrayResource fileResource = convertToByte(image);
-        
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("image", fileResource);
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("image", MultipartInputStreamFileResource.from(image));
+
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-        
-        try {
-            log.info("Python 서비스 호출: {}", url);
-            ResponseEntity<PythonServiceResponseDTO> response = restTemplate.postForEntity(
-                url, requestEntity, PythonServiceResponseDTO.class);
-            return handlePythonServiceResponse(response);
-            
-        } catch (Exception e) {
-            log.error("Python 인증 서비스 호출 실패", e);
-            throw ErrorCode.VERIFICATION_SERVICE_ERROR.get();
-        }
-    }
 
-    private ByteArrayResource convertToByte(MultipartFile image) {
-        try {
-            return new ByteArrayResource(image.getBytes()) {
-                @Override
-                public String getFilename() {
-                    return image.getOriginalFilename();
-                }
-            };
-        } catch (IOException e) {
-            log.error("파일 처리 중 오류 발생", e);
-            throw ErrorCode.VERIFICATION_SERVICE_ERROR.get();
-        }
-    }
-
-
-    private VerifyResultDTO handlePythonServiceResponse(ResponseEntity<PythonServiceResponseDTO> response) {
-        if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
-            log.error("Python 서비스 응답 오류: {}", response.getStatusCode());
-            throw ErrorCode.VERIFICATION_SERVICE_ERROR.get();
-        }
+        ResponseEntity<PythonServiceResponseDTO> response = restTemplate.postForEntity(
+                url, requestEntity, PythonServiceResponseDTO.class
+        );
 
         PythonServiceResponseDTO responseBody = response.getBody();
-        
-        if (!responseBody.isSuccess()) {
-            log.error("Python 서비스에서 인증 실패: {}", responseBody.getError());
-            throw ErrorCode.VERIFICATION_FAILED.get();
+
+        if (responseBody == null || !responseBody.success()) {
+            throw ErrorCode.VERIFICATION_SERVICE_ERROR.get();
         }
 
-        return VerifyResultDTO.builder()
-                .ocrScore(responseBody.getOcrScore())
-                .layoutScore(responseBody.getLayoutScore())
-                .totalScore(responseBody.getTotalScore())
-                .extractedText(responseBody.getExtractedText())
-                .detailMessage(responseBody.getDetailMessage())
-                .isVerified(responseBody.isVerified())
-                .build();
+        return responseBody.data();
     }
-} 
+
+
+    public void validateUserForVerification(User user) {
+        if (user.getRole() != Role.GUEST) {
+            throw ErrorCode.ACCESS_DENIED.get();
+        }
+        boolean alreadyVerified = verifyRepository.existsByUserAndStatus(user, VerifyStatus.COMPLETED);
+        if (alreadyVerified) {
+            throw ErrorCode.DUPLICATION_VERIFICATION.get();
+        }
+        boolean hasPending = verifyRepository.existsByUserAndStatus(user, VerifyStatus.PENDING);
+        if (hasPending) {
+            throw ErrorCode.DUPLICATION_VERIFICATION.get();
+        }
+    }
+
+    private VerifyStatus determineStatusAndUpdateRole(User user, int totalScore) {
+        if (totalScore >= 85) {
+            userService.changeUserRole(user, Role.STUDENT);
+            return VerifyStatus.COMPLETED;
+        } else if (totalScore >= 65) {
+            return VerifyStatus.PENDING;
+        } else {
+            return VerifyStatus.FAILED;
+        }
+    }
+
+    private String uploadImageToS3(MultipartFile image) throws IOException {
+        return fileService.uploadFile(image, "verify-images").url();
+    }
+}

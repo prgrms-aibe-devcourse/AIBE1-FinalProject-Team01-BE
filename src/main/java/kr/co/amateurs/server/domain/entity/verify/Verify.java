@@ -2,6 +2,7 @@ package kr.co.amateurs.server.domain.entity.verify;
 
 import jakarta.persistence.*;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
+import kr.co.amateurs.server.domain.dto.verify.PythonServiceResponseDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import lombok.*;
 

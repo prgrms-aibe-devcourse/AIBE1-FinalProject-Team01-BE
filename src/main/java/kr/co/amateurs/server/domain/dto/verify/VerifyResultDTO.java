@@ -1,19 +1,26 @@
 package kr.co.amateurs.server.domain.dto.verify;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import kr.co.amateurs.server.domain.entity.verify.Verify;
+import kr.co.amateurs.server.domain.entity.verify.VerifyStatus;
 
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class VerifyResultDTO {
-    private int ocrScore;
-    private int layoutScore;
-    private int totalScore;
-    private String extractedText;
-    private String detailMessage;
-    private boolean isVerified;
-} 
+public record VerifyResultDTO(
+        int ocrScore,
+        int layoutScore,
+        int totalScore,
+        String extractedText,
+        String detailMessage,
+        VerifyStatus status,
+        boolean isVerified
+) {
+    public static VerifyResultDTO from(Verify verify) {
+        return new VerifyResultDTO(
+                verify.getOcrScore(),
+                verify.getLayoutScore(),
+                verify.getTotalScore(),
+                verify.getExtractedText(),
+                verify.getDetailMessage(),
+                verify.getStatus(),
+                verify.getStatus() == VerifyStatus.COMPLETED
+        );
+    }
+}
