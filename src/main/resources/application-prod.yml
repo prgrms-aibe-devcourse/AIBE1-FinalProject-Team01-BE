@@ -131,10 +131,8 @@ management:
 
 logging:
   level:
-    root: INFO
-    org.springframework: WARN
-    org.hibernate.SQL: ERROR
-    org.hibernate.type.descriptor.sql.BasicBinder: ERROR
+    root: info
+    org.springframework: info
   file:
     name: /var/log/spring-boot/application.log
   logback:

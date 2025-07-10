@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.alarm;
 
 import io.restassured.http.ContentType;
 import jakarta.annotation.PostConstruct;
+import kr.co.amateurs.server.config.jwt.CustomUserDetailsService;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.directmessage.DirectMessageRequest;
 import kr.co.amateurs.server.domain.entity.alarm.Alarm;
@@ -15,6 +16,7 @@ import kr.co.amateurs.server.fixture.directmessage.DirectMessageRoomFixture;
 import kr.co.amateurs.server.fixture.project.UserFixture;
 import kr.co.amateurs.server.repository.alarm.AlarmRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.alarm.SseService;
 import kr.co.amateurs.server.service.directmessage.DirectMessageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -22,6 +24,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.context.jdbc.Sql;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +36,8 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 
+@Sql(scripts = "/reset.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@Sql(scripts = "/reset.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 class AlarmControllerTest extends AbstractControllerTest {
 
     @Autowired
@@ -40,6 +48,12 @@ class AlarmControllerTest extends AbstractControllerTest {
 
     @Autowired
     private DirectMessageService directMessageService;
+
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
+
+    @Autowired
+    private SseService sseService;
 
     @Autowired
     private AlarmTestFixture alarmFixture;
@@ -85,15 +99,15 @@ class AlarmControllerTest extends AbstractControllerTest {
                         .then()
                         .log().all()
                         .statusCode(HttpStatus.OK.value())
-                        .body("alarms.size()", equalTo(10))
+                        .body("content.size()", equalTo(10))
                         .body("pageInfo.pageNumber", equalTo(0))
                         .body("pageInfo.totalElements", equalTo(15))
                         .body("pageInfo.totalPages", equalTo(2))
-                        .body("alarms[0].id", notNullValue())
-                        .body("alarms[0].type", oneOf("COMMENT", "REPLY", "DIRECT_MESSAGE"))
-                        .body("alarms[0].title", notNullValue())
-                        .body("alarms[0].content", notNullValue())
-                        .body("alarms[0].sentAt", notNullValue());
+                        .body("content[0].id", notNullValue())
+                        .body("content[0].type", oneOf("COMMENT", "REPLY", "DIRECT_MESSAGE"))
+                        .body("content[0].title", notNullValue())
+                        .body("content[0].content", notNullValue())
+                        .body("content[0].sentAt", notNullValue());
             }
 
             @Test
@@ -109,7 +123,7 @@ class AlarmControllerTest extends AbstractControllerTest {
                         .then()
                         .log().all()
                         .statusCode(HttpStatus.OK.value())
-                        .body("alarms.size()", equalTo(0))
+                        .body("content.size()", equalTo(0))
                         .body("pageInfo.pageNumber", equalTo(0))
                         .body("pageInfo.totalElements", equalTo(0))
                         .body("pageInfo.totalPages", equalTo(0));
@@ -132,9 +146,9 @@ class AlarmControllerTest extends AbstractControllerTest {
                         .then()
                         .log().all()
                         .statusCode(HttpStatus.OK.value())
-                        .body("alarms.size()", equalTo(count))
-                        .body("alarms.findAll { it.isRead == false }.size()", equalTo(count / 2))
-                        .body("alarms.findAll { it.isRead == true }.size()", equalTo(count / 2));
+                        .body("content.size()", equalTo(count))
+                        .body("content.findAll { it.isRead == false }.size()", equalTo(count / 2))
+                        .body("content.findAll { it.isRead == true }.size()", equalTo(count / 2));
             }
 
             @Test
@@ -157,8 +171,8 @@ class AlarmControllerTest extends AbstractControllerTest {
                         .then()
                         .log().all()
                         .statusCode(HttpStatus.OK.value())
-                        .body("alarms.size()", equalTo(3))
-                        .body("alarms.type", hasItems(alarmTypeNames));
+                        .body("content.size()", equalTo(3))
+                        .body("content.type", containsInAnyOrder(alarmTypeNames));
             }
 
             @Test
@@ -179,7 +193,7 @@ class AlarmControllerTest extends AbstractControllerTest {
                         .then()
                         .log().all()
                         .statusCode(HttpStatus.OK.value())
-                        .body("alarms.size()", equalTo(size))
+                        .body("content.size()", equalTo(size))
                         .body("pageInfo.totalElements", equalTo(count))
                         .body("pageInfo.totalPages", equalTo(count / size));
             }
@@ -200,7 +214,7 @@ class AlarmControllerTest extends AbstractControllerTest {
                         .then()
                         .log().all()
                         .statusCode(HttpStatus.OK.value())
-                        .body("alarms.size()", equalTo(5))
+                        .body("content.size()", equalTo(5))
                         .body("pageInfo.pageNumber", equalTo(1));
             }
         }
@@ -369,7 +383,18 @@ class AlarmControllerTest extends AbstractControllerTest {
             @Test
             void 알람_트리거를_설정한_함수가_실행되면_알람이_생성된다() {
                 // given
-                directMessageRoomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
+                User receiver = UserFixture.createStudentUser(DevCourseTrack.AI_BACKEND, "2");
+                receiver = userRepository.save(receiver);
+                setAuthentication(receiver.getEmail());
+                sseService.connect();
+
+                directMessageRoomFixture.createAndSaveRoom(
+                        DirectMessageRoomFixture.ROOM_1,
+                        testUser.getId(),
+                        testUser.getNickname(),
+                        receiver.getId(),
+                        receiver.getNickname()
+                );
                 directMessageFixture.createAndSaveMessage(DirectMessageRoomFixture.ROOM_1, DirectMessageFixture.MESSAGE_CONTENT_1);
                 DirectMessageRequest request = new DirectMessageRequest(
                         DirectMessageFixture.MESSAGE_CONTENT_1,
@@ -386,5 +411,16 @@ class AlarmControllerTest extends AbstractControllerTest {
                 assertThat(size).isGreaterThan(0);
             }
         }
+    }
+
+    private void setAuthentication(String email) {
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null,
+                        userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }

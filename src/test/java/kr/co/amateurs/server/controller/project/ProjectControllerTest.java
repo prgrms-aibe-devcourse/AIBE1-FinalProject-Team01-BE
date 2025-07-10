@@ -4,6 +4,7 @@ package kr.co.amateurs.server.controller.project;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
+import kr.co.amateurs.server.domain.dto.project.ProjectMember;
 import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
@@ -283,7 +284,6 @@ public class ProjectControllerTest extends AbstractControllerTest {
     }
 
 
-
     @Nested
     class 학생_유저는 {
         private String fakeBackendUserToken() {
@@ -347,7 +347,11 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .githubUrl("https://github.com/example/project")
                     .simpleContent("간단한 프로젝트 설명")
                     .demoUrl("https://demo.example.com")
-                    .projectMembers(objectMapper.writeValueAsString(List.of("김개발", "이디자인", "박프론트")))
+                    .projectMembers(List.of(
+                            new ProjectMember("김개발", "백엔드"),
+                            new ProjectMember("박개발", "프론트엔드"),
+                            new ProjectMember("홍길동", "DevOps")
+                    ))
                     .build();
 
             // when & then
@@ -375,7 +379,11 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .content("수정된 내용")
                     .startedAt(LocalDateTime.of(2020, 1, 1, 13, 20))
                     .endedAt(LocalDateTime.of(2020, 1, 31, 13, 20))
-                    .projectMembers(objectMapper.writeValueAsString(List.of("홍길동", "박길동", "김길동")))
+                    .projectMembers(List.of(
+                            new ProjectMember("김개발", "백엔드"),
+                            new ProjectMember("박개발", "프론트엔드"),
+                            new ProjectMember("홍길동", "DevOps")
+                    ))
                     .build();
 
             // when & then
@@ -411,7 +419,11 @@ public class ProjectControllerTest extends AbstractControllerTest {
             ProjectRequestDTO requestDTO = ProjectRequestDTO.builder()
                     .title("수정된 프로젝트2")
                     .content("수정된 내용2")
-                    .projectMembers(objectMapper.writeValueAsString(List.of("홍길동", "박길동", "김길동")))
+                    .projectMembers(List.of(
+                            new ProjectMember("김개발", "백엔드"),
+                            new ProjectMember("박개발", "프론트엔드"),
+                            new ProjectMember("홍길동", "DevOps")
+                    ))
                     .build();
 
             // when & then
@@ -455,7 +467,11 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .githubUrl("https://github.com/example/project")
                     .simpleContent("간단한 프로젝트 설명")
                     .demoUrl("https://demo.example.com")
-                    .projectMembers(objectMapper.writeValueAsString(List.of("김개발", "이디자인", "박프론트")))
+                    .projectMembers(List.of(
+                            new ProjectMember("김개발", "백엔드"),
+                            new ProjectMember("박개발", "프론트엔드"),
+                            new ProjectMember("홍길동", "DevOps")
+                    ))
                     .build();
 
             // when & then
@@ -478,7 +494,11 @@ public class ProjectControllerTest extends AbstractControllerTest {
                     .content("수정된 내용")
                     .startedAt(LocalDateTime.of(2020, 1, 1, 13, 20))
                     .endedAt(LocalDateTime.of(2020, 1, 31, 13, 20))
-                    .projectMembers("[\"홍길동\", \"박길동\", \"김길동\"]")
+                    .projectMembers(List.of(
+                            new ProjectMember("김개발", "백엔드"),
+                            new ProjectMember("박개발", "프론트엔드"),
+                            new ProjectMember("홍길동", "DevOps")
+                    ))
                     .build();
 
             // when & then
