@@ -62,7 +62,6 @@ public class ProjectService {
     public ProjectResponseDTO createProject(ProjectRequestDTO projectRequestDTO) {
         User user = userService.getCurrentLoginUser();
 
-        // TODO: PostRequest DTO의 tags 가 String 이라서
         PostRequest postRequestDto = new CommunityRequestDTO(
                 projectRequestDTO.title(),
                 projectRequestDTO.tags(),
