@@ -4,11 +4,10 @@ import io.restassured.http.ContentType;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
-import kr.co.amateurs.server.domain.entity.alarm.Alarm;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
-import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.fixture.comment.CommentTestFixtures;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
@@ -18,15 +17,11 @@ import kr.co.amateurs.server.service.alarm.SseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doNothing;
 
 public class CommentControllerTest extends AbstractControllerTest {
 
@@ -65,58 +60,6 @@ public class CommentControllerTest extends AbstractControllerTest {
     void setUp() {
         cleanUpData();
         setUpData();
-        doNothing().when(sseService).sendAlarmToUser(anyLong(), ArgumentMatchers.any(Alarm.class));
-    }
-
-    private void setUpData() {
-        createUsers();
-        createPosts();
-        createTokens();
-    }
-
-    private void createUsers() {
-        guestUser = userRepository.save(CommentTestFixtures.createGuestUser());
-        studentUser = userRepository.save(CommentTestFixtures.createStudentUser());
-        adminUser = userRepository.save(CommentTestFixtures.createAdminUser());
-    }
-
-    private void createPosts() {
-        communityPost = postRepository.save(
-                CommentTestFixtures.createCustomPost(studentUser, "커뮤니티 게시글", "내용", BoardType.FREE));
-
-        togetherPost = postRepository.save(
-                CommentTestFixtures.createCustomPost(studentUser, "함께해요 게시글", "내용", BoardType.MARKET));
-
-        itPost = postRepository.save(
-                CommentTestFixtures.createCustomPost(studentUser, "IT 게시글", "내용", BoardType.REVIEW));
-
-        projectPost = postRepository.save(
-                CommentTestFixtures.createCustomPost(studentUser, "프로젝트 게시글", "내용", BoardType.PROJECT_HUB));
-    }
-
-    private void createTokens() {
-        guestToken = jwtProvider.generateAccessToken(guestUser.getEmail());
-        studentToken = jwtProvider.generateAccessToken(studentUser.getEmail());
-        adminToken = jwtProvider.generateAccessToken(adminUser.getEmail());
-    }
-
-    private Comment createComment(Post post, String content, Comment parentComment, User user) {
-        Comment comment = Comment.builder()
-                .user(user)
-                .post(post)
-                .parentComment(parentComment)
-                .content(content)
-                .likeCount(0)
-                .isDeleted(false)
-                .build();
-        return commentRepository.save(comment);
-    }
-
-    private void cleanUpData() {
-        likeRepository.deleteAll();
-        commentRepository.deleteAll();
-        postRepository.deleteAll();
-        userRepository.deleteAll();
     }
 
     @Nested
