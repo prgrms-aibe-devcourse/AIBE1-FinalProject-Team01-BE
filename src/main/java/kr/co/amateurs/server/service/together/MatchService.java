@@ -17,9 +17,12 @@ import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
-import kr.co.amateurs.server.repository.file.PostImageRepository;
+import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
+import kr.co.amateurs.server.repository.comment.CommentRepository;
+import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
+import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingService;
@@ -52,11 +55,14 @@ public class MatchService {
 
     private final MatchRepository matchRepository;
     private final PostRepository postRepository;
-    private final PostImageRepository postImageRepository;
     private final PostStatisticsRepository postStatisticsRepository;
     private final UserService userService;
     private final LikeService likeService;
     private final BookmarkService bookmarkService;
+    private final BookmarkRepository bookmarkRepository;
+    private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
+    private final ReportRepository reportRepository;
 
     private final FileService fileService;
     private final PostEmbeddingService postEmbeddingService;
@@ -148,8 +154,12 @@ public class MatchService {
         Post post = mp.getPost();
         validateUser(post);
 
-        fileService.deletePostImage(post);
         postStatisticsRepository.deleteById(post.getId());
+        bookmarkRepository.deleteByPost_Id(post.getId());
+        likeRepository.deleteByPost_Id(post.getId());
+        reportRepository.deleteByPost_Id(post.getId());
+        commentRepository.deleteByPostId(post.getId());
+        fileService.deletePostImage(post);
         postRepository.delete(post);
     }
 

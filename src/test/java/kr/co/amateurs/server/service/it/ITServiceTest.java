@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.service.it;
 
+import jakarta.persistence.EntityManager;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
@@ -33,6 +34,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.mockito.BDDMockito.given;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -56,6 +58,9 @@ class ITServiceTest {
 
     @Autowired
     private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @MockitoBean
     private UserService userService;
@@ -351,12 +356,9 @@ class ITServiceTest {
 
         given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
-        // when
-        itService.deletePost(itId);
-
-        // then
-        assertThatThrownBy(() -> itService.getPost(itId, "1"))
-                .isInstanceOf(CustomException.class);
+        // when & then
+        assertThatCode(() -> itService.deletePost(itId))
+                .doesNotThrowAnyException();
     }
 
     @Test

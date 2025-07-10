@@ -13,11 +13,14 @@ import kr.co.amateurs.server.domain.entity.post.Project;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
+import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.file.PostImageRepository;
+import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.project.ProjectJooqRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
+import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.file.FileService;
@@ -40,6 +43,9 @@ public class ProjectService {
     private final PostImageRepository postImageRepository;
     private final PostStatisticsRepository postStatisticsRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
+    private final ReportRepository reportRepository;
 
     private final ProjectJooqRepository projectJooqRepository;
 
@@ -139,13 +145,15 @@ public class ProjectService {
                 .orElseThrow(ErrorCode.POST_NOT_FOUND);
 
         validatePost(project.getPost(), user.getEmail());
+        Post post = project.getPost();
 
-        //TODO cascade 설정 필요
-        postStatisticsRepository.deleteById(project.getPost().getId());
-        bookmarkRepository.deleteByPost_Id(project.getPost().getId());
-        fileService.deletePostImage(project.getPost());
-        projectRepository.deleteById(projectId);
-        postRepository.deleteById(project.getPost().getId());
+        postStatisticsRepository.deleteById(post.getId());
+        bookmarkRepository.deleteByPost_Id(post.getId());
+        likeRepository.deleteByPost_Id(post.getId());
+        reportRepository.deleteByPost_Id(post.getId());
+        commentRepository.deleteByPostId(post.getId());
+        fileService.deletePostImage(post);
+        postRepository.deleteById(post.getId());
     }
 
     private void validatePost(Post post, String email) {
