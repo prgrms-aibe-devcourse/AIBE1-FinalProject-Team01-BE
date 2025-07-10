@@ -8,6 +8,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
@@ -33,6 +34,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     private final UserRepository userRepository;
     private final RestClient restClient;
+    private final FileService fileService;
 
     private static final int MAX_NICKNAME_RETRY = 5;
     private static final String DEFAULT_PROFILE_IMAGE_URL = "https://via.placeholder.com/150/cccccc/969696?text=Profile";
@@ -97,6 +99,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         }
 
         String uniqueNickname = generateUniqueNickname(userInfo.nickname());
+        String s3ImageUrl = fileService.downloadAndUploadToS3(userInfo.imageUrl(), "profile-images");
 
         User newUser = User.builder()
                 .providerId(userInfo.providerId())
@@ -104,7 +107,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 .email(userInfo.email())
                 .nickname(uniqueNickname)
                 .name(userInfo.name())
-                .imageUrl(userInfo.imageUrl())
+                .imageUrl(s3ImageUrl)
                 .role(Role.GUEST)
                 .isProfileCompleted(false)
                 .build();
