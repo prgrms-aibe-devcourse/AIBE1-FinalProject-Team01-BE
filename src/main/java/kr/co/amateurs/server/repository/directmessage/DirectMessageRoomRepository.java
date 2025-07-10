@@ -13,4 +13,7 @@ public interface DirectMessageRoomRepository extends MongoRepository<DirectMessa
 
     @Query("{'participants': {$elemMatch: {'userId': ?0, 'isActive': true}}}")
     List<DirectMessageRoom> findActiveRoomsByUserId(Long userId);
+    
+    @Query("{'participants.userId': ?0}")
+    List<DirectMessageRoom> findAllRoomsByUserId(Long userId);
 }
