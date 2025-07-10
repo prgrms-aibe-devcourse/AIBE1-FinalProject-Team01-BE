@@ -1,4 +1,4 @@
--- V7__create_post_statistics_and_remove_view_count.sql
+-- V8__create_post_statistics_and_remove_view_count.sql
 
 -- PostStatistics 테이블 생성
 CREATE TABLE post_statistics (
