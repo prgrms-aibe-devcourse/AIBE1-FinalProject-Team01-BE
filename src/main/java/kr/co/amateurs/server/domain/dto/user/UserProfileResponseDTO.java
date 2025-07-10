@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Builder
-public record UserProfileResponseDto(
+public record UserProfileResponseDTO(
         @Schema(description = "사용자 ID")
         Long userId,
 
@@ -41,8 +41,8 @@ public record UserProfileResponseDto(
         Set<Topic> topics
 ) {
 
-    public static UserProfileResponseDto from(User user) {
-        return UserProfileResponseDto.builder()
+    public static UserProfileResponseDTO from(User user) {
+        return UserProfileResponseDTO.builder()
                 .userId(user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())

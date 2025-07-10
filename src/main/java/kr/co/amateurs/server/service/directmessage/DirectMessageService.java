@@ -11,6 +11,7 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.directmessage.DirectMessageRepository;
 import kr.co.amateurs.server.repository.directmessage.DirectMessageRoomRepository;
+import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +28,11 @@ public class DirectMessageService {
     private final DirectMessageRoomRepository directMessageRoomRepository;
 
     private final UserService userService;
+
+    //test
+    private final UserRepository userRepository;
+    
+    private final Random random = new Random();
 
     @AlarmTrigger(type = AlarmType.DIRECT_MESSAGE)
     public DirectMessageResponse saveMessage(String roomId, DirectMessageRequest request) {
@@ -39,7 +46,7 @@ public class DirectMessageService {
     public DirectMessageRoomResponse createRoom(long partnerId) {
         User currentUser = userService.getCurrentLoginUser();
         if (currentUser.getId().equals(partnerId)) {
-            throw new CustomException(ErrorCode.INVALID_USER_ID);
+            throw new CustomException(ErrorCode.CANNOT_CHAT_WITH_SELF);
         }
 
         User partner = userService.findById(partnerId);
@@ -49,7 +56,35 @@ public class DirectMessageService {
                 .map(this::reEntryParticipants)
                 .orElseGet(() -> directMessageRoomRepository.save(DirectMessageRoom.from(participants)));
 
-        return DirectMessageRoomResponse.fromCollection(room, partner);
+        return DirectMessageRoomResponse.fromCollection(room, currentUser);
+    }
+
+    public DirectMessageRoomResponse createTestRoom() {
+        User currentUser = userService.getCurrentLoginUser();
+        
+        List<Long> existingPartnerIds = directMessageRoomRepository.findAllRoomsByUserId(currentUser.getId()).stream()
+                .flatMap(room -> room.getParticipants().stream())
+                .map(Participant::getUserId)
+                .filter(id -> !id.equals(currentUser.getId()))
+                .distinct()
+                .toList();
+        
+        List<User> availableUsers = userRepository.findAll().stream()
+                .filter(user -> !user.getId().equals(currentUser.getId()))
+                .filter(user -> !existingPartnerIds.contains(user.getId()))
+                .toList();
+        
+        if (availableUsers.isEmpty()) {
+            throw new CustomException(ErrorCode.INVALID_USER_ID);
+        }
+        
+        User partner = availableUsers.get(random.nextInt(availableUsers.size()));
+        
+        // 새 채팅방 생성
+        List<User> participants = List.of(currentUser, partner);
+        DirectMessageRoom newRoom = directMessageRoomRepository.save(DirectMessageRoom.from(participants));
+        
+        return DirectMessageRoomResponse.fromCollection(newRoom, partner);
     }
 
     public DirectMessageRoom findRoomById(String roomId) {
@@ -57,9 +92,9 @@ public class DirectMessageService {
                 .orElseThrow(ErrorCode.NOT_FOUND_ROOM);
     }
 
-    public List<DirectMessageRoomResponse> getRooms(Long userId) {
-        List<DirectMessageRoom> rooms = directMessageRoomRepository.findActiveRoomsByUserId(userId);
+    public List<DirectMessageRoomResponse> getRooms() {
         User currentUser = userService.getCurrentLoginUser();
+        List<DirectMessageRoom> rooms = directMessageRoomRepository.findActiveRoomsByUserId(currentUser.getId());
         return rooms.stream()
                 .map(room -> DirectMessageRoomResponse.fromCollection(room, currentUser))
                 .toList();

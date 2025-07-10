@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 @Builder
-public record UserPasswordEditRequestDto(
+public record UserPasswordEditRequestDTO(
 
         @Schema(description = "현재 비밀번호", example = "currentPassword123")
         String currentPassword,

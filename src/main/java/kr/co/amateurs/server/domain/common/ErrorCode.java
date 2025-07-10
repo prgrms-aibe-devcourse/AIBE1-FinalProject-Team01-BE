@@ -17,6 +17,10 @@ public enum ErrorCode implements Supplier<CustomException> {
     USER_NOT_IN_ROOM(HttpStatus.BAD_REQUEST, "해당 채팅방의 참여자가 아닙니다."),
     NOT_FOUND_ROOM(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),
     INVALID_USER_ID(HttpStatus.BAD_REQUEST,"잘못된 사용자 ID 입니다."),
+    CANNOT_CHAT_WITH_SELF (HttpStatus.BAD_REQUEST,"다른 사용자 ID를 입력해주세요."),
+
+    // sse 관련 에러
+    SSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 SSE 에러입니다."),
 
     // 알람 관련 에러
     ALARM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 알림입니다."),
@@ -38,6 +42,9 @@ public enum ErrorCode implements Supplier<CustomException> {
     // 회원 정보 수정 관련 에러
     EMPTY_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호를 입력해주세요."),
     INVALID_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다."),
+
+    // 회원 탈퇴 관련 에러
+    USER_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 탈퇴한 사용자입니다."),
 
     // 로그인 관련 에러
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 사용자입니다."),

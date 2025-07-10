@@ -73,4 +73,19 @@ public class RefreshTokenService {
             throw ErrorCode.EMPTY_EMAIL.get();
         }
     }
+
+    public boolean validateRefreshToken(String email, String token) {
+        validateEmail(email);
+        if (token == null || token.trim().isEmpty()) {
+            throw ErrorCode.EMPTY_TOKEN.get();
+        }
+
+        Optional<RefreshToken> refreshToken = findByEmail(email);
+        if (refreshToken.isEmpty()) {
+            return false;
+        }
+
+        String hashedInputToken = hashToken(token);
+        return hashedInputToken.equals(refreshToken.get().getToken());
+    }
 }

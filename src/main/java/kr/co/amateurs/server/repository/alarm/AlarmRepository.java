@@ -20,4 +20,6 @@ public interface AlarmRepository extends MongoRepository<Alarm, String> {
     void markAsReadByUserIdAndId(long userId, String alarmId);
 
     Page<Alarm> findByUserId(long userId, Pageable pageable);
+    
+    long countByUserIdAndIsReadFalse(long userId);
 }

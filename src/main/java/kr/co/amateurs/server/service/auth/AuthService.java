@@ -72,6 +72,10 @@ public class AuthService {
                                   HttpServletResponse response) {
         User user = userService.findByEmail(request.email());
 
+        if (user.isDeleted()) {
+            throw ErrorCode.USER_NOT_FOUND.get();
+        }
+
         if(!passwordEncoder.matches(request.password(), user.getPassword())){
             throw ErrorCode.INVALID_PASSWORD.get();
         }
@@ -89,6 +93,26 @@ public class AuthService {
             cookieUtils.setAuthTokenCookie(response, tokenInfoDTO);
         }
         return LoginResponseDTO.of(accessToken, refreshToken, expiresIn);
+    }
+
+    @Transactional
+    public TokenReissueResponseDTO reissueToken (TokenReissueRequestDTO request){
+        String refreshToken = request.refreshToken();
+
+        if (!jwtProvider.validateToken(refreshToken)) {
+            throw ErrorCode.UNAUTHORIZED.get();
+        }
+
+        String email = jwtProvider.getEmailFromToken(refreshToken);
+
+        if (!refreshTokenService.validateRefreshToken(email, refreshToken)) {
+            throw ErrorCode.UNAUTHORIZED.get();
+        }
+
+        String newAccessToken = jwtProvider.generateAccessToken(email);
+        Long expiresIn = jwtProvider.getAccessTokenExpirationMs();
+
+        return TokenReissueResponseDTO.of(newAccessToken, expiresIn);
     }
 
     @Transactional

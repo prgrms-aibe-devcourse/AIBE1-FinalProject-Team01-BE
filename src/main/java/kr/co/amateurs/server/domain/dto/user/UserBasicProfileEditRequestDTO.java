@@ -1,11 +1,10 @@
 package kr.co.amateurs.server.domain.dto.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
 @Builder
-public record UserBasicProfileEditRequestDto (
+public record UserBasicProfileEditRequestDTO(
         @Schema(description = "이름", example = "김개발")
         String name,
 
