@@ -259,8 +259,6 @@ tasks.named('test') {
 			"-XX:+UseStringDeduplication",
 			"-XX:G1HeapRegionSize=16m"
 	]
-
-	maxParallelForks = 1
 }
 
 tasks.named('compileJava') {
