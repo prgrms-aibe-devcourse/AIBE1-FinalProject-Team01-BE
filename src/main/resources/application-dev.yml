@@ -152,7 +152,7 @@ cookie:
 
 app:
   cors:
-    allowed-origins: https://dev.amateurs.co.kr
+    allowed-origins: https://api.amateurs.co.kr
 
 verification:
   service:
