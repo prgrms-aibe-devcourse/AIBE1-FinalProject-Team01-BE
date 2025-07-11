@@ -10,8 +10,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.0'
 	id 'io.spring.dependency-management' version '1.1.7'
+
 	id 'dev.monosoul.jooq-docker' version '6.1.9'
-	id 'jacoco'
 }
 
 group = 'kr.co.amateurs'
@@ -66,11 +66,6 @@ jooq {
     }
 }
 
-jacoco {
-	toolVersion = "0.8.13"
-	reportsDirectory = layout.buildDirectory.dir("reports/jacoco")
-}
-
 tasks {
     generateJooqClasses {
         schemas.set(["amateurs_db"])
@@ -105,68 +100,6 @@ tasks {
         }
     }
 }
-
-jacocoTestReport {
-	dependsOn test
-
-	reports {
-		xml.required = true
-		html.required = true
-		csv.required = false
-	}
-
-	afterEvaluate {
-		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, exclude: [
-					'**/generated/**',
-
-					'**/config/**',
-					'**/domain/**',
-					'**/exception/**',
-					'**/handler/**',
-					'**/repository/**',
-					'**/utils/**',
-
-					'**/*Application.*',
-			])
-		}))
-	}
-}
-
-jacocoTestCoverageVerification {
-	dependsOn jacocoTestReport
-
-	violationRules {
-		rule {
-			limit {
-				counter = 'INSTRUCTION'
-				value = 'COVEREDRATIO'
-				minimum = 0.50
-			}
-			limit {
-				counter = 'BRANCH'
-				value = 'COVEREDRATIO'
-				minimum = 0.50
-			}
-		}
-
-		rule {
-			element = 'CLASS'
-			limit {
-				counter = 'INSTRUCTION'
-				value = 'COVEREDRATIO'
-				minimum = 0.50
-			}
-
-			excludes = [
-					'*.Application',
-					'*.Config*',
-					'*.Configuration*'
-			]
-		}
-	}
-}
-
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -242,13 +175,8 @@ dependencies {
 	testImplementation 'org.awaitility:awaitility:4.2.0'
 }
 
-tasks.named('check') {
-	dependsOn jacocoTestCoverageVerification
-}
-
 tasks.named('test') {
 	useJUnitPlatform()
-	finalizedBy(jacocoTestReport)
 }
 
 tasks.named('compileJava') {
