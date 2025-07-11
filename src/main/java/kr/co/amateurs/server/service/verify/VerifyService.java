@@ -15,6 +15,7 @@ import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -53,17 +54,25 @@ public class VerifyService {
         try {
             String imageUrl = uploadImageToS3(image);
 
+            log.info("이미지 업로드 완료");
             Verify verify = Verify.builder()
                     .user(user)
                     .status(VerifyStatus.PROCESSING)
                     .imageUrl(imageUrl)
                     .verifiedAt(LocalDateTime.now())
+                    .ocrScore(0)
+                    .layoutScore(0)
+                    .totalScore(0)
                     .build();
 
+            log.info("인증 요청 생성: userId={}, imageUrl={}", user.getId(), imageUrl);
             verifyRepository.save(verify);
 
+            byte[] imageBytes = image.getBytes();
+            String filename = image.getOriginalFilename();
+            
             CompletableFuture.runAsync(() -> {
-                processVerificationAsync(verify.getId(), image);
+                processVerificationAsync(verify.getId(), imageBytes, filename, user);
             });
 
             return VerifyResultDTO.processing();
@@ -76,15 +85,13 @@ public class VerifyService {
     }
 
     @Transactional
-    public void processVerificationAsync(Long verifyId, MultipartFile image) {
+    public void processVerificationAsync(Long verifyId, byte[] imageBytes, String filename, User user) {
         try {
             log.info("비동기 인증 처리 시작: verifyId={}", verifyId);
-
             Verify verify = verifyRepository.findById(verifyId)
                     .orElseThrow(() -> ErrorCode.NOT_FOUND.get());
-            User user = verify.getUser();
 
-            PythonServiceResponseDTO.DataDTO data = callPythonVerificationService(image);
+            PythonServiceResponseDTO.DataDTO data = callPythonVerificationService(imageBytes, filename);
 
             VerifyStatus status = determineStatusAndUpdateRole(user, data.totalScore());
 
@@ -114,14 +121,23 @@ public class VerifyService {
     /**
      * Python 인증 서비스 호출
      */
-    private PythonServiceResponseDTO.DataDTO callPythonVerificationService(MultipartFile image) throws IOException {
+    private PythonServiceResponseDTO.DataDTO callPythonVerificationService(byte[] imageBytes, String filename) throws IOException {
         String url = verificationServiceUrl + verificationEndpoint;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
+        // 파일명을 포함한 커스텀 리소스 생성
+        String fileName = filename != null ? filename : "image.jpg";
+        ByteArrayResource fileResource = new ByteArrayResource(imageBytes) {
+            @Override
+            public String getFilename() {
+                return fileName;
+            }
+        };
+
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("image", MultipartInputStreamFileResource.from(image));
+        body.add("image", fileResource);
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 

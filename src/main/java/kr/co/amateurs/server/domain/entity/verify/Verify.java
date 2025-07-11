@@ -21,7 +21,7 @@ public class Verify extends BaseEntity {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private VerifyStatus status;
 
     @Column(nullable = false)
@@ -39,7 +39,7 @@ public class Verify extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String detailMessage;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String imageUrl;
 
     @Column(nullable = false)
