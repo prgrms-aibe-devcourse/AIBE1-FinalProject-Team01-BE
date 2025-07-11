@@ -55,8 +55,7 @@ public record MatchPostResponseDTO(
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
-    public static MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked) {
+    public static MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
         return new MatchPostResponseDTO(
                 mp.getId(),
                 post.getId(),

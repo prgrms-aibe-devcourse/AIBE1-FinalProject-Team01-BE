@@ -54,7 +54,7 @@ public record MarketPostResponseDTO(
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-            public static MarketPostResponseDTO convertToDTO(MarketItem mi, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked) {
+            public static MarketPostResponseDTO convertToDTO(MarketItem mi, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
                 return new MarketPostResponseDTO(
                         mi.getId(),
                         post.getId(),
@@ -67,6 +67,7 @@ public record MarketPostResponseDTO(
                         post.getTags(),
                         postStatistics.getViewCount(),
                         post.getLikeCount(),
+                        bookmarkCount,
                         mi.getStatus(),
                         mi.getPrice(),
                         mi.getPlace(),
@@ -76,28 +77,5 @@ public record MarketPostResponseDTO(
                         hasLiked,
                         hasBookmarked
                 );
-    public static MarketPostResponseDTO convertToDTO(MarketItem mi, Post post, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount){
-        return new MarketPostResponseDTO(
-                mi.getId(),
-                post.getId(),
-                post.getUser().getNickname(),
-                post.getUser().getDevcourseName(),
-                post.getUser().getDevcourseBatch(),
-                post.getUser().getImageUrl(),
-                post.getTitle(),
-                post.getContent(),
-                post.getTags(),
-                post.getViewCount(),
-                post.getLikeCount(),
-                bookmarkCount,
-                mi.getStatus(),
-                mi.getPrice(),
-                mi.getPlace(),
-                post.getCreatedAt(),
-                post.getUpdatedAt(),
-                post.getPostImages() != null && !post.getPostImages().isEmpty(),
-                hasLiked,
-                hasBookmarked
-        );
-    }
+            }
 }

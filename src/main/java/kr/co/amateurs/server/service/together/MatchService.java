@@ -71,8 +71,6 @@ public class MatchService {
 
     public PageResponseDTO<MatchPostResponseDTO> getMatchPostList(PostPaginationParam paginationParam) {
         Page<MatchingPost> mpPage = matchRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
-        Page<MatchPostResponseDTO> response = mpPage.map(mp-> convertToDTO(mp, mp.getPost(), false, false, bookmarkService.countBookmark(mp.getPost())));
-
         List<Long> postIds = mpPage.getContent().stream()
                 .map(mp -> mp.getPost().getId())
                 .toList();
@@ -82,7 +80,7 @@ public class MatchService {
                 .collect(Collectors.toMap(PostStatistics::getPostId, Function.identity()));
 
         Page<MatchPostResponseDTO> response = mpPage.map(mp ->
-                MatchPostResponseDTO.convertToDTO(mp, mp.getPost(), statisticsMap.get(mp.getPost().getId()), false, false)
+                MatchPostResponseDTO.convertToDTO(mp, mp.getPost(), statisticsMap.get(mp.getPost().getId()), false, false, bookmarkService.countBookmark(mp.getPost()))
         );
 
         return convertPageToDTO(response);
@@ -93,12 +91,11 @@ public class MatchService {
         User user = userService.getCurrentLoginUser();
         MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
-        return convertToDTO(mp, post, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post));
 
         PostStatistics postStatistics = postStatisticsRepository.findById(mp.getPost().getId()).orElseThrow(ErrorCode.NOT_FOUND);
 
         eventPublisher.publishEvent(new PostViewedEvent(post.getId(), ipAddress));
-        return convertToDTO(mp, post, postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()));
+        return convertToDTO(mp, post, postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post));
     }
 
 
@@ -137,8 +134,7 @@ public class MatchService {
         List<String> imgUrls = fileService.extractImageUrls(dto.content());
         fileService.savePostImage(savedPost, imgUrls);
 
-        return convertToDTO(savedMp, savedPost, false, false, 0);
-        return convertToDTO(savedMp, savedPost, savedPs, false, false);
+        return convertToDTO(savedMp, savedPost, savedPs, false, false, 0);
     }
 
     @Transactional
