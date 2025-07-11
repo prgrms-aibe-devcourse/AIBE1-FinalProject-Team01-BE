@@ -57,7 +57,6 @@ public class ITTestFixtures {
                 .content(content)
                 .tags("태그1, 태그2")
                 .boardType(boardType)
-                .viewCount(0)
                 .likeCount(0)
                 .postImages(new ArrayList<>())
                 .build();
@@ -71,7 +70,6 @@ public class ITTestFixtures {
                 .content(content)
                 .tags("테스트,태그")
                 .boardType(boardType)
-                .viewCount(viewCount)
                 .likeCount(likeCount)
                 .postImages(new ArrayList<>())
                 .build();

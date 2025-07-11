@@ -1,17 +1,15 @@
 package kr.co.amateurs.server.domain.dto.bookmark;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 public record MatchingBookmarkDTO(
         Long postId,
@@ -33,7 +31,7 @@ public record MatchingBookmarkDTO(
             @Schema(description = "마감 기한", example = "250628")
             String expertiseAreas
     ) {}
-    public static MatchingBookmarkDTO convertToDTO(MatchingPost mp) {
+    public static MatchingBookmarkDTO convertToDTO(MatchingPost mp, PostStatistics postStatistics) {
         Post p = mp.getPost();
         MatchingPostInfo mpi = new MatchingPostInfo(
                 mp.getMatchingType(),
@@ -46,7 +44,7 @@ public record MatchingBookmarkDTO(
                 p.getTitle(),
                 p.getContent(),
                 p.getLikeCount(),
-                p.getViewCount(),
+                postStatistics.getViewCount(),
                 p.getTags(),
                 p.getCreatedAt(),
                 p.getUpdatedAt(),

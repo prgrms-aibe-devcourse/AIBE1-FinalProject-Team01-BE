@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.community;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
@@ -46,9 +47,10 @@ public class CommunityController {
     )
     public ResponseEntity<CommunityResponseDTO> getCommunityPost(
             @PathVariable("boardType") BoardType boardType,
-            @PathVariable Long communityId) {
-
-        CommunityResponseDTO post = communityService.getPost(communityId);
+            @PathVariable Long communityId,
+            HttpServletRequest request) {
+        String ipAddress = request.getRemoteAddr();
+        CommunityResponseDTO post = communityService.getPost(communityId, ipAddress);
 
         return ResponseEntity.ok(post);
     }
@@ -62,6 +64,7 @@ public class CommunityController {
             @PathVariable BoardType boardType,
             @RequestBody @Valid CommunityRequestDTO requestDTO
     ){
+
         CommunityResponseDTO post = communityService.createPost(requestDTO, boardType);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(post);

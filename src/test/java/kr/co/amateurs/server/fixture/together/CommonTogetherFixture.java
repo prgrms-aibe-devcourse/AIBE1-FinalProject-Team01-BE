@@ -1,6 +1,5 @@
 package kr.co.amateurs.server.fixture.together;
 
-import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -10,8 +9,6 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import org.springframework.data.domain.Sort;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class CommonTogetherFixture {
     private static int seq = 0;
@@ -21,7 +18,6 @@ public class CommonTogetherFixture {
                 .title(title)
                 .content(content)
                 .tags(tags)
-                .viewCount(0)
                 .likeCount(0)
                 .isDeleted(false)
                 .boardType(boardType)

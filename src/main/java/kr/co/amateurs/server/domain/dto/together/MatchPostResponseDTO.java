@@ -1,19 +1,16 @@
 package kr.co.amateurs.server.domain.dto.together;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingType;
 import lombok.Builder;
-import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 @Builder
 public record MatchPostResponseDTO(
@@ -56,7 +53,7 @@ public record MatchPostResponseDTO(
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post, boolean hasLiked, boolean hasBookmarked) {
+    public static MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked) {
         return new MatchPostResponseDTO(
                 mp.getId(),
                 post.getId(),
@@ -67,7 +64,7 @@ public record MatchPostResponseDTO(
                 post.getTitle(),
                 post.getContent(),
                 post.getTags(),
-                post.getViewCount(),
+                postStatistics.getViewCount(),
                 post.getLikeCount(),
                 mp.getMatchingType(),
                 mp.getStatus(),

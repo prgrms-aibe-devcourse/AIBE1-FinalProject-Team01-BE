@@ -6,21 +6,23 @@ import kr.co.amateurs.server.domain.dto.follow.FollowPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.follow.FollowResponseDTO;
 import kr.co.amateurs.server.domain.entity.follow.Follow;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.follow.FollowRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static kr.co.amateurs.server.domain.dto.follow.FollowPostResponseDTO.convertToDTO;
 import static kr.co.amateurs.server.domain.dto.follow.FollowResponseDTO.convertToFollowingDTO;
 
 @Service
@@ -29,6 +31,7 @@ public class FollowService {
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final PostStatisticsRepository postStatisticsRepository;
 
     private final UserService userService;
 
@@ -55,8 +58,20 @@ public class FollowService {
         }
         List<Post> allPosts = postRepository.findByUserIdIn(followingUserId);
         List<Post> filteredPosts = filterByUserRole(allPosts, user.getRole());
+
+        List<Long> postIds = filteredPosts.stream()
+                .map(Post::getId)
+                .toList();
+
+        List<PostStatistics> statisticsList = postStatisticsRepository.findByPostIdIn(postIds);
+        Map<Long, PostStatistics> statisticsMap = statisticsList.stream()
+                .collect(Collectors.toMap(PostStatistics::getPostId, Function.identity()));
+
         return filteredPosts.stream()
-                .map(FollowPostResponseDTO::convertToDTO)
+                .map(post -> {
+                    PostStatistics postStatistics = statisticsMap.get(post.getId());
+                    return FollowPostResponseDTO.convertToDTO(post, postStatistics);
+                })
                 .collect(Collectors.toList());
     }
 
