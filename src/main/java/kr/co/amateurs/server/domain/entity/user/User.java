@@ -51,6 +51,10 @@ public class User extends BaseEntity {
     private List<UserTopic> userTopics = new ArrayList<>();
 
     @Builder.Default
+    @Column(name = "is_profile_completed", nullable = false)
+    private Boolean isProfileCompleted = false;
+
+    @Builder.Default
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 
@@ -68,6 +72,20 @@ public class User extends BaseEntity {
                     .build();
             this.userTopics.add(userTopic);
         });
+    }
+
+    public boolean isProfileCompleted() {
+        return this.isProfileCompleted != null && this.isProfileCompleted;
+    }
+
+    public void completeProfile(String name, String nickname, Set<Topic> topics) {
+        updateBasicProfile(name, nickname, this.imageUrl);
+        addUserTopics(topics);
+        this.isProfileCompleted = true;
+    }
+
+    public void markProfileAsCompleted() {
+        this.isProfileCompleted = true;
     }
 
     public void updateBasicProfile(String name, String nickname, String imageUrl) {
