@@ -41,10 +41,6 @@ public class Post extends BaseEntity {
 
     @Builder.Default
     @Column(nullable = false)
-    private Integer viewCount = 0;
-
-    @Builder.Default
-    @Column(nullable = false)
     private Integer likeCount = 0;
 
     @Builder.Default

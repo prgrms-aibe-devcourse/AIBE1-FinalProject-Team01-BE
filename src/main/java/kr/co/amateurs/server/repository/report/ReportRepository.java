@@ -36,4 +36,6 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     boolean existsByUserIdAndPostIdAndReportType(Long userId, Long postId, ReportType reportType);
 
     boolean existsByUserIdAndCommentIdAndReportType(Long userId, Long commentId, ReportType reportType);
+
+    void deleteByPost_Id(Long id);
 }
