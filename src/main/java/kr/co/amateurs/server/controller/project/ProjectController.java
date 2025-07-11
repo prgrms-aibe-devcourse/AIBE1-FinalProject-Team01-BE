@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.project;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
@@ -32,8 +33,9 @@ public class ProjectController {
 
     @GetMapping("/{projectId}")
     @Operation(summary = "프로젝트 글 정보", description = "특정 프로젝트 글의 세부 정보를 불러옵니다.")
-    public ResponseEntity<ProjectResponseDTO> getProjectDetails(@PathVariable(name = "projectId") Long projectId) {
-        ProjectResponseDTO projectResponseDTO = projectService.getProjectDetails(projectId);
+    public ResponseEntity<ProjectResponseDTO> getProjectDetails(@PathVariable(name = "projectId") Long projectId, HttpServletRequest request) {
+        String ipAddress = request.getRemoteAddr();
+        ProjectResponseDTO projectResponseDTO = projectService.getProjectDetails(projectId, ipAddress);
         return ResponseEntity.ok(projectResponseDTO);
     }
 

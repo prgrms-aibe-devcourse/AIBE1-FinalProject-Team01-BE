@@ -3,18 +3,23 @@ package kr.co.amateurs.server.controller.bookmark;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.fixture.comment.CommentTestFixtures;
+import kr.co.amateurs.server.fixture.community.CommunityTestFixtures;
 import kr.co.amateurs.server.fixture.project.BookmarkFixture;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -35,6 +40,12 @@ public class BookmarkControllerTest extends AbstractControllerTest {
 
     @Autowired
     private JwtProvider jwtProvider;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private PostStatisticsRepository postStatisticsRepository;
 
     private User guestUser;
     private User studentUser;
@@ -106,7 +117,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
                     .statusCode(201)
                     .body("postId", equalTo(communityPost.getId().intValue()))
                     .body("boardType", equalTo(BoardType.FREE.toString()))
-                    .body("title", equalTo("커뮤니티 게시글"));
+                    .body("title", equalTo("테스트 게시글 제목"));
         }
 
         @Test
@@ -532,19 +543,48 @@ public class BookmarkControllerTest extends AbstractControllerTest {
     }
 
     private void createPosts() {
-        communityPost = postRepository.save(
-                CommentTestFixtures.createCustomPost(studentUser, "커뮤니티 게시글", "내용", BoardType.FREE));
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 
-        togetherPost = postRepository.save(
-                CommentTestFixtures.createCustomPost(studentUser, "함께해요 게시글", "내용", BoardType.MARKET));
+        communityPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    CommunityTestFixtures.createPost(studentUser, "테스트 게시글 제목", "테스트 게시글 내용", BoardType.FREE));
 
-        marketRepository.save(CommentTestFixtures.createMarketItem(togetherPost));
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
 
-        itPost = postRepository.save(
-                CommentTestFixtures.createCustomPost(studentUser, "IT 게시글", "내용", BoardType.REVIEW));
+            return post;
+        });
 
-        projectPost = postRepository.save(
-                CommentTestFixtures.createCustomPost(studentUser, "프로젝트 게시글", "내용", BoardType.PROJECT_HUB));
+        togetherPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    CommentTestFixtures.createCustomPost(studentUser, "함께해요 게시글", "내용", BoardType.MARKET));
+
+            marketRepository.save(CommentTestFixtures.createMarketItem(post));
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
+
+        itPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    CommentTestFixtures.createCustomPost(studentUser, "IT 게시글", "내용", BoardType.REVIEW));
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
+
+        projectPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    CommentTestFixtures.createCustomPost(studentUser, "프로젝트 게시글", "내용", BoardType.PROJECT_HUB));
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
     }
 
     private void createTokens() {
@@ -555,6 +595,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
     }
 
     private void cleanUpData() {
+        postStatisticsRepository.deleteAll();
         bookmarkRepository.deleteAll();
         postRepository.deleteAll();
         userRepository.deleteAll();
