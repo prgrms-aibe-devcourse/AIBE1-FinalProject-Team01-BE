@@ -3,6 +3,7 @@ package kr.co.amateurs.server.controller.together;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
@@ -34,8 +35,9 @@ public class MarketController {
 
     @GetMapping("/{marketId}")
     @Operation(summary = "장터 글 정보", description = "장터 탭의 특정 게시글의 정보를 불러옵니다.")
-    public ResponseEntity<MarketPostResponseDTO> getMarketPost(@PathVariable("marketId") Long marketId){
-        MarketPostResponseDTO gatherPost = marketService.getMarketPost(marketId);
+    public ResponseEntity<MarketPostResponseDTO> getMarketPost(@PathVariable("marketId") Long marketId, HttpServletRequest request) {
+        String ipAddress = request.getRemoteAddr();
+        MarketPostResponseDTO gatherPost = marketService.getMarketPost(marketId, ipAddress);
         return ResponseEntity.ok(gatherPost);
     }
 

@@ -5,19 +5,24 @@ import jakarta.transaction.Transactional;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
+import kr.co.amateurs.server.domain.dto.post.PostViewedEvent;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
-import kr.co.amateurs.server.domain.entity.post.PostImage;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
-import kr.co.amateurs.server.repository.file.PostImageRepository;
+import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
+import kr.co.amateurs.server.repository.comment.CommentRepository;
+import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
+import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingService;
@@ -26,12 +31,16 @@ import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import kr.co.amateurs.server.service.like.LikeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.function.Function;
 
 import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO.convertToDTO;
@@ -44,28 +53,50 @@ public class GatheringService {
 
     private final GatheringRepository gatheringRepository;
     private final PostRepository postRepository;
-    private final PostImageRepository postImageRepository;
     private final LikeService likeService;
     private final BookmarkService bookmarkService;
+    private final PostStatisticsRepository postStatisticsRepository;
+    private final BookmarkRepository bookmarkRepository;
+    private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
+    private final ReportRepository reportRepository;
 
     private final UserService userService;
     private final FileService fileService;
 
     private final PostEmbeddingService postEmbeddingService;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     public PageResponseDTO<GatheringPostResponseDTO> getGatheringPostList(PostPaginationParam paginationParam) {
         Page<GatheringPost> gpPage = gatheringRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
-        Page<GatheringPostResponseDTO> response = gpPage.map(gp->convertToDTO(gp, gp.getPost(), false, false));
+
+        List<Long> postIds = gpPage.getContent().stream()
+                .map(gp -> gp.getPost().getId())
+                .toList();
+
+        List<PostStatistics> statisticsList = postStatisticsRepository.findByPostIdIn(postIds);
+        Map<Long, PostStatistics> statisticsMap = statisticsList.stream()
+                .collect(Collectors.toMap(PostStatistics::getPostId, Function.identity()));
+
+        Page<GatheringPostResponseDTO> response = gpPage.map(gp ->
+            convertToDTO(gp, gp.getPost(), statisticsMap.get(gp.getPost().getId()), false, false)
+        );
+
         return convertPageToDTO(response);
     }
 
 
-    public GatheringPostResponseDTO getGatheringPost(Long id) {
+    public GatheringPostResponseDTO getGatheringPost(Long id, String ipAddress) {
         User user = userService.getCurrentLoginUser();
 
         GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
-        return convertToDTO(gp, post, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()));
+
+        PostStatistics postStatistics = postStatisticsRepository.findById(post.getId()).orElseThrow(ErrorCode.POST_NOT_FOUND);
+
+        eventPublisher.publishEvent(new PostViewedEvent(post.getId(), ipAddress));
+        return convertToDTO(gp, post,postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()));
     }
 
 
@@ -92,6 +123,9 @@ public class GatheringService {
                 .build();
         GatheringPost savedGp = gatheringRepository.save(gp);
 
+        PostStatistics postStatistics = PostStatistics.from(savedPost);
+        PostStatistics savedps = postStatisticsRepository.save(postStatistics);
+
         CompletableFuture.runAsync(() -> {
             try {
                 postEmbeddingService.createPostEmbeddings(savedPost);
@@ -103,7 +137,7 @@ public class GatheringService {
         List<String> imgUrls = fileService.extractImageUrls(dto.content());
         fileService.savePostImage(savedPost, imgUrls);
 
-        return convertToDTO(savedGp, savedPost, false, false);
+        return convertToDTO(savedGp, savedPost,savedps, false, false);
     }
 
 
@@ -123,6 +157,11 @@ public class GatheringService {
         Post post = gp.getPost();
         validateUser(post);
 
+        postStatisticsRepository.deleteById(post.getId());
+        bookmarkRepository.deleteByPost_Id(post.getId());
+        likeRepository.deleteByPost_Id(post.getId());
+        reportRepository.deleteByPost_Id(post.getId());
+        commentRepository.deleteByPostId(post.getId());
         fileService.deletePostImage(post);
         postRepository.delete(post);
     }

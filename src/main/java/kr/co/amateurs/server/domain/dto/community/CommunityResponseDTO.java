@@ -7,9 +7,6 @@ import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 
 import java.time.LocalDateTime;
-import java.util.List;
-
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 public record CommunityResponseDTO(
         @Schema(description = "커뮤니티 ID", example = "1")
@@ -74,7 +71,7 @@ public record CommunityResponseDTO(
                         post.getUser().getDevcourseName(),
                         post.getUser().getDevcourseBatch(),
                         post.getBoardType(),
-                        post.getViewCount(),
+                        0,
                         post.getLikeCount(),
                         0,
                         post.getCreatedAt(),
