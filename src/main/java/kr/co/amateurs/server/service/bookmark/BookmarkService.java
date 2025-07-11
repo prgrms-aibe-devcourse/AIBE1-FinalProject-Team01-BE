@@ -6,16 +6,14 @@ import kr.co.amateurs.server.domain.dto.bookmark.*;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
-import kr.co.amateurs.server.domain.entity.post.GatheringPost;
-import kr.co.amateurs.server.domain.entity.post.MarketItem;
-import kr.co.amateurs.server.domain.entity.post.MatchingPost;
-import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.*;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
@@ -28,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +38,7 @@ public class BookmarkService {
     private final BookmarkRepository bookmarkRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final PostStatisticsRepository postStatisticsRepository;
 
     private final GatheringRepository gatheringRepository;
     private final MarketRepository marketRepository;
@@ -86,20 +84,21 @@ public class BookmarkService {
         Post p = bookmark.getPost();
         Long postId = p.getId();
         BoardType boardType = p.getBoardType();
+        PostStatistics postStatistics = postStatisticsRepository.findById(postId).orElseThrow(ErrorCode.NOT_FOUND);
         return switch (boardType){
             case GATHER -> {
                 GatheringPost gp = gatheringRepository.findByPostId(postId);
-                yield GatheringBookmarkDTO.convertToDTO(gp);
+                yield GatheringBookmarkDTO.convertToDTO(gp, postStatistics);
             }
             case MARKET -> {
                 MarketItem mi = marketRepository.findByPostId(postId);
-                yield MarketBookmarkDTO.convertToDTO(mi);
+                yield MarketBookmarkDTO.convertToDTO(mi,postStatistics);
             }
             case MATCH -> {
                 MatchingPost mp = matchRepository.findByPostId(postId);
-                yield MatchingBookmarkDTO.convertToDTO(mp);
+                yield MatchingBookmarkDTO.convertToDTO(mp,postStatistics);
             }
-            default -> PostBookmarkDTO.convertToDTO(p);
+            default -> PostBookmarkDTO.convertToDTO(p,postStatistics);
         };
     }
     public boolean checkHasBookmarked(Long postId, Long userId) {

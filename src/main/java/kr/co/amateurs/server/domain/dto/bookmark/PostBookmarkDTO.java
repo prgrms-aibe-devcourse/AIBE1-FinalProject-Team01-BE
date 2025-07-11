@@ -1,12 +1,10 @@
 package kr.co.amateurs.server.domain.dto.bookmark;
 
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 
 import java.time.LocalDateTime;
-import java.util.List;
-
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 public record PostBookmarkDTO(
         Long postId,
@@ -19,14 +17,14 @@ public record PostBookmarkDTO(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) implements BookmarkResponseDTO {
-    public static PostBookmarkDTO convertToDTO(Post post) {
+    public static PostBookmarkDTO convertToDTO(Post post, PostStatistics postStatistics) {
         return new PostBookmarkDTO(
                 post.getId(),
                 post.getBoardType(),
                 post.getTitle(),
                 post.getContent(),
                 post.getLikeCount(),
-                post.getViewCount(),
+                postStatistics.getViewCount(),
                 post.getTags(),
                 post.getCreatedAt(),
                 post.getUpdatedAt()

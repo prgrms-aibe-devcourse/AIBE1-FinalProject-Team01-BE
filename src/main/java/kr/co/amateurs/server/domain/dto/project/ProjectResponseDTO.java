@@ -10,7 +10,7 @@ import org.jooq.Record;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
+import static org.jooq.generated.Tables.POST_STATISTICS;
 import static org.jooq.generated.tables.Posts.POSTS;
 import static org.jooq.generated.tables.Projects.PROJECTS;
 import static org.jooq.generated.tables.Users.USERS;
@@ -109,7 +109,7 @@ public record ProjectResponseDTO(
                 .title(record.get(POSTS.TITLE))
                 .content(record.get(POSTS.CONTENT))
                 .tags(record.get(POSTS.TAG))
-                .viewCount(record.get(POSTS.VIEW_COUNT))
+                .viewCount(record.get(POST_STATISTICS.VIEW_COUNT))
                 .likeCount(record.get(POSTS.LIKE_COUNT))
                 .bookmarkCount(record.get("bookmarkCount", Integer.class))
                 .createdAt(record.get(POSTS.CREATED_AT))

@@ -3,16 +3,13 @@ package kr.co.amateurs.server.domain.dto.together;
 import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import lombok.Builder;
-import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
-import java.util.List;
-
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 
 @Builder
@@ -64,7 +61,7 @@ public record GatheringPostResponseDTO(
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
+    public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
         return new GatheringPostResponseDTO(
                 gp.getId(),
                 post.getId(),
@@ -75,7 +72,7 @@ public record GatheringPostResponseDTO(
                 post.getTitle(),
                 post.getContent(),
                 post.getTags(),
-                post.getViewCount(),
+                postStatistics.getViewCount(),
                 post.getLikeCount(),
                 bookmarkCount,
                 gp.getGatheringType(),

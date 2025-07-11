@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.together;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
@@ -35,8 +36,10 @@ public class MatchController {
     @GetMapping("/{matchId}")
     @Operation(summary = "커피챗/멘토링 글 정보", description = "커피챗/멘토링 탭의 특정 게시글의 정보를 불러옵니다.")
     public ResponseEntity<MatchPostResponseDTO> getMatchPost(
-            @PathVariable("matchId") Long matchId){
-        MatchPostResponseDTO gatherPost = matchService.getMatchPost(matchId);
+            @PathVariable("matchId") Long matchId,
+            HttpServletRequest request){
+        String ipAddress = request.getRemoteAddr();
+        MatchPostResponseDTO gatherPost = matchService.getMatchPost(matchId, ipAddress);
         return ResponseEntity.ok(gatherPost);
     }
 
