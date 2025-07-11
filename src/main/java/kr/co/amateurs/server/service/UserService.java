@@ -75,10 +75,16 @@ public class UserService {
     }
 
     public boolean isNicknameAvailable(String nickname) {
-        User currentUser = getCurrentLoginUser();
-        if (currentUser.getNickname().equals(nickname)) {
-            return true;
+        validateNicknameFormat(nickname);
+
+        Optional<User> currentUser = getCurrentUser();
+
+        if (currentUser.isPresent()) {
+            if (currentUser.get().getNickname().equals(nickname)) {
+                return true;
+            }
         }
+
         return !userRepository.existsByNickname(nickname);
     }
 
