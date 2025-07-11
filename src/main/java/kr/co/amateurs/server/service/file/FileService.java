@@ -1,6 +1,5 @@
 package kr.co.amateurs.server.service.file;
 
-import jakarta.transaction.Transactional;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.file.FileResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -28,7 +27,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
