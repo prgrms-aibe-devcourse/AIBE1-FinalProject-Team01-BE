@@ -263,9 +263,14 @@ tasks.named('test') {
 
 tasks.named('compileJava') {
 	options.encoding = 'UTF-8'
+	options.compilerArgs += ['-Alombok.addLombokGeneratedAnnotation=true']
 	if (!System.getenv('DOCKER_BUILD')) {
 		dependsOn('generateJooqClasses')
 	}
+}
+
+tasks.named('compileTestJava') {
+	options.compilerArgs += ['-Alombok.addLombokGeneratedAnnotation=true']
 }
 
 clean {
