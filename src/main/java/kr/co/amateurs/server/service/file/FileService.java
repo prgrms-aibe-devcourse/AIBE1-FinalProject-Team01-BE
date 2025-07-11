@@ -20,6 +20,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -121,7 +122,7 @@ public class FileService {
             return null;
         }
 
-        if (imageUrl.startsWith(publicUrl)) {
+        if (imageUrl.startsWith("https://" + publicUrl)) {
             return imageUrl;
         }
 
@@ -145,6 +146,12 @@ public class FileService {
                 return imageUrl;
             }
 
+            int contentLength = connection.getContentLength();
+            if (contentLength > MAX_IMAGE_SIZE) {
+                log.warn("이미지 파일이 너무 큼: {}bytes, URL: {}", contentLength, imageUrl);
+                return imageUrl;
+            }
+
             String extension = contentType.equals("image/jpeg") ? ".jpg" :
                     "." + contentType.substring(contentType.lastIndexOf("/") + 1);
 
@@ -153,22 +160,28 @@ public class FileService {
             String key = folder + "/" + fileName;
 
             try (InputStream inputStream = connection.getInputStream()) {
-                byte[] imageBytes = inputStream.readAllBytes();
                 PutObjectRequest request = PutObjectRequest.builder()
                         .bucket(bucket)
                         .key(key)
                         .contentType(contentType)
+                        .contentLength((long) contentLength)
                         .build();
 
-                s3Client.putObject(request, RequestBody.fromBytes(imageBytes));
+                s3Client.putObject(request, RequestBody.fromInputStream(inputStream, contentLength));
 
-                String s3Url = publicUrl + "/" + key;
-                log.info("소셜 이미지 S3 업로드 성공: {} -> {}", imageUrl, s3Url);
+                String s3Url = "https://" + publicUrl + "/" + key;
+                log.info("소셜 이미지 S3 업로드 성공: {} -> {} ({}bytes)", imageUrl, s3Url, contentLength);
                 return s3Url;
             }
 
-        } catch (Exception e) {
-            log.error("이미지 S3 업로드 실패: {} - {}", imageUrl, e.getMessage(), e);
+        } catch (MalformedURLException e) {
+            log.error("잘못된 URL 형식: {}", imageUrl, e);
+            return imageUrl;
+        } catch (IOException e) {
+            log.error("이미지 다운로드/업로드 실패: {} - {}", imageUrl, e.getMessage(), e);
+            return imageUrl;
+        } catch (RuntimeException e) {
+            log.error("S3 업로드 중 예상치 못한 오류: {} - {}", imageUrl, e.getMessage(), e);
             return imageUrl;
         }
     }
