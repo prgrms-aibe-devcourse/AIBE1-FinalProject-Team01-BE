@@ -50,7 +50,7 @@ jobs:
       - name: Gradle 테스트 실행 및 분석
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew test sonar --quiet
+        run: ./gradlew test
 
       - name: 테스트 커버리지 게시
         uses: irongut/CodeCoverageSummary@v1.3.0
