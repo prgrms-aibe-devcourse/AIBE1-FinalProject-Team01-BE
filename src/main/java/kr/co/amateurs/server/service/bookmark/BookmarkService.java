@@ -136,4 +136,10 @@ public class BookmarkService {
         }
     }
 
+    public Integer countBookmark(Post post){
+        User user = userService.getCurrentLoginUser();
+        Integer count = bookmarkRepository.countByPostAndUser(post, user);
+        return count;
+    }
+
 }

@@ -26,6 +26,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
                 ps.viewCount,
                 p.likeCount,
                 CAST(COUNT(c) AS int),
+                CAST(COUNT(b) AS int),
                 p.createdAt,
                 p.updatedAt,
                 p.tags,
@@ -37,6 +38,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             JOIN p.user u
             JOIN PostStatistics ps ON p.id = ps.postId
             LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
+            LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
             WHERE p.boardType = :boardType
             GROUP BY p.id, p.title, p.content, u.nickname, u.imageUrl,
                      u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,
@@ -58,6 +60,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
                 ps.viewCount,
                 p.likeCount,
                 CAST(COUNT(c) AS int),
+                CAST(COUNT(b) AS int),
                 p.createdAt,
                 p.updatedAt,
                 p.tags,
@@ -69,6 +72,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             JOIN p.user u
             JOIN PostStatistics ps ON p.id = ps.postId
             LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
+            LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
             WHERE p.boardType = :boardType
               AND (:keyword IS NULL
                    OR :keyword = ''
@@ -86,7 +90,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
         SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
             ip.id, p.id, p.title, p.content, u.nickname, u.imageUrl,
             u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,
-            p.likeCount, CAST(COUNT(DISTINCT c.id) AS int), p.createdAt,
+            p.likeCount, CAST(COUNT(DISTINCT c.id) AS int), CAST(COUNT(DISTINCT b.id) AS int), p.createdAt,
             p.updatedAt, p.tags,
             CASE WHEN pl.id IS NOT NULL THEN true ELSE false END,
             CASE WHEN b.id IS NOT NULL THEN true ELSE false END
@@ -107,13 +111,14 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
         SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
             ip.id, p.id, p.title, p.content, u.nickname, u.imageUrl,
             u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,
-            p.likeCount, CAST(COUNT(DISTINCT c.id) AS int), p.createdAt,
+            p.likeCount, CAST(COUNT(DISTINCT c.id) AS int), CAST(COUNT(DISTINCT b.id) AS int), p.createdAt,
             p.updatedAt, p.tags, false, false
         )
         FROM ITPost ip
         JOIN ip.post p JOIN p.user u
         JOIN PostStatistics ps ON p.id = ps.postId
         LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
+        LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
         WHERE ip.id = :itId
         GROUP BY ip.id, p.id, u.id
         """)
@@ -133,6 +138,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
                 ps.viewCount,
                 p.likeCount,
                 CAST(COUNT(c) AS int),
+                CAST(COUNT(b) AS int),
                 p.createdAt,
                 p.updatedAt,
                 p.tags,
@@ -144,6 +150,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             JOIN p.user u
             JOIN PostStatistics ps ON p.id = ps.postId
             LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
+            LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
             WHERE p.boardType = :boardType
               AND (:keyword IS NULL
                    OR :keyword = ''
@@ -172,6 +179,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
                 ps.viewCount,
                 p.likeCount,
                 CAST(COUNT(c) AS int),
+                CAST(COUNT(b) AS int),
                 p.createdAt,
                 p.updatedAt,
                 p.tags,
@@ -183,6 +191,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             JOIN p.user u
             JOIN PostStatistics ps ON p.id = ps.postId
             LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
+            LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
             WHERE p.boardType = :boardType
             GROUP BY p.id, p.title, p.content, u.nickname, u.imageUrl,
                      u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,

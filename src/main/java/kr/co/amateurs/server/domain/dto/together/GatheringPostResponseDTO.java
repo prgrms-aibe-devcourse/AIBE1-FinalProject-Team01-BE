@@ -36,12 +36,19 @@ public record GatheringPostResponseDTO(
         Integer viewCount,
         @Schema(description = "좋아요 수", example = "1")
         Integer likeCount,
+        @Schema(description = "북마크 수", example = "1")
+        Integer bookmarkCount,
         @Schema(description = "팀원 모집 종류", example = "STUDY")
         GatheringType gatheringType,
+        @Schema(description = "팀원 모집 상태", example = "RECRUITING")
         GatheringStatus status,
+        @Schema(description = "모집 인원", example = "4")
         Integer headCount,
+        @Schema(description = "모임 장소", example = "서울")
         String place,
+        @Schema(description = "모임 기간", example = "250625 ~ 250627")
         String period,
+        @Schema(description = "모임 일정", example = "매주 화, 목 저녁 7시")
         String schedule,
         @Schema(description = "생성 일시", example = "2025-06-25T00:08:25")
         LocalDateTime createdAt,
@@ -54,7 +61,7 @@ public record GatheringPostResponseDTO(
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked) {
+    public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
         return new GatheringPostResponseDTO(
                 gp.getId(),
                 post.getId(),
@@ -67,6 +74,7 @@ public record GatheringPostResponseDTO(
                 post.getTags(),
                 postStatistics.getViewCount(),
                 post.getLikeCount(),
+                bookmarkCount,
                 gp.getGatheringType(),
                 gp.getStatus(),
                 gp.getHeadCount(),
