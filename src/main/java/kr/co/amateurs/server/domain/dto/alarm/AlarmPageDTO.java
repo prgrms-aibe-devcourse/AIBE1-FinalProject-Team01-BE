@@ -6,15 +6,16 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
-public record AlarmPageResponse(
-        List<AlarmResponse> alarms,
+public record AlarmPageDTO(
+        List<AlarmDTO> content,
+        long unReadCount,
         PageInfo pageInfo
 ) {
-    public static AlarmPageResponse from(Page<Alarm> page) {
-        List<AlarmResponse> responses = page.getContent().stream()
-                .map(AlarmResponse::from)
+    public static AlarmPageDTO from(Page<Alarm> page, long unReadCount) {
+        List<AlarmDTO> list = page.getContent().stream()
+                .map(AlarmDTO::from)
                 .toList();
         PageInfo info = PageInfo.from(page);
-        return new AlarmPageResponse(responses, info);
+        return new AlarmPageDTO(list, unReadCount, info);
     }
 }

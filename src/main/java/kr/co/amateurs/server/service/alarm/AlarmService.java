@@ -1,6 +1,6 @@
 package kr.co.amateurs.server.service.alarm;
 
-import kr.co.amateurs.server.domain.dto.alarm.AlarmPageResponse;
+import kr.co.amateurs.server.domain.dto.alarm.AlarmPageDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.entity.alarm.Alarm;
 import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
@@ -18,9 +18,11 @@ public class AlarmService {
     private final AlarmRepository alarmRepository;
 
     private final UserService userService;
+    private final SseService sseService;
 
     public void saveAlarm(Alarm alarm) {
-        alarmRepository.save(alarm);
+        Alarm savedAlarm = alarmRepository.save(alarm);
+        sseService.sendAlarmToUser(savedAlarm.getUserId(), savedAlarm);
     }
 
     public void createTestAlarm() {
@@ -33,10 +35,11 @@ public class AlarmService {
         alarmRepository.save(alarm);
     }
 
-    public AlarmPageResponse readAlarms(PaginationParam param) {
+    public AlarmPageDTO readAlarms(PaginationParam param) {
         User user = userService.getCurrentLoginUser();
         Page<Alarm> page = alarmRepository.findByUserId(user.getId(), param.toPageable());
-        return AlarmPageResponse.from(page);
+        long unReadCount = alarmRepository.countByUserIdAndIsReadFalse(user.getId());
+        return AlarmPageDTO.from(page, unReadCount);
     }
 
     public void markAllAsRead() {

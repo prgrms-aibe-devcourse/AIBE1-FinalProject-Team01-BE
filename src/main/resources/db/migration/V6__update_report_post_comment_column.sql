@@ -1,4 +1,4 @@
--- V5__update_report_post_comment_entities.sql
+-- V6__update_report_post_comment_entities.sql
 -- Report, Post, Comment 엔티티 변경사항 반영
 
 ALTER TABLE reports
