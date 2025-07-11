@@ -1,5 +1,7 @@
 package kr.co.amateurs.server.controller.verify;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.verify.VerifyResultDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -19,17 +21,17 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1/verify")
 @RequiredArgsConstructor
+@Tag(name = "Verify", description = "수강생 인증 API")
 public class VerifyController {
     private final VerifyService verifyService;
-    private final VerifyRepository verifyRepository;
 
     @PostMapping(value = "/request", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "수강생 인증 요청", description = "프로그래머스 데브코스 수강생 인증을 요청합니다. 비동기로 처리됩니다.")
     public ResponseEntity<VerifyResultDTO> requestVerification(
             @AuthenticationPrincipal CustomUserDetails currentUser,
             @RequestParam("image") MultipartFile image) {
 
         User user = currentUser.getUser();
-
         VerifyResultDTO result = verifyService.verifyStudent(user, image);
         return ResponseEntity.ok(result);
     }

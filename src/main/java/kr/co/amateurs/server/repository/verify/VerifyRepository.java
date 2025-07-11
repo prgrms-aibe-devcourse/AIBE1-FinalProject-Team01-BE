@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface VerifyRepository extends JpaRepository<Verify, Long> {
     List<Verify> findByUser(User user);
-    boolean existsByUserAndStatus(User user, VerifyStatus status);
+    boolean existsByUserAndStatusIn(User user, List<VerifyStatus> statuses);
 } 

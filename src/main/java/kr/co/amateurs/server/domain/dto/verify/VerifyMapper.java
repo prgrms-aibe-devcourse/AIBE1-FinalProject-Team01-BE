@@ -29,4 +29,28 @@ public record VerifyMapper(
                 .completedAt(status == VerifyStatus.COMPLETED ? verifiedAt : null)
                 .build();
     }
+
+    public static Verify updateEntity(
+            Verify existingVerify,
+            PythonServiceResponseDTO.DataDTO data,
+            VerifyStatus status) {
+        return existingVerify.toBuilder()
+                .status(status)
+                .ocrScore(data.ocrScore())
+                .layoutScore(data.layoutScore())
+                .totalScore(data.totalScore())
+                .extractedText(data.extractedText())
+                .detailMessage(data.detailMessage())
+                .completedAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static Verify updateToFailed(Verify existingVerify, String errorMessage) {
+        return existingVerify.toBuilder()
+                .status(VerifyStatus.FAILED)
+                .detailMessage("처리 중 오류 발생: " + errorMessage)
+                .completedAt(LocalDateTime.now())
+                .build();
+    }
+
 }

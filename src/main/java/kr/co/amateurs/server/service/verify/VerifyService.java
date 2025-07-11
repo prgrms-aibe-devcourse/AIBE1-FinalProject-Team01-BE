@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
 
@@ -49,22 +51,61 @@ public class VerifyService {
         try {
             String imageUrl = uploadImageToS3(image);
 
-            PythonServiceResponseDTO.DataDTO data = callPythonVerificationService(image);
+            Verify verify = Verify.builder()
+                    .user(user)
+                    .status(VerifyStatus.PROCESSING)
+                    .imageUrl(imageUrl)
+                    .verifiedAt(LocalDateTime.now())
+                    .build();
 
-            VerifyStatus status = determineStatusAndUpdateRole(user, data.totalScore());
-            Verify verify = VerifyMapper.createEntity(
-                    user, data, status, imageUrl, LocalDateTime.now()
-            );
             verifyRepository.save(verify);
 
-            log.info("사용자 {} 인증 완료 - 상태: {}, 점수: {}", user.getEmail(), status, data.totalScore());
+            CompletableFuture.runAsync(() -> {
+                processVerificationAsync(verify.getId(), image);
+            });
 
-            return VerifyResultDTO.from(verify);
+            return VerifyResultDTO.processing();
 
         } catch (IOException e) {
         throw ErrorCode.FILE_PROCESSING_ERROR.get();
         } catch (Exception e) {
         throw ErrorCode.VERIFICATION_PROCESSING_ERROR.get();
+        }
+    }
+
+    @Transactional
+    public void processVerificationAsync(Long verifyId, MultipartFile image) {
+        try {
+            log.info("비동기 인증 처리 시작: verifyId={}", verifyId);
+
+            Verify verify = verifyRepository.findById(verifyId)
+                    .orElseThrow(() -> ErrorCode.NOT_FOUND.get());
+            User user = verify.getUser();
+
+            PythonServiceResponseDTO.DataDTO data = callPythonVerificationService(image);
+
+            VerifyStatus status = determineStatusAndUpdateRole(user, data.totalScore());
+
+            Verify updatedVerify = VerifyMapper.updateEntity(verify, data, status);
+            verifyRepository.save(updatedVerify);
+
+            log.info("비동기 인증 처리 완료: verifyId={}, status={}", verifyId, status);
+
+        } catch (Exception e) {
+            log.error("비동기 인증 처리 실패: verifyId={}", verifyId, e);
+            updateVerifyToFailed(verifyId, e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void updateVerifyToFailed(Long verifyId, String errorMessage) {
+        try {
+            verifyRepository.findById(verifyId).ifPresent(verify -> {
+                Verify failedVerify = VerifyMapper.updateToFailed(verify, errorMessage);
+                verifyRepository.save(failedVerify);
+            });
+        } catch (Exception e) {
+            log.error("실패 상태 업데이트 실패: verifyId={}", verifyId, e);
         }
     }
 
@@ -100,12 +141,8 @@ public class VerifyService {
         if (user.getRole() != Role.GUEST) {
             throw ErrorCode.ACCESS_DENIED.get();
         }
-        boolean alreadyVerified = verifyRepository.existsByUserAndStatus(user, VerifyStatus.COMPLETED);
-        if (alreadyVerified) {
-            throw ErrorCode.DUPLICATION_VERIFICATION.get();
-        }
-        boolean hasPending = verifyRepository.existsByUserAndStatus(user, VerifyStatus.PENDING);
-        if (hasPending) {
+        if (verifyRepository.existsByUserAndStatusIn(user,
+                List.of(VerifyStatus.COMPLETED, VerifyStatus.PENDING, VerifyStatus.PROCESSING))) {
             throw ErrorCode.DUPLICATION_VERIFICATION.get();
         }
     }
