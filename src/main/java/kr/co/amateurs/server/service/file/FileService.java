@@ -7,6 +7,7 @@ import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.file.PostImageRepository;
+import kr.co.amateurs.server.utils.file.DownloadedMultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -117,13 +118,9 @@ public class FileService {
     }
 
     // 소셜가입 유저의 프로필 이미지를 다운로드하여 S3에 업로드
-    public String downloadAndUploadToS3(String imageUrl, String directoryPath) {
+    public MultipartFile downloadImageFromUrl(String imageUrl) {
         if (imageUrl == null || imageUrl.isEmpty()) {
-            return null;
-        }
-
-        if (imageUrl.startsWith("https://" + publicUrl)) {
-            return imageUrl;
+            throw ErrorCode.EMPTY_FILE.get();
         }
 
         try {
@@ -135,54 +132,35 @@ public class FileService {
             connection.setRequestProperty("User-Agent", "Mozilla/5.0");
 
             if (connection.getResponseCode() != 200) {
-                log.warn("이미지 다운로드 실패: {}, 응답코드: {}", imageUrl, connection.getResponseCode());
-                return imageUrl;
+                throw ErrorCode.IMAGE_DOWNLOAD_FAILED.get();
             }
 
             String contentType = connection.getContentType();
 
             if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
-                log.warn("지원하지 않는 이미지 타입: {} for URL: {}", contentType, imageUrl);
-                return imageUrl;
+                throw ErrorCode.INVALID_FILE_TYPE.get();
             }
 
             int contentLength = connection.getContentLength();
             if (contentLength > MAX_IMAGE_SIZE) {
-                log.warn("이미지 파일이 너무 큼: {}bytes, URL: {}", contentLength, imageUrl);
-                return imageUrl;
+                throw ErrorCode.FILE_SIZE_EXCEEDED.get();
+            }
+
+            byte[] imageBytes;
+            try (InputStream inputStream = connection.getInputStream()) {
+                imageBytes = inputStream.readAllBytes();
             }
 
             String extension = contentType.equals("image/jpeg") ? ".jpg" :
                     "." + contentType.substring(contentType.lastIndexOf("/") + 1);
+            String filename = "social-profile" + extension;
 
-            String folder = (directoryPath != null && !directoryPath.isEmpty()) ? directoryPath : "profile-images";
-            String fileName = UUID.randomUUID().toString() + extension;
-            String key = folder + "/" + fileName;
-
-            try (InputStream inputStream = connection.getInputStream()) {
-                PutObjectRequest request = PutObjectRequest.builder()
-                        .bucket(bucket)
-                        .key(key)
-                        .contentType(contentType)
-                        .contentLength((long) contentLength)
-                        .build();
-
-                s3Client.putObject(request, RequestBody.fromInputStream(inputStream, contentLength));
-
-                String s3Url = "https://" + publicUrl + "/" + key;
-                log.info("소셜 이미지 S3 업로드 성공: {} -> {} ({}bytes)", imageUrl, s3Url, contentLength);
-                return s3Url;
-            }
+            return new DownloadedMultipartFile(imageBytes, filename, contentType);
 
         } catch (MalformedURLException e) {
-            log.error("잘못된 URL 형식: {}", imageUrl, e);
-            return imageUrl;
+            throw ErrorCode.INVALID_IMAGE_URL.get();
         } catch (IOException e) {
-            log.error("이미지 다운로드/업로드 실패: {} - {}", imageUrl, e.getMessage(), e);
-            return imageUrl;
-        } catch (RuntimeException e) {
-            log.error("S3 업로드 중 예상치 못한 오류: {} - {}", imageUrl, e.getMessage(), e);
-            return imageUrl;
+            throw ErrorCode.IMAGE_DOWNLOAD_FAILED.get();
         }
     }
 
