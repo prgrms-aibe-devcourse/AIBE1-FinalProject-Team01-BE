@@ -51,14 +51,7 @@ public class AuthService {
 
         User savedUser = userService.saveUser(user);
 
-        CompletableFuture.runAsync(() -> {
-            try {
-                aiProfileService.generateInitialProfile(savedUser.getId());
-                log.info("회원가입 시 초기 AI 프로필 생성 완료: userId={}", savedUser.getId());
-            } catch (Exception e) {
-                log.warn("회원가입 시 초기 AI 프로필 생성 실패: userId={}", savedUser.getId(), e);
-            }
-        });
+        generateAiProfileAsync(savedUser.getId(), "회원가입");
 
         return SignupResponseDTO.fromEntity(savedUser, request.topics());
     }
@@ -140,17 +133,19 @@ public class AuthService {
 
         User savedUser = userService.saveUser(managedUser);
 
-        CompletableFuture.runAsync(() -> {
-            try {
-                aiProfileService.generateInitialProfile(savedUser.getId());
-                log.info("소셜 프로필 완성 시 AI 프로필 생성 완료: userId={}", savedUser.getId());
-            } catch (Exception e) {
-                log.warn("소셜 프로필 완성 시 AI 프로필 생성 실패: userId={}", savedUser.getId(), e);
-            }
-        });
-
-        log.info("소셜 사용자 프로필 완성: userId={}, nickname={}", savedUser.getId(), request.nickname());
+        generateAiProfileAsync(savedUser.getId(), "소셜 프로필 완성");
 
         return ProfileCompleteResponseDTO.fromEntity(savedUser);
+    }
+
+    private void generateAiProfileAsync(Long userId, String context) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                aiProfileService.generateInitialProfile(userId);
+                log.info("{} 시 AI 프로필 생성 완료: userId={}", context, userId);
+            } catch (Exception e) {
+                log.warn("{} 시 AI 프로필 생성 실패: userId={}", context, userId, e);
+            }
+        });
     }
 }
