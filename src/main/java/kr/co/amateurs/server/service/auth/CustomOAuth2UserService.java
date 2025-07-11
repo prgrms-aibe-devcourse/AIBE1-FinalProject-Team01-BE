@@ -3,6 +3,7 @@ package kr.co.amateurs.server.service.auth;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.auth.OAuthUserInfo;
+import kr.co.amateurs.server.domain.dto.file.FileResponseDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -23,7 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 
@@ -99,7 +102,19 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         }
 
         String uniqueNickname = generateUniqueNickname(userInfo.nickname());
-        String s3ImageUrl = fileService.downloadAndUploadToS3(userInfo.imageUrl(), "profile-images");
+        String s3ImageUrl;
+        try {
+            MultipartFile imageFile = fileService.downloadImageFromUrl(userInfo.imageUrl());
+            FileResponseDTO uploadResult = fileService.uploadFile(imageFile, "profile-images");
+            s3ImageUrl = uploadResult.url();
+            log.info("소셜 이미지 S3 업로드 성공: {} -> {}", userInfo.imageUrl(), s3ImageUrl);
+        } catch (CustomException e) {
+            log.warn("소셜 이미지 다운로드 실패, 원본 URL 사용: {} - {}", userInfo.imageUrl(), e.getMessage());
+            s3ImageUrl = userInfo.imageUrl();
+        } catch (IOException e) {
+            log.warn("소셜 이미지 S3 업로드 실패, 원본 URL 사용: {} - {}", userInfo.imageUrl(), e.getMessage());
+            s3ImageUrl = userInfo.imageUrl();
+        }
 
         User newUser = User.builder()
                 .providerId(userInfo.providerId())
