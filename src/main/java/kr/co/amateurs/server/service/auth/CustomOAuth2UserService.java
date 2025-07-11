@@ -40,7 +40,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     private final FileService fileService;
 
     private static final int MAX_NICKNAME_RETRY = 5;
-    private static final String DEFAULT_PROFILE_IMAGE_URL = "https://via.placeholder.com/150/cccccc/969696?text=Profile";
+    private static final String DEFAULT_PROFILE_IMAGE_URL = "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&s=150";
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
