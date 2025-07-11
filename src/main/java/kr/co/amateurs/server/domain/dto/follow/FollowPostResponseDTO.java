@@ -2,6 +2,7 @@ package kr.co.amateurs.server.domain.dto.follow;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 
 import java.time.LocalDateTime;
@@ -26,14 +27,14 @@ public record FollowPostResponseDTO (
     @Schema(description = "수정 일시", example = "2025-06-25T00:08:25")
     LocalDateTime updatedAt
     ){
-    public static FollowPostResponseDTO convertToDTO(Post post) {
+    public static FollowPostResponseDTO convertToDTO(Post post, PostStatistics postStatistics) {
         return new FollowPostResponseDTO(
                 post.getId(),
                 post.getBoardType(),
                 post.getTitle(),
                 post.getContent(),
                 post.getLikeCount(),
-                post.getViewCount(),
+                postStatistics.getViewCount(),
                 post.getTags(),
                 post.getCreatedAt(),
                 post.getUpdatedAt()

@@ -47,4 +47,6 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     boolean existsByUserIdAndPostIsNotNullAndCreatedAtAfter(Long userId, LocalDateTime createdAt);
 
     boolean existsByComment_IdAndUser_Id(Long commentId, Long userId);
+
+    void deleteByPost_Id(Long id);
 }

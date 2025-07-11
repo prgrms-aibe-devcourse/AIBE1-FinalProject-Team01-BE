@@ -5,6 +5,7 @@ import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.ITPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -14,12 +15,15 @@ import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.it.ITRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -43,6 +47,12 @@ public class ITControllerTest extends AbstractControllerTest {
 
     @Autowired
     private BookmarkRepository bookmarkRepository;
+
+    @Autowired
+    private PostStatisticsRepository postStatisticsRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     private User guestUser;
     private User studentUser;
@@ -511,16 +521,28 @@ public class ITControllerTest extends AbstractControllerTest {
     }
 
     private void setupTestData() {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
         guestUser = userRepository.save(ITTestFixtures.createGuestUser());
         studentUser = userRepository.save(ITTestFixtures.createStudentUser());
         adminUser = userRepository.save(ITTestFixtures.createAdminUser());
         otherUser = userRepository.save(ITTestFixtures.createCustomUser(
                 "other@test.com", "other", "다른사용자", Role.STUDENT));
 
-        testPost = postRepository.save(
-                ITTestFixtures.createPost(studentUser, "테스트 IT 게시글 제목", "테스트 IT 게시글 내용", BoardType.REVIEW));
-        testITPost = itRepository.save(
-                ITTestFixtures.createITPost(testPost));
+        testITPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    ITTestFixtures.createPost(studentUser, "테스트 게시글 제목", "테스트 게시글 내용", BoardType.REVIEW));
+
+            ITPost itPost = itRepository.save(
+                    ITTestFixtures.createITPost(post));
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return itPost;
+        });
+
+        testPost = testITPost.getPost();
 
         guestToken = jwtProvider.generateAccessToken(guestUser.getEmail());
         studentToken = jwtProvider.generateAccessToken(studentUser.getEmail());
@@ -529,6 +551,7 @@ public class ITControllerTest extends AbstractControllerTest {
     }
 
     private void cleanUpData() {
+        postStatisticsRepository.deleteAll();
         bookmarkRepository.deleteAll();
         likeRepository.deleteAll();
         commentRepository.deleteAll();

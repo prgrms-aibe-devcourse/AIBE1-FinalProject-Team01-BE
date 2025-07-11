@@ -7,8 +7,8 @@ import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.CommunityPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.domain.entity.post.enums.SortType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
@@ -16,6 +16,7 @@ import kr.co.amateurs.server.fixture.community.CommunityTestFixtures;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.community.CommunityRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,13 +26,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 @SpringBootTest
@@ -53,6 +55,12 @@ class CommunityServiceTest {
     @Autowired
     private CommentRepository commentRepository;
 
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private PostStatisticsRepository postStatisticsRepository;
+
     @MockitoBean
     private UserService userService;
 
@@ -64,15 +72,47 @@ class CommunityServiceTest {
 
     @BeforeEach
     void setUp() throws InterruptedException {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
         // 사용자 생성
         testStudentUser = userRepository.save(CommunityTestFixtures.createStudentUser());
         testOtherUser = userRepository.save(CommunityTestFixtures.createCustomUser("other@other.com", "other", "other", Role.STUDENT));
 
         // Post 생성
-        Post testFreePost = postRepository.save(CommunityTestFixtures.createPostWithCounts(testStudentUser, "자유1", "자유1", BoardType.FREE, 10, 10));
+        Post testFreePost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    CommunityTestFixtures.createPostWithCounts(testStudentUser, "자유1", "자유1", BoardType.FREE, 10, 10)
+            );
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
+
         Thread.sleep(10);
-        Post testFreePost2 = postRepository.save(CommunityTestFixtures.createPost(testStudentUser, "자유2", "자유2", BoardType.FREE));
-        Post testGatherPost = postRepository.save(CommunityTestFixtures.createPost(testStudentUser, "게더1", "게더2", BoardType.GATHER));
+        Post testFreePost2 = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    CommunityTestFixtures.createPost(testStudentUser, "자유2", "자유2", BoardType.FREE)
+            );
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
+
+        Post testGatherPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    CommunityTestFixtures.createPost(testStudentUser, "게더1", "게더2", BoardType.GATHER)
+            );
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
+
 
         // CommunityPost 생성
         testFreeCommunityPost = communityRepository.save(CommunityTestFixtures.createCommunityPost(testFreePost));
@@ -211,7 +251,7 @@ class CommunityServiceTest {
         given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when
-        CommunityResponseDTO result = communityService.getPost(communityId);
+        CommunityResponseDTO result = communityService.getPost(communityId, "1");
 
         // then
         assertThat(result).isNotNull();
@@ -219,7 +259,7 @@ class CommunityServiceTest {
         assertThat(result.content()).isEqualTo("자유1");
         assertThat(result.nickname()).isEqualTo("student");
         assertThat(result.boardType()).isEqualTo(BoardType.FREE);
-        assertThat(result.viewCount()).isEqualTo(10);
+        assertThat(result.viewCount()).isEqualTo(0);
         assertThat(result.likeCount()).isEqualTo(10);
         assertThat(result.tags()).isEqualTo("테스트,태그");
         assertThat(result.hasLiked()).isFalse();
@@ -234,7 +274,7 @@ class CommunityServiceTest {
         given(userService.getCurrentLoginUser()).willReturn(testStudentUser);
 
         // when & then
-        assertThatThrownBy(() -> communityService.getPost(nonExistentCommunityId))
+        assertThatThrownBy(() -> communityService.getPost(nonExistentCommunityId, "1"))
                 .isInstanceOf(CustomException.class);
     }
 
@@ -283,7 +323,7 @@ class CommunityServiceTest {
         communityService.updatePost(requestDTO, communityId);
 
         // then
-        CommunityResponseDTO result = communityService.getPost(communityId);
+        CommunityResponseDTO result = communityService.getPost(communityId, "1");
         assertThat(result.title()).isEqualTo("수정된 제목");
         assertThat(result.tags()).isEqualTo("수정 태그");
         assertThat(result.content()).isEqualTo("수정된 내용");
