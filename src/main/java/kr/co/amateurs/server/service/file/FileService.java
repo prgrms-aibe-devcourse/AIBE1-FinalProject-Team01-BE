@@ -130,10 +130,10 @@ public class FileService {
         }
 
         String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+        if (!hasValidMagicBytes(file) || !isReadableImage(file)) {
             throw new CustomException(ErrorCode.INVALID_FILE_TYPE);
         }
-        if (!hasValidMagicBytes(file) || !isReadableImage(file)) {
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
             throw new CustomException(ErrorCode.INVALID_FILE_TYPE);
         }
         if (file.getSize() > MAX_IMAGE_SIZE) {
