@@ -3,6 +3,7 @@ package kr.co.amateurs.server.service.verify;
 import kr.co.amateurs.server.domain.dto.verify.PythonServiceResponseDTO;
 import kr.co.amateurs.server.domain.dto.verify.VerifyMapper;
 import kr.co.amateurs.server.domain.dto.verify.VerifyResultDTO;
+import kr.co.amateurs.server.domain.dto.verify.VerifyStatusDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.verify.Verify;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
@@ -160,5 +162,21 @@ public class VerifyService {
 
     private String uploadImageToS3(MultipartFile image) throws IOException {
         return fileService.uploadFile(image, "verify-images").url();
+    }
+
+    public VerifyStatusDTO getVerificationStatus(User user) {
+        if (user.getRole() != Role.GUEST) {
+            return VerifyStatusDTO.completed(user.getRole());
+        }
+
+        Optional<Verify> latestVerify = verifyRepository.findFirstByUserOrderByCreatedAtDesc(user);
+
+        if (latestVerify.isPresent()) {
+            Verify verify = latestVerify.get();
+            return VerifyStatusDTO.fromVerify(user.getRole(), verify.getStatus());
+        } else {
+            // 인증 기록 없음
+            return VerifyStatusDTO.notRequested(user.getRole());
+        }
     }
 }

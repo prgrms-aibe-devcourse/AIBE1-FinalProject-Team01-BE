@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.verify.VerifyResultDTO;
+import kr.co.amateurs.server.domain.dto.verify.VerifyStatusDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.verify.VerifyStatus;
@@ -34,5 +35,15 @@ public class VerifyController {
         User user = currentUser.getUser();
         VerifyResultDTO result = verifyService.verifyStudent(user, image);
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/status")
+    @Operation(summary = "인증 상태 조회", description = "현재 사용자의 인증 상태를 조회합니다.")
+    public ResponseEntity<VerifyStatusDTO> getVerificationStatus(
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        User user = currentUser.getUser();
+        VerifyStatusDTO status = verifyService.getVerificationStatus(user);
+        return ResponseEntity.ok(status);
     }
 }
