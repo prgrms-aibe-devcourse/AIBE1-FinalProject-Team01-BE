@@ -55,7 +55,7 @@ public class GatheringService {
 
     public PageResponseDTO<GatheringPostResponseDTO> getGatheringPostList(PostPaginationParam paginationParam) {
         Page<GatheringPost> gpPage = gatheringRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
-        Page<GatheringPostResponseDTO> response = gpPage.map(gp->convertToDTO(gp, gp.getPost(), false, false));
+        Page<GatheringPostResponseDTO> response = gpPage.map(gp->convertToDTO(gp, gp.getPost(), false, false, bookmarkService.countBookmark(gp.getPost())));
         return convertPageToDTO(response);
     }
 
@@ -65,7 +65,7 @@ public class GatheringService {
 
         GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
-        return convertToDTO(gp, post, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()));
+        return convertToDTO(gp, post, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post));
     }
 
 
@@ -103,7 +103,7 @@ public class GatheringService {
         List<String> imgUrls = fileService.extractImageUrls(dto.content());
         fileService.savePostImage(savedPost, imgUrls);
 
-        return convertToDTO(savedGp, savedPost, false, false);
+        return convertToDTO(savedGp, savedPost, false, false, 0);
     }
 
 

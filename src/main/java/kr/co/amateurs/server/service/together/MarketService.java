@@ -55,7 +55,7 @@ public class MarketService {
 
     public PageResponseDTO<MarketPostResponseDTO> getMarketPostList(PostPaginationParam paginationParam) {
         Page<MarketItem> miPage = marketRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
-        Page<MarketPostResponseDTO> response = miPage.map(mi-> convertToDTO(mi, mi.getPost(), false, false));
+        Page<MarketPostResponseDTO> response = miPage.map(mi-> convertToDTO(mi, mi.getPost(), false, false, bookmarkService.countBookmark(mi.getPost())));
         return convertPageToDTO(response);
     }
 
@@ -65,7 +65,7 @@ public class MarketService {
 
         MarketItem mi = marketRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mi.getPost();
-        return convertToDTO(mi, post, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()));
+        return convertToDTO(mi, post, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post));
     }
 
 
@@ -101,7 +101,7 @@ public class MarketService {
             }
         });
 
-        return convertToDTO(savedMp, savedPost, false, false);
+        return convertToDTO(savedMp, savedPost, false, false, 0);
     }
 
     @Transactional

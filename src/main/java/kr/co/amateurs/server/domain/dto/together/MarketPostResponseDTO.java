@@ -38,6 +38,8 @@ public record MarketPostResponseDTO(
         Integer viewCount,
         @Schema(description = "좋아요 수", example = "1")
         Integer likeCount,
+        @Schema(description = "북마크 수", example = "1")
+        Integer bookmarkCount,
         @Schema(description = "장터 물품 판매 상태", example = "SELLING")
         MarketStatus status,
         @Schema(description = "장터 물품 가격", example = "10000")
@@ -55,7 +57,7 @@ public record MarketPostResponseDTO(
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static MarketPostResponseDTO convertToDTO(MarketItem mi, Post post, boolean hasLiked, boolean hasBookmarked){
+    public static MarketPostResponseDTO convertToDTO(MarketItem mi, Post post, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount){
         return new MarketPostResponseDTO(
                 mi.getId(),
                 post.getId(),
@@ -68,6 +70,7 @@ public record MarketPostResponseDTO(
                 post.getTags(),
                 post.getViewCount(),
                 post.getLikeCount(),
+                bookmarkCount,
                 mi.getStatus(),
                 mi.getPrice(),
                 mi.getPlace(),
