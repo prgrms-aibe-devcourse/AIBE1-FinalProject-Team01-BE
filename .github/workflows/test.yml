@@ -48,7 +48,7 @@ jobs:
       - name: Gradle 테스트 실행 및 분석
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew test sonar --info
+        run: ./gradlew test sonar --quiet
 
       - name: 테스트 결과 게시
         uses: EnricoMi/publish-unit-test-result-action@v2
