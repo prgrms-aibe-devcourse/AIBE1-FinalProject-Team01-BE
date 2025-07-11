@@ -10,6 +10,7 @@ import kr.co.amateurs.server.domain.entity.report.enums.ReportStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.fixture.report.ReportTestFixtures;
@@ -19,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 
 import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 
 
@@ -40,6 +40,9 @@ public class ReportControllerTest extends AbstractControllerTest {
     @Autowired
     private JwtProvider jwtProvider;
 
+    @Autowired
+    private PostStatisticsRepository postStatisticsRepository;
+
     private User adminUser;
     private User studentUser;
     private User guestUser;
@@ -50,6 +53,7 @@ public class ReportControllerTest extends AbstractControllerTest {
 
     @BeforeEach
     void setUp() {
+        postStatisticsRepository.deleteAll();
         bookmarkRepository.deleteAll();
         reportRepository.deleteAll();
         postRepository.deleteAll();
@@ -58,6 +62,7 @@ public class ReportControllerTest extends AbstractControllerTest {
         adminUser = userRepository.save(ReportTestFixtures.createAdminUser());
         studentUser = userRepository.save(ReportTestFixtures.createStudentUser());
         guestUser = userRepository.save(ReportTestFixtures.createGuestUser());
+
         testPost = postRepository.save(ReportTestFixtures.createTestPost(adminUser));
 
         adminToken = jwtProvider.generateAccessToken(adminUser.getEmail());

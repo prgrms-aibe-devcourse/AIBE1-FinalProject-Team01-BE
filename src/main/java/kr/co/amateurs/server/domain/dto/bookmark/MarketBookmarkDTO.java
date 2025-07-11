@@ -1,16 +1,14 @@
 package kr.co.amateurs.server.domain.dto.bookmark;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 public record MarketBookmarkDTO(
         Long postId,
@@ -32,7 +30,7 @@ public record MarketBookmarkDTO(
             @Schema(description = "물품 판매 지역", example = "서울")
             String place
     ) {}
-    public static MarketBookmarkDTO convertToDTO(MarketItem mi) {
+    public static MarketBookmarkDTO convertToDTO(MarketItem mi, PostStatistics postStatistics) {
         Post p = mi.getPost();
         MarketItemInfo mii = new MarketItemInfo(
                 mi.getPrice(),
@@ -45,7 +43,7 @@ public record MarketBookmarkDTO(
                 p.getTitle(),
                 p.getContent(),
                 p.getLikeCount(),
-                p.getViewCount(),
+                postStatistics.getViewCount(),
                 p.getTags(),
                 p.getCreatedAt(),
                 p.getUpdatedAt(),

@@ -1,7 +1,6 @@
 package kr.co.amateurs.server.repository.post;
 
 import kr.co.amateurs.server.domain.dto.post.PopularPostRequest;
-import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +24,7 @@ public class PopularPostRepository {
     public List<PopularPostRequest> findRecentPostsWithCounts(LocalDateTime threeDaysAgo) {
         return dsl.select(
                         POSTS.ID,
-                        POSTS.VIEW_COUNT,
+                        POST_STATISTICS.VIEW_COUNT,
                         POSTS.LIKE_COUNT,
                         DSL.count(COMMENTS.ID).as("commentCount"),
                         USERS.NICKNAME,
@@ -36,6 +35,7 @@ public class PopularPostRepository {
                 )
                 .from(POSTS)
                 .join(USERS).on(USERS.ID.eq(POSTS.USER_ID))  // User JOIN 추가
+                .join(POST_STATISTICS).on(POST_STATISTICS.POST_ID.eq(POSTS.ID))
                 .leftJoin(COMMENTS).on(COMMENTS.POST_ID.eq(POSTS.ID))
                 .where(POSTS.IS_DELETED.eq(false))
                 .and(POSTS.CREATED_AT.ge(threeDaysAgo))
@@ -43,7 +43,7 @@ public class PopularPostRepository {
                 .fetch()
                 .map(record -> new PopularPostRequest(
                         record.get(POSTS.ID),
-                        record.get(POSTS.VIEW_COUNT),
+                        record.get(POST_STATISTICS.VIEW_COUNT),
                         record.get(POSTS.LIKE_COUNT),
                         record.get("commentCount", Integer.class),
                         null,

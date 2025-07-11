@@ -3,14 +3,12 @@ package kr.co.amateurs.server.domain.dto.bookmark;
 import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 
 import java.time.LocalDateTime;
-import java.util.List;
-
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 public record GatheringBookmarkDTO(
         Long postId,
@@ -39,7 +37,7 @@ public record GatheringBookmarkDTO(
             String schedule
     ) {}
 
-    public static GatheringBookmarkDTO convertToDTO(GatheringPost gp) {
+    public static GatheringBookmarkDTO convertToDTO(GatheringPost gp, PostStatistics postStatistics) {
         Post p = gp.getPost();
         GatheringInfo gi = new GatheringInfo(
                 gp.getGatheringType(),
@@ -55,7 +53,7 @@ public record GatheringBookmarkDTO(
                 p.getTitle(),
                 p.getContent(),
                 p.getLikeCount(),
-                p.getViewCount(),
+                postStatistics.getViewCount(),
                 p.getTags(),
                 p.getCreatedAt(),
                 p.getUpdatedAt(),

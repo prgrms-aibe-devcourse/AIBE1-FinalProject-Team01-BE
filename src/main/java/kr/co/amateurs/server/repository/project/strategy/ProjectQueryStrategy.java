@@ -7,6 +7,7 @@ import org.jooq.SelectSelectStep;
 
 import static org.jooq.generated.Tables.BOOKMARKS;
 import static org.jooq.generated.Tables.POST_IMAGES;
+import static org.jooq.generated.Tables.POST_STATISTICS;
 import static org.jooq.generated.tables.Posts.POSTS;
 import static org.jooq.generated.tables.Projects.PROJECTS;
 import static org.jooq.generated.tables.Users.USERS;
@@ -27,7 +28,7 @@ public interface ProjectQueryStrategy {
                 POSTS.TITLE,
                 POSTS.CONTENT,
                 POSTS.TAG,
-                POSTS.VIEW_COUNT,
+                POST_STATISTICS.VIEW_COUNT,
                 POSTS.LIKE_COUNT,
                 dslContext.selectCount()
                         .from(BOOKMARKS)

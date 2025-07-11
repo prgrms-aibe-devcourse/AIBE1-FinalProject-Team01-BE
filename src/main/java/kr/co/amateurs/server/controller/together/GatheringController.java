@@ -3,6 +3,7 @@ package kr.co.amateurs.server.controller.together;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
@@ -37,8 +38,10 @@ public class GatheringController {
     @GetMapping("/{gatheringId}")
     @Operation(summary = "팀원 모집 글 정보", description = "팀원 모집 탭의 특정 게시글의 정보를 불러옵니다.")
     public ResponseEntity<GatheringPostResponseDTO> getGatheringPost(
-            @PathVariable("gatheringId") Long gatheringId){
-        GatheringPostResponseDTO gatherPost = gatheringService.getGatheringPost(gatheringId);
+            @PathVariable("gatheringId") Long gatheringId,
+            HttpServletRequest request){
+        String ipAddress = request.getRemoteAddr();
+        GatheringPostResponseDTO gatherPost = gatheringService.getGatheringPost(gatheringId, ipAddress);
         return ResponseEntity.ok(gatherPost);
     }
 

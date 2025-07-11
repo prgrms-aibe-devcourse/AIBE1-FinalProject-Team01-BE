@@ -9,6 +9,7 @@ import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.Project;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
@@ -20,6 +21,7 @@ import kr.co.amateurs.server.fixture.project.UserFixture;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +29,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,6 +50,12 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
     @Autowired
     private BookmarkRepository bookmarkRepository;
+
+    @Autowired
+    private PostStatisticsRepository postStatisticsRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     @Autowired
     private CommentRepository commentRepository;
@@ -529,7 +539,6 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
     private void setUpData() throws JsonProcessingException {
         createUsers();
-        createPosts();
         createProjects();
         createBookmarks();
     }
@@ -546,43 +555,67 @@ public class ProjectControllerTest extends AbstractControllerTest {
         this.frontendUserEmail = savedUsers.get(2).getEmail();
     }
 
-    private void createPosts() {
+    private void createProjects() throws JsonProcessingException {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
         User backendUser = userRepository.findByEmail(backendUserEmail).orElseThrow();
         User frontendUser = userRepository.findByEmail(frontendUserEmail).orElseThrow();
 
-        Post backendPost = PostFixture.createPost(backendUser, "백엔드 프로젝트", "백엔드 설명", BoardType.PROJECT_HUB);
-        Post frontendPost = PostFixture.createPost(frontendUser, "프론트엔드 프로젝트", "프론트엔드 설명", BoardType.PROJECT_HUB);
-
-        List<Post> savedPosts = postRepository.saveAll(List.of(backendPost, frontendPost));
-
-        this.backendPostId = savedPosts.get(0).getId();
-        this.frontendPostId = savedPosts.get(1).getId();
-    }
-
-    private void createProjects() throws JsonProcessingException {
-        Post backendPost = postRepository.findById(backendPostId).orElseThrow();
-        Post frontendPost = postRepository.findById(frontendPostId).orElseThrow();
-
         List<String> members = List.of("김개발", "이디자인", "박프론트");
 
-        Project backendProject = ProjectFixture.createAiBackendProject(
-                backendPost,
-                LocalDateTime.of(2025, 1, 1, 13, 20),
-                LocalDateTime.of(2025, 1, 31, 13, 20),
-                members
-        );
+        Project backendProject = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    PostFixture.createPost(backendUser, "백엔드 프로젝트", "백엔드 설명", BoardType.PROJECT_HUB)
+            );
 
-        Project frontendProject = ProjectFixture.createFrontendProject(
-                frontendPost,
-                LocalDateTime.of(2025, 2, 1, 13, 20),
-                LocalDateTime.of(2025, 2, 28, 13, 20),
-                members
-        );
+            Project project = null;
+            try {
+                project = ProjectFixture.createAiBackendProject(
+                        post,
+                        LocalDateTime.of(2025, 1, 1, 13, 20),
+                        LocalDateTime.of(2025, 1, 31, 13, 20),
+                        members
+                );
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            projectRepository.save(project);
 
-        List<Project> savedProjects = projectRepository.saveAll(List.of(backendProject, frontendProject));
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
 
-        this.backendProjectId = savedProjects.get(0).getId();
-        this.frontendProjectId = savedProjects.get(1).getId();
+            return project;
+        });
+
+        Project frontendProject = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    PostFixture.createPost(frontendUser, "프론트엔드 프로젝트", "프론트엔드 설명", BoardType.PROJECT_HUB)
+            );
+
+            Project project = null;
+            try {
+                project = ProjectFixture.createFrontendProject(
+                        post,
+                        LocalDateTime.of(2025, 2, 1, 13, 20),
+                        LocalDateTime.of(2025, 2, 28, 13, 20),
+                        members
+                );
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            projectRepository.save(project);
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return project;
+        });
+
+        this.backendProjectId = backendProject.getId();
+        this.frontendProjectId = frontendProject.getId();
+
+        this.backendPostId = backendProject.getPost().getId();
+        this.frontendPostId = frontendProject.getPost().getId();
     }
 
     private void createBookmarks() {
@@ -597,6 +630,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
     }
 
     private void cleanUpData() {
+        postStatisticsRepository.deleteAll();
         commentRepository.deleteAll();
         bookmarkRepository.deleteAll();
         projectRepository.deleteAll();
