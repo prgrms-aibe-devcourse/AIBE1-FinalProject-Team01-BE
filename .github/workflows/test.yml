@@ -9,6 +9,11 @@ jobs:
   test:
     name: 테스트 실행
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: write
+      actions: read
 
     outputs:
       status: ${{ job.status }}
@@ -16,6 +21,9 @@ jobs:
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: JDK 17 세팅
         uses: actions/setup-java@v4
@@ -50,8 +58,26 @@ jobs:
       - name: Gradle 테스트 실행 및 분석
         run: ./gradlew test
 
+      - name: 커버리지 뱃지 생성
+        id: jacoco-badge
+        uses: cicirello/jacoco-badge-generator@v2
+        with:
+          jacoco-csv-file: build/reports/jacoco/test/jacocoTestReport.csv
+          generate-branches-badge: true
+          generate-summary: true
+
+      - name: 커버리지 뱃지 커밋
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          if [[ `git status --porcelain` ]]; then
+            git config --global user.name 'kjyy08'
+            git config --global user.email 'kjyy08@users.noreply.github.com'
+            git add -A
+            git commit -m "Chore: JaCoCo coverage badge update"
+            git push
+          fi
+
       - name: 테스트 커버리지 게시
-        id: jacoco
         uses: madrapps/jacoco-report@v1.7.2
         with:
           paths: |
@@ -60,6 +86,7 @@ jobs:
           title: "테스트 커버리지"
           min-coverage-overall: 50
           min-coverage-changed-files: 50
+          skip-if-no-changes: true
 
       - name: 테스트 결과 게시
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -70,6 +97,6 @@ jobs:
           commit: ${{ github.sha }}
           comment_mode: always
           check_name: "테스트 결과"
-          comment_title: "${{ github.sha }} 테스트 결과"
+          comment_title: "테스트 결과"
           report_individual_runs: true
           compare_to_earlier_commit: true

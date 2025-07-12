@@ -39,7 +39,7 @@ jobs:
     uses: ./.github/workflows/test.yml
     secrets: inherit
     permissions:
-      contents: read
+      contents: write
       checks: write
       pull-requests: write
       actions: read
