@@ -181,7 +181,7 @@ public class UserServiceTest {
     void 토픽_4개_이상_변경_시_예외가_발생한다() {
         // given
         UserTopicsEditDTO request = UserTopicsEditDTO.builder()
-                .topics(Set.of(Topic.FRONTEND, Topic.DEVOPS, Topic.AI_CC, Topic.BACKEND))
+                .topics(Set.of(Topic.FRONTEND, Topic.DEVOPS, Topic.AI, Topic.BACKEND))
                 .build();
 
         // when & then
