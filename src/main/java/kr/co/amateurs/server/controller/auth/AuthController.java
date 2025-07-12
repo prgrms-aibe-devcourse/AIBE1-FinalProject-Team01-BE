@@ -69,4 +69,12 @@ public class AuthController {
         authService.logout(response);
         return ResponseEntity.ok(LogoutResponseDTO.success());
     }
+
+    @PostMapping("/complete-profile")
+    @Operation(summary = "소셜 프로필 완성", description = "소셜 로그인 사용자의 프로필을 완성합니다")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ProfileCompleteResponseDTO> completeProfile(@Valid @RequestBody ProfileCompleteRequestDTO request) {
+        ProfileCompleteResponseDTO response = authService.completeProfile(request);
+        return ResponseEntity.ok(response);
+    }
 }

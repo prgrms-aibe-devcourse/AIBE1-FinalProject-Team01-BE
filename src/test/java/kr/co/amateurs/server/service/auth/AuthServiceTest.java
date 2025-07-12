@@ -3,6 +3,7 @@ package kr.co.amateurs.server.service.auth;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.domain.dto.auth.*;
 import kr.co.amateurs.server.config.TestAuthHelper;
+import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.fixture.auth.TokenTestFixture;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import jakarta.validation.ConstraintViolation;
@@ -333,5 +334,40 @@ public class AuthServiceTest {
         });
 
         assertThat(exception.getMessage()).isEqualTo("로그인이 필요합니다.");
+    }
+
+    @Test
+    void 소셜_사용자_프로필_완성_시_정상적으로_업데이트된다() {
+        User socialUser = UserTestFixture.defaultUser()
+                .email(UserTestFixture.generateUniqueEmail())
+                .nickname("GitHub사용자_abc123")
+                .name("GitHub User")
+                .providerType(ProviderType.GITHUB)
+                .isProfileCompleted(false)
+                .build();
+
+        User savedUser = TestAuthHelper.setAuthentication(socialUser, userRepository);
+
+        ProfileCompleteRequestDTO request = ProfileCompleteRequestDTO.builder()
+                .nickname("새로운닉네임")
+                .name("김테스트")
+                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND))
+                .build();
+
+        // when
+        ProfileCompleteResponseDTO response = authService.completeProfile(request);
+
+        // then
+        assertThat(response.userId()).isEqualTo(savedUser.getId());
+        assertThat(response.nickname()).isEqualTo("새로운닉네임");
+        assertThat(response.name()).isEqualTo("김테스트");
+        assertThat(response.topics()).containsExactlyInAnyOrder(Topic.FRONTEND, Topic.BACKEND);
+        assertThat(response.isProfileCompleted()).isTrue();
+
+        // DB에서도 확인
+        User updatedUser = userRepository.findById(savedUser.getId()).orElseThrow();
+        assertThat(updatedUser.isProfileCompleted()).isTrue();
+        assertThat(updatedUser.getNickname()).isEqualTo("새로운닉네임");
+        assertThat(updatedUser.getName()).isEqualTo("김테스트");
     }
 }

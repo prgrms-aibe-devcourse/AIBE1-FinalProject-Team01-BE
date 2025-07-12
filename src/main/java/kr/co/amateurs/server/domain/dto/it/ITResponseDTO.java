@@ -45,6 +45,9 @@ public record ITResponseDTO(
         @Schema(description = "댓글 수", example = "12")
         Integer commentCount,
 
+        @Schema(description = "북마크 수 ", example = "1")
+        Integer bookmarkCount,
+
         @Schema(description = "게시글 작성 시간", example = "2025-06-27T14:30:00")
         LocalDateTime createdAt,
 
@@ -74,6 +77,7 @@ public record ITResponseDTO(
                 post.getBoardType(),
                 0,
                 post.getLikeCount(),
+                0,
                 0,
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
