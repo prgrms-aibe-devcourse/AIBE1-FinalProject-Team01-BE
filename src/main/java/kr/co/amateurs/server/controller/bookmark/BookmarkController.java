@@ -25,7 +25,7 @@ public class BookmarkController {
     private final BookmarkService bookmarkService;
 
     @CheckPostMetaData
-    @PostMapping("/users/bookmarks/{postId}")
+    @PostMapping("/bookmarks/{postId}")
     @Operation(summary = "북마크 등록", description = "특정 게시글을 북마크에 등록합니다.")
     public ResponseEntity<BookmarkResponseDTO> addBookmarkPost(
             @PathVariable Long postId
@@ -35,7 +35,7 @@ public class BookmarkController {
     }
 
     @CheckPostMetaData
-    @DeleteMapping("/users/bookmarks/{postId}")
+    @DeleteMapping("/bookmarks/{postId}")
     @Operation(summary = "북마크 제거", description = "북마크 해둔 특정 게시글의 북마크를 해제합니다.")
     public ResponseEntity<Void> removeBookmarkPost(
             @PathVariable Long postId
