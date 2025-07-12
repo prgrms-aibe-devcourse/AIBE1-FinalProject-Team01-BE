@@ -114,5 +114,5 @@ swagger:
 
 verification:
   service:
-    url: http://localhost:5000
+    url: ${VERIFICATION_SERVICE_URL}
     endpoint: /verify
