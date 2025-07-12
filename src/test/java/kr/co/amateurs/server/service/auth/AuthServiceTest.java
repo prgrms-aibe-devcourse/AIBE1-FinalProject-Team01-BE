@@ -136,7 +136,7 @@ public class AuthServiceTest {
     @Test
     void 토픽이_올바르게_User에_설정되어_저장된다() {
         // given
-        Set<Topic> topics = Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.AI);
+        Set<Topic> topics = Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.IOS);
         SignupRequestDTO request = UserTestFixture.defaultSignupRequest()
                 .email(UserTestFixture.generateUniqueEmail())
                 .nickname(UserTestFixture.generateUniqueNickname())
@@ -148,14 +148,14 @@ public class AuthServiceTest {
 
         // then
         assertThat(response.topics()).hasSize(3);
-        assertThat(response.topics()).containsExactlyInAnyOrder(Topic.FRONTEND, Topic.BACKEND, Topic.AI);
+        assertThat(response.topics()).containsExactlyInAnyOrder(Topic.FRONTEND, Topic.BACKEND, Topic.IOS);
     }
 
     @Test
     void 토픽_4개_이상_선택_시_validation_에러가_발생한다() {
         // given
         Set<Topic> tooManyTopics = Set.of(
-                Topic.FRONTEND, Topic.BACKEND, Topic.AI, Topic.MOBILE
+                Topic.FRONTEND, Topic.BACKEND, Topic.DESIGN, Topic.DEVOPS
         );
 
         SignupRequestDTO request = SignupRequestDTO.builder()

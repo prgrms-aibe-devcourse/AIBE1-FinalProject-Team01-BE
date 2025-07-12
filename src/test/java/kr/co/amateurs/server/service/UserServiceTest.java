@@ -151,7 +151,7 @@ public class UserServiceTest {
     void 유효한_토픽_목록으로_변경_시_정상적으로_업데이트된다() {
         // given
         UserTopicsEditDTO request = UserTopicsEditDTO.builder()
-                .topics(Set.of(Topic.BACKEND, Topic.DATA, Topic.MOBILE))
+                .topics(Set.of(Topic.BACKEND, Topic.DEVOPS, Topic.LLM))
                 .build();
 
         // when
@@ -159,7 +159,7 @@ public class UserServiceTest {
 
         // then
         assertThat(response.topics()).hasSize(3);
-        assertThat(response.topics()).containsExactlyInAnyOrder(Topic.BACKEND, Topic.DATA, Topic.MOBILE);
+        assertThat(response.topics()).containsExactlyInAnyOrder(Topic.BACKEND, Topic.DEVOPS, Topic.LLM);
 
         User updatedUser = userRepository.findByEmail(testUser.getEmail()).orElseThrow();
         assertThat(updatedUser.getUserTopics()).hasSize(3);
@@ -181,7 +181,7 @@ public class UserServiceTest {
     void 토픽_4개_이상_변경_시_예외가_발생한다() {
         // given
         UserTopicsEditDTO request = UserTopicsEditDTO.builder()
-                .topics(Set.of(Topic.FRONTEND, Topic.DEVOPS, Topic.AI, Topic.BACKEND))
+                .topics(Set.of(Topic.FRONTEND, Topic.DEVOPS, Topic.AI_CC, Topic.BACKEND))
                 .build();
 
         // when & then
