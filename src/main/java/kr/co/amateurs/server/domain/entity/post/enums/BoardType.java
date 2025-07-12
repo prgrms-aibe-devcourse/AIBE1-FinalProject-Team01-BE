@@ -14,8 +14,8 @@ public enum BoardType {
     MATCH("매칭"),
     PROJECT_HUB("프로젝트 허브"),
     INFO("정보게시판"),
-    REVIEW("데브코스후기");
-    //NEWS(description:"IT 뉴스") // TODO: 추후 추가
+    REVIEW("데브코스후기"),
+    NEWS("IT 뉴스");
 
     private final String description;
 }

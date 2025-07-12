@@ -3,9 +3,17 @@ package kr.co.amateurs.server.controller.user;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
+import kr.co.amateurs.server.domain.dto.post.PostResponseDTO;
 import kr.co.amateurs.server.domain.dto.user.*;
+import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.bookmark.BookmarkService;
+import kr.co.amateurs.server.service.like.LikeService;
+import kr.co.amateurs.server.service.post.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +25,9 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final BookmarkService bookmarkService;
+    private final LikeService likeService;
+    private final PostService postService;
 
     @Operation(summary = "내 정보 조회", description = "현재 로그인 한 사용자의 프로필 정보를 조회합니다")
     @GetMapping("/me")
@@ -59,5 +70,32 @@ public class UserController {
             @RequestBody UserDeleteRequestDTO request) {
         UserDeleteResponseDTO response = userService.deleteUser(request);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me/bookmarked")
+    @Operation(summary = "북마크한 게시글 리스트", description = "북마크한 게시글 리스트를 가져옵니다.")
+    public ResponseEntity<PageResponseDTO<PostResponseDTO>> getBookmarkPostList(
+            @ParameterObject @Valid PaginationParam paginationParam
+    ) {
+        PageResponseDTO<PostResponseDTO> bookmarkList = bookmarkService.getBookmarkPostList(paginationParam);
+        return ResponseEntity.ok(bookmarkList);
+    }
+
+    @GetMapping("/me/liked")
+    @Operation(summary = "좋아요한 게시글 리스트", description = "좋아요한 게시글 리스트를 가져옵니다.")
+    public ResponseEntity<PageResponseDTO<PostResponseDTO>> getLikePostList(
+            @ParameterObject @Valid PaginationParam paginationParam
+    ) {
+        PageResponseDTO<PostResponseDTO> likePostList = likeService.getLikePostList(paginationParam);
+        return ResponseEntity.ok(likePostList);
+    }
+
+    @GetMapping("/me/posts")
+    @Operation(summary = "작성한 게시글 리스트", description = "작성한 게시글 리스트를 가져옵니다.")
+    public ResponseEntity<PageResponseDTO<PostResponseDTO>> getMyPostList(
+            @ParameterObject @Valid PaginationParam paginationParam
+    ) {
+        PageResponseDTO<PostResponseDTO> likePostList = postService.getMyPostList(paginationParam);
+        return ResponseEntity.ok(likePostList);
     }
 }
