@@ -47,4 +47,20 @@ public class Verify extends BaseEntity {
 
     @Column
     private LocalDateTime completedAt;
+
+    public void updateVerification(PythonServiceResponseDTO.DataDTO data, VerifyStatus status) {
+        this.status = status;
+        this.ocrScore = data.ocrScore();
+        this.layoutScore = data.layoutScore();
+        this.totalScore = data.totalScore();
+        this.extractedText = data.extractedText();
+        this.detailMessage = data.detailMessage();
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public void updateToFailed(String errorMessage) {
+        this.status = VerifyStatus.FAILED;
+        this.detailMessage = "처리 중 오류 발생: " + errorMessage;
+        this.completedAt = LocalDateTime.now();
+    }
 } 

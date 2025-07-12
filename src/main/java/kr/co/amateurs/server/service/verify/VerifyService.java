@@ -1,14 +1,12 @@
 package kr.co.amateurs.server.service.verify;
 
 import kr.co.amateurs.server.domain.dto.verify.PythonServiceResponseDTO;
-import kr.co.amateurs.server.domain.dto.verify.VerifyMapper;
 import kr.co.amateurs.server.domain.dto.verify.VerifyResultDTO;
 import kr.co.amateurs.server.domain.dto.verify.VerifyStatusDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.verify.Verify;
 import kr.co.amateurs.server.domain.entity.verify.VerifyStatus;
-import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.repository.verify.VerifyRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.file.FileService;
@@ -65,14 +63,15 @@ public class VerifyService {
                     .totalScore(0)
                     .build();
 
-            log.info("인증 요청 생성: userId={}, imageUrl={}", user.getId(), imageUrl);
-            verifyRepository.save(verify);
+
+            Verify savedVerify = verifyRepository.save(verify);
+            log.info("인증 요청 생성: verifyId={}, userId={}", savedVerify.getId(), user.getId());
 
             byte[] imageBytes = image.getBytes();
             String filename = image.getOriginalFilename();
             
             CompletableFuture.runAsync(() -> {
-                processVerificationAsync(verify.getId(), imageBytes, filename, user);
+                processVerificationAsync(savedVerify.getId(), imageBytes, filename, user);
             });
 
             return VerifyResultDTO.processing();
@@ -92,11 +91,10 @@ public class VerifyService {
                     .orElseThrow(() -> ErrorCode.NOT_FOUND.get());
 
             PythonServiceResponseDTO.DataDTO data = callPythonVerificationService(imageBytes, filename);
-
             VerifyStatus status = determineStatusAndUpdateRole(user, data.totalScore());
 
-            Verify updatedVerify = VerifyMapper.updateEntity(verify, data, status);
-            verifyRepository.save(updatedVerify);
+            verify.updateVerification(data, status);
+            verifyRepository.save(verify);
 
             log.info("비동기 인증 처리 완료: verifyId={}, status={}", verifyId, status);
 
@@ -110,8 +108,8 @@ public class VerifyService {
     public void updateVerifyToFailed(Long verifyId, String errorMessage) {
         try {
             verifyRepository.findById(verifyId).ifPresent(verify -> {
-                Verify failedVerify = VerifyMapper.updateToFailed(verify, errorMessage);
-                verifyRepository.save(failedVerify);
+                verify.updateToFailed(errorMessage);
+                verifyRepository.save(verify);
             });
         } catch (Exception e) {
             log.error("실패 상태 업데이트 실패: verifyId={}", verifyId, e);
