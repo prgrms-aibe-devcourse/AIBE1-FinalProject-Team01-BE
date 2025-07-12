@@ -130,6 +130,9 @@ public class CommunityService {
 
         Post post = communityPost.getPost();
         validatePost(post);
+        if(post.getIsBlinded()){
+            throw ErrorCode.IS_BLINDED_POST.get();
+        }
 
         post.update(requestDTO);
     }

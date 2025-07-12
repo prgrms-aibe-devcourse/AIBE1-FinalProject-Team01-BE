@@ -140,6 +140,9 @@ public class ITService {
 
         Post post = itPost.getPost();
         validatePost(post);
+        if(post.getIsBlinded()){
+            throw ErrorCode.IS_BLINDED_POST.get();
+        }
 
         post.update(requestDTO);
     }

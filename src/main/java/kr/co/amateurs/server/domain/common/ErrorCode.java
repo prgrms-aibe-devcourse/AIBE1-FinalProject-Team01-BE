@@ -83,6 +83,7 @@ public enum ErrorCode implements Supplier<CustomException> {
     // POST
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 정보입니다."),
+    IS_BLINDED_POST(HttpStatus.BAD_REQUEST, "블라인드 된 글은 수정이 불가합니다."),
 
     // REPORT
     REPORT_NOT_FOUND(HttpStatus.BAD_REQUEST, "신고 글을 찾을 수 없습니다."),

@@ -130,15 +130,19 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(ErrorCode.POST_NOT_FOUND);
 
-        validatePost(project.getPost(), user.getEmail());
+        Post post = project.getPost();
+
+        validatePost(post, user.getEmail());
+
+        if(post.getIsBlinded()){
+            throw ErrorCode.IS_BLINDED_POST.get();
+        }
 
         CommunityRequestDTO postRequestDto = new CommunityRequestDTO(
                 projectRequestDTO.title(),
                 projectRequestDTO.tags(),
                 projectRequestDTO.content()
         );
-
-        Post post = project.getPost();
 
         post.update(postRequestDto);
         project.update(projectRequestDTO);
