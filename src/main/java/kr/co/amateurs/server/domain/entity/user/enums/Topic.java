@@ -8,12 +8,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Schema(description = "사용자 관심 토픽")
 public enum Topic {
-    FRONTEND("프론트엔드"),
-    BACKEND("백엔드"),
-    MOBILE("모바일"),
-    AI("AI/머신러닝"),
+    FRONTEND("Frontend"),
+    BACKEND("Backend"),
     DEVOPS("DevOps"),
-    DATA("데이터 분석");
+    AI_CC("AI/CC"),
+    ALGORITHM("Algorithm"),
+    ANDROID("Android"),
+    IOS("iOS"),
+    GAME_DEV("게임개발"),
+    LLM("LLM"),
+    WEB("WEB"),
+    DATA_SCIENCE("Data Science"),
+    DB("DB"),
+    BUILD_SEC("Build&Sec"),
+    DESIGN("Design");
 
     private final String displayName;
 }
