@@ -18,7 +18,7 @@ DELETE FROM posts;
 DELETE FROM projects;
 DELETE FROM ai_profiles;
 DELETE FROM tokens;
-DELETE FROM verifications;
+DELETE FROM verifies;
 DELETE FROM users;
 
 SET REFERENTIAL_INTEGRITY TRUE;

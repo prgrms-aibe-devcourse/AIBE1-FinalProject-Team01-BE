@@ -218,17 +218,6 @@ CREATE TABLE tokens (
                         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 인증 테이블
-CREATE TABLE verifications (
-                               id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                               user_id BIGINT NOT NULL,
-                               image_url TEXT NOT NULL,
-                               status VARCHAR(50) NOT NULL,
-                               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                               updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                               FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- 커뮤니티 테이블
 CREATE TABLE community_posts (
                                id BIGINT AUTO_INCREMENT PRIMARY KEY,
