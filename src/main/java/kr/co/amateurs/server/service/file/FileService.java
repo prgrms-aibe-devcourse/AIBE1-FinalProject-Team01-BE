@@ -1,6 +1,5 @@
 package kr.co.amateurs.server.service.file;
 
-import jakarta.transaction.Transactional;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.file.FileResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -23,21 +22,28 @@ import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FileService {
 
-    @Value("${cloud.aws.cloudfront.domain}")
-    public String publicUrl;
-
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
-
+    private static final Pattern IMG_SRC_PATTERN =
+            Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
+    // TODO - 현재는 타입은 4가지, 용량은 5MB 까지 허용했지만 추가적으로 필요 시 확장 및 변경 가능
+    private static final List<String> ALLOWED_IMAGE_TYPES = List.of(
+            "image/jpeg",  // .jpg, .jpeg 둘 다 포함
+            "image/png",
+            "image/gif",
+            "image/webp"
+    );
+    private static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024;
     private final S3Client s3Client;
     private final PostImageRepository postImageRepository;
+    @Value("${cloud.aws.cloudfront.domain}")
+    public String publicUrl;
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucket;
 
     public FileResponseDTO uploadFile(MultipartFile file, String directoryPath) throws IOException {
         validateImageFile(file);
@@ -65,7 +71,30 @@ public class FileService {
         );
     }
 
-    public void deletePostImage(Post post){
+    public FileResponseDTO uploadFile(MultipartFile file) throws IOException {
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+
+        String fileName = UUID.randomUUID().toString() + extension;
+        String key = "file/" + fileName;
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(file.getContentType())
+                .build();
+        s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
+        return new FileResponseDTO(
+                true,
+                "File uploaded",
+                publicUrl + "/" + key
+        );
+    }
+
+    public void deletePostImage(Post post) {
         List<PostImage> images = postImageRepository.findByPost(post);
         images.forEach(img -> deleteFile(img.getImageUrl()));
         postImageRepository.deleteAll(images);
@@ -91,9 +120,6 @@ public class FileService {
         }
     }
 
-    private static final Pattern IMG_SRC_PATTERN =
-            Pattern.compile("<img[^>]+src=[\"']([^\"']+)[\"']", Pattern.CASE_INSENSITIVE);
-
     public List<String> extractImageUrls(String content) {
         List<String> urls = new ArrayList<>();
         Matcher matcher = IMG_SRC_PATTERN.matcher(content);
@@ -102,6 +128,7 @@ public class FileService {
         }
         return urls;
     }
+
     public void savePostImage(Post post, List<String> imageUrls) {
         for (String imageUrl : imageUrls) {
             postImageRepository.save(PostImage.builder()
@@ -112,15 +139,6 @@ public class FileService {
         }
     }
 
-
-    // TODO - 현재는 타입은 4가지, 용량은 5MB 까지 허용했지만 추가적으로 필요 시 확장 및 변경 가능
-    private static final List<String> ALLOWED_IMAGE_TYPES = List.of(
-            "image/jpeg",  // .jpg, .jpeg 둘 다 포함
-            "image/png",
-            "image/gif",
-            "image/webp"
-    );
-    private static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024;
     private void validateImageFile(MultipartFile file) {
         if (file.isEmpty()) {
             throw new CustomException(ErrorCode.EMPTY_FILE);
