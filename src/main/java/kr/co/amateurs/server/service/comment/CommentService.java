@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -39,6 +40,11 @@ public class CommentService {
     public CommentPageDTO getCommentsByPostId(Long postId, Long cursor, int size) {
         Optional<User> currentUser = userService.getCurrentUser();
         PageRequest pageRequest = PageRequest.of(0, size + CURSOR_OFFSET);
+
+        boolean isBlinded = postRepository.findIsBlindedByPostId(postId);
+        if (isBlinded) {
+            return new CommentPageDTO(Collections.emptyList(), null, false);
+        }
 
         List<CommentJooqDTO> comments = fetchRootComments(
                 postId,
