@@ -10,18 +10,22 @@ import lombok.RequiredArgsConstructor;
 public enum Topic {
     FRONTEND("Frontend"),
     BACKEND("Backend"),
+    MOBILE("Mobile"),
+    AI("AI/ML"),
     DEVOPS("DevOps"),
-    AI_CC("AI/CC"),
+    DATA("Data Science"),
+    FULLSTACK("Full Stack"),
     ALGORITHM("Algorithm"),
     ANDROID("Android"),
     IOS("iOS"),
-    GAME_DEV("게임개발"),
+    GAME_DEV("Game Dev"),
     LLM("LLM"),
-    WEB("WEB"),
-    DATA_SCIENCE("Data Science"),
-    DB("DB"),
+    DATABASE("Database"),
     BUILD_SEC("Build&Sec"),
-    DESIGN("Design");
+    CLOUD("Cloud"),
+    SECURITY("Security"),
+    DESIGN("Design"),
+    WEB("Web");
 
     private final String displayName;
 }
