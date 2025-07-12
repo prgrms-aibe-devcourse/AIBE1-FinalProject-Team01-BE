@@ -80,7 +80,7 @@ public class GatheringService {
                 .collect(Collectors.toMap(PostStatistics::getPostId, Function.identity()));
 
         Page<GatheringPostResponseDTO> response = gpPage.map(gp ->
-            convertToDTO(gp, gp.getPost(), statisticsMap.get(gp.getPost().getId()), false, false)
+            convertToDTO(gp, gp.getPost(), statisticsMap.get(gp.getPost().getId()), false, false, bookmarkService.countBookmark(gp.getPost()))
         );
 
         return convertPageToDTO(response);
@@ -96,7 +96,7 @@ public class GatheringService {
         PostStatistics postStatistics = postStatisticsRepository.findById(post.getId()).orElseThrow(ErrorCode.POST_NOT_FOUND);
 
         eventPublisher.publishEvent(new PostViewedEvent(post.getId(), ipAddress));
-        return convertToDTO(gp, post,postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()));
+        return convertToDTO(gp, post,postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post));
     }
 
 
@@ -137,7 +137,7 @@ public class GatheringService {
         List<String> imgUrls = fileService.extractImageUrls(dto.content());
         fileService.savePostImage(savedPost, imgUrls);
 
-        return convertToDTO(savedGp, savedPost,savedps, false, false);
+        return convertToDTO(savedGp, savedPost,savedps, false, false, 0);
     }
 
 

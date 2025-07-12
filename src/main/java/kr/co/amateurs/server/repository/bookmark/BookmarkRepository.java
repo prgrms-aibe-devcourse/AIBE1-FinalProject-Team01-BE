@@ -2,6 +2,8 @@ package kr.co.amateurs.server.repository.bookmark;
 
 import kr.co.amateurs.server.domain.dto.bookmark.BookmarkCount;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
+import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -68,4 +70,6 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     boolean existsByUserIdAndCreatedAtAfter(Long userId, LocalDateTime createdAt);
 
     void deleteByPost_Id(Long postId);
+
+    Integer countByPostAndUser(Post post, User user);
 }

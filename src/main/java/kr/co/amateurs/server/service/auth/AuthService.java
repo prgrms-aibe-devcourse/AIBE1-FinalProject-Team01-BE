@@ -44,20 +44,14 @@ public class AuthService {
                 .password(encodedPassword)
                 .role(Role.GUEST)
                 .providerType(ProviderType.LOCAL)
+                .isProfileCompleted(true)
                 .build();
 
         user.addUserTopics(request.topics());
 
         User savedUser = userService.saveUser(user);
 
-        CompletableFuture.runAsync(() -> {
-            try {
-                aiProfileService.generateInitialProfile(savedUser.getId());
-                log.info("회원가입 시 초기 AI 프로필 생성 완료: userId={}", savedUser.getId());
-            } catch (Exception e) {
-                log.warn("회원가입 시 초기 AI 프로필 생성 실패: userId={}", savedUser.getId(), e);
-            }
-        });
+        generateAiProfileAsync(savedUser.getId(), "회원가입");
 
         return SignupResponseDTO.fromEntity(savedUser, request.topics());
     }
@@ -123,5 +117,35 @@ public class AuthService {
         if (response != null) {
             cookieUtils.clearAuthTokenCookie(response);
         }
+    }
+
+    @Transactional
+    public ProfileCompleteResponseDTO completeProfile(ProfileCompleteRequestDTO request) {
+        User currentUser = userService.getCurrentLoginUser();
+
+        User managedUser = userService.findById(currentUser.getId());
+
+        if (!managedUser.getNickname().equals(request.nickname())) {
+            userService.validateNicknameDuplicate(request.nickname());
+        }
+
+        managedUser.completeProfile(request.name(), request.nickname(), request.topics());
+
+        User savedUser = userService.saveUser(managedUser);
+
+        generateAiProfileAsync(savedUser.getId(), "소셜 프로필 완성");
+
+        return ProfileCompleteResponseDTO.fromEntity(savedUser);
+    }
+
+    private void generateAiProfileAsync(Long userId, String context) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                aiProfileService.generateInitialProfile(userId);
+                log.info("{} 시 AI 프로필 생성 완료: userId={}", context, userId);
+            } catch (Exception e) {
+                log.warn("{} 시 AI 프로필 생성 실패: userId={}", context, userId, e);
+            }
+        });
     }
 }
