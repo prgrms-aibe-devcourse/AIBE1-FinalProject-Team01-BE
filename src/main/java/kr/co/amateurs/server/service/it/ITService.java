@@ -80,8 +80,10 @@ public class ITService {
             }
         }
 
+        Page<ITResponseDTO> itBlindPage = itPage.map(ITResponseDTO::applyBlindFilter);
 
-        return convertPageToDTO(itPage);
+
+        return convertPageToDTO(itBlindPage);
     }
 
     public ITResponseDTO getPost(Long itId, String ipAddress) {
@@ -99,7 +101,7 @@ public class ITService {
 
         eventPublisher.publishEvent(new PostViewedEvent(result.postId(), ipAddress));
 
-        return result;
+        return result.applyBlindFilter();
     }
 
     @Transactional

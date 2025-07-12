@@ -66,7 +66,9 @@ public class ProjectService {
                 .map(user -> projectJooqRepository.findAllByUserId(params, user.getId()))
                 .orElseGet(() -> projectJooqRepository.findAll(params));
 
-        return PageResponseDTO.convertPageToDTO(projects);
+        Page<ProjectResponseDTO> projectsPage = projects.map(ProjectResponseDTO::applyBlindFilter);
+
+        return PageResponseDTO.convertPageToDTO(projectsPage);
     }
 
     public ProjectResponseDTO getProjectDetails(Long projectId, String ipAddress) {
@@ -76,7 +78,7 @@ public class ProjectService {
 
         eventPublisher.publishEvent(new PostViewedEvent(result.postId(), ipAddress));
 
-        return result;
+        return result.applyBlindFilter();
     }
 
     @Transactional
