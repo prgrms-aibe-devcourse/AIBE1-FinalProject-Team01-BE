@@ -125,6 +125,16 @@ public record ProjectResponseDTO(
     }
 
     public ProjectResponseDTO applyBlindFilter() {
+        String blindedContent = """
+            <div style="text-align: center; padding: 60px 20px; background-color: #f8f9fa; border-radius: 8px; margin: 20px 0;">
+                <div style="font-size: 24px; font-weight: bold; color: #6c757d; margin-bottom: 10px;">
+                    ⚠️ 블라인드 처리된 게시글입니다
+                </div>
+                <div style="font-size: 16px; color: #868e96;">
+                    관리자가 처리 중입니다.
+                </div>
+            </div>
+            """;
         if (this.isBlinded) {
             return new ProjectResponseDTO(
                     this.projectId,
@@ -138,7 +148,7 @@ public record ProjectResponseDTO(
                     "",
                     this.authorId,
                     "블라인드 처리된 게시글입니다.",
-                    "관리자가 처리 중입니다.",
+                    blindedContent,
                     "",
                     this.viewCount,
                     this.likeCount,

@@ -81,6 +81,7 @@ public class MatchService {
 
         Page<MatchPostResponseDTO> response = mpPage.map(mp ->
                 MatchPostResponseDTO.convertToDTO(mp, mp.getPost(), statisticsMap.get(mp.getPost().getId()), false, false, bookmarkService.countBookmark(mp.getPost()))
+                        .applyBlindFilter()
         );
 
         return convertPageToDTO(response);
@@ -95,7 +96,8 @@ public class MatchService {
         PostStatistics postStatistics = postStatisticsRepository.findById(mp.getPost().getId()).orElseThrow(ErrorCode.NOT_FOUND);
 
         eventPublisher.publishEvent(new PostViewedEvent(post.getId(), ipAddress));
-        return convertToDTO(mp, post, postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post));
+        return convertToDTO(mp, post, postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post))
+                .applyBlindFilter();
     }
 
 
