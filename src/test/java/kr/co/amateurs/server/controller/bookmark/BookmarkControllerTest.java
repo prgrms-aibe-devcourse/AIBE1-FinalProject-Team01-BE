@@ -77,7 +77,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             // when & then
             given()
                     .when()
-                    .post("/users/bookmarks/{postId}",  itPost.getId())
+                    .post("/bookmarks/{postId}",  itPost.getId())
                     .then()
                     .statusCode(401);
         }
@@ -87,7 +87,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             // when & then
             given()
                     .when()
-                    .post("/users/bookmarks/{postId}",  projectPost.getId())
+                    .post("/bookmarks/{postId}",  projectPost.getId())
                     .then()
                     .statusCode(401);
         }
@@ -102,7 +102,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + guestToken)
                     .when()
-                    .post("/users/bookmarks/{postId}",  communityPost.getId())
+                    .post("/bookmarks/{postId}",  communityPost.getId())
                     .then()
                     .statusCode(201);
         }
@@ -113,7 +113,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + guestToken)
                     .when()
-                    .post("/users/bookmarks/{postId}", itPost.getId())
+                    .post("/bookmarks/{postId}", itPost.getId())
                     .then()
                     .statusCode(201)
                     .body("postId", equalTo(itPost.getId().intValue()));
@@ -125,7 +125,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + guestToken)
                     .when()
-                    .post("/users/bookmarks/{postId}",  projectPost.getId())
+                    .post("/bookmarks/{postId}",  projectPost.getId())
                     .then()
                     .statusCode(201)
                     .body("postId", equalTo(projectPost.getId().intValue()));
@@ -137,7 +137,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + guestToken)
                     .when()
-                    .post("/users/bookmarks/{postId}",  togetherPost.getId())
+                    .post("/bookmarks/{postId}",  togetherPost.getId())
                     .then()
                     .statusCode(403);
         }
@@ -148,7 +148,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + guestToken)
                     .when()
-                    .post("/users/bookmarks/{postId}",  communityPost.getId())
+                    .post("/bookmarks/{postId}",  communityPost.getId())
                     .then()
                     .statusCode(201);
 
@@ -156,7 +156,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + guestToken)
                     .when()
-                    .delete("/users/bookmarks/{postId}",  communityPost.getId())
+                    .delete("/bookmarks/{postId}",  communityPost.getId())
                     .then()
                     .statusCode(204);
         }
@@ -170,7 +170,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + studentToken)
                     .when()
-                    .post("/users/bookmarks/{postId}", communityPost.getId())
+                    .post("/bookmarks/{postId}", communityPost.getId())
                     .then()
                     .statusCode(201)
                     .body("postId", equalTo(communityPost.getId().intValue()));
@@ -178,7 +178,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + studentToken)
                     .when()
-                    .post("/users/bookmarks/{postId}", togetherPost.getId())
+                    .post("/bookmarks/{postId}", togetherPost.getId())
                     .then()
                     .statusCode(201)
                     .body("postId", equalTo(togetherPost.getId().intValue()));
@@ -186,7 +186,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + studentToken)
                     .when()
-                    .post("/users/bookmarks/{postId}", itPost.getId())
+                    .post("/bookmarks/{postId}", itPost.getId())
                     .then()
                     .statusCode(201)
                     .body("postId", equalTo(itPost.getId().intValue()));
@@ -194,7 +194,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + studentToken)
                     .when()
-                    .post("/users/bookmarks/{postId}", projectPost.getId())
+                    .post("/bookmarks/{postId}", projectPost.getId())
                     .then()
                     .statusCode(201)
                     .body("postId", equalTo(projectPost.getId().intValue()));
@@ -206,7 +206,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + studentToken)
                     .when()
-                    .post("/users/bookmarks/{postId}", communityPost.getId())
+                    .post("/bookmarks/{postId}", communityPost.getId())
                     .then()
                     .statusCode(201);
 
@@ -214,7 +214,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + studentToken)
                     .when()
-                    .post("/users/bookmarks/{postId}", communityPost.getId())
+                    .post("/bookmarks/{postId}", communityPost.getId())
                     .then()
                     .statusCode(409);
         }
@@ -225,7 +225,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + studentToken)
                     .when()
-                    .delete("/users/bookmarks/{postId}", communityPost.getId())
+                    .delete("/bookmarks/{postId}", communityPost.getId())
                     .then()
                     .statusCode(204);
         }
@@ -239,7 +239,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + adminToken)
                     .when()
-                    .post("/users/bookmarks/{postId}", communityPost.getId())
+                    .post("/bookmarks/{postId}", communityPost.getId())
                     .then()
                     .statusCode(201)
                     .body("postId", equalTo(communityPost.getId().intValue()));
@@ -248,7 +248,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + adminToken)
                     .when()
-                    .post("/users/bookmarks/{postId}", togetherPost.getId())
+                    .post("/bookmarks/{postId}", togetherPost.getId())
                     .then()
                     .statusCode(201)
                     .body("postId", equalTo(togetherPost.getId().intValue()));
@@ -260,7 +260,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + adminToken)
                     .when()
-                    .post("/users/bookmarks/{postId}", togetherPost.getId())
+                    .post("/bookmarks/{postId}", togetherPost.getId())
                     .then()
                     .statusCode(201);
 
@@ -268,7 +268,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + adminToken)
                     .when()
-                    .delete("/users/bookmarks/{postId}", togetherPost.getId())
+                    .delete("/bookmarks/{postId}", togetherPost.getId())
                     .then()
                     .statusCode(204);
         }
@@ -283,7 +283,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + studentToken)
                     .when()
-                    .post("/users/bookmarks/{postId}", 999L)
+                    .post("/bookmarks/{postId}", 999L)
                     .then()
                     .statusCode(404);
         }
@@ -294,7 +294,7 @@ public class BookmarkControllerTest extends AbstractControllerTest {
             given()
                     .header("Authorization", "Bearer " + studentToken)
                     .when()
-                    .delete("/users/bookmarks/{postId}", 999L)
+                    .delete("/bookmarks/{postId}", 999L)
                     .then()
                     .statusCode(404);
         }
