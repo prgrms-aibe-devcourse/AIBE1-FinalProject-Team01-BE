@@ -8,6 +8,7 @@ import kr.co.amateurs.server.annotation.checkpostmetadata.CheckPostMetaData;
 import kr.co.amateurs.server.domain.dto.bookmark.BookmarkResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
+import kr.co.amateurs.server.domain.dto.post.PostResponseDTO;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -23,38 +24,23 @@ import org.springframework.web.bind.annotation.*;
 public class BookmarkController {
     private final BookmarkService bookmarkService;
 
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
-    @GetMapping("/users/{userId}/bookmarks")
-    @Operation(summary = "북마크한 게시글 리스트", description = "북마크한 게시글 리스트를 가져옵니다.")
-    public ResponseEntity<PageResponseDTO<BookmarkResponseDTO>> getBookmarkPostList(
-            @PathVariable Long userId,
-            @ParameterObject @Valid PaginationParam paginationParam
-            ) {
-        PageResponseDTO<BookmarkResponseDTO> bookmarkList = bookmarkService.getBookmarkPostList(userId, paginationParam);
-        return ResponseEntity.ok(bookmarkList);
-    }
-
     @CheckPostMetaData
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
-    @PostMapping("/users/{userId}/bookmarks/{postId}")
+    @PostMapping("/bookmarks/{postId}")
     @Operation(summary = "북마크 등록", description = "특정 게시글을 북마크에 등록합니다.")
     public ResponseEntity<BookmarkResponseDTO> addBookmarkPost(
-            @PathVariable Long userId,
             @PathVariable Long postId
     ){
-         BookmarkResponseDTO bookmarkPost = bookmarkService.addBookmarkPost(userId, postId);
+         BookmarkResponseDTO bookmarkPost = bookmarkService.addBookmarkPost(postId);
          return ResponseEntity.status(HttpStatus.CREATED).body(bookmarkPost);
     }
 
     @CheckPostMetaData
-    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.user.id")
-    @DeleteMapping("/users/{userId}/bookmarks/{postId}")
+    @DeleteMapping("/bookmarks/{postId}")
     @Operation(summary = "북마크 제거", description = "북마크 해둔 특정 게시글의 북마크를 해제합니다.")
     public ResponseEntity<Void> removeBookmarkPost(
-            @PathVariable Long userId,
             @PathVariable Long postId
     ){
-        bookmarkService.removeBookmarkPost(userId, postId);
+        bookmarkService.removeBookmarkPost(postId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
     }
