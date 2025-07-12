@@ -1,12 +1,12 @@
 package kr.co.amateurs.server.service.file;
 
-import jakarta.transaction.Transactional;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.file.FileResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.PostImage;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.file.PostImageRepository;
+import kr.co.amateurs.server.utils.file.DownloadedMultipartFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,12 +18,15 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -109,6 +112,53 @@ public class FileService {
                     .imageUrl(imageUrl)
                     .build()
             );
+        }
+    }
+
+    // 소셜가입 유저의 프로필 이미지를 다운로드하여 S3에 업로드
+    public MultipartFile downloadImageFromUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            throw ErrorCode.EMPTY_FILE.get();
+        }
+
+        try {
+            URL url = new URL(imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(10000);
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+            if (connection.getResponseCode() != 200) {
+                throw ErrorCode.IMAGE_DOWNLOAD_FAILED.get();
+            }
+
+            String contentType = connection.getContentType();
+
+            if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+                throw ErrorCode.INVALID_FILE_TYPE.get();
+            }
+
+            int contentLength = connection.getContentLength();
+            if (contentLength > MAX_IMAGE_SIZE) {
+                throw ErrorCode.FILE_SIZE_EXCEEDED.get();
+            }
+
+            byte[] imageBytes;
+            try (InputStream inputStream = connection.getInputStream()) {
+                imageBytes = inputStream.readAllBytes();
+            }
+
+            String extension = contentType.equals("image/jpeg") ? ".jpg" :
+                    "." + contentType.substring(contentType.lastIndexOf("/") + 1);
+            String filename = "social-profile" + extension;
+
+            return new DownloadedMultipartFile(imageBytes, filename, contentType);
+
+        } catch (MalformedURLException e) {
+            throw ErrorCode.INVALID_IMAGE_URL.get();
+        } catch (IOException e) {
+            throw ErrorCode.IMAGE_DOWNLOAD_FAILED.get();
         }
     }
 
