@@ -42,9 +42,7 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
         LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
         LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
         WHERE p.boardType = :boardType
-        GROUP BY cp.id, p.id, p.title, p.content, u.nickname, u.imageUrl, 
-                 u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,
-                 p.likeCount, p.createdAt, p.updatedAt, p.tags
+        GROUP BY cp.id, p.id
         """)
     Page<CommunityResponseDTO> findDTOByBoardType(@Param("boardType") BoardType boardType, Pageable pageable);
 
@@ -81,9 +79,7 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
                    OR :keyword = ''
                    OR p.title LIKE CONCAT('%', :keyword, '%')
                    OR p.content LIKE CONCAT('%', :keyword, '%'))
-            GROUP BY cp.id, p.id, p.title, p.content, u.nickname, u.imageUrl, 
-                     u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount, 
-                     p.likeCount, p.createdAt, p.updatedAt, p.tags
+            GROUP BY cp.id, p.id
             """)
     Page<CommunityResponseDTO> findDTOByContentAndBoardType(@Param("keyword") String keyword,
                                                             @Param("boardType") BoardType boardType,
@@ -105,7 +101,7 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
         LEFT JOIN Like pl ON pl.post.id = p.id AND pl.user.id = :userId
         LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = :userId
         WHERE cp.id = :communityId
-        GROUP BY cp.id, p.id, u.id, pl.id, b.id
+        GROUP BY cp.id, p.id
         """)
     Optional<CommunityResponseDTO> findDTOByIdForUser(@Param("communityId") Long communityId,
                                                       @Param("userId") Long userId);
@@ -139,9 +135,7 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
         LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
         LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
         WHERE p.boardType = :boardType
-        GROUP BY cp.id, p.id, p.title, p.content, u.nickname, u.imageUrl, 
-                 u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,
-                 p.likeCount, p.createdAt, p.updatedAt, p.tags
+        GROUP BY cp.id, p.id
         ORDER BY ps.viewCount DESC
         """)
     Page<CommunityResponseDTO> findDTOByBoardTypeOrderByViewCount(@Param("boardType") BoardType boardType,
@@ -180,9 +174,7 @@ public interface CommunityRepository extends JpaRepository<CommunityPost, Long> 
                    OR :keyword = ''
                    OR p.title LIKE CONCAT('%', :keyword, '%')
                    OR p.content LIKE CONCAT('%', :keyword, '%'))
-            GROUP BY cp.id, p.id, p.title, p.content, u.nickname, u.imageUrl, 
-                     u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount, 
-                     p.likeCount, p.createdAt, p.updatedAt, p.tags
+            GROUP BY cp.id, p.id
             ORDER BY ps.viewCount DESC
             """)
     Page<CommunityResponseDTO> findDTOByContentAndBoardTypeOrderByViewCount(@Param("keyword") String keyword,

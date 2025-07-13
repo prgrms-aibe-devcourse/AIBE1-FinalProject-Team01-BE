@@ -41,9 +41,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
             LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
             WHERE p.boardType = :boardType
-            GROUP BY p.id, p.title, p.content, u.nickname, u.imageUrl,
-                     u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,
-                     p.likeCount, p.createdAt, p.updatedAt, p.tags
+            GROUP BY p.id, ip.id
             """)
     Page<ITResponseDTO> findDTOByBoardType(@Param("boardType") BoardType boardType, Pageable pageable);
 
@@ -80,9 +78,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
                    OR :keyword = ''
                    OR p.title LIKE CONCAT('%', :keyword, '%')
                    OR p.content LIKE CONCAT('%', :keyword, '%'))
-            GROUP BY p.id, p.title, p.content, u.nickname, u.imageUrl,
-                     u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,
-                     p.likeCount, p.createdAt, p.updatedAt, p.tags
+            GROUP BY p.id, ip.id
             """)
     Page<ITResponseDTO> findDTOByContentAndBoardType(@Param("keyword") String keyword,
                                                      @Param("boardType") BoardType boardType,
@@ -104,7 +100,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
         LEFT JOIN Like pl ON pl.post.id = p.id AND pl.user.id = :userId
         LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = :userId
         WHERE ip.id = :itId
-        GROUP BY ip.id, p.id, u.id, pl.id, b.id
+        GROUP BY ip.id, p.id
         """)
     Optional<ITResponseDTO> findDTOByIdForUser(@Param("itId") Long itId,
                                                       @Param("userId") Long userId);
@@ -122,7 +118,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
         LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
         LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
         WHERE ip.id = :itId
-        GROUP BY ip.id, p.id, u.id
+        GROUP BY ip.id, p.id
         """)
     Optional<ITResponseDTO> findDTOByIdForGuest(@Param("itId") Long itId);
 
@@ -159,9 +155,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
                    OR :keyword = ''
                    OR p.title LIKE CONCAT('%', :keyword, '%')
                    OR p.content LIKE CONCAT('%', :keyword, '%'))
-            GROUP BY p.id, p.title, p.content, u.nickname, u.imageUrl,
-                     u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,
-                     p.likeCount, p.createdAt, p.updatedAt, p.tags
+            GROUP BY p.id, ip.id
             ORDER BY ps.viewCount DESC
             """)
     Page<ITResponseDTO> findDTOByContentAndBoardTypeOrderByViewCount(@Param("keyword") String keyword,
@@ -197,10 +191,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
             LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
             LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
             WHERE p.boardType = :boardType
-            GROUP BY p.id, p.title, p.content, u.nickname, u.imageUrl,
-                     u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,
-                     p.likeCount, p.createdAt, p.updatedAt, p.tags
-                                 ORDER BY ps.viewCount DESC
+            GROUP BY p.id, ip.id
             """)
     Page<ITResponseDTO> findDTOByBoardTypeOrderByViewCount(@Param("boardType") BoardType boardType,
                                                            Pageable pageable);
