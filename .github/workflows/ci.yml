@@ -25,14 +25,21 @@ jobs:
               - 'src/**'
               - 'build.gradle'
 
+  jooq:
+    name: jOOQ 세팅
+    needs: check-changes
+    uses: ./.github/workflows/jooq.yml
+    permissions:
+      contents: read
+
   test:
     name: 테스트 워크플로우
-    needs: check-changes
+    needs: jooq
     # if: needs.check-changes.outputs.should-run == 'true'
     uses: ./.github/workflows/test.yml
     secrets: inherit
     permissions:
-      contents: read
+      contents: write
       checks: write
       pull-requests: write
       actions: read

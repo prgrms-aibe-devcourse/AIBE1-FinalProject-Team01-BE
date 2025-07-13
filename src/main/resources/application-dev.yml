@@ -150,6 +150,7 @@ cookie:
   domain: ${COOKIE_DOMAIN}
   secure: true
 
-app:
-  cors:
-    allowed-origins: https://dev.amateurs.co.kr
+verification:
+  service:
+    url: http://localhost:5000
+    endpoint: /verify

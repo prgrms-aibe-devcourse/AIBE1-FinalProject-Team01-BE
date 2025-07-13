@@ -1,0 +1,79 @@
+name: jOOQ
+
+on:
+  workflow_call:
+    outputs:
+      cache-hit:
+        description: "jOOQ 캐시 히트 여부"
+        value: ${{ jobs.jooq.outputs.cache-hit }}
+      status:
+        description: "jOOQ 생성 실행 결과"
+        value: ${{ jobs.jooq.outputs.status }}
+
+jobs:
+  jooq:
+    name: jOOQ 클래스 생성
+    runs-on: ubuntu-latest
+
+    outputs:
+      cache-hit: ${{ steps.jooq-cache.outputs.cache-hit }}
+      status: ${{ steps.result.outputs.status }}
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: JDK 17 설정
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Gradle 캐시 설정
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: jOOQ 캐시 확인
+        id: jooq-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            src/generated/
+            .gradle/jooq-docker/
+          key: jooq-${{ hashFiles('src/main/resources/db/migration/*.sql', 'build.gradle') }}
+          restore-keys: |
+            jooq-
+
+      - name: Docker 서비스 시작
+        if: steps.jooq-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo systemctl start docker
+          docker --version
+
+      - name: Gradle 실행 권한 부여
+        if: steps.jooq-cache.outputs.cache-hit != 'true'
+        run: chmod +x gradlew
+
+      - name: jOOQ 클래스 생성
+        if: steps.jooq-cache.outputs.cache-hit != 'true'
+        id: jooq-generation
+        run: |
+          ./gradlew generateJooqClasses
+
+      - name: 생성 결과 설정
+        if: always()
+        id: result
+        run: |
+          if [ "${{ steps.jooq-cache.outputs.cache-hit }}" = "true" ]; then
+            echo "status=cached" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.jooq-generation.outcome }}" = "success" ]; then
+            echo "status=generated" >> $GITHUB_OUTPUT
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
