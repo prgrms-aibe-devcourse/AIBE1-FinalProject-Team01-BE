@@ -64,7 +64,7 @@ public class UserTestFixture {
      */
     public static SignupRequestDTO createTooManyTopicsSignupRequest() {
         return defaultSignupRequest()
-                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.AI, Topic.MOBILE))
+                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.AI, Topic.WEB))
                 .build();
     }
 
