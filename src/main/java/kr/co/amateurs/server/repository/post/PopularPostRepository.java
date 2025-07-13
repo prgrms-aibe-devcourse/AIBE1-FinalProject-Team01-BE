@@ -38,6 +38,7 @@ public class PopularPostRepository {
                 .join(POST_STATISTICS).on(POST_STATISTICS.POST_ID.eq(POSTS.ID))
                 .leftJoin(COMMENTS).on(COMMENTS.POST_ID.eq(POSTS.ID))
                 .where(POSTS.IS_DELETED.eq(false))
+                .and(POSTS.IS_BLINDED.eq(false))
                 .and(POSTS.CREATED_AT.ge(threeDaysAgo))
                 .groupBy(POSTS.ID)
                 .fetch()
@@ -53,7 +54,10 @@ public class PopularPostRepository {
                                 DevCourseTrack.valueOf(record.get(USERS.DEVCOURSE_NAME)) : null,
                         record.get(POSTS.CREATED_AT),
                         record.get(POSTS.TITLE),
-                        BoardType.valueOf(record.get(POSTS.BOARD_TYPE, String.class))
+                        BoardType.valueOf(record.get(POSTS.BOARD_TYPE, String.class)),
+                        null,
+                        false,
+                        false
                 ));
     }
 
@@ -73,7 +77,10 @@ public class PopularPostRepository {
                                 request.authorDevcourseName().name() : null,
                         request.postCreatedAt(),
                         request.title(),
-                        request.boardType().name()
+                        request.boardType().name(),
+                        request.boardId(),
+                        request.isBlinded(),
+                        request.isDeleted()
                 ))
                 .toList();
 
@@ -89,7 +96,10 @@ public class PopularPostRepository {
                         POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME,
                         POPULAR_POSTS.POST_CREATED_AT,
                         POPULAR_POSTS.TITLE,
-                        POPULAR_POSTS.BOARD_TYPE
+                        POPULAR_POSTS.BOARD_TYPE,
+                        POPULAR_POSTS.BOARD_ID,
+                        POPULAR_POSTS.IS_BLINDED,
+                        POPULAR_POSTS.IS_DELETED
                 )
                 .valuesOfRows(rows)
                 .execute();
@@ -122,10 +132,15 @@ public class PopularPostRepository {
                         POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME,
                         POPULAR_POSTS.POST_CREATED_AT,
                         POPULAR_POSTS.TITLE,
-                        POPULAR_POSTS.BOARD_TYPE
+                        POPULAR_POSTS.BOARD_TYPE,
+                        POPULAR_POSTS.BOARD_ID,
+                        POPULAR_POSTS.IS_BLINDED,
+                        POPULAR_POSTS.IS_DELETED
                 )
                 .from(POPULAR_POSTS)
                 .where(POPULAR_POSTS.CALCULATED_DATE.eq(latestDate))
+                .and(POPULAR_POSTS.IS_BLINDED.eq(false))
+                .and(POPULAR_POSTS.IS_DELETED.eq(false))
                 .orderBy(POPULAR_POSTS.POPULARITY_SCORE.desc())
                 .limit(limit)
                 .fetch()
@@ -141,7 +156,10 @@ public class PopularPostRepository {
                                 DevCourseTrack.valueOf(record.get(POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME)) : null,
                         record.get(POPULAR_POSTS.POST_CREATED_AT),
                         record.get(POPULAR_POSTS.TITLE),
-                        BoardType.valueOf(record.get(POPULAR_POSTS.BOARD_TYPE))
+                        BoardType.valueOf(record.get(POPULAR_POSTS.BOARD_TYPE)),
+                        record.get(POPULAR_POSTS.BOARD_ID),
+                        record.get(POPULAR_POSTS.IS_BLINDED),
+                        record.get(POPULAR_POSTS.IS_DELETED)
                 ));
     }
 
