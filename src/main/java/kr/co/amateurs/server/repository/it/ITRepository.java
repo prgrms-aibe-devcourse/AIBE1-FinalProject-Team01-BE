@@ -13,73 +13,67 @@ import java.util.Optional;
 
 public interface ITRepository extends JpaRepository<ITPost, Long> {
     @Query("""
-            SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
-                ip.id,
-                p.id,
-                p.title,
-                p.content,
-                u.nickname,
-                u.imageUrl,
-                u.devcourseName,
-                u.devcourseBatch,
-                p.boardType,
-                p.isBlinded,
-                ps.viewCount,
-                p.likeCount,
-                CAST(COUNT(c) AS int),
-                CAST(COUNT(b) AS int),
-                p.createdAt,
-                p.updatedAt,
-                p.tags,
-                false,
-                false
-            )
-            FROM ITPost ip
-            JOIN ip.post p
-            JOIN p.user u
-            JOIN PostStatistics ps ON p.id = ps.postId
-            LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
-            LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
-            WHERE p.boardType = :boardType
-            GROUP BY p.id, ip.id
-            """)
+        SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
+            ip.id,
+            p.id,
+            p.title,
+            p.content,
+            u.nickname,
+            u.imageUrl,
+            u.devcourseName,
+            u.devcourseBatch,
+            p.boardType,
+            p.isBlinded,
+            ps.viewCount,
+            p.likeCount,
+            (SELECT CAST(COUNT(c2.id) AS int) FROM Comment c2 WHERE c2.postId = p.id AND c2.isDeleted = false),
+            (SELECT CAST(COUNT(b2.id) AS int) FROM Bookmark b2 WHERE b2.post.id = p.id AND b2.user.id = u.id),
+            p.createdAt,
+            p.updatedAt,
+            p.tags,
+            false,
+            false
+        )
+        FROM ITPost ip
+        JOIN ip.post p
+        JOIN p.user u
+        JOIN PostStatistics ps ON p.id = ps.postId
+        WHERE p.boardType = :boardType
+        """)
     Page<ITResponseDTO> findDTOByBoardType(@Param("boardType") BoardType boardType, Pageable pageable);
 
     @Query("""
-            SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
-                ip.id,
-                p.id,
-                p.title,
-                p.content,
-                u.nickname,
-                u.imageUrl,
-                u.devcourseName,
-                u.devcourseBatch,
-                p.boardType,
-                p.isBlinded,
-                ps.viewCount,
-                p.likeCount,
-                CAST(COUNT(c) AS int),
-                CAST(COUNT(b) AS int),
-                p.createdAt,
-                p.updatedAt,
-                p.tags,
-                false,
-                false
-            )
-            FROM ITPost ip
-            JOIN ip.post p
-            JOIN p.user u
-            JOIN PostStatistics ps ON p.id = ps.postId
-            LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
-            LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
-            WHERE p.boardType = :boardType
-              AND (:keyword IS NULL
-                   OR :keyword = ''
-                   OR p.title LIKE CONCAT('%', :keyword, '%')
-                   OR p.content LIKE CONCAT('%', :keyword, '%'))
-            GROUP BY p.id, ip.id
-            """)
+        SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
+            ip.id,
+            p.id,
+            p.title,
+            p.content,
+            u.nickname,
+            u.imageUrl,
+            u.devcourseName,
+            u.devcourseBatch,
+            p.boardType,
+            p.isBlinded,
+            ps.viewCount,
+            p.likeCount,
+            (SELECT CAST(COUNT(c2.id) AS int) FROM Comment c2 WHERE c2.postId = p.id AND c2.isDeleted = false),
+            (SELECT CAST(COUNT(b2.id) AS int) FROM Bookmark b2 WHERE b2.post.id = p.id AND b2.user.id = u.id),
+            p.createdAt,
+            p.updatedAt,
+            p.tags,
+            false,
+            false
+        )
+        FROM ITPost ip
+        JOIN ip.post p
+        JOIN p.user u
+        JOIN PostStatistics ps ON p.id = ps.postId
+        WHERE p.boardType = :boardType
+          AND (:keyword IS NULL
+               OR :keyword = ''
+               OR p.title LIKE CONCAT('%', :keyword, '%')
+               OR p.content LIKE CONCAT('%', :keyword, '%'))
+        """)
     Page<ITResponseDTO> findDTOByContentAndBoardType(@Param("keyword") String keyword,
                                                      @Param("boardType") BoardType boardType,
                                                      Pageable pageable);
@@ -87,112 +81,104 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
     @Query("""
         SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
             ip.id, p.id, p.title, p.content, u.nickname, u.imageUrl,
-            u.devcourseName, u.devcourseBatch, p.boardType,p.isBlinded, ps.viewCount,
-            p.likeCount, CAST(COUNT(DISTINCT c.id) AS int), CAST(COUNT(DISTINCT b.id) AS int), p.createdAt,
-            p.updatedAt, p.tags,
-            CASE WHEN pl.id IS NOT NULL THEN true ELSE false END,
-            CASE WHEN b.id IS NOT NULL THEN true ELSE false END
+            u.devcourseName, u.devcourseBatch, p.boardType, p.isBlinded, ps.viewCount,
+            p.likeCount, 
+            (SELECT CAST(COUNT(c2.id) AS int) FROM Comment c2 WHERE c2.postId = p.id AND c2.isDeleted = false),
+            (SELECT CAST(COUNT(b2.id) AS int) FROM Bookmark b2 WHERE b2.post.id = p.id),
+            p.createdAt, p.updatedAt, p.tags,
+            (SELECT CASE WHEN COUNT(pl2.id) > 0 THEN true ELSE false END FROM Like pl2 WHERE pl2.post.id = p.id AND pl2.user.id = :userId),
+            (SELECT CASE WHEN COUNT(b3.id) > 0 THEN true ELSE false END FROM Bookmark b3 WHERE b3.post.id = p.id AND b3.user.id = :userId)
         )
         FROM ITPost ip
         JOIN ip.post p JOIN p.user u
         JOIN PostStatistics ps ON p.id = ps.postId
-        LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
-        LEFT JOIN Like pl ON pl.post.id = p.id AND pl.user.id = :userId
-        LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = :userId
         WHERE ip.id = :itId
-        GROUP BY ip.id, p.id
         """)
     Optional<ITResponseDTO> findDTOByIdForUser(@Param("itId") Long itId,
-                                                      @Param("userId") Long userId);
+                                               @Param("userId") Long userId);
 
     @Query("""
         SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
             ip.id, p.id, p.title, p.content, u.nickname, u.imageUrl,
-            u.devcourseName, u.devcourseBatch, p.boardType,p.isBlinded, ps.viewCount,
-            p.likeCount, CAST(COUNT(DISTINCT c.id) AS int), CAST(COUNT(DISTINCT b.id) AS int), p.createdAt,
-            p.updatedAt, p.tags, false, false
+            u.devcourseName, u.devcourseBatch, p.boardType, p.isBlinded, ps.viewCount,
+            p.likeCount, 
+            (SELECT CAST(COUNT(c2.id) AS int) FROM Comment c2 WHERE c2.postId = p.id AND c2.isDeleted = false),
+            (SELECT CAST(COUNT(b2.id) AS int) FROM Bookmark b2 WHERE b2.post.id = p.id AND b2.user.id = u.id),
+            p.createdAt, p.updatedAt, p.tags, false, false
         )
         FROM ITPost ip
         JOIN ip.post p JOIN p.user u
         JOIN PostStatistics ps ON p.id = ps.postId
-        LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
-        LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
         WHERE ip.id = :itId
-        GROUP BY ip.id, p.id
         """)
     Optional<ITResponseDTO> findDTOByIdForGuest(@Param("itId") Long itId);
 
     @Query("""
-            SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
-                ip.id,
-                p.id,
-                p.title,
-                p.content,
-                u.nickname,
-                u.imageUrl,
-                u.devcourseName,
-                u.devcourseBatch,
-                p.boardType,
-                p.isBlinded,
-                ps.viewCount,
-                p.likeCount,
-                CAST(COUNT(c) AS int),
-                CAST(COUNT(b) AS int),
-                p.createdAt,
-                p.updatedAt,
-                p.tags,
-                false,
-                false
-            )
-            FROM ITPost ip
-            JOIN ip.post p
-            JOIN p.user u
-            JOIN PostStatistics ps ON p.id = ps.postId
-            LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
-            LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
-            WHERE p.boardType = :boardType
-              AND (:keyword IS NULL
-                   OR :keyword = ''
-                   OR p.title LIKE CONCAT('%', :keyword, '%')
-                   OR p.content LIKE CONCAT('%', :keyword, '%'))
-            GROUP BY p.id, ip.id
-            ORDER BY ps.viewCount DESC
-            """)
+        SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
+            ip.id,
+            p.id,
+            p.title,
+            p.content,
+            u.nickname,
+            u.imageUrl,
+            u.devcourseName,
+            u.devcourseBatch,
+            p.boardType,
+            p.isBlinded,
+            ps.viewCount,
+            p.likeCount,
+            (SELECT CAST(COUNT(c2.id) AS int) FROM Comment c2 WHERE c2.postId = p.id AND c2.isDeleted = false),
+            (SELECT CAST(COUNT(b2.id) AS int) FROM Bookmark b2 WHERE b2.post.id = p.id AND b2.user.id = u.id),
+            p.createdAt,
+            p.updatedAt,
+            p.tags,
+            false,
+            false
+        )
+        FROM ITPost ip
+        JOIN ip.post p
+        JOIN p.user u
+        JOIN PostStatistics ps ON p.id = ps.postId
+        WHERE p.boardType = :boardType
+          AND (:keyword IS NULL
+               OR :keyword = ''
+               OR p.title LIKE CONCAT('%', :keyword, '%')
+               OR p.content LIKE CONCAT('%', :keyword, '%'))
+        ORDER BY ps.viewCount DESC
+        """)
     Page<ITResponseDTO> findDTOByContentAndBoardTypeOrderByViewCount(@Param("keyword") String keyword,
                                                                      @Param("boardType") BoardType boardType,
                                                                      Pageable pageable);
 
     @Query("""
-            SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
-                ip.id,
-                p.id,
-                p.title,
-                p.content,
-                u.nickname,
-                u.imageUrl,
-                u.devcourseName,
-                u.devcourseBatch,
-                p.boardType,
-                p.isBlinded,
-                ps.viewCount,
-                p.likeCount,
-                CAST(COUNT(c) AS int),
-                CAST(COUNT(b) AS int),
-                p.createdAt,
-                p.updatedAt,
-                p.tags,
-                false,
-                false
-            )
-            FROM ITPost ip
-            JOIN ip.post p
-            JOIN p.user u
-            JOIN PostStatistics ps ON p.id = ps.postId
-            LEFT JOIN Comment c ON c.postId = p.id AND c.isDeleted = false
-            LEFT JOIN Bookmark b ON b.post.id = p.id AND b.user.id = u.id
-            WHERE p.boardType = :boardType
-            GROUP BY p.id, ip.id
-            """)
+        SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
+            ip.id,
+            p.id,
+            p.title,
+            p.content,
+            u.nickname,
+            u.imageUrl,
+            u.devcourseName,
+            u.devcourseBatch,
+            p.boardType,
+            p.isBlinded,
+            ps.viewCount,
+            p.likeCount,
+            (SELECT CAST(COUNT(c2.id) AS int) FROM Comment c2 WHERE c2.postId = p.id AND c2.isDeleted = false),
+            (SELECT CAST(COUNT(b2.id) AS int) FROM Bookmark b2 WHERE b2.post.id = p.id AND b2.user.id = u.id),
+            p.createdAt,
+            p.updatedAt,
+            p.tags,
+            false,
+            false
+        )
+        FROM ITPost ip
+        JOIN ip.post p
+        JOIN p.user u
+        JOIN PostStatistics ps ON p.id = ps.postId
+        WHERE p.boardType = :boardType
+        ORDER BY ps.viewCount DESC
+        """)
     Page<ITResponseDTO> findDTOByBoardTypeOrderByViewCount(@Param("boardType") BoardType boardType,
                                                            Pageable pageable);
 }
