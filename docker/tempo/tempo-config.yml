@@ -33,8 +33,14 @@ metrics_generator:
     remote_write:
       - url: http://prometheus:9090/api/v1/write
         send_exemplars: true
+  processor:
+    local_blocks:
+      flush_to_storage: true
+  traces:
+    wal:
+      path: /var/tempo/generator/traces_wal
 
 overrides:
   defaults:
     metrics_generator:
-      processors: [service-graphs, span-metrics]
+      processors: [service-graphs, span-metrics, local-blocks]
