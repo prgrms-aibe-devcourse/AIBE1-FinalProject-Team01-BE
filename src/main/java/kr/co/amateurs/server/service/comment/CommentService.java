@@ -41,8 +41,7 @@ public class CommentService {
         Optional<User> currentUser = userService.getCurrentUser();
         PageRequest pageRequest = PageRequest.of(0, size + CURSOR_OFFSET);
 
-        boolean isBlinded = postRepository.findIsBlindedByPostId(postId);
-        if (isBlinded) {
+        if (postRepository.findIsBlindedByPostId(postId)) {
             return new CommentPageDTO(Collections.emptyList(), null, false);
         }
 
@@ -78,6 +77,7 @@ public class CommentService {
 
         List<CommentResponseDTO> responseReplies = replies.stream()
                 .map(CommentJooqDTO::toResponseDTO)
+                .map(CommentResponseDTO::applyBlindFilter)
                 .collect(Collectors.toList());
 
         return createCommentPageDTO(responseReplies, size);
@@ -89,6 +89,10 @@ public class CommentService {
         User user = userService.getCurrentLoginUser();
         if (!postRepository.existsByIdUsingCount(postId)) {
             throw new CustomException(ErrorCode.POST_NOT_FOUND);
+        }
+
+        if (postRepository.findIsBlindedByPostId(postId)){
+            throw ErrorCode.IS_BLINDED_POST.get();
         }
 
         Comment comment = Comment.from(requestDTO, postId, user, requestDTO.parentCommentId());
@@ -112,6 +116,9 @@ public class CommentService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
         validateCommentAccess(comment.getUser().getId());
+        if (comment.getIsBlinded()){
+            throw ErrorCode.IS_BLINDED_COMMENT.get();
+        }
 
         comment.updateContent(requestDTO.content());
     }
