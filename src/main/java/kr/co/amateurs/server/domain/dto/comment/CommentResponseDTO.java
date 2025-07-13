@@ -13,7 +13,7 @@ public record CommentResponseDTO(
         @Schema(description = "게시글 ID", example = "1")
         Long postId,
 
-        @Schema(description = "불러안두 여부", example = "false")
+        @Schema(description = "블라인드 여부", example = "false")
         boolean isBlinded,
 
         @Schema(description = "작성자 닉네임", example = "testUser")
