@@ -41,7 +41,8 @@ public class CommentService {
         Optional<User> currentUser = userService.getCurrentUser();
         PageRequest pageRequest = PageRequest.of(0, size + CURSOR_OFFSET);
 
-        if (postRepository.findIsBlindedByPostId(postId)) {
+        Boolean isBlinded = postRepository.findIsBlindedByPostId(postId);
+        if (isBlinded == null || isBlinded) {
             return new CommentPageDTO(Collections.emptyList(), null, false);
         }
 
@@ -91,7 +92,8 @@ public class CommentService {
             throw new CustomException(ErrorCode.POST_NOT_FOUND);
         }
 
-        if (postRepository.findIsBlindedByPostId(postId)){
+        Boolean isBlinded = postRepository.findIsBlindedByPostId(postId);
+        if (isBlinded == null || isBlinded) {
             throw ErrorCode.IS_BLINDED_POST.get();
         }
 

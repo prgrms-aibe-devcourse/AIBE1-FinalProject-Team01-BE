@@ -38,5 +38,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     FROM Post p
     WHERE p.id = :postId
     """)
-    boolean findIsBlindedByPostId(Long postId);
+    Boolean findIsBlindedByPostId(Long postId);
 }
