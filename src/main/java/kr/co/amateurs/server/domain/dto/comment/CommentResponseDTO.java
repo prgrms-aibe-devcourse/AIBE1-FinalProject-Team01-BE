@@ -67,11 +67,7 @@ public record CommentResponseDTO(
 
     public CommentResponseDTO applyBlindFilter() {
         if (isBlinded) {
-            String blindedContent = """
-                <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 4px; color: #6c757d; font-size: 14px;">
-                    블라인드 처리된 댓글입니다
-                </div>
-                """;
+            String blindedContent = "⚠️ 블라인드 처리된 댓글입니다";
             return new CommentResponseDTO(
                     this.id,
                     this.postId,

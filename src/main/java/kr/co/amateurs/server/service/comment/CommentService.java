@@ -55,6 +55,7 @@ public class CommentService {
 
         List<CommentResponseDTO> responseComments = comments.stream()
                 .map(CommentJooqDTO::toResponseDTO)
+                .map(CommentResponseDTO::applyBlindFilter)
                 .collect(Collectors.toList());
 
         return createCommentPageDTO(responseComments, size);

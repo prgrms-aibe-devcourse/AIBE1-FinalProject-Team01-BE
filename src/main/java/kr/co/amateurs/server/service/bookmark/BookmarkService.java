@@ -47,7 +47,8 @@ public class BookmarkService {
         User user = userService.getCurrentLoginUser();
         Pageable pageable = paginationParam.toPageable();
 
-        Page<PostResponseDTO> postResponseDTO = postJooqRepository.findPostsByType(user.getId(), pageable, "bookmarked");
+        Page<PostResponseDTO> postResponseDTO = postJooqRepository.findPostsByType(user.getId(), pageable, "bookmarked")
+                .map(PostResponseDTO::applyBlindFilter);
 
         return convertPageToDTO(postResponseDTO);
     }
