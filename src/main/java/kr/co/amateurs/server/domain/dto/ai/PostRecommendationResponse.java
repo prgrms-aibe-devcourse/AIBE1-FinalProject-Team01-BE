@@ -12,6 +12,7 @@ public record PostRecommendationResponse(
         Integer viewCount,
         Integer commentCount,
         BoardType boardType,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Long boardId
 ) {
 }
