@@ -80,3 +80,8 @@ ai:
 app:
   cors:
     allowed-origins: http://localhost:5173
+
+verification:
+  service:
+    url: http://localhost:5000
+    endpoint: /verify
