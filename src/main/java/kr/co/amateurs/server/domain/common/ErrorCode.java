@@ -51,6 +51,13 @@ public enum ErrorCode implements Supplier<CustomException> {
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     ANONYMOUS_USER(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
 
+    // 비밀번호 재설정 관련 에러
+    INVALID_USER_INFO(HttpStatus.BAD_REQUEST, "입력하신 정보가 일치하지 않습니다."),
+    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
+    INVALID_RESET_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 재설정 토큰입니다."),
+    EXPIRED_RESET_TOKEN(HttpStatus.BAD_REQUEST, "만료된 재설정 토큰입니다."),
+
+
     // 토픽 관련 에러
     TOPICS_REQUIRED(HttpStatus.BAD_REQUEST, "관심 주제를 최소 1개 이상 선택해주세요."),
     TOPICS_TOO_MANY(HttpStatus.BAD_REQUEST, "관심 주제는 최대 3개까지 선택할 수 있습니다."),

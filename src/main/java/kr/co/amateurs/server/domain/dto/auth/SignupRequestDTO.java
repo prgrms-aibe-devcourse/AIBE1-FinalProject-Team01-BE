@@ -1,10 +1,7 @@
 package kr.co.amateurs.server.domain.dto.auth;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import lombok.Builder;
 
@@ -20,6 +17,8 @@ public record SignupRequestDTO(
         @Schema(description = "비밀번호", example = "abcd1234")
         @NotBlank(message = "비밀번호는 필수입니다")
         @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다")
+        @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[0-9]).{8,}$",
+                message = "비밀번호는 8자 이상이며 알파벳과 숫자를 포함해야 합니다")
         String password,
 
         @Schema(description = "닉네임", example = "testnick")
