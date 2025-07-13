@@ -35,7 +35,6 @@ public class PostRecommendService {
     private final AiProfileRepository aiProfileRepository;
     private final UserService userService;
     private final AiRecommendPostRepository aiRecommendPostRepository;
-    private final PopularPostService popularPostService;
 
 
     /**
@@ -97,9 +96,18 @@ public class PostRecommendService {
 
             User user = userService.findById(userId);
             for (Post post : recommendedPosts) {
+                Long boardId = postService.getBoardId(post.getId(), post.getBoardType());
+                if (boardId == null) {
+                    boardId = post.getId();
+                    log.warn("BoardId 조회 실패, postId로 대체: postId={}, boardType={}",
+                            post.getId(), post.getBoardType());
+                }
+
                 RecommendedPost recommendedPost = RecommendedPost.builder()
                         .user(user)
                         .post(post)
+                        .boardType(post.getBoardType())
+                        .boardId(boardId)
                         .build();
                 aiRecommendPostRepository.save(recommendedPost);
             }

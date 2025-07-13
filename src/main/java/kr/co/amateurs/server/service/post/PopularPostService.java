@@ -69,7 +69,7 @@ public class PopularPostService {
         );
 
         try {
-            Long boardId = popularPostRepository.getBoardId(post.postId(), post.boardType());
+            Long boardId = postService.getBoardId(post.postId(), post.boardType());
             if (boardId == null) {
                 boardId = post.postId();
                 log.warn("BoardId 조회 실패, postId로 대체: postId={}, boardType={}",
