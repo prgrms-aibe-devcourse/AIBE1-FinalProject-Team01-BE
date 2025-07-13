@@ -17,7 +17,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "posts")
+@Table(name = "posts", indexes = {
+        @Index(name = "idx_post_board_type", columnList = "board_type"),
+        @Index(name = "idx_post_user_id", columnList = "user_id"),
+        @Index(name = "idx_post_board_created", columnList = "board_type, created_at"),
+        @Index(name = "idx_post_title_content", columnList = "title, content"),
+        @Index(name = "idx_post_deleted_blinded", columnList = "is_deleted, is_blinded")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
