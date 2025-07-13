@@ -111,6 +111,8 @@ swagger:
   server:
     url: ${SERVER_URL}
 
-app:
-  cors:
-    allowed-origins: http://localhost:5173
+
+verification:
+  service:
+    url: ${VERIFICATION_SERVICE_URL}
+    endpoint: /verify
