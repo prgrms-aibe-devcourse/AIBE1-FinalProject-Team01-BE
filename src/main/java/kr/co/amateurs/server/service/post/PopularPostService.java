@@ -44,6 +44,7 @@ public class PopularPostService {
 
         List<PopularPostRequest> popularPosts = recentPosts.stream()
                 .map(post -> calculatePopularityScore(post, today))
+                .filter(post -> !post.isBlinded() && !post.isDeleted())
                 .sorted((p1, p2) -> Double.compare(p2.popularityScore(), p1.popularityScore()))
                 .limit(10)
                 .collect(Collectors.toList());
@@ -63,11 +64,33 @@ public class PopularPostService {
                 (likeScore * LIKE_WEIGHT) +
                 (commentScore * COMMENT_WEIGHT);
 
-        return PopularPostRequest.withScore(
-                post,
-                popularityScore,
-                calculatedDate
+        PopularPostRequest postWithScore = PopularPostRequest.withScore(
+                post, popularityScore, calculatedDate
         );
+
+        try {
+            Long boardId = popularPostRepository.getBoardId(post.postId(), post.boardType());
+            if (boardId == null) {
+                boardId = post.postId();
+                log.warn("BoardId 조회 실패, postId로 대체: postId={}, boardType={}",
+                        post.postId(), post.boardType());
+            }
+
+            var status = popularPostRepository.getBoardStatus(post.postId());
+
+            return PopularPostRequest.withBoardIdAndStatus(
+                    postWithScore,
+                    boardId,
+                    status.isBlinded(),
+                    status.isDeleted()
+            );
+        } catch (Exception e) {
+            log.warn("BoardId/상태 조회 실패: postId={}, boardType={}, error={}",
+                    post.postId(), post.boardType(), e.getMessage());
+            return PopularPostRequest.withBoardIdAndStatus(
+                    postWithScore, post.postId(), false, false
+            );
+        }
     }
 
     @Transactional(readOnly = true)

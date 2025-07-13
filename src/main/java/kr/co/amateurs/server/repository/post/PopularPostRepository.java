@@ -107,13 +107,6 @@ public class PopularPostRepository {
         log.info("인기글 {}개 저장 완료", requests.size());
     }
 
-    public void deleteBeforeDate(LocalDate date) {
-        int count = dsl.deleteFrom(POPULAR_POSTS)
-                .where(POPULAR_POSTS.CALCULATED_DATE.lt(date))
-                .execute();
-        log.info("날짜 {} 인기글 {}개 삭제", date, count);
-    }
-
     public List<PopularPostRequest> findLatestPopularPosts(int limit) {
         var latestDate = dsl.select(DSL.max(POPULAR_POSTS.CALCULATED_DATE))
                 .from(POPULAR_POSTS)
@@ -169,4 +162,66 @@ public class PopularPostRepository {
                         .where(POPULAR_POSTS.CALCULATED_DATE.eq(date))
         );
     }
+
+    public void deleteBeforeDate(LocalDate date) {
+        int count = dsl.deleteFrom(POPULAR_POSTS)
+                .where(POPULAR_POSTS.CALCULATED_DATE.lt(date))
+                .execute();
+        log.info("날짜 {} 인기글 {}개 삭제", date, count);
+    }
+
+    /**
+     * BoardType별 실제 Board ID 조회
+     */
+    public Long getBoardId(Long postId, BoardType boardType) {
+        return switch (boardType) {
+            case MARKET -> dsl.select(MARKET_ITEMS.ID)
+                    .from(MARKET_ITEMS)
+                    .where(MARKET_ITEMS.POST_ID.eq(postId))
+                    .fetchOneInto(Long.class);
+
+            case MATCH -> dsl.select(MATCHING_POSTS.ID)
+                    .from(MATCHING_POSTS)
+                    .where(MATCHING_POSTS.POST_ID.eq(postId))
+                    .fetchOneInto(Long.class);
+
+            case GATHER -> dsl.select(GATHERING_POSTS.ID)
+                    .from(GATHERING_POSTS)
+                    .where(GATHERING_POSTS.POST_ID.eq(postId))
+                    .fetchOneInto(Long.class);
+
+            case PROJECT_HUB -> dsl.select(PROJECTS.ID)
+                    .from(PROJECTS)
+                    .where(PROJECTS.POST_ID.eq(postId))
+                    .fetchOneInto(Long.class);
+
+            case NEWS -> dsl.select(IT_POSTS.ID)
+                    .from(IT_POSTS)
+                    .where(IT_POSTS.POST_ID.eq(postId))
+                    .fetchOneInto(Long.class);
+
+            case FREE, QNA, RETROSPECT, INFO, REVIEW -> dsl.select(COMMUNITY_POSTS.ID)
+                    .from(COMMUNITY_POSTS)
+                    .where(COMMUNITY_POSTS.POST_ID.eq(postId))
+                    .fetchOneInto(Long.class);
+
+            default -> {
+                log.warn("지원하지 않는 BoardType: {}", boardType);
+                yield postId;
+            }
+        };
+    }
+
+    public BoardStatus getBoardStatus(Long postId) {
+        var record = dsl.select(POSTS.IS_BLINDED, POSTS.IS_DELETED)
+                .from(POSTS)
+                .where(POSTS.ID.eq(postId))
+                .fetchOne();
+
+        return record != null ?
+                new BoardStatus(record.get(POSTS.IS_BLINDED), record.get(POSTS.IS_DELETED)) :
+                new BoardStatus(false, false);
+    }
+
+    public record BoardStatus(boolean isBlinded, boolean isDeleted) {}
 }
