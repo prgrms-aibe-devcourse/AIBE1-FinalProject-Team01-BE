@@ -39,8 +39,15 @@ public class AiController {
             @AuthenticationPrincipal CustomUserDetails currentUser,
             @RequestParam(name="limit", defaultValue="10") int limit) {
 
+        StopWatch stopWatch = new StopWatch("RecommendPosts API");
+        stopWatch.start("getRecommendPosts");
+
         Long userId = currentUser.getUser().getId();
         List<PostRecommendationResponse> recommendations = postRecommendService.getStoredRecommendations(userId, limit);
+
+        stopWatch.stop();
+        log.info("맞춤글 조회 완료 - 소요시간: {}ms, 결과 개수: {}",
+                stopWatch.getLastTaskTimeMillis(), recommendations.size());
         return ResponseEntity.ok(recommendations);
     }
 
@@ -48,9 +55,12 @@ public class AiController {
     @Operation(summary="일반 인기글 조회", description= "인기 게시글을 조회합니다. (조회수 + 좋아요 + 댓글 기반)")
     public ResponseEntity<List<PopularPostResponse>> getPopularPosts(
             @RequestParam(name="limit", defaultValue="10") int limit) {
+
         StopWatch stopWatch = new StopWatch("PopularPosts API");
         stopWatch.start("getPopularPosts");
+
         List<PopularPostResponse> popularPosts = popularPostService.getPopularPosts(limit);
+
         stopWatch.stop();
         log.info("인기글 조회 완료 - 소요시간: {}ms, 결과 개수: {}",
                 stopWatch.getLastTaskTimeMillis(), popularPosts.size());

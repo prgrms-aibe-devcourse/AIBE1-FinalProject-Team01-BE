@@ -40,7 +40,8 @@ public record PopularPostResponse(
                 this.viewCount,
                 this.commentCount,
                 this.boardType,
-                this.createdAt
+                this.createdAt,
+                this.boardId
         );
     }
 }

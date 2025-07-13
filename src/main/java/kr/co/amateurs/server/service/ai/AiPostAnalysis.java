@@ -58,9 +58,9 @@ public interface AiPostAnalysis {
         
         요구사항:
         - 선택한 토픽을 기반으로 기본적인 관심사 추론
-        - 해당 분야의 일반적인 학습 방향 제시
-        - 관심 기술 키워드는 선택한 토픽 관련 3-5개로 구성
-        - 아직 활동 데이터가 없으므로 일반적인 초보자 관점에서 작성
+        - 해당 프로필은 추후 맞춤 게시글 추천에 활용
+        - 관심 기술 키워드는 선택한 토픽 관련 3-5개로 구성(ex "Java, Spring, 데이터베이스")
+        - 토픽을 바탕으로 사용자의 현재 기술 관심분야를 작성
         """)
     AiProfileResponse generateInitialProfile(@V("userTopics") String userTopics);
 
