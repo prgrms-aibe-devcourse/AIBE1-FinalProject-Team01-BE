@@ -36,6 +36,8 @@ public record MatchPostResponseDTO(
         Integer viewCount,
         @Schema(description = "좋아요 수", example = "1")
         Integer likeCount,
+        @Schema(description = "북마크 수", example = "1")
+        Integer bookmarkCount,
         @Schema(description = "커피챗/멘토링 종류", example = "COFFEE CHAT")
         MatchingType matchingType,
         @Schema(description = "모집 상태", example = "OPEN")
@@ -53,7 +55,7 @@ public record MatchPostResponseDTO(
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked) {
+    public static MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
         return new MatchPostResponseDTO(
                 mp.getId(),
                 post.getId(),
@@ -66,6 +68,7 @@ public record MatchPostResponseDTO(
                 post.getTags(),
                 postStatistics.getViewCount(),
                 post.getLikeCount(),
+                bookmarkCount,
                 mp.getMatchingType(),
                 mp.getStatus(),
                 mp.getExpertiseAreas(),

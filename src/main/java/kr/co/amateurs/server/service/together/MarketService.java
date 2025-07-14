@@ -71,15 +71,15 @@ public class MarketService {
     public PageResponseDTO<MarketPostResponseDTO> getMarketPostList(PostPaginationParam paginationParam) {
         Page<MarketItem> miPage = marketRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
         List<Long> postIds = miPage.getContent().stream()
-                .map(mp -> mp.getPost().getId())
+                .map(mi -> mi.getPost().getId())
                 .toList();
 
         List<PostStatistics> statisticsList = postStatisticsRepository.findByPostIdIn(postIds);
         Map<Long, PostStatistics> statisticsMap = statisticsList.stream()
                 .collect(Collectors.toMap(PostStatistics::getPostId, Function.identity()));
 
-        Page<MarketPostResponseDTO> response = miPage.map(mp ->
-                MarketPostResponseDTO.convertToDTO(mp, mp.getPost(), statisticsMap.get(mp.getPost().getId()), false, false)
+        Page<MarketPostResponseDTO> response = miPage.map(mi ->
+                MarketPostResponseDTO.convertToDTO(mi, mi.getPost(), statisticsMap.get(mi.getPost().getId()), false, false, bookmarkService.countBookmark(mi.getPost()))
         );
         return convertPageToDTO(response);
     }
@@ -95,7 +95,7 @@ public class MarketService {
 
         eventPublisher.publishEvent(new PostViewedEvent(post.getId(), ipAddress));
 
-        return convertToDTO(mi, post, postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()));
+        return convertToDTO(mi, post, postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post));
     }
 
 
@@ -134,7 +134,7 @@ public class MarketService {
             }
         });
 
-        return convertToDTO(savedMp, savedPost, savedPs, false, false);
+        return convertToDTO(savedMp, savedPost, savedPs, false, false, 0);
     }
 
     @Transactional

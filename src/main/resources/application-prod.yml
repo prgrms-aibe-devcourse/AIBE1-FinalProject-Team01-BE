@@ -148,6 +148,7 @@ cookie:
   domain: ${COOKIE_DOMAIN}
   secure: true
 
-app:
-  cors:
-    allowed-origins: https://amateurs.co.kr
+verification:
+  service:
+    url: ${VERIFICATION_SERVICE_URL}
+    endpoint: /verify

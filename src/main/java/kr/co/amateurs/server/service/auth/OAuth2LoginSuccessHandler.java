@@ -71,8 +71,16 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             TokenInfoDTO tokenInfoDTO = TokenInfoDTO.of(accessToken, accessExpiresIn, refreshToken, refreshExpiresIn);
             cookieUtils.setAuthTokenCookie(response, tokenInfoDTO);
 
-            String redirectUrl = successRedirectUrl + "/oauth/callback";
+            String redirectUrl;
+            if (user.isProfileCompleted()) {
+                redirectUrl = successRedirectUrl + "/oauth/callback?completed=true";
+                log.info("프로필 완성된 사용자, 메인 페이지로 리다이렉트: userId={}", user.getId());
+            } else {
+                redirectUrl = successRedirectUrl + "/oauth/callback?completed=false";
+                log.info("프로필 미완성 사용자, 온보딩 페이지로 리다이렉트: userId={}", user.getId());
+            }
             response.sendRedirect(redirectUrl);
+
         } catch (CustomException e) {
             log.warn("{} OAuth 로그인 실패: {}", providerType.getProviderName(), e.getMessage());
             redirectWithError(response, providerType, e.getMessage());
