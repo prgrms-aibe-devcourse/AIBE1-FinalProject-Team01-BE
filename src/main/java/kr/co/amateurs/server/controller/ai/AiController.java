@@ -6,14 +6,8 @@ import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 
 import kr.co.amateurs.server.domain.dto.ai.PostRecommendationResponse;
 import kr.co.amateurs.server.domain.dto.post.PopularPostResponse;
-import kr.co.amateurs.server.service.ai.AiProfileService;
-import kr.co.amateurs.server.service.ai.PostEmbeddingManageService;
-import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.ai.PostRecommendService;
 import kr.co.amateurs.server.service.post.PopularPostService;
-import kr.co.amateurs.server.service.scheduler.AiPostRecommendScehdularService;
-import kr.co.amateurs.server.service.scheduler.AiProfileSchedulerService;
-import kr.co.amateurs.server.service.scheduler.PopularPostSchedulerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

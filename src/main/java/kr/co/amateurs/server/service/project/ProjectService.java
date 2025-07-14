@@ -141,6 +141,14 @@ public class ProjectService {
         post.update(postRequestDto);
         project.update(projectRequestDTO);
         project.updateProjectMembers(convertProjectMembersToJSON(projectRequestDTO.projectMembers()));
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.updatePostEmbedding(post);
+            } catch (Exception e) {
+                log.warn("게시글 임베딩 업데이트 실패: postId={}", post.getId(), e);
+            }
+        });
     }
 
     @Transactional
@@ -152,6 +160,14 @@ public class ProjectService {
 
         Post post = project.getPost();
         validatePost(post, user.getEmail());
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.deletePostEmbedding(post.getId());
+            } catch (Exception e) {
+                log.warn("게시글 임베딩 삭제 실패: postId={}", post.getId(), e);
+            }
+        });
 
         postStatisticsRepository.deleteById(post.getId());
         bookmarkRepository.deleteByPost_Id(post.getId());
