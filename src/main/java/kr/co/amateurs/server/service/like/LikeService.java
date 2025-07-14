@@ -50,7 +50,8 @@ public class LikeService {
         User user = userService.getCurrentLoginUser();
         Pageable pageable = paginationParam.toPageable();
 
-        Page<PostResponseDTO> postResponseDTO = postJooqRepository.findPostsByType(user.getId(), pageable, "liked");
+        Page<PostResponseDTO> postResponseDTO = postJooqRepository.findPostsByType(user.getId(), pageable, "liked")
+                .map(PostResponseDTO::applyBlindFilter);
 
         return convertPageToDTO(postResponseDTO);
     }

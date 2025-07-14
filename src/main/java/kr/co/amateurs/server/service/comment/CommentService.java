@@ -21,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -40,6 +41,11 @@ public class CommentService {
         Optional<User> currentUser = userService.getCurrentUser();
         PageRequest pageRequest = PageRequest.of(0, size + CURSOR_OFFSET);
 
+        Boolean isBlinded = postRepository.findIsBlindedByPostId(postId);
+        if (isBlinded == null || isBlinded) {
+            return new CommentPageDTO(Collections.emptyList(), null, false);
+        }
+
         List<CommentJooqDTO> comments = fetchRootComments(
                 postId,
                 currentUser.map(User::getId).orElse(null),
@@ -49,6 +55,7 @@ public class CommentService {
 
         List<CommentResponseDTO> responseComments = comments.stream()
                 .map(CommentJooqDTO::toResponseDTO)
+                .map(CommentResponseDTO::applyBlindFilter)
                 .collect(Collectors.toList());
 
         return createCommentPageDTO(responseComments, size);
@@ -71,6 +78,7 @@ public class CommentService {
 
         List<CommentResponseDTO> responseReplies = replies.stream()
                 .map(CommentJooqDTO::toResponseDTO)
+                .map(CommentResponseDTO::applyBlindFilter)
                 .collect(Collectors.toList());
 
         return createCommentPageDTO(responseReplies, size);
@@ -82,6 +90,11 @@ public class CommentService {
         User user = userService.getCurrentLoginUser();
         if (!postRepository.existsByIdUsingCount(postId)) {
             throw new CustomException(ErrorCode.POST_NOT_FOUND);
+        }
+
+        Boolean isBlinded = postRepository.findIsBlindedByPostId(postId);
+        if (isBlinded == null || isBlinded) {
+            throw ErrorCode.IS_BLINDED_POST.get();
         }
 
         Comment comment = Comment.from(requestDTO, postId, user, requestDTO.parentCommentId());
@@ -105,6 +118,9 @@ public class CommentService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
         validateCommentAccess(comment.getUser().getId());
+        if (comment.getIsBlinded()){
+            throw ErrorCode.IS_BLINDED_COMMENT.get();
+        }
 
         comment.updateContent(requestDTO.content());
     }

@@ -105,6 +105,7 @@ public class CommentJooqRepository {
         return CommentJooqDTO.builder()
                 .id(record.get(COMMENTS.ID))
                 .postId(record.get(COMMENTS.POST_ID))
+                .isBlinded(record.get(COMMENTS.IS_BLINDED))
                 .nickname(record.get(USERS.NICKNAME))
                 .profileImageUrl(record.get(USERS.IMAGE_URL))
                 .devCourseTrack(devCourseTrack)

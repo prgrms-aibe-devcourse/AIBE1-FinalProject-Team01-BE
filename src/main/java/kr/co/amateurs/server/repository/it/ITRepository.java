@@ -23,6 +23,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
                 u.devcourseName,
                 u.devcourseBatch,
                 p.boardType,
+                p.isBlinded,
                 ps.viewCount,
                 p.likeCount,
                 CAST(COUNT(c) AS int),
@@ -57,6 +58,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
                 u.devcourseName,
                 u.devcourseBatch,
                 p.boardType,
+                p.isBlinded,
                 ps.viewCount,
                 p.likeCount,
                 CAST(COUNT(c) AS int),
@@ -89,7 +91,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
     @Query("""
         SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
             ip.id, p.id, p.title, p.content, u.nickname, u.imageUrl,
-            u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,
+            u.devcourseName, u.devcourseBatch, p.boardType,p.isBlinded, ps.viewCount,
             p.likeCount, CAST(COUNT(DISTINCT c.id) AS int), CAST(COUNT(DISTINCT b.id) AS int), p.createdAt,
             p.updatedAt, p.tags,
             CASE WHEN pl.id IS NOT NULL THEN true ELSE false END,
@@ -110,7 +112,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
     @Query("""
         SELECT new kr.co.amateurs.server.domain.dto.it.ITResponseDTO(
             ip.id, p.id, p.title, p.content, u.nickname, u.imageUrl,
-            u.devcourseName, u.devcourseBatch, p.boardType, ps.viewCount,
+            u.devcourseName, u.devcourseBatch, p.boardType,p.isBlinded, ps.viewCount,
             p.likeCount, CAST(COUNT(DISTINCT c.id) AS int), CAST(COUNT(DISTINCT b.id) AS int), p.createdAt,
             p.updatedAt, p.tags, false, false
         )
@@ -135,6 +137,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
                 u.devcourseName,
                 u.devcourseBatch,
                 p.boardType,
+                p.isBlinded,
                 ps.viewCount,
                 p.likeCount,
                 CAST(COUNT(c) AS int),
@@ -176,6 +179,7 @@ public interface ITRepository extends JpaRepository<ITPost, Long> {
                 u.devcourseName,
                 u.devcourseBatch,
                 p.boardType,
+                p.isBlinded,
                 ps.viewCount,
                 p.likeCount,
                 CAST(COUNT(c) AS int),

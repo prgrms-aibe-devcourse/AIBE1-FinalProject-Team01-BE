@@ -18,6 +18,8 @@ public record GatheringPostResponseDTO(
         Long id,
         @Schema(description = "게시글 ID", example = "1")
         Long postId,
+        @Schema(description = "불러안두 여부", example = "false")
+        boolean isBlinded,
         @Schema(description = "작성자 닉네임", example = "test닉네임")
         String nickname,
         @Schema(description = "작성자 수강 코스 이름", example = "AIBE")
@@ -65,6 +67,7 @@ public record GatheringPostResponseDTO(
         return new GatheringPostResponseDTO(
                 gp.getId(),
                 post.getId(),
+                post.getIsBlinded(),
                 post.getUser().getNickname(),
                 post.getUser().getDevcourseName(),
                 post.getUser().getDevcourseBatch(),
@@ -88,4 +91,46 @@ public record GatheringPostResponseDTO(
                 hasBookmarked
         );
     }
+
+        public GatheringPostResponseDTO applyBlindFilter() {
+                if (this.isBlinded) {
+                        String blindedContent = """
+                            <div style="text-align: center; padding: 60px 20px; background-color: #f8f9fa; border-radius: 8px; margin: 20px 0;">
+                                <div style="font-size: 24px; font-weight: bold; color: #6c757d; margin-bottom: 10px;">
+                                    ⚠️ 블라인드 처리된 게시글입니다
+                                </div>
+                                <div style="font-size: 16px; color: #868e96;">
+                                    관리자가 처리 중입니다.
+                                </div>
+                            </div>
+                            """;
+                        return new GatheringPostResponseDTO(
+                                this.id,
+                                this.postId,
+                                this.isBlinded,
+                                this.nickname,
+                                this.devcourseName,
+                                this.devcourseBatch,
+                                this.userProfileImg,
+                                "블라인드 처리된 게시글입니다.",
+                                blindedContent,
+                                "",
+                                this.viewCount,
+                                this.likeCount,
+                                this.bookmarkCount,
+                                this.gatheringType,
+                                this.status,
+                                this.headCount,
+                                this.place,
+                                this.period,
+                                this.schedule,
+                                this.createdAt,
+                                this.updatedAt,
+                                this.hasImages,
+                                this.hasLiked,
+                                this.hasBookmarked
+                        );
+                }
+                return this;
+        }
 }

@@ -13,6 +13,7 @@ public interface CommentQueryStrategy {
         return dslContext.select(
                 COMMENTS.ID,
                 COMMENTS.POST_ID,
+                COMMENTS.IS_BLINDED,
                 USERS.NICKNAME,
                 USERS.IMAGE_URL,
                 USERS.DEVCOURSE_NAME,
