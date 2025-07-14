@@ -80,6 +80,7 @@ public class MarketService {
 
         Page<MarketPostResponseDTO> response = miPage.map(mi ->
                 MarketPostResponseDTO.convertToDTO(mi, mi.getPost(), statisticsMap.get(mi.getPost().getId()), false, false, bookmarkService.countBookmark(mi.getPost()))
+                        .applyBlindFilter()
         );
         return convertPageToDTO(response);
     }
@@ -95,7 +96,8 @@ public class MarketService {
 
         eventPublisher.publishEvent(new PostViewedEvent(post.getId(), ipAddress));
 
-        return convertToDTO(mi, post, postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post));
+        return convertToDTO(mi, post, postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post))
+                .applyBlindFilter();
     }
 
 
@@ -142,6 +144,9 @@ public class MarketService {
         MarketItem mi = marketRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mi.getPost();
         validateUser(post);
+        if(post.getIsBlinded()){
+            throw ErrorCode.IS_BLINDED_POST.get();
+        }
         CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.tags(), dto.content());
         post.update(updatePostDTO);
         mi.update(dto);

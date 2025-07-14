@@ -49,7 +49,8 @@ public class ReportProcessor {
         if (report.getPost() != null) {
             String title = report.getPost().getTitle() != null ? report.getPost().getTitle() : "";
             String content = report.getPost().getContent() != null ? report.getPost().getContent() : "";
-            return title + " " + content;
+            String tags = report.getPost().getTags() != null ? report.getPost().getTags() : "";
+            return title + " " + content + " " + tags;
         } else if (report.getComment() != null) {
             return report.getComment().getContent() != null ? report.getComment().getContent() : "";
         } else {

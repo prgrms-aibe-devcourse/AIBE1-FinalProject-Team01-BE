@@ -81,6 +81,7 @@ public class GatheringService {
 
         Page<GatheringPostResponseDTO> response = gpPage.map(gp ->
             convertToDTO(gp, gp.getPost(), statisticsMap.get(gp.getPost().getId()), false, false, bookmarkService.countBookmark(gp.getPost()))
+                    .applyBlindFilter()
         );
 
         return convertPageToDTO(response);
@@ -96,7 +97,8 @@ public class GatheringService {
         PostStatistics postStatistics = postStatisticsRepository.findById(post.getId()).orElseThrow(ErrorCode.POST_NOT_FOUND);
 
         eventPublisher.publishEvent(new PostViewedEvent(post.getId(), ipAddress));
-        return convertToDTO(gp, post,postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post));
+        return convertToDTO(gp, post,postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post))
+                .applyBlindFilter();
     }
 
 
@@ -146,6 +148,9 @@ public class GatheringService {
         GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = gp.getPost();
         validateUser(post);
+        if(post.getIsBlinded()){
+            throw ErrorCode.IS_BLINDED_POST.get();
+        }
         CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.tags(), dto.content());
         post.update(updatePostDTO);
         gp.update(dto);
