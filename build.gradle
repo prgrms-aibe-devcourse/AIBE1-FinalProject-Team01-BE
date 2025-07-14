@@ -177,6 +177,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
 
+	// OpenTelemetry 의존성
+	implementation platform('io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:2.11.0')
+	implementation 'io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter'
+	implementation 'io.micrometer:micrometer-registry-otlp'
+
 	// JWT 관련 의존성
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
 	implementation 'org.springframework.boot:spring-boot-starter-aop'

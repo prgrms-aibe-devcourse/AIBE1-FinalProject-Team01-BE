@@ -9,6 +9,7 @@ services:
       - '--web.enable-lifecycle'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=3d'
+      - '--enable-feature=otlp-write-receiver'
     deploy:
       resources:
         limits:
