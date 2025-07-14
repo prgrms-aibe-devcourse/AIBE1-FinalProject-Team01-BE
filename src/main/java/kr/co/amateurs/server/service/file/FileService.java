@@ -71,6 +71,29 @@ public class FileService {
         );
     }
 
+    public FileResponseDTO uploadFile(MultipartFile file) throws IOException {
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+
+        String fileName = UUID.randomUUID().toString() + extension;
+        String key = "file/" + fileName;
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(file.getContentType())
+                .build();
+        s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
+        return new FileResponseDTO(
+                true,
+                "File uploaded",
+                publicUrl + "/" + key
+        );
+    }
+
     public void deletePostImage(Post post){
         List<PostImage> images = postImageRepository.findByPost(post);
         images.forEach(img -> deleteFile(img.getImageUrl()));
