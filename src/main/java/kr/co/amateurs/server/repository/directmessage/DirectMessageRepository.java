@@ -5,6 +5,8 @@ import kr.co.amateurs.server.domain.entity.directmessage.enums.MessageType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.mongodb.repository.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,4 +19,8 @@ public interface DirectMessageRepository extends MongoRepository<DirectMessage, 
     Page<DirectMessage> findByRoomIdAndSentAtAfterOrderBySentAtDesc(String roomId, LocalDateTime after, Pageable pageable);
 
     List<DirectMessage> findByRoomIdAndMessageTypeIn(String roomId, List<MessageType> messageTypes);
+
+    @Query("{'senderId': ?0}")
+    @Update("{ '$set': { 'senderNickname': ?1, 'senderProfileImage': ?2 } }")
+    void anonymizeUser(long userId, String nickname, String profileImage);
 }

@@ -10,6 +10,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.user.UserRepository;
+import kr.co.amateurs.server.service.directmessage.DirectMessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DirectMessageService directMessageService;
 
     public void validateEmailDuplicate(String email) {
         if (userRepository.existsByEmail(email)) {
@@ -203,6 +205,7 @@ public class UserService {
 
         userFromDb.anonymizeAndDelete(anonymousEmail, anonymousNickname);
         userRepository.save(userFromDb);
+        directMessageService.anonymizeUser(userFromDb);
 
         return UserDeleteResponseDTO.success();
     }

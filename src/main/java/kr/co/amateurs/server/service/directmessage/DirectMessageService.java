@@ -77,6 +77,10 @@ public class DirectMessageService {
         return DirectMessagePageResponse.from(page);
     }
 
+    public void anonymizeUser(User user) {
+        directMessageRepository.anonymizeUser(user.getId(), user.getNickname(), user.getImageUrl());
+    }
+
     public void exitRoom(String roomId) {
         User currentUser = userService.getCurrentLoginUser();
         DirectMessageRoom room = validateRoomAccess(roomId, currentUser.getId());
