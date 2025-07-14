@@ -6,6 +6,7 @@ import kr.co.amateurs.server.domain.dto.user.*;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.user.UserRepository;
@@ -15,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -243,5 +245,11 @@ public class UserService {
     public User findById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(ErrorCode.NOT_FOUND);
+    }
+
+    @Transactional
+    public void changeUserRole(User user, Role newRole) {
+        user.changeRole(newRole);
+        userRepository.save(user);
     }
 }

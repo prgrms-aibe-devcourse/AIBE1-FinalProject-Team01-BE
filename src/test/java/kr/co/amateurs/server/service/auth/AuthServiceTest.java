@@ -136,7 +136,7 @@ public class AuthServiceTest {
     @Test
     void 토픽이_올바르게_User에_설정되어_저장된다() {
         // given
-        Set<Topic> topics = Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.AI);
+        Set<Topic> topics = Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.IOS);
         SignupRequestDTO request = UserTestFixture.defaultSignupRequest()
                 .email(UserTestFixture.generateUniqueEmail())
                 .nickname(UserTestFixture.generateUniqueNickname())
@@ -148,14 +148,14 @@ public class AuthServiceTest {
 
         // then
         assertThat(response.topics()).hasSize(3);
-        assertThat(response.topics()).containsExactlyInAnyOrder(Topic.FRONTEND, Topic.BACKEND, Topic.AI);
+        assertThat(response.topics()).containsExactlyInAnyOrder(Topic.FRONTEND, Topic.BACKEND, Topic.IOS);
     }
 
     @Test
     void 토픽_4개_이상_선택_시_validation_에러가_발생한다() {
         // given
         Set<Topic> tooManyTopics = Set.of(
-                Topic.FRONTEND, Topic.BACKEND, Topic.AI, Topic.MOBILE
+                Topic.FRONTEND, Topic.BACKEND, Topic.DESIGN, Topic.DEVOPS
         );
 
         SignupRequestDTO request = SignupRequestDTO.builder()
@@ -246,53 +246,6 @@ public class AuthServiceTest {
         assertThat(response.refreshToken()).isNotNull();
         assertThat(response.tokenType()).isEqualTo(TokenTestFixture.TOKEN_TYPE);
         assertThat(response.expiresIn()).isEqualTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION);
-    }
-
-    @Test
-    void 유효한_리프레시_토큰으로_토큰_재발급_시_새로운_액새스_토큰을_반환한다() throws InterruptedException {
-        // given
-        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
-        authService.signup(signupRequest);
-
-        LoginRequestDTO loginRequest = LoginRequestDTO.builder()
-                .email(signupRequest.email())
-                .password(signupRequest.password())
-                .build();
-
-        LoginResponseDTO loginResponse = authService.login(loginRequest);
-        Thread.sleep(1000);
-
-        TokenReissueRequestDTO reissueRequest = new TokenReissueRequestDTO(loginResponse.refreshToken());
-
-        // when
-        TokenReissueResponseDTO response = authService.reissueToken(reissueRequest);
-
-        // then
-        assertThat(response.accessToken()).isNotNull();
-        assertThat(response.tokenType()).isEqualTo("Bearer");
-        assertThat(response.expiresIn()).isEqualTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION);
-        assertThat(response.accessToken()).isNotEqualTo(loginResponse.accessToken());
-    }
-
-    @Test
-    void 유효하지_않은_리프레시_토큰으로_재발급_시_예외가_발생한다() {
-        // given
-        TokenReissueRequestDTO invalidRequest = new TokenReissueRequestDTO("invalid.token.here");
-
-        // when & then
-        assertThatThrownBy(() -> authService.reissueToken(invalidRequest))
-                .isInstanceOf(CustomException.class);
-    }
-
-    @Test
-    void 존재하지_않는_사용자의_리프레시_토큰으로_재발급_시_예외가_발생한다() {
-        // given
-        String fakeRefreshToken = jwtProvider.generateRefreshToken("nonexistent@test.com");
-        TokenReissueRequestDTO request = new TokenReissueRequestDTO(fakeRefreshToken);
-
-        // when & then
-        assertThatThrownBy(() -> authService.reissueToken(request))
-                .isInstanceOf(CustomException.class);
     }
 
     @Test

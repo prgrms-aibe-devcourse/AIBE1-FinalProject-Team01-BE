@@ -175,7 +175,7 @@ public class UserControllerTest extends AbstractControllerTest {
     void 인증된_사용자가_유효한_토픽으로_변경_요청_시_정상적으로_업데이트된다() {
         // given
         UserTopicsEditDTO topicsRequest = UserTopicsEditDTO.builder()
-                .topics(Set.of(Topic.BACKEND, Topic.DATA, Topic.MOBILE))
+                .topics(Set.of(Topic.BACKEND, Topic.WEB, Topic.IOS))
                 .build();
 
         // when & then
@@ -188,7 +188,7 @@ public class UserControllerTest extends AbstractControllerTest {
                 .then()
                 .statusCode(200)
                 .body("topics", hasSize(3))
-                .body("topics", hasItems("BACKEND", "DATA", "MOBILE"));
+                .body("topics", hasItems("BACKEND", "WEB", "IOS"));
     }
 
     @Test
@@ -213,7 +213,7 @@ public class UserControllerTest extends AbstractControllerTest {
     void 인증된_사용자가_4개_이상_토픽으로_변경_요청_시_400_에러가_발생한다() {
         // given
         UserTopicsEditDTO topicsRequest = UserTopicsEditDTO.builder()
-                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.DATA, Topic.MOBILE))
+                .topics(Set.of(Topic.FRONTEND, Topic.BACKEND, Topic.WEB, Topic.IOS))
                 .build();
 
         // when & then

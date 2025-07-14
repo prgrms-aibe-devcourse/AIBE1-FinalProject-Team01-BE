@@ -48,6 +48,7 @@ public class UnreferencedImageClearScheduler {
                         ListObjectsV2Request.builder()
                                 .bucket(bucket)
                                 .maxKeys(BATCH_SIZE)
+                                .prefix("post-images/")
                                 .continuationToken(continuationToken)
                                 .build()
                 );
@@ -55,7 +56,10 @@ public class UnreferencedImageClearScheduler {
                 List<S3Object> objects = response.contents();
 
                 for (S3Object obj : objects) {
-                    String fileUrl = publicUrl + "/" + obj.key();
+                    if (!obj.key().startsWith("post-images/")) {
+                        continue;
+                    }
+                    String fileUrl = "https://" + publicUrl + "/" + obj.key();
                     if (!dbUrls.contains(fileUrl)) {
                         fileService.deleteFile(fileUrl);
                     }

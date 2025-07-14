@@ -7,19 +7,20 @@ import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessage;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessageRoom;
 import kr.co.amateurs.server.domain.entity.directmessage.Participant;
+import kr.co.amateurs.server.domain.entity.directmessage.enums.MessageType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.directmessage.DirectMessageRepository;
 import kr.co.amateurs.server.repository.directmessage.DirectMessageRoomRepository;
-import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -28,11 +29,7 @@ public class DirectMessageService {
     private final DirectMessageRoomRepository directMessageRoomRepository;
 
     private final UserService userService;
-
-    //test
-    private final UserRepository userRepository;
-    
-    private final Random random = new Random();
+    private final FileService fileService;
 
     @AlarmTrigger(type = AlarmType.DIRECT_MESSAGE)
     public DirectMessageResponse saveMessage(String roomId, DirectMessageRequest request) {
@@ -59,34 +56,6 @@ public class DirectMessageService {
         return DirectMessageRoomResponse.fromCollection(room, currentUser);
     }
 
-    public DirectMessageRoomResponse createTestRoom() {
-        User currentUser = userService.getCurrentLoginUser();
-        
-        List<Long> existingPartnerIds = directMessageRoomRepository.findAllRoomsByUserId(currentUser.getId()).stream()
-                .flatMap(room -> room.getParticipants().stream())
-                .map(Participant::getUserId)
-                .filter(id -> !id.equals(currentUser.getId()))
-                .distinct()
-                .toList();
-        
-        List<User> availableUsers = userRepository.findAll().stream()
-                .filter(user -> !user.getId().equals(currentUser.getId()))
-                .filter(user -> !existingPartnerIds.contains(user.getId()))
-                .toList();
-        
-        if (availableUsers.isEmpty()) {
-            throw new CustomException(ErrorCode.INVALID_USER_ID);
-        }
-        
-        User partner = availableUsers.get(random.nextInt(availableUsers.size()));
-        
-        // 새 채팅방 생성
-        List<User> participants = List.of(currentUser, partner);
-        DirectMessageRoom newRoom = directMessageRoomRepository.save(DirectMessageRoom.from(participants));
-        
-        return DirectMessageRoomResponse.fromCollection(newRoom, partner);
-    }
-
     public DirectMessageRoom findRoomById(String roomId) {
         return directMessageRoomRepository.findById(roomId)
                 .orElseThrow(ErrorCode.NOT_FOUND_ROOM);
@@ -94,7 +63,8 @@ public class DirectMessageService {
 
     public List<DirectMessageRoomResponse> getRooms() {
         User currentUser = userService.getCurrentLoginUser();
-        List<DirectMessageRoom> rooms = directMessageRoomRepository.findActiveRoomsByUserId(currentUser.getId());
+        Sort sort = Sort.by(Sort.Direction.DESC, "sentAt");
+        List<DirectMessageRoom> rooms = directMessageRoomRepository.findActiveRoomsByUserId(currentUser.getId(), sort);
         return rooms.stream()
                 .map(room -> DirectMessageRoomResponse.fromCollection(room, currentUser))
                 .toList();
@@ -114,7 +84,9 @@ public class DirectMessageService {
 
         if (room.allParticipantsLeft()) {
             directMessageRoomRepository.delete(room);
-            directMessageRepository.deleteAllByRoomId(room.getId());
+            directMessageRepository.deleteAllByRoomId(roomId);
+            directMessageRepository.findByRoomIdAndMessageTypeIn(roomId, List.of(MessageType.FILE, MessageType.IMAGE))
+                    .forEach(message -> fileService.deleteFile(message.getContent()));
         } else {
             directMessageRoomRepository.save(room);
         }

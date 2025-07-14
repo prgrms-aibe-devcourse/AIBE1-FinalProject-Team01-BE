@@ -79,6 +79,8 @@ public enum ErrorCode implements Supplier<CustomException> {
     EMPTY_FILE(HttpStatus.BAD_REQUEST, "빈 파일은 업로드할 수 없습니다."),
     INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 이미지 파일 형식입니다."),
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "이미지 파일 크기 제한을 초과하였습니다."),
+    INVALID_IMAGE_URL(HttpStatus.BAD_REQUEST, "유효하지 않은 이미지 URL입니다."),
+    IMAGE_DOWNLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 다운로드에 실패했습니다."),
 
     // POST
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
@@ -108,7 +110,14 @@ public enum ErrorCode implements Supplier<CustomException> {
     DUPLICATE_BOOKMARK(HttpStatus.CONFLICT, "북마크가 이미 있습니다."),
 
     // 팔로우 관련
-    SELF_FOLLOW(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다.");
+    SELF_FOLLOW(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다."),
+
+    // 인증 관련 에러
+    VERIFICATION_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "인증 서비스 연결에 실패했습니다."),
+    VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "인증에 실패했습니다."),
+    FILE_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "파일 처리 중 오류가 발생했습니다"),
+    VERIFICATION_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "인증 처리 중 오류가 발생했습니다"),
+    DUPLICATION_VERIFICATION(HttpStatus.BAD_REQUEST, "이미 인증 검토 중이거나 인증된 사용자입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
