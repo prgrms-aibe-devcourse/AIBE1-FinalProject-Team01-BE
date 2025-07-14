@@ -70,11 +70,11 @@ class AiProfileServiceTest {
             given(aiProfileRepository.save(any(AiProfile.class))).willAnswer(invocation -> invocation.getArgument(0));
 
             // when
-            AiProfile result = aiProfileService.generateInitialProfile(1L);
+            AiProfileResponse result = aiProfileService.generateInitialProfile(1L);
 
             // then
-            assertThat(result.getPersonaDescription()).isEqualTo("AI에 관심");
-            assertThat(result.getInterestKeywords()).isEqualTo("AI, BACKEND");
+            assertThat(result.personaDescription()).isEqualTo("AI에 관심");
+            assertThat(result.interestKeywords()).isEqualTo("AI, BACKEND");
         }
 
         @Test
@@ -107,11 +107,11 @@ class AiProfileServiceTest {
             given(aiLlmService.generateFinalProfile(any(AiProfileRequest.class))).willReturn(AiTestFixture.createAiProfileResponse("최종 설명", "AI, BACKEND"));
 
             // when
-            AiProfile result = aiProfileService.generateCompleteUserProfile(1L);
+            AiProfileResponse result = aiProfileService.generateCompleteUserProfile(1L);
 
             // then
-            assertThat(result.getPersonaDescription()).isEqualTo("최종 설명");
-            assertThat(result.getInterestKeywords()).isEqualTo("AI, BACKEND");
+            assertThat(result.personaDescription()).isEqualTo("최종 설명");
+            assertThat(result.interestKeywords()).isEqualTo("AI, BACKEND");
         }
 
         @Test
@@ -149,7 +149,7 @@ class AiProfileServiceTest {
             given(aiLlmService.generateFinalProfile(any(AiProfileRequest.class))).willReturn(AiTestFixture.createAiProfileResponse("설명", "AI, BACKEND"));
 
             // when
-            AiProfileResponse result = aiProfileService.generateUserProfileResponse(1L);
+            AiProfileResponse result = aiProfileService.generateCompleteUserProfile(1L);
 
             // then
             assertThat(result.personaDescription()).isEqualTo("설명");

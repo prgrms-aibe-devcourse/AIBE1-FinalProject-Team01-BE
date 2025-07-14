@@ -5,6 +5,7 @@ import io.restassured.RestAssured;
 import kr.co.amateurs.server.config.TestAuthHelper;
 import kr.co.amateurs.server.domain.dto.ai.PostRecommendationResponse;
 import kr.co.amateurs.server.domain.dto.post.PopularPostResponse;
+import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import kr.co.amateurs.server.repository.user.UserRepository;
@@ -56,7 +57,7 @@ class AiControllerTest extends AbstractControllerTest {
             accessToken = jwtProvider.generateAccessToken(user.getEmail());
 
             List<PostRecommendationResponse> mockList = List.of(
-                new PostRecommendationResponse(1L, "추천1", "닉네임", 10, 100, 5, null, LocalDateTime.now())
+                new PostRecommendationResponse(1L, "추천1", "닉네임", 10, 100, 5, BoardType.FREE, LocalDateTime.now(), 1L)
             );
             when(postRecommendService.getStoredRecommendations(anyLong(), anyInt())).thenReturn(mockList);
 
@@ -72,7 +73,7 @@ class AiControllerTest extends AbstractControllerTest {
         void 인기글_조회_정상() {
             // given (인증 불필요)
             List<PopularPostResponse> mockList = List.of(
-                new PopularPostResponse(1L, "인기글", "닉네임", 10, 100, 5, null, LocalDateTime.now())
+                new PopularPostResponse(1L, "인기글", "닉네임", 10, 100, 5, BoardType.FREE, LocalDateTime.now(), 1L)
             );
             when(popularPostService.getPopularPosts(anyInt())).thenReturn(mockList);
 
