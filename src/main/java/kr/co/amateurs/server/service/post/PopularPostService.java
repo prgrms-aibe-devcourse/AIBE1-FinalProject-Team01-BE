@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class PopularPostService {
     private final PopularPostRepository popularPostRepository;
     private final PostService postService;
+    private final PopularPostCacheService popularPostCacheService;
 
     private static final double VIEW_WEIGHT = 0.4;
     private static final double LIKE_WEIGHT = 0.4;
@@ -53,6 +54,7 @@ public class PopularPostService {
         log.info("인기글 계산 완료: 총 {}개 게시글 처리", popularPosts.size());
 
         popularPostRepository.deleteBeforeDate(today);
+        popularPostCacheService.invalidatePopularPostsCache();
     }
 
     private PopularPostRequest calculatePopularityScore(PopularPostRequest post, LocalDate calculatedDate) {
@@ -95,10 +97,7 @@ public class PopularPostService {
 
     @Transactional(readOnly = true)
     public List<PopularPostResponse> getPopularPosts(int limit) {
-        List<PopularPostRequest> requests = popularPostRepository.findLatestPopularPosts(limit);
-        return requests.stream()
-                .map(PopularPostResponse::from)
-                .collect(Collectors.toList());
+        return popularPostCacheService.getCachedPopularPosts(limit);
     }
 }
 

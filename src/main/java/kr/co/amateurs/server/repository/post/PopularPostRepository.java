@@ -1,12 +1,15 @@
 package kr.co.amateurs.server.repository.post;
 
 import kr.co.amateurs.server.domain.dto.post.PopularPostRequest;
+import kr.co.amateurs.server.domain.dto.post.PopularPostResponse;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -182,4 +185,5 @@ public class PopularPostRepository {
     }
 
     public record BoardStatus(boolean isBlinded, boolean isDeleted) {}
+
 }
