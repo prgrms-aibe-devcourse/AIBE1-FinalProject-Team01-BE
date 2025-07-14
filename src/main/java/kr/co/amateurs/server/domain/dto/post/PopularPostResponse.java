@@ -14,7 +14,8 @@ public record PopularPostResponse(
         Integer viewCount,
         Integer commentCount,
         BoardType boardType,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Long boardId
 ) {
     public static PopularPostResponse from(PopularPostRequest request) {
         return new PopularPostResponse(
@@ -25,7 +26,8 @@ public record PopularPostResponse(
                 request.viewCount(),
                 request.commentCount(),
                 request.boardType(),
-                request.postCreatedAt()
+                request.postCreatedAt(),
+                request.boardId()
         );
     }
 
@@ -38,7 +40,8 @@ public record PopularPostResponse(
                 this.viewCount,
                 this.commentCount,
                 this.boardType,
-                this.createdAt
+                this.createdAt,
+                this.boardId
         );
     }
 }

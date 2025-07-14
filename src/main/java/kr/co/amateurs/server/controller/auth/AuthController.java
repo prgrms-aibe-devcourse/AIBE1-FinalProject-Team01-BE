@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.auth;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.auth.*;
@@ -55,11 +56,26 @@ public class AuthController {
                 CheckResponseDTO.unavailable("닉네임"));
     }
 
+    @PostMapping("/reissue")
+    @Operation(summary = "토큰 재발급", description = "리프레시 토큰을 이용하여 새로운 액세스 토큰을 발급합니다")
+    public ResponseEntity<TokenReissueResponseDTO> reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        TokenReissueResponseDTO tokenResponse = authService.reissueToken(request, response);
+        return ResponseEntity.ok(tokenResponse);
+    }
+
     @PostMapping("/logout")
     @Operation(summary = "로그아웃", description = "사용자를 로그아웃하고 Refresh Token을 삭제합니다")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<LogoutResponseDTO> logout(HttpServletResponse response) {
         authService.logout(response);
         return ResponseEntity.ok(LogoutResponseDTO.success());
+    }
+
+    @PostMapping("/complete-profile")
+    @Operation(summary = "소셜 프로필 완성", description = "소셜 로그인 사용자의 프로필을 완성합니다")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ProfileCompleteResponseDTO> completeProfile(@Valid @RequestBody ProfileCompleteRequestDTO request) {
+        ProfileCompleteResponseDTO response = authService.completeProfile(request);
+        return ResponseEntity.ok(response);
     }
 }

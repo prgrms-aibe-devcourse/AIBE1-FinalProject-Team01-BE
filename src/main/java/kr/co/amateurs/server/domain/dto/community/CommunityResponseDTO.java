@@ -7,9 +7,6 @@ import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 
 import java.time.LocalDateTime;
-import java.util.List;
-
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 public record CommunityResponseDTO(
         @Schema(description = "커뮤니티 ID", example = "1")
@@ -39,6 +36,9 @@ public record CommunityResponseDTO(
         @Schema(description = "게시판 타입", example = "FREE")
         BoardType boardType,
 
+        @Schema(description = "불러안두 여부", example = "false")
+        boolean isBlinded,
+
         @Schema(description = "조회수", example = "42")
         Integer viewCount,
 
@@ -47,6 +47,9 @@ public record CommunityResponseDTO(
 
         @Schema(description = "댓글 수", example = "8")
         Integer commentCount,
+
+        @Schema(description = "북마크 수", example = "2")
+        Integer bookmarkCount,
 
         @Schema(description = "게시글 작성 시간", example = "2025-06-27T14:30:00")
         LocalDateTime createdAt,
@@ -74,8 +77,10 @@ public record CommunityResponseDTO(
                         post.getUser().getDevcourseName(),
                         post.getUser().getDevcourseBatch(),
                         post.getBoardType(),
-                        post.getViewCount(),
+                        false,
+                        0,
                         post.getLikeCount(),
+                        0,
                         0,
                         post.getCreatedAt(),
                         post.getUpdatedAt(),
@@ -83,5 +88,42 @@ public record CommunityResponseDTO(
                         hasLiked,
                         hasBookmarked
                 );
+        }
+
+        public CommunityResponseDTO applyBlindFilter() {
+                if (this.isBlinded) {
+                        String blindedContent = """
+                            <div style="text-align: center; padding: 60px 20px; background-color: #f8f9fa; border-radius: 8px; margin: 20px 0;">
+                                <div style="font-size: 24px; font-weight: bold; color: #6c757d; margin-bottom: 10px;">
+                                    ⚠️ 블라인드 처리된 게시글입니다
+                                </div>
+                                <div style="font-size: 16px; color: #868e96;">
+                                    관리자가 처리 중입니다.
+                                </div>
+                            </div>
+                            """;
+                        return new CommunityResponseDTO(
+                                this.communityId,
+                                this.postId,
+                                "블라인드 처리된 게시글입니다.",
+                                blindedContent,
+                                this.nickname,
+                                this.profileImageUrl,
+                                this.devCourseTrack,
+                                this.devCourseBatch,
+                                this.boardType,
+                                this.isBlinded,
+                                this.viewCount,
+                                this.likeCount,
+                                this.commentCount,
+                                this.bookmarkCount,
+                                this.createdAt,
+                                this.updatedAt,
+                                "",
+                                this.hasLiked,
+                                this.hasBookmarked
+                        );
+                }
+                return this;
         }
 }

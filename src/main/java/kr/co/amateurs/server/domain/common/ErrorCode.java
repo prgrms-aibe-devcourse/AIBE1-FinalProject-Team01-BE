@@ -17,6 +17,10 @@ public enum ErrorCode implements Supplier<CustomException> {
     USER_NOT_IN_ROOM(HttpStatus.BAD_REQUEST, "해당 채팅방의 참여자가 아닙니다."),
     NOT_FOUND_ROOM(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),
     INVALID_USER_ID(HttpStatus.BAD_REQUEST,"잘못된 사용자 ID 입니다."),
+    CANNOT_CHAT_WITH_SELF (HttpStatus.BAD_REQUEST,"다른 사용자 ID를 입력해주세요."),
+
+    // sse 관련 에러
+    SSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 SSE 에러입니다."),
 
     // 알람 관련 에러
     ALARM_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 알림입니다."),
@@ -38,6 +42,9 @@ public enum ErrorCode implements Supplier<CustomException> {
     // 회원 정보 수정 관련 에러
     EMPTY_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호를 입력해주세요."),
     INVALID_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다."),
+
+    // 회원 탈퇴 관련 에러
+    USER_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 탈퇴한 사용자입니다."),
 
     // 로그인 관련 에러
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 사용자입니다."),
@@ -72,10 +79,13 @@ public enum ErrorCode implements Supplier<CustomException> {
     EMPTY_FILE(HttpStatus.BAD_REQUEST, "빈 파일은 업로드할 수 없습니다."),
     INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 이미지 파일 형식입니다."),
     FILE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "이미지 파일 크기 제한을 초과하였습니다."),
+    INVALID_IMAGE_URL(HttpStatus.BAD_REQUEST, "유효하지 않은 이미지 URL입니다."),
+    IMAGE_DOWNLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 다운로드에 실패했습니다."),
 
     // POST
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 정보입니다."),
+    IS_BLINDED_POST(HttpStatus.BAD_REQUEST, "블라인드 된 글입니다."),
 
     // REPORT
     REPORT_NOT_FOUND(HttpStatus.BAD_REQUEST, "신고 글을 찾을 수 없습니다."),
@@ -84,6 +94,7 @@ public enum ErrorCode implements Supplier<CustomException> {
     // 댓글
     INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "자식 댓글에는 댓글을 달 수 없습니다."),
     INVALID_COMMENT_POST_RELATION(HttpStatus.BAD_REQUEST, "게시글안에 해당하는 댓글이 없습니다"),
+    IS_BLINDED_COMMENT(HttpStatus.BAD_REQUEST, "블라인드 된 댓글입니다."),
 
     // AI 프로필 관련
     ERROR_SUMMARIZE(HttpStatus.INTERNAL_SERVER_ERROR, "활동 요약 생성 중 오류가 발생했습니다."),
@@ -99,7 +110,14 @@ public enum ErrorCode implements Supplier<CustomException> {
     DUPLICATE_BOOKMARK(HttpStatus.CONFLICT, "북마크가 이미 있습니다."),
 
     // 팔로우 관련
-    SELF_FOLLOW(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다.");
+    SELF_FOLLOW(HttpStatus.BAD_REQUEST, "자기 자신을 팔로우할 수 없습니다."),
+
+    // 인증 관련 에러
+    VERIFICATION_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "인증 서비스 연결에 실패했습니다."),
+    VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "인증에 실패했습니다."),
+    FILE_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "파일 처리 중 오류가 발생했습니다"),
+    VERIFICATION_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "인증 처리 중 오류가 발생했습니다"),
+    DUPLICATION_VERIFICATION(HttpStatus.BAD_REQUEST, "이미 인증 검토 중이거나 인증된 사용자입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

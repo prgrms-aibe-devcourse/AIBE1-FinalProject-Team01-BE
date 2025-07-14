@@ -3,22 +3,23 @@ package kr.co.amateurs.server.domain.dto.together;
 import io.swagger.v3.oas.annotations.media.Schema;
 import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringType;
 import lombok.Builder;
-import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
-import java.util.List;
-
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 
 @Builder
 public record GatheringPostResponseDTO(
+        @Schema(description = "팀원구하기 글 ID", example = "1")
+        Long id,
         @Schema(description = "게시글 ID", example = "1")
         Long postId,
+        @Schema(description = "불러안두 여부", example = "false")
+        boolean isBlinded,
         @Schema(description = "작성자 닉네임", example = "test닉네임")
         String nickname,
         @Schema(description = "작성자 수강 코스 이름", example = "AIBE")
@@ -37,12 +38,19 @@ public record GatheringPostResponseDTO(
         Integer viewCount,
         @Schema(description = "좋아요 수", example = "1")
         Integer likeCount,
+        @Schema(description = "북마크 수", example = "1")
+        Integer bookmarkCount,
         @Schema(description = "팀원 모집 종류", example = "STUDY")
         GatheringType gatheringType,
+        @Schema(description = "팀원 모집 상태", example = "RECRUITING")
         GatheringStatus status,
+        @Schema(description = "모집 인원", example = "4")
         Integer headCount,
+        @Schema(description = "모임 장소", example = "서울")
         String place,
+        @Schema(description = "모임 기간", example = "250625 ~ 250627")
         String period,
+        @Schema(description = "모임 일정", example = "매주 화, 목 저녁 7시")
         String schedule,
         @Schema(description = "생성 일시", example = "2025-06-25T00:08:25")
         LocalDateTime createdAt,
@@ -55,9 +63,11 @@ public record GatheringPostResponseDTO(
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post, boolean hasLiked, boolean hasBookmarked) {
+    public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
         return new GatheringPostResponseDTO(
+                gp.getId(),
                 post.getId(),
+                post.getIsBlinded(),
                 post.getUser().getNickname(),
                 post.getUser().getDevcourseName(),
                 post.getUser().getDevcourseBatch(),
@@ -65,8 +75,9 @@ public record GatheringPostResponseDTO(
                 post.getTitle(),
                 post.getContent(),
                 post.getTags(),
-                post.getViewCount(),
+                postStatistics.getViewCount(),
                 post.getLikeCount(),
+                bookmarkCount,
                 gp.getGatheringType(),
                 gp.getStatus(),
                 gp.getHeadCount(),
@@ -80,4 +91,46 @@ public record GatheringPostResponseDTO(
                 hasBookmarked
         );
     }
+
+        public GatheringPostResponseDTO applyBlindFilter() {
+                if (this.isBlinded) {
+                        String blindedContent = """
+                            <div style="text-align: center; padding: 60px 20px; background-color: #f8f9fa; border-radius: 8px; margin: 20px 0;">
+                                <div style="font-size: 24px; font-weight: bold; color: #6c757d; margin-bottom: 10px;">
+                                    ⚠️ 블라인드 처리된 게시글입니다
+                                </div>
+                                <div style="font-size: 16px; color: #868e96;">
+                                    관리자가 처리 중입니다.
+                                </div>
+                            </div>
+                            """;
+                        return new GatheringPostResponseDTO(
+                                this.id,
+                                this.postId,
+                                this.isBlinded,
+                                this.nickname,
+                                this.devcourseName,
+                                this.devcourseBatch,
+                                this.userProfileImg,
+                                "블라인드 처리된 게시글입니다.",
+                                blindedContent,
+                                "",
+                                this.viewCount,
+                                this.likeCount,
+                                this.bookmarkCount,
+                                this.gatheringType,
+                                this.status,
+                                this.headCount,
+                                this.place,
+                                this.period,
+                                this.schedule,
+                                this.createdAt,
+                                this.updatedAt,
+                                this.hasImages,
+                                this.hasLiked,
+                                this.hasBookmarked
+                        );
+                }
+                return this;
+        }
 }

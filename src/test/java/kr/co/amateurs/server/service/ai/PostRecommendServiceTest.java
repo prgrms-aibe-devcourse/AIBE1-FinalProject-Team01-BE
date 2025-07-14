@@ -4,6 +4,7 @@ import kr.co.amateurs.server.domain.dto.ai.PostRecommendationResponse;
 import kr.co.amateurs.server.domain.entity.ai.AiProfile;
 import kr.co.amateurs.server.domain.entity.ai.RecommendedPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.ai.AiProfileRepository;
 import kr.co.amateurs.server.repository.ai.AiRecommendPostRepository;
@@ -67,7 +68,7 @@ class PostRecommendServiceTest {
         void 추천_데이터가_있으면_정상적으로_반환한다() {
             // given
             PostRecommendationResponse response = new PostRecommendationResponse(
-                100L, "AI 추천 게시글", "테스터", 5, 10, 2, null, null
+                100L, "AI 추천 게시글", "테스터", 5, 10, 2, BoardType.FREE, null, 1L
             );
             given(aiRecommendPostRepository.findRecommendationDataByUserId(anyLong())).willReturn(List.of(response));
 
@@ -86,10 +87,10 @@ class PostRecommendServiceTest {
             Post post1 = AiTestFixture.createTestPost(user);
             Post post2 = AiTestFixture.createTestPost(user);
             PostRecommendationResponse response1 = new PostRecommendationResponse(
-                post1.getId(), post1.getTitle(), user.getNickname(), 5, 10, 2, post1.getBoardType(), post1.getCreatedAt()
+                post1.getId(), post1.getTitle(), user.getNickname(), 5, 10, 2, post1.getBoardType(), post1.getCreatedAt(), 1L
             );
             PostRecommendationResponse response2 = new PostRecommendationResponse(
-                post2.getId(), post2.getTitle(), user.getNickname(), 7, 20, 3, post2.getBoardType(), post2.getCreatedAt()
+                post2.getId(), post2.getTitle(), user.getNickname(), 7, 20, 3, post2.getBoardType(), post2.getCreatedAt(), 2L
             );
             given(aiRecommendPostRepository.findRecommendationDataByUserId(anyLong())).willReturn(List.of(response1, response2));
 

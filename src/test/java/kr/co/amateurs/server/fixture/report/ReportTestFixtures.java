@@ -62,7 +62,6 @@ public class ReportTestFixtures {
                 .content("테스트 내용")
                 .tags("테스트태그")
                 .boardType(BoardType.FREE)
-                .viewCount(10)
                 .likeCount(5)
                 .postImages(new ArrayList<>())
                 .build();
@@ -75,7 +74,6 @@ public class ReportTestFixtures {
                 .content(content)
                 .tags("태그1,태그2")
                 .boardType(boardType)
-                .viewCount(0)
                 .likeCount(0)
                 .postImages(new ArrayList<>())
                 .build();
@@ -157,7 +155,6 @@ public class ReportTestFixtures {
                         "여러분도 테스트 작성 습관을 길러보시기 바랍니다.")
                 .tags("개발,공유,교육")
                 .boardType(BoardType.FREE)
-                .viewCount(10)
                 .likeCount(5)
                 .postImages(new ArrayList<>())
                 .build();
@@ -172,7 +169,6 @@ public class ReportTestFixtures {
                         "키워드를 포함시킨 테스트용 게시글입니다.")
                 .tags("위반,테스트")
                 .boardType(BoardType.FREE)
-                .viewCount(2)
                 .likeCount(0)
                 .postImages(new ArrayList<>())
                 .build();

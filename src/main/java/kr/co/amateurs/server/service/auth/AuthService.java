@@ -1,5 +1,7 @@
 package kr.co.amateurs.server.service.auth;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.co.amateurs.server.config.auth.CookieUtils;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
@@ -44,20 +46,14 @@ public class AuthService {
                 .password(encodedPassword)
                 .role(Role.GUEST)
                 .providerType(ProviderType.LOCAL)
+                .isProfileCompleted(true)
                 .build();
 
         user.addUserTopics(request.topics());
 
         User savedUser = userService.saveUser(user);
 
-        CompletableFuture.runAsync(() -> {
-            try {
-                aiProfileService.generateInitialProfile(savedUser.getId());
-                log.info("회원가입 시 초기 AI 프로필 생성 완료: userId={}", savedUser.getId());
-            } catch (Exception e) {
-                log.warn("회원가입 시 초기 AI 프로필 생성 실패: userId={}", savedUser.getId(), e);
-            }
-        });
+        generateAiProfileAsync(savedUser.getId(), "회원가입");
 
         return SignupResponseDTO.fromEntity(savedUser, request.topics());
     }
@@ -71,6 +67,10 @@ public class AuthService {
     public LoginResponseDTO login(LoginRequestDTO request,
                                   HttpServletResponse response) {
         User user = userService.findByEmail(request.email());
+
+        if (user.isDeleted()) {
+            throw ErrorCode.USER_NOT_FOUND.get();
+        }
 
         if(!passwordEncoder.matches(request.password(), user.getPassword())){
             throw ErrorCode.INVALID_PASSWORD.get();
@@ -92,6 +92,46 @@ public class AuthService {
     }
 
     @Transactional
+    public TokenReissueResponseDTO reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = getRefreshTokenFromCookie(request);
+
+        if (refreshToken == null) {
+            throw ErrorCode.UNAUTHORIZED.get();
+        }
+
+        if (!jwtProvider.validateToken(refreshToken)) {
+            throw ErrorCode.UNAUTHORIZED.get();
+        }
+
+        String email = jwtProvider.getEmailFromToken(refreshToken);
+
+        if (!refreshTokenService.validateRefreshToken(email, refreshToken)) {
+            throw ErrorCode.UNAUTHORIZED.get();
+        }
+
+        String newAccessToken = jwtProvider.generateAccessToken(email);
+        Long expiresIn = jwtProvider.getAccessTokenExpirationMs();
+
+        if (response != null) {
+            TokenInfoDTO tokenInfoDTO = TokenInfoDTO.of(newAccessToken, expiresIn, refreshToken, jwtProvider.getRefreshTokenExpirationMs());
+            cookieUtils.setAuthTokenCookie(response, tokenInfoDTO);
+        }
+
+        return TokenReissueResponseDTO.of(newAccessToken, expiresIn);
+    }
+
+    private String getRefreshTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (CookieUtils.REFRESH_TOKEN_COOKIE_NAME.equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    @Transactional
     public void logout(HttpServletResponse response) {
         User currentUser = userService.getCurrentLoginUser();
         refreshTokenService.deleteByEmail(currentUser.getEmail());
@@ -99,5 +139,35 @@ public class AuthService {
         if (response != null) {
             cookieUtils.clearAuthTokenCookie(response);
         }
+    }
+
+    @Transactional
+    public ProfileCompleteResponseDTO completeProfile(ProfileCompleteRequestDTO request) {
+        User currentUser = userService.getCurrentLoginUser();
+
+        User managedUser = userService.findById(currentUser.getId());
+
+        if (!managedUser.getNickname().equals(request.nickname())) {
+            userService.validateNicknameDuplicate(request.nickname());
+        }
+
+        managedUser.completeProfile(request.name(), request.nickname(), request.topics());
+
+        User savedUser = userService.saveUser(managedUser);
+
+        generateAiProfileAsync(savedUser.getId(), "소셜 프로필 완성");
+
+        return ProfileCompleteResponseDTO.fromEntity(savedUser);
+    }
+
+    private void generateAiProfileAsync(Long userId, String context) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                aiProfileService.generateInitialProfile(userId);
+                log.info("{} 시 AI 프로필 생성 완료: userId={}", context, userId);
+            } catch (Exception e) {
+                log.warn("{} 시 AI 프로필 생성 실패: userId={}", context, userId, e);
+            }
+        });
     }
 }

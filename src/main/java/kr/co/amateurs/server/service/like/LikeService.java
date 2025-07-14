@@ -1,8 +1,12 @@
 package kr.co.amateurs.server.service.like;
 
+import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.ai.PostContentData;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.like.LikeResponseDTO;
+import kr.co.amateurs.server.domain.dto.post.PostResponseDTO;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.like.Like;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -11,10 +15,13 @@ import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
 import kr.co.amateurs.server.repository.like.LikeRepository;
+import kr.co.amateurs.server.repository.post.PostJooqRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +32,7 @@ import java.util.Optional;
 import java.util.Collections;
 import java.util.List;
 
+import static kr.co.amateurs.server.domain.dto.common.PageResponseDTO.convertPageToDTO;
 import static kr.co.amateurs.server.domain.dto.like.LikeResponseDTO.convertToDTO;
 
 @Service
@@ -36,6 +44,17 @@ public class LikeService {
     private final CommentRepository commentRepository;
     private final UserService userService;
 
+    private final PostJooqRepository postJooqRepository;
+
+    public PageResponseDTO<PostResponseDTO> getLikePostList(PaginationParam paginationParam) {
+        User user = userService.getCurrentLoginUser();
+        Pageable pageable = paginationParam.toPageable();
+
+        Page<PostResponseDTO> postResponseDTO = postJooqRepository.findPostsByType(user.getId(), pageable, "liked")
+                .map(PostResponseDTO::applyBlindFilter);
+
+        return convertPageToDTO(postResponseDTO);
+    }
 
     @Transactional
     public LikeResponseDTO addLikeToPost(Long postId) {

@@ -2,11 +2,11 @@ package kr.co.amateurs.server.controller.together;
 
 import io.restassured.http.ContentType;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
-import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.report.ReportRepository;
 import kr.co.amateurs.server.repository.together.MarketJooqRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
@@ -21,7 +21,6 @@ import java.util.List;
 import static io.restassured.RestAssured.given;
 import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.*;
-import static kr.co.amateurs.server.fixture.together.GatheringTestFixture.createGatheringRequestDTO;
 import static kr.co.amateurs.server.fixture.together.MarketTestFixture.createMarketPostRequestDTO;
 import static org.hamcrest.Matchers.*;
 
@@ -37,6 +36,8 @@ class MarketControllerTest extends AbstractControllerTest {
     private ReportRepository reportRepository;
     @Autowired
     private MarketJooqRepository marketJooqRepository;
+    @Autowired
+    private PostStatisticsRepository postStatisticsRepository;
 
     private String guestEmail;
     private String adminEmail;
@@ -44,6 +45,7 @@ class MarketControllerTest extends AbstractControllerTest {
 
     @BeforeEach
     void setUp() {
+        postStatisticsRepository.deleteAll();
         reportRepository.deleteAll();
         marketRepository.deleteAll();
         postRepository.deleteAll();

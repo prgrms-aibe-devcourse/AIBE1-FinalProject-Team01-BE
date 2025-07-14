@@ -3,9 +3,10 @@ package kr.co.amateurs.server.service;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.user.*;
-import kr.co.amateurs.server.domain.dto.user.UserProfileResponseDto;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.user.UserRepository;
@@ -15,9 +16,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Set;
 
@@ -75,6 +78,15 @@ public class UserService {
 
     public boolean isNicknameAvailable(String nickname) {
         validateNicknameFormat(nickname);
+
+        Optional<User> currentUser = getCurrentUser();
+
+        if (currentUser.isPresent()) {
+            if (currentUser.get().getNickname().equals(nickname)) {
+                return true;
+            }
+        }
+
         return !userRepository.existsByNickname(nickname);
     }
 
@@ -99,23 +111,23 @@ public class UserService {
         }
     }
 
-    public UserProfileResponseDto getCurrentUserProfile() {
+    public UserProfileResponseDTO getCurrentUserProfile() {
         Long userId = getCurrentLoginUser().getId();
 
         User user = userRepository.findById(userId)
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);
 
-        return UserProfileResponseDto.from(user);
+        return UserProfileResponseDTO.from(user);
     }
 
-    public UserBasicProfileEditResponseDto updateBasicProfile(UserBasicProfileEditRequestDto request) {
+    public UserBasicProfileEditResponseDTO updateBasicProfile(UserBasicProfileEditRequestDTO request) {
         User currentUser = getCurrentLoginUser();
 
         User userFromDb = userRepository.findById(currentUser.getId())
                 .orElseThrow(ErrorCode.USER_NOT_FOUND);
 
         if(request.nickname() != null && !request.nickname().equals(userFromDb.getNickname())) {
-            validateEmailDuplicate(request.nickname());
+            validateNicknameDuplicate(request.nickname());
             validateNicknameFormat(request.nickname());
         }
 
@@ -126,10 +138,10 @@ public class UserService {
         );
 
         User savedUser = userRepository.save(userFromDb);
-        return UserBasicProfileEditResponseDto.from(savedUser);
+        return UserBasicProfileEditResponseDTO.from(savedUser);
     }
 
-    public UserPasswordEditResponseDto updatePassword(UserPasswordEditRequestDto request) {
+    public UserPasswordEditResponseDTO updatePassword(UserPasswordEditRequestDTO request) {
         User currentUser = getCurrentLoginUser();
 
         User userFromDb = userRepository.findById(currentUser.getId())
@@ -142,7 +154,7 @@ public class UserService {
 
         userRepository.save(userFromDb);
 
-        return UserPasswordEditResponseDto.builder()
+        return UserPasswordEditResponseDTO.builder()
                 .message("비밀번호가 성공적으로 변경되었습니다")
                 .build();
     }
@@ -157,7 +169,7 @@ public class UserService {
         }
     }
 
-    public UserTopicsEditResponseDto updateTopics(UserTopicsEditRequestDto request) {
+    public UserTopicsEditDTO updateTopics(UserTopicsEditDTO request) {
         User currentUser = getCurrentLoginUser();
 
         User userFromDb = userRepository.findById(currentUser.getId())
@@ -169,7 +181,41 @@ public class UserService {
         userFromDb.addUserTopics(request.topics());
 
         User savedUser = userRepository.save(userFromDb);
-        return UserTopicsEditResponseDto.from(savedUser);
+        return UserTopicsEditDTO.from(savedUser);
+    }
+
+    public UserDeleteResponseDTO deleteUser(UserDeleteRequestDTO request) {
+        User currentUser = getCurrentLoginUser();
+        User userFromDb = userRepository.findById(currentUser.getId())
+                .orElseThrow(ErrorCode.USER_NOT_FOUND);
+
+        if (userFromDb.isDeleted()) {
+            throw ErrorCode.USER_ALREADY_DELETED.get();
+        }
+
+        if (userFromDb.getProviderType() != ProviderType.GITHUB &&
+                userFromDb.getProviderType() != ProviderType.KAKAO) {
+            validateCurrentPassword(userFromDb, request.currentPassword());
+        }
+
+        String anonymousEmail = generateAnonymousEmail();
+        String anonymousNickname = generateAnonymousNickname();
+
+        userFromDb.anonymizeAndDelete(anonymousEmail, anonymousNickname);
+        userRepository.save(userFromDb);
+
+        return UserDeleteResponseDTO.success();
+    }
+
+    private String generateAnonymousEmail() {
+        String uniqueId = UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        return "deleted_" + uniqueId + "@anonymous.amateurs.com";
+    }
+
+    private String generateAnonymousNickname() {
+        String prefix = "탈퇴한회원_";
+        String uniqueSuffix = UUID.randomUUID().toString().replace("-", "").substring(0, 9);
+        return prefix + uniqueSuffix;
     }
 
     private void validateTopicsCount(Set<Topic> topics) {
@@ -199,5 +245,11 @@ public class UserService {
     public User findById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(ErrorCode.NOT_FOUND);
+    }
+
+    @Transactional
+    public void changeUserRole(User user, Role newRole) {
+        user.changeRole(newRole);
+        userRepository.save(user);
     }
 }

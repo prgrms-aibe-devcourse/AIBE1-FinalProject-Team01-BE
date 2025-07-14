@@ -13,20 +13,20 @@ import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.alarm.AlarmService;
 import kr.co.amateurs.server.service.comment.CommentService;
-import lombok.RequiredArgsConstructor;
 import kr.co.amateurs.server.service.post.PostService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
  * 댓글 관련 알람을 생성하는 구현체입니다.
- *
+ * <p>
  * 댓글이 작성되었을 때 게시글 작성자에게 알람을 전송하며,
  * 대댓글인 경우 추가로 원댓글 작성자에게도 답글 알람을 전송합니다.
- *
+ * <p>
  * 처리 대상:
  * - CommentResponseDTO 타입의 결과 객체
  * - AlarmType.COMMENT 타입의 알람
- *
+ * <p>
  * 알람 발송 로직:
  * 1. 일반 댓글: 게시글 작성자에게 댓글 알람
  * 2. 대댓글: 게시글 작성자에게 댓글 알람 + 원댓글 작성자에게 답글 알람
@@ -42,7 +42,7 @@ public class CommentAlarmCreator implements AlarmCreator {
 
     /**
      * 댓글 생성 결과를 기반으로 알람을 생성합니다.
-     *
+     * <p>
      * 게시글 작성자에게 댓글 알람을 전송하며,
      * 대댓글인 경우 원댓글 작성자에게도 답글 알람을 전송합니다.
      * 자신이 작성한 게시글/댓글에 자신이 댓글을 단 경우 알람을 전송하지 않습니다.
@@ -74,7 +74,7 @@ public class CommentAlarmCreator implements AlarmCreator {
     private void createCommentAlarm(User commentAuthor, Post post, CommentResponseDTO response) {
         User postAuthor = post.getUser();
 
-        if (isSameUser(commentAuthor, postAuthor)) {
+        if (isSameUser(commentAuthor, postAuthor) || postAuthor.isDeleted()) {
             return;
         }
 
@@ -97,7 +97,7 @@ public class CommentAlarmCreator implements AlarmCreator {
         Comment parentComment = commentService.findCommentById(response.parentCommentId());
         User commentAuthor = parentComment.getUser();
 
-        if (isSameUser(replyAuthor, commentAuthor)) {
+        if (isSameUser(replyAuthor, commentAuthor) || commentAuthor.isDeleted()) {
             return;
         }
 

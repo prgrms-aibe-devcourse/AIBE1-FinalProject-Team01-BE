@@ -1,15 +1,16 @@
 package kr.co.amateurs.server.service.project;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
+import kr.co.amateurs.server.domain.dto.project.ProjectMember;
 import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.Project;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
@@ -21,6 +22,7 @@ import kr.co.amateurs.server.fixture.project.ProjectFixture;
 import kr.co.amateurs.server.fixture.project.UserFixture;
 import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.project.ProjectRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
@@ -32,19 +34,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles("test")
-@Transactional
 class ProjectServiceTest {
 
     @MockitoBean
@@ -66,7 +67,11 @@ class ProjectServiceTest {
     private BookmarkRepository bookmarkRepository;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private PostStatisticsRepository postStatisticsRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
 
     private User backendUser;
     private User frontendUser;
@@ -215,11 +220,11 @@ class ProjectServiceTest {
             when(userService.getCurrentLoginUser()).thenThrow(new CustomException(ErrorCode.ANONYMOUS_USER));
 
             // when
-            ProjectResponseDTO result = projectService.getProjectDetails(projectId);
+            ProjectResponseDTO result = projectService.getProjectDetails(projectId, "1");
 
             // then
             assertThat(result.projectId()).isEqualTo(backendProject.getId());
-            assertThat(result.postId()).isEqualTo(backendPost.getId());
+            assertThat(result.postId()).isEqualTo(backendProject.getPost().getId());
             assertThat(result.title()).isEqualTo("백엔드 프로젝트");
             assertThat(result.content()).isEqualTo("백엔드 설명");
             assertThat(result.nickname()).isEqualTo(backendUser.getNickname());
@@ -236,7 +241,7 @@ class ProjectServiceTest {
             when(userService.getCurrentLoginUser()).thenThrow(new CustomException(ErrorCode.ANONYMOUS_USER));
 
             // when & then
-            assertThatThrownBy(() -> projectService.getProjectDetails(projectId))
+            assertThatThrownBy(() -> projectService.getProjectDetails(projectId, "1"))
                     .isInstanceOf(CustomException.class);
         }
 
@@ -249,7 +254,7 @@ class ProjectServiceTest {
             when(userService.getCurrentLoginUser()).thenReturn(backendUser);
 
             // when
-            ProjectResponseDTO result = projectService.getProjectDetails(backendProject.getId());
+            ProjectResponseDTO result = projectService.getProjectDetails(backendProject.getId() , "1");
 
             // then
             assertThat(result.bookmarkCount()).isEqualTo(2);
@@ -264,13 +269,17 @@ class ProjectServiceTest {
             ProjectRequestDTO requestDTO = ProjectRequestDTO.builder()
                     .title("새로운 프로젝트")
                     .content("프로젝트 내용")
-                    .tags(convertTagToList("태그1, 태그2"))
+                    .tags(List.of("스프링", "초보환영"))
                     .startedAt(LocalDateTime.of(2025, 1, 1, 13, 20))
                     .endedAt(LocalDateTime.of(2025, 1, 31, 13, 20))
                     .githubUrl("https://github.com/example/new-project")
                     .simpleContent("간단한 설명")
                     .demoUrl("https://demo.example.com")
-                    .projectMembers(objectMapper.writeValueAsString(List.of("김개발", "이디자인")))
+                    .projectMembers(List.of(
+                            new ProjectMember("김개발", "백엔드"),
+                            new ProjectMember("박개발", "프론트엔드"),
+                            new ProjectMember("홍길동", "DevOps")
+                    ))
                     .build();
 
             when(userService.getCurrentLoginUser()).thenReturn(backendUser);
@@ -283,7 +292,7 @@ class ProjectServiceTest {
             assertThat(result.postId()).isNotNull();
             assertThat(result.title()).isEqualTo("새로운 프로젝트");
             assertThat(result.content()).isEqualTo("프로젝트 내용");
-            assertThat(result.tags()).isEqualTo("태그1, 태그2");
+            assertThat(result.tags()).isEqualTo("스프링, 초보환영");
             assertThat(result.githubUrl()).isEqualTo("https://github.com/example/new-project");
             assertThat(result.simpleContent()).isEqualTo("간단한 설명");
             assertThat(result.demoUrl()).isEqualTo("https://demo.example.com");
@@ -319,7 +328,11 @@ class ProjectServiceTest {
                     .githubUrl("https://github.com/example/updated-project")
                     .simpleContent("수정된 심플 소개 쏼라쏼라")
                     .demoUrl("https://updated-demo.example.com")
-                    .projectMembers(objectMapper.writeValueAsString(List.of("홍홍홍", "김김김")))
+                    .projectMembers(List.of(
+                            new ProjectMember("김개발", "백엔드"),
+                            new ProjectMember("박개발", "프론트엔드"),
+                            new ProjectMember("홍길동", "DevOps")
+                    ))
                     .build();
             when(userService.getCurrentLoginUser()).thenReturn(backendUser);
 
@@ -328,7 +341,7 @@ class ProjectServiceTest {
             projectRepository.flush();
 
             // then
-            ProjectResponseDTO updatedProjectResponseDTO = projectService.getProjectDetails(projectId);
+            ProjectResponseDTO updatedProjectResponseDTO = projectService.getProjectDetails(projectId , "1");
 
             assertThat(updatedProjectResponseDTO.title()).isEqualTo("수정된 프로젝트");
             assertThat(updatedProjectResponseDTO.content()).isEqualTo("수정된 내용");
@@ -389,7 +402,7 @@ class ProjectServiceTest {
             projectRepository.flush();
 
             // then
-            ProjectResponseDTO updatedProjectResponseDTO = projectService.getProjectDetails(projectId);
+            ProjectResponseDTO updatedProjectResponseDTO = projectService.getProjectDetails(projectId, "1");
 
             assertThat(updatedProjectResponseDTO.title()).isEqualTo("제목 수정 어쩌구저쩌구");
             assertThat(updatedProjectResponseDTO.content()).isEqualTo("내용수정 저쩌구어쩌구");
@@ -439,11 +452,11 @@ class ProjectServiceTest {
 
     private void setUpData() throws JsonProcessingException {
         createUsers();
-        createPosts();
         createProjects();
     }
 
     private void cleanUpData() {
+        postStatisticsRepository.deleteAll();
         bookmarkRepository.deleteAll();
         projectRepository.deleteAll();
         postRepository.deleteAll();
@@ -461,34 +474,60 @@ class ProjectServiceTest {
         this.frontendUser = savedUsers.get(2);
     }
 
-    private void createPosts() {
-        backendPost = PostFixture.createPost(backendUser, "백엔드 프로젝트", "백엔드 설명", BoardType.PROJECT_HUB);
-        frontendPost = PostFixture.createPost(frontendUser, "프론트엔드 프로젝트", "프론트엔드 설명", BoardType.PROJECT_HUB);
-
-        List<Post> savedPosts = postRepository.saveAll(List.of(backendPost, frontendPost));
-        this.backendPost = savedPosts.get(0);
-        this.frontendPost = savedPosts.get(1);
-    }
-
     private void createProjects() throws JsonProcessingException {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
         List<String> members = List.of("김개발", "이디자인", "박프론트");
 
-        backendProject = ProjectFixture.createAiBackendProject(
-                backendPost,
-                LocalDateTime.of(2025, 1, 1, 13, 20),
-                LocalDateTime.of(2025, 1, 31, 13, 20),
-                members
-        );
+        frontendProject = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    PostFixture.createPost(frontendUser, "프론트엔드 프로젝트", "프론트엔드 설명", BoardType.PROJECT_HUB)
+            );
 
-        frontendProject = ProjectFixture.createFrontendProject(
-                frontendPost,
-                LocalDateTime.of(2025, 2, 1, 13, 20),
-                LocalDateTime.of(2025, 2, 28, 13, 20),
-                members
-        );
+            Project project = null;
+            try {
+                project = ProjectFixture.createFrontendProject(
+                        post,
+                        LocalDateTime.of(2025, 2, 1, 13, 20),
+                        LocalDateTime.of(2025, 2, 28, 13, 20),
+                        members
+                );
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            project = projectRepository.save(project);
 
-        List<Project> savedProjects = projectRepository.saveAll(List.of(backendProject, frontendProject));
-        this.backendProject = savedProjects.get(0);
-        this.frontendProject = savedProjects.get(1);
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return project;
+        });
+
+        backendProject = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    PostFixture.createPost(backendUser, "백엔드 프로젝트", "백엔드 설명", BoardType.PROJECT_HUB)
+            );
+
+            Project project = null;
+            try {
+                project = ProjectFixture.createAiBackendProject(
+                        post,
+                        LocalDateTime.of(2025, 1, 1, 13, 20),
+                        LocalDateTime.of(2025, 1, 31, 13, 20),
+                        members
+                );
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            project = projectRepository.save(project);
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return project;
+        });
+
+        this.backendPost = backendProject.getPost();
+        this.frontendPost = frontendProject.getPost();
     }
 }

@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.it;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
@@ -45,8 +46,17 @@ public class ITController {
     @GetMapping("/{boardType}/{itId}")
     public ResponseEntity<ITResponseDTO> getPost(
             @PathVariable BoardType boardType,
-            @PathVariable Long itId) {
-        ITResponseDTO post = itService.getPost(itId);
+            @PathVariable Long itId,
+            HttpServletRequest request) {
+        long startTime = System.currentTimeMillis();
+
+        String ipAddress = request.getRemoteAddr();
+
+        ITResponseDTO post = itService.getPost(itId, ipAddress);
+
+        long endTime = System.currentTimeMillis();
+        long duration = endTime - startTime;
+        log.info("처리 시간" + duration + "ms");
 
         return ResponseEntity.ok(post);
     }

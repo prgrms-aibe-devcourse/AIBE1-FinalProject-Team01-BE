@@ -9,6 +9,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -49,6 +50,18 @@ public class User extends BaseEntity {
     @Builder.Default
     private List<UserTopic> userTopics = new ArrayList<>();
 
+    @Builder.Default
+    @Column(name = "is_profile_completed", nullable = false)
+    private Boolean isProfileCompleted = false;
+
+    @Builder.Default
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+
     public void addUserTopics(Set<Topic> topics) {
         this.userTopics.clear();
 
@@ -59,6 +72,20 @@ public class User extends BaseEntity {
                     .build();
             this.userTopics.add(userTopic);
         });
+    }
+
+    public boolean isProfileCompleted() {
+        return this.isProfileCompleted != null && this.isProfileCompleted;
+    }
+
+    public void completeProfile(String name, String nickname, Set<Topic> topics) {
+        updateBasicProfile(name, nickname, this.imageUrl);
+        addUserTopics(topics);
+        this.isProfileCompleted = true;
+    }
+
+    public void markProfileAsCompleted() {
+        this.isProfileCompleted = true;
     }
 
     public void updateBasicProfile(String name, String nickname, String imageUrl) {
@@ -77,5 +104,28 @@ public class User extends BaseEntity {
         if(password != null && !password.trim().isEmpty()) {
             this.password = password;
         }
+    }
+
+    public boolean isDeleted() {
+        return this.isDeleted != null && this.isDeleted;
+    }
+
+    public void anonymizeAndDelete(String anonymousEmail, String anonymousNickname) {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+
+        this.email = anonymousEmail;
+        this.nickname = anonymousNickname;
+        this.name = "탈퇴한회원";
+
+        this.imageUrl = null;
+        this.providerId = null;
+        this.devcourseBatch = null;
+
+        this.userTopics.clear();
+    }
+
+    public void changeRole(Role newRole) {
+        this.role = newRole;
     }
 }

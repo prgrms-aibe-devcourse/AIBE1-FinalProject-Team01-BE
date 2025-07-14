@@ -3,6 +3,7 @@ package kr.co.amateurs.server.domain.entity.post;
 import jakarta.persistence.*;
 import kr.co.amateurs.server.domain.dto.post.PostRequest;
 import kr.co.amateurs.server.domain.entity.ai.RecommendedPost;
+import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
 import kr.co.amateurs.server.domain.entity.comment.Comment;
 import kr.co.amateurs.server.domain.entity.common.BaseEntity;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
@@ -16,7 +17,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "posts")
+@Table(name = "posts", indexes = {
+        @Index(name = "idx_post_board_type", columnList = "board_type"),
+        @Index(name = "idx_post_user_id", columnList = "user_id"),
+        @Index(name = "idx_post_board_created", columnList = "board_type, created_at"),
+        @Index(name = "idx_post_title_content", columnList = "title, content"),
+        @Index(name = "idx_post_deleted_blinded", columnList = "is_deleted, is_blinded")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -40,10 +47,6 @@ public class Post extends BaseEntity {
 
     @Builder.Default
     @Column(nullable = false)
-    private Integer viewCount = 0;
-
-    @Builder.Default
-    @Column(nullable = false)
     private Integer likeCount = 0;
 
     @Builder.Default
@@ -56,6 +59,10 @@ public class Post extends BaseEntity {
 
     @Column(name = "tag")
     private String tags;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Bookmark> bookmarks = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)

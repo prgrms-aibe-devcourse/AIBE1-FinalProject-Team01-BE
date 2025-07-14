@@ -17,7 +17,10 @@ public record PopularPostRequest(
         DevCourseTrack authorDevcourseName,
         LocalDateTime postCreatedAt,
         String title,
-        BoardType boardType
+        BoardType boardType,
+        Long boardId,
+        Boolean isBlinded,
+        Boolean isDeleted
 ) {
     public static PopularPostRequest withScore(
             PopularPostRequest post,
@@ -34,7 +37,34 @@ public record PopularPostRequest(
                 post.authorDevcourseName(),
                 post.postCreatedAt(),
                 post.title(),
-                post.boardType()
+                post.boardType(),
+                post.boardId(),
+                post.isBlinded(),
+                post.isDeleted()
+        );
+    }
+
+    public static PopularPostRequest withBoardIdAndStatus(
+            PopularPostRequest post,
+            Long boardId,
+            Boolean isBlinded,
+            Boolean isDeleted
+    ) {
+        return new PopularPostRequest(
+                post.postId(),
+                post.viewCount(),
+                post.likeCount(),
+                post.commentCount(),
+                post.popularityScore(),
+                post.calculatedDate(),
+                post.authorNickname(),
+                post.authorDevcourseName(),
+                post.postCreatedAt(),
+                post.title(),
+                post.boardType(),
+                boardId,
+                isBlinded,
+                isDeleted
         );
     }
 }

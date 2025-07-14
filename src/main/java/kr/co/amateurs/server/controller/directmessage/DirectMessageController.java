@@ -27,10 +27,10 @@ public class DirectMessageController {
         return ResponseEntity.status(HttpStatus.CREATED).body(room);
     }
 
-    @GetMapping("rooms/{userId}")
+    @GetMapping("rooms")
     @Operation(summary = "채팅방 목록 조회")
-    public ResponseEntity<List<DirectMessageRoomResponse>> getRooms(@PathVariable Long userId) {
-        List<DirectMessageRoomResponse> rooms = directMessageService.getRooms(userId);
+    public ResponseEntity<List<DirectMessageRoomResponse>> getRooms() {
+        List<DirectMessageRoomResponse> rooms = directMessageService.getRooms();
         return ResponseEntity.ok(rooms);
     }
 

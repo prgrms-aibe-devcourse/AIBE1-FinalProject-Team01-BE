@@ -2,17 +2,16 @@ package kr.co.amateurs.server.repository.bookmark;
 
 import kr.co.amateurs.server.domain.dto.bookmark.BookmarkCount;
 import kr.co.amateurs.server.domain.entity.bookmark.Bookmark;
+import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     @Query("""
@@ -43,8 +42,9 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
         select b
         from Bookmark b
         join fetch b.post p
+        join PostStatistics ps on ps.postId = p.id
         where b.user.id = :userId
-        order by p.viewCount desc
+        order by ps.viewCount desc
     """)
     Page<Bookmark> getBookmarkPostByUserOrderByViewCountDesc(
             @Param("userId") Long userId,
@@ -68,4 +68,8 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     List<Bookmark> findTop3ByUserIdOrderByCreatedAtDesc(Long userId);
 
     boolean existsByUserIdAndCreatedAtAfter(Long userId, LocalDateTime createdAt);
+
+    void deleteByPost_Id(Long postId);
+
+    Integer countByPostAndUser(Post post, User user);
 }

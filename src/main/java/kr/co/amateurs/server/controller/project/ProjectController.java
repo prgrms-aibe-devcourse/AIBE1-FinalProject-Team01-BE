@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.project;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
@@ -10,6 +11,7 @@ import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.service.project.ProjectService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,15 +26,16 @@ public class ProjectController {
 
     @GetMapping
     @Operation(summary = "프로젝트 글 리스트", description = "프로젝트 허브 게시판의 글 목록을 불러옵니다.")
-    public ResponseEntity<PageResponseDTO<ProjectResponseDTO>> getProjects(@Valid ProjectSearchParam params) {
+    public ResponseEntity<PageResponseDTO<ProjectResponseDTO>> getProjects(@ParameterObject @Valid ProjectSearchParam params) {
         PageResponseDTO<ProjectResponseDTO> projectPageResponseDTO = projectService.getProjects(params);
         return ResponseEntity.ok(projectPageResponseDTO);
     }
 
     @GetMapping("/{projectId}")
     @Operation(summary = "프로젝트 글 정보", description = "특정 프로젝트 글의 세부 정보를 불러옵니다.")
-    public ResponseEntity<ProjectResponseDTO> getProjectDetails(@PathVariable(name = "projectId") Long projectId) {
-        ProjectResponseDTO projectResponseDTO = projectService.getProjectDetails(projectId);
+    public ResponseEntity<ProjectResponseDTO> getProjectDetails(@PathVariable(name = "projectId") Long projectId, HttpServletRequest request) {
+        String ipAddress = request.getRemoteAddr();
+        ProjectResponseDTO projectResponseDTO = projectService.getProjectDetails(projectId, ipAddress);
         return ResponseEntity.ok(projectResponseDTO);
     }
 

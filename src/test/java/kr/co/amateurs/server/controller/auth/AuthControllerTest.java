@@ -12,6 +12,8 @@ import kr.co.amateurs.server.domain.dto.auth.SignupRequestDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 
+import java.util.Map;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -439,6 +441,61 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .then()
                 .statusCode(400)
                 .body("message", equalTo("닉네임은 2자 이상 20자 이하여야 합니다."));
+    }
+
+    @Test
+    void 유효한_리프레시_토큰으로_요청_시_새로운_액세스_토큰이_반환되어야_한다() {
+        // given
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/auth/signup")
+                .then()
+                .statusCode(201);
+
+        LoginRequestDTO loginRequest = AuthTestFixture.defaultLoginRequest()
+                .email(signupRequest.email())
+                .build();
+
+        io.restassured.response.Response loginResponse = RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(loginRequest)
+                .when()
+                .post("/auth/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .response();
+
+        String cookies = loginResponse.getHeader("Set-Cookie");
+
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .header("Cookie", cookies)
+                .body("{}")
+                .when()
+                .post("/auth/reissue")
+                .then()
+                .statusCode(200)
+                .body("accessToken", notNullValue())
+                .body("tokenType", equalTo("Bearer"))
+                .body("expiresIn", equalTo(TokenTestFixture.ACCESS_TOKEN_EXPIRATION.intValue()));
+    }
+
+    @Test
+    void 유효하지_않은_리프레시_토큰으로_재발급_요청_시_401_에러가_발생해야_한다() {
+        // when & then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body("{}")
+                .when()
+                .post("/auth/reissue")
+                .then()
+                .statusCode(401)
+                .body("message", equalTo("유효하지 않은 인증 정보입니다."));
     }
 
     @Test

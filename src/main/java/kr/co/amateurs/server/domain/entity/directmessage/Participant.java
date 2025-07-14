@@ -37,6 +37,7 @@ public class Participant {
 
     public static Participant from(User user) {
         return Participant.builder()
+                .userId(user.getId())
                 .nickname(user.getNickname())
                 .profileImage(user.getImageUrl())
                 .build();

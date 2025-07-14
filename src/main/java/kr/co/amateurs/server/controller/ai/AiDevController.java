@@ -45,9 +45,9 @@ public class AiDevController {
 
     @PostMapping("/profiles/initial")
     @Operation(summary = "초기 AI 프로필 생성", description = "토픽 기반 초기 프로필 생성 (가입 시 로직)")
-    public ResponseEntity<AiProfile> generateInitialProfile(@AuthenticationPrincipal CustomUserDetails currentUser) {
+    public ResponseEntity<AiProfileResponse> generateInitialProfile(@AuthenticationPrincipal CustomUserDetails currentUser) {
         Long userId = currentUser.getUser().getId();
-        AiProfile profile = aiProfileService.generateInitialProfile(userId);
+        AiProfileResponse profile = aiProfileService.generateInitialProfile(userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(profile);
     }
 
@@ -55,7 +55,7 @@ public class AiDevController {
     @Operation(summary = "AI 프로필 생성", description = "활동 기반 완전한 AI 프로필 생성")
     public ResponseEntity<AiProfileResponse> generateProfile(@AuthenticationPrincipal CustomUserDetails currentUser) {
         Long userId = currentUser.getUser().getId();
-        AiProfileResponse response = aiProfileService.generateUserProfileResponse(userId);
+        AiProfileResponse response = aiProfileService.generateCompleteUserProfile(userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

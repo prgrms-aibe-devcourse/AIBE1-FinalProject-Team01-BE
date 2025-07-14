@@ -5,6 +5,7 @@ import kr.co.amateurs.server.config.TestAuthHelper;
 import kr.co.amateurs.server.domain.dto.user.*;
 import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
@@ -61,7 +62,7 @@ public class UserServiceTest {
         User savedUser = userRepository.save(testUser);
 
         // when
-        UserProfileResponseDto result = UserProfileResponseDto.from(savedUser);
+        UserProfileResponseDTO result = UserProfileResponseDTO.from(savedUser);
 
         // then
         assertThat(result).isNotNull();
@@ -95,14 +96,14 @@ public class UserServiceTest {
     void 기본_정보_수정_요청_시_정상적으로_업데이트된다() {
         // given
         String uniqueNickname = UserTestFixture.generateUniqueNickname();
-        UserBasicProfileEditRequestDto request = UserBasicProfileEditRequestDto.builder()
+        UserBasicProfileEditRequestDTO request = UserBasicProfileEditRequestDTO.builder()
                 .name("변경된이름")
                 .nickname(uniqueNickname)
                 .imageUrl("https://example.com/new-profile.jpg")
                 .build();
 
         // when
-        UserBasicProfileEditResponseDto response = userService.updateBasicProfile(request);
+        UserBasicProfileEditResponseDTO response = userService.updateBasicProfile(request);
 
         // then
         assertThat(response.name()).isEqualTo("변경된이름");
@@ -118,13 +119,13 @@ public class UserServiceTest {
     @Test
     void 올바른_비밀번호로_변경_시_정상적으로_업데이트된다() {
         // given
-        UserPasswordEditRequestDto request = UserPasswordEditRequestDto.builder()
+        UserPasswordEditRequestDTO request = UserPasswordEditRequestDTO.builder()
                 .currentPassword(UserTestFixture.DEFAULT_PASSWORD)
                 .newPassword("newPassword123")
                 .build();
 
         // when
-        UserPasswordEditResponseDto response = userService.updatePassword(request);
+        UserPasswordEditResponseDTO response = userService.updatePassword(request);
 
         // then
         assertThat(response.message()).isEqualTo("비밀번호가 성공적으로 변경되었습니다");
@@ -136,7 +137,7 @@ public class UserServiceTest {
     @Test
     void 잘못된_현재_비밀번호_입력_시_예외가_발생한다() {
         // given
-        UserPasswordEditRequestDto request = UserPasswordEditRequestDto.builder()
+        UserPasswordEditRequestDTO request = UserPasswordEditRequestDTO.builder()
                 .currentPassword("wrongPassword")
                 .newPassword("newPassword123")
                 .build();
@@ -149,16 +150,16 @@ public class UserServiceTest {
     @Test
     void 유효한_토픽_목록으로_변경_시_정상적으로_업데이트된다() {
         // given
-        UserTopicsEditRequestDto request = UserTopicsEditRequestDto.builder()
-                .topics(Set.of(Topic.BACKEND, Topic.DATA, Topic.MOBILE))
+        UserTopicsEditDTO request = UserTopicsEditDTO.builder()
+                .topics(Set.of(Topic.BACKEND, Topic.DEVOPS, Topic.LLM))
                 .build();
 
         // when
-        UserTopicsEditResponseDto response = userService.updateTopics(request);
+        UserTopicsEditDTO response = userService.updateTopics(request);
 
         // then
         assertThat(response.topics()).hasSize(3);
-        assertThat(response.topics()).containsExactlyInAnyOrder(Topic.BACKEND, Topic.DATA, Topic.MOBILE);
+        assertThat(response.topics()).containsExactlyInAnyOrder(Topic.BACKEND, Topic.DEVOPS, Topic.LLM);
 
         User updatedUser = userRepository.findByEmail(testUser.getEmail()).orElseThrow();
         assertThat(updatedUser.getUserTopics()).hasSize(3);
@@ -167,7 +168,7 @@ public class UserServiceTest {
     @Test
     void 빈_토픽_목록으로_변경_시_예외가_발생한다() {
         // given
-        UserTopicsEditRequestDto request = UserTopicsEditRequestDto.builder()
+        UserTopicsEditDTO request = UserTopicsEditDTO.builder()
                 .topics(Set.of())
                 .build();
 
@@ -179,12 +180,78 @@ public class UserServiceTest {
     @Test
     void 토픽_4개_이상_변경_시_예외가_발생한다() {
         // given
-        UserTopicsEditRequestDto request = UserTopicsEditRequestDto.builder()
+        UserTopicsEditDTO request = UserTopicsEditDTO.builder()
                 .topics(Set.of(Topic.FRONTEND, Topic.DEVOPS, Topic.AI, Topic.BACKEND))
                 .build();
 
         // when & then
         assertThatThrownBy(() -> userService.updateTopics(request))
                 .isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    void 올바른_비밀번호로_탈퇴_시_정상적으로_처리된다() {
+        // given
+        UserDeleteRequestDTO request = new UserDeleteRequestDTO(UserTestFixture.DEFAULT_PASSWORD);
+
+        // when
+        UserDeleteResponseDTO response = userService.deleteUser(request);
+
+        // then
+        assertThat(response.message()).isEqualTo("회원 탈퇴가 성공적으로 처리되었습니다");
+
+        User deletedUser = userRepository.findByEmail(testUser.getEmail()).orElseThrow();
+        assertThat(deletedUser.isDeleted()).isTrue();
+        assertThat(deletedUser.getDeletedAt()).isNotNull();
+    }
+
+    @Test
+    void 잘못된_현재_비밀번호로_탈퇴_시_예외가_발생한다() {
+        // given
+        UserDeleteRequestDTO request = new UserDeleteRequestDTO("wrongPassword");
+
+        // when & then
+        assertThatThrownBy(() -> userService.deleteUser(request))
+                .isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    void 이미_탈퇴한_사용자_재탈퇴_시_예외가_발생한다() {
+        // given
+        String anonymousEmail = "deleted_test@anonymous.amateurs.com";
+        String anonymousNickname = "탈퇴한회원_test123";
+        testUser.anonymizeAndDelete(anonymousEmail, anonymousNickname);
+        userRepository.save(testUser);
+
+        UserDeleteRequestDTO request = new UserDeleteRequestDTO(UserTestFixture.DEFAULT_PASSWORD);
+
+        // when & then
+        assertThatThrownBy(() -> userService.deleteUser(request))
+                .isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    void 소셜_로그인_사용자_탈퇴_시_정상적으로_처리된다() {
+        // given
+        User socialUser = UserTestFixture.defaultUser()
+                .email(UserTestFixture.generateUniqueEmail())
+                .nickname(UserTestFixture.generateUniqueNickname())
+                .providerType(ProviderType.GITHUB)
+                .password(null)
+                .build();
+        socialUser.addUserTopics(Set.of(Topic.FRONTEND, Topic.BACKEND));
+        socialUser = TestAuthHelper.setAuthentication(socialUser, userRepository);
+
+        UserDeleteRequestDTO request = new UserDeleteRequestDTO(null);
+
+        // when
+        UserDeleteResponseDTO response = userService.deleteUser(request);
+
+        // then
+        assertThat(response.message()).isEqualTo("회원 탈퇴가 성공적으로 처리되었습니다");
+
+        User deletedUser = userRepository.findByEmail(socialUser.getEmail()).orElseThrow();
+        assertThat(deletedUser.isDeleted()).isTrue();
+        assertThat(deletedUser.getDeletedAt()).isNotNull();
     }
 }

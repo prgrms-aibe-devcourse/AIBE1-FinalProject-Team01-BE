@@ -1,23 +1,24 @@
 package kr.co.amateurs.server.domain.dto.together;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import lombok.Builder;
-import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 
 @Builder
 public record MarketPostResponseDTO(
+        @Schema(description = "팀원구하기 글 ID", example = "1")
+        Long id,
         @Schema(description = "게시글 ID", example = "1")
         Long postId,
+        @Schema(description = "불러안두 여부", example = "false")
+        boolean isBlinded,
         @Schema(description = "작성자 닉네임", example = "test닉네임")
         String nickname,
         @Schema(description = "작성자 수강 코스 이름", example = "AIBE")
@@ -36,6 +37,8 @@ public record MarketPostResponseDTO(
         Integer viewCount,
         @Schema(description = "좋아요 수", example = "1")
         Integer likeCount,
+        @Schema(description = "북마크 수", example = "1")
+        Integer bookmarkCount,
         @Schema(description = "장터 물품 판매 상태", example = "SELLING")
         MarketStatus status,
         @Schema(description = "장터 물품 가격", example = "10000")
@@ -53,26 +56,68 @@ public record MarketPostResponseDTO(
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static MarketPostResponseDTO convertToDTO(MarketItem mi, Post post, boolean hasLiked, boolean hasBookmarked){
-        return new MarketPostResponseDTO(
-                post.getId(),
-                post.getUser().getNickname(),
-                post.getUser().getDevcourseName(),
-                post.getUser().getDevcourseBatch(),
-                post.getUser().getImageUrl(),
-                post.getTitle(),
-                post.getContent(),
-                post.getTags(),
-                post.getViewCount(),
-                post.getLikeCount(),
-                mi.getStatus(),
-                mi.getPrice(),
-                mi.getPlace(),
-                post.getCreatedAt(),
-                post.getUpdatedAt(),
-                post.getPostImages() != null && !post.getPostImages().isEmpty(),
-                hasLiked,
-                hasBookmarked
-        );
-    }
+            public static MarketPostResponseDTO convertToDTO(MarketItem mi, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
+                return new MarketPostResponseDTO(
+                        mi.getId(),
+                        post.getId(),
+                        post.getIsBlinded(),
+                        post.getUser().getNickname(),
+                        post.getUser().getDevcourseName(),
+                        post.getUser().getDevcourseBatch(),
+                        post.getUser().getImageUrl(),
+                        post.getTitle(),
+                        post.getContent(),
+                        post.getTags(),
+                        postStatistics.getViewCount(),
+                        post.getLikeCount(),
+                        bookmarkCount,
+                        mi.getStatus(),
+                        mi.getPrice(),
+                        mi.getPlace(),
+                        post.getCreatedAt(),
+                        post.getUpdatedAt(),
+                        post.getPostImages() != null && !post.getPostImages().isEmpty(),
+                        hasLiked,
+                        hasBookmarked
+                );
+            }
+
+        public MarketPostResponseDTO applyBlindFilter() {
+                if (this.isBlinded) {
+                        String blindedContent = """
+                            <div style="text-align: center; padding: 60px 20px; background-color: #f8f9fa; border-radius: 8px; margin: 20px 0;">
+                                <div style="font-size: 24px; font-weight: bold; color: #6c757d; margin-bottom: 10px;">
+                                    ⚠️ 블라인드 처리된 게시글입니다
+                                </div>
+                                <div style="font-size: 16px; color: #868e96;">
+                                    관리자가 처리 중입니다.
+                                </div>
+                            </div>
+                            """;
+                        return new MarketPostResponseDTO(
+                                this.id,
+                                this.postId,
+                                this.isBlinded,
+                                this.nickname,
+                                this.devcourseName,
+                                this.devcourseBatch,
+                                this.userProfileImg,
+                                "블라인드 처리된 게시글입니다.",
+                                blindedContent,
+                                "",
+                                this.viewCount,
+                                this.likeCount,
+                                this.bookmarkCount,
+                                this.status,
+                                this.price,
+                                this.place,
+                                this.createdAt,
+                                this.updatedAt,
+                                this.hasImages,
+                                this.hasLiked,
+                                this.hasBookmarked
+                        );
+                }
+                return this;
+        }
 }

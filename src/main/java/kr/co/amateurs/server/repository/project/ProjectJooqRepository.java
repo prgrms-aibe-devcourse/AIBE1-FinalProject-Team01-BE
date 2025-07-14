@@ -18,6 +18,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 import static org.jooq.generated.Tables.BOOKMARKS;
+import static org.jooq.generated.Tables.POST_STATISTICS;
+import static org.jooq.generated.Tables.POST_IMAGES;
 import static org.jooq.generated.tables.Posts.POSTS;
 import static org.jooq.generated.tables.Projects.PROJECTS;
 import static org.jooq.generated.tables.Users.USERS;
@@ -65,7 +67,6 @@ public class ProjectJooqRepository {
 
         return finalQuery
                 .where(PROJECTS.ID.eq(projectId))
-                .groupBy(POSTS.ID)
                 .fetchOptionalInto(ProjectResponseDTO.class)
                 .orElseThrow(ErrorCode.POST_NOT_FOUND);
     }
@@ -74,7 +75,7 @@ public class ProjectJooqRepository {
         return selectQuery.from(PROJECTS)
                 .join(POSTS).on(PROJECTS.POST_ID.eq(POSTS.ID))
                 .join(USERS).on(POSTS.USER_ID.eq(USERS.ID))
-                .leftJoin(BOOKMARKS).on(BOOKMARKS.POST_ID.eq(POSTS.ID));
+                .join(POST_STATISTICS).on(POSTS.ID.eq(POST_STATISTICS.POST_ID));
     }
 
     private List<ProjectResponseDTO> fetchProjectList(SelectJoinStep<?> query, ProjectSearchParam params) {
@@ -82,7 +83,6 @@ public class ProjectJooqRepository {
 
         return query
                 .where(condition)
-                .groupBy(POSTS.ID)
                 .orderBy(buildOrderBy(params))
                 .limit(params.getSize())
                 .offset(params.getPage() * params.getSize())
@@ -129,7 +129,7 @@ public class ProjectJooqRepository {
             case POST_POPULAR -> params.getSortDirection() == Sort.Direction.ASC ?
                     POSTS.LIKE_COUNT.asc() : POSTS.LIKE_COUNT.desc();
             case POST_MOST_VIEW -> params.getSortDirection() == Sort.Direction.ASC ?
-                    POSTS.VIEW_COUNT.asc() : POSTS.VIEW_COUNT.desc();
+                    POST_STATISTICS.VIEW_COUNT.asc() : POST_STATISTICS.VIEW_COUNT.desc();
             default -> PROJECTS.ID.desc();
         };
     }

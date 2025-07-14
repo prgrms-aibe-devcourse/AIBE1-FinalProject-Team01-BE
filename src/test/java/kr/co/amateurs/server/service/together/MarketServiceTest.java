@@ -8,16 +8,17 @@ import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
-import kr.co.amateurs.server.repository.bookmark.BookmarkRepository;
 import kr.co.amateurs.server.repository.comment.CommentRepository;
-import kr.co.amateurs.server.repository.like.LikeRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
+import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.like.LikeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -27,7 +28,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import static kr.co.amateurs.server.domain.entity.post.Post.convertTagToList;
 import static kr.co.amateurs.server.fixture.together.CommonTogetherFixture.createAdmin;
@@ -65,6 +68,15 @@ class MarketServiceTest {
     @MockitoBean
     private LikeService likeService;
 
+    @Autowired
+    private PlatformTransactionManager transactionManager;
+
+    @Autowired
+    private PostStatisticsRepository postStatisticsRepository;
+
+    @MockitoBean
+    private PostEmbeddingService postEmbeddingService;
+
     private User sellerUser;
     private User otherUser;
     private User adminUser;
@@ -75,6 +87,9 @@ class MarketServiceTest {
 
     @BeforeEach
     void setUp() throws JsonProcessingException {
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+        postStatisticsRepository.deleteAll();
         commentRepository.deleteAll();
         marketRepository.deleteAll();
         postRepository.deleteAll();
@@ -87,11 +102,26 @@ class MarketServiceTest {
         otherUser = userRepository.save(otherUser);
         adminUser = userRepository.save(adminUser);
 
-        javaPost = createJavaPost(sellerUser);
-        pythonPost = createPythonPost(sellerUser);
+        javaPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    createJavaPost(sellerUser)
+            );
 
-        javaPost = postRepository.save(javaPost);
-        pythonPost = postRepository.save(pythonPost);
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
+        pythonPost = transactionTemplate.execute(status -> {
+            Post post = postRepository.save(
+                    createPythonPost(sellerUser)
+            );
+
+            PostStatistics postStatistics = PostStatistics.from(post);
+            postStatisticsRepository.save(postStatistics);
+
+            return post;
+        });
 
         javaMarketItem = createJavaMarketItem(javaPost);
         pythonMarketItem = createPythonMarketItem(pythonPost);
@@ -171,7 +201,7 @@ class MarketServiceTest {
         void 존재하는_ID로_조회하면_해당_장터_게시글이_반환되어야_한다() {
             given(userService.getCurrentLoginUser()).willReturn(sellerUser);
 
-            MarketPostResponseDTO dto = marketService.getMarketPost(javaMarketItem.getId());
+            MarketPostResponseDTO dto = marketService.getMarketPost(javaMarketItem.getId(), "1");
 
             assertThat(dto.postId()).isEqualTo(javaPost.getId());
             assertThat(dto.title()).isEqualTo("Java 책");
@@ -182,7 +212,7 @@ class MarketServiceTest {
 
         @Test
         void 존재하지_않는_ID로_조회하면_예외가_발생해야_한다() {
-            assertThatThrownBy(() -> marketService.getMarketPost(999L))
+            assertThatThrownBy(() -> marketService.getMarketPost(999L, "1"))
                     .isInstanceOf(CustomException.class);
         }
     }
