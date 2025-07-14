@@ -52,4 +52,13 @@ public class PopularPost extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BoardType boardType;
+
+    @Column(nullable = false)
+    private Long boardId;
+
+    @Column(nullable = false)
+    private Boolean isBlinded = false;
+
+    @Column(nullable = false)
+    private Boolean isDeleted = false;
 }

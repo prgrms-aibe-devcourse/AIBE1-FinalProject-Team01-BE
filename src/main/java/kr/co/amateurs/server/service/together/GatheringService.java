@@ -4,7 +4,9 @@ package kr.co.amateurs.server.service.together;
 import jakarta.transaction.Transactional;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
+import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.dto.post.PostViewedEvent;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
@@ -33,6 +35,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -69,38 +73,31 @@ public class GatheringService {
     private final ApplicationEventPublisher eventPublisher;
 
     public PageResponseDTO<GatheringPostResponseDTO> getGatheringPostList(PostPaginationParam paginationParam) {
-        Page<GatheringPost> gpPage = gatheringRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
+        String keyword = paginationParam.getKeyword();
+        Page<GatheringPostResponseDTO> gpPage;
+        if (paginationParam.getField() == PaginationSortType.POST_MOST_VIEW) {
+            Pageable pageable = PageRequest.of(paginationParam.getPage(), paginationParam.getSize());
+            gpPage = gatheringRepository.findDTOByContentOrderByViewCount(keyword, pageable);
+        }else{
+            Pageable pageable = paginationParam.toPageable();
+            gpPage = gatheringRepository.findDTOByContent(keyword, pageable);
+        }
 
-        List<Long> postIds = gpPage.getContent().stream()
-                .map(gp -> gp.getPost().getId())
-                .toList();
+        Page<GatheringPostResponseDTO> processedPage = gpPage.map(GatheringPostResponseDTO::applyBlindFilter);
 
-        List<PostStatistics> statisticsList = postStatisticsRepository.findByPostIdIn(postIds);
-        Map<Long, PostStatistics> statisticsMap = statisticsList.stream()
-                .collect(Collectors.toMap(PostStatistics::getPostId, Function.identity()));
-
-        Page<GatheringPostResponseDTO> response = gpPage.map(gp ->
-            convertToDTO(gp, gp.getPost(), statisticsMap.get(gp.getPost().getId()), false, false, bookmarkService.countBookmark(gp.getPost()))
-                    .applyBlindFilter()
-        );
-
-        return convertPageToDTO(response);
+        return convertPageToDTO(processedPage);
     }
 
 
     public GatheringPostResponseDTO getGatheringPost(Long id, String ipAddress) {
         User user = userService.getCurrentLoginUser();
 
-        GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
-        Post post = gp.getPost();
+        GatheringPostResponseDTO gp = gatheringRepository.findDTOByIdAndUserId(id, user.getId())
+                .orElseThrow(ErrorCode.POST_NOT_FOUND);
 
-        PostStatistics postStatistics = postStatisticsRepository.findById(post.getId()).orElseThrow(ErrorCode.POST_NOT_FOUND);
-
-        eventPublisher.publishEvent(new PostViewedEvent(post.getId(), ipAddress));
-        return convertToDTO(gp, post,postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post))
-                .applyBlindFilter();
+        eventPublisher.publishEvent(new PostViewedEvent(gp.postId(), ipAddress));
+        return gp.applyBlindFilter();
     }
-
 
     @Transactional
     public GatheringPostResponseDTO createGatheringPost(GatheringPostRequestDTO dto) {
@@ -139,7 +136,7 @@ public class GatheringService {
         List<String> imgUrls = fileService.extractImageUrls(dto.content());
         fileService.savePostImage(savedPost, imgUrls);
 
-        return convertToDTO(savedGp, savedPost,savedps, false, false, 0);
+        return convertToDTO(savedGp, savedPost);
     }
 
 

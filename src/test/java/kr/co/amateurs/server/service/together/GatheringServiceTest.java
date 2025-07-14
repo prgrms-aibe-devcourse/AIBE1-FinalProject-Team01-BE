@@ -21,6 +21,7 @@ import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.together.GatheringRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.like.LikeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -79,6 +80,9 @@ class GatheringServiceTest {
 
     @Autowired
     private CommentRepository commentRepository;
+
+    @MockitoBean
+    private PostEmbeddingService postEmbeddingService;
 
     @MockitoBean
     private UserService userService;
@@ -241,6 +245,8 @@ class GatheringServiceTest {
         void 존재하지_않는_ID로_조회하면_예외가_발생해야_한다() {
             // given
             Long nonExistentId = 999L;
+
+            given(userService.getCurrentLoginUser()).willReturn(studyUser);
 
             // when & then
             assertThatThrownBy(() -> gatheringService.getGatheringPost(nonExistentId, "`"))

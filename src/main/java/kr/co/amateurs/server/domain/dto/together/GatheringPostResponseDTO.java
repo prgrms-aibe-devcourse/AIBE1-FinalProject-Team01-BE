@@ -36,6 +36,8 @@ public record GatheringPostResponseDTO(
         String tags,
         @Schema(description = "조회수", example = "3")
         Integer viewCount,
+        @Schema(description = "댓글수", example = "3")
+        Integer commentCount,
         @Schema(description = "좋아요 수", example = "1")
         Integer likeCount,
         @Schema(description = "북마크 수", example = "1")
@@ -56,14 +58,12 @@ public record GatheringPostResponseDTO(
         LocalDateTime createdAt,
         @Schema(description = "수정 일시", example = "2025-06-25T00:08:25")
         LocalDateTime updatedAt,
-        @Schema(description = "썸네일 이미지 존재 여부", example = "false")
-        boolean hasImages,
         @Schema(description = "좋아요 여부", example = "false")
         boolean hasLiked,
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
+    public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post) {
         return new GatheringPostResponseDTO(
                 gp.getId(),
                 post.getId(),
@@ -75,9 +75,10 @@ public record GatheringPostResponseDTO(
                 post.getTitle(),
                 post.getContent(),
                 post.getTags(),
-                postStatistics.getViewCount(),
-                post.getLikeCount(),
-                bookmarkCount,
+                0,
+                0,
+                0,
+                0,
                 gp.getGatheringType(),
                 gp.getStatus(),
                 gp.getHeadCount(),
@@ -86,9 +87,8 @@ public record GatheringPostResponseDTO(
                 gp.getSchedule(),
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
-                post.getPostImages() != null && !post.getPostImages().isEmpty(),
-                hasLiked,
-                hasBookmarked
+                false,
+                false
         );
     }
 
@@ -116,6 +116,7 @@ public record GatheringPostResponseDTO(
                                 blindedContent,
                                 "",
                                 this.viewCount,
+                                this.commentCount,
                                 this.likeCount,
                                 this.bookmarkCount,
                                 this.gatheringType,
@@ -126,7 +127,6 @@ public record GatheringPostResponseDTO(
                                 this.schedule,
                                 this.createdAt,
                                 this.updatedAt,
-                                this.hasImages,
                                 this.hasLiked,
                                 this.hasBookmarked
                         );

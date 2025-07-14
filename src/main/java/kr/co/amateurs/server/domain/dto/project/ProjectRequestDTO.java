@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -12,7 +13,7 @@ import java.util.List;
 @Builder
 public record ProjectRequestDTO(
         @NotBlank(message = "제목은 빈 내용일 수 없습니다.")
-        @Max(value = 100, message = "최대 100자까지 입력할 수 있습니다.")
+        @Size(max = 100, message = "최대 100자까지 입력할 수 있습니다.")
         @Schema(description = "게시글 제목", example = "test 제목")
         String title,
         @NotBlank(message = "내용은 빈 내용일 수 없습니다.")

@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,8 +39,15 @@ public class AiController {
             @AuthenticationPrincipal CustomUserDetails currentUser,
             @RequestParam(name="limit", defaultValue="10") int limit) {
 
+        StopWatch stopWatch = new StopWatch("RecommendPosts API");
+        stopWatch.start("getRecommendPosts");
+
         Long userId = currentUser.getUser().getId();
         List<PostRecommendationResponse> recommendations = postRecommendService.getStoredRecommendations(userId, limit);
+
+        stopWatch.stop();
+        log.info("맞춤글 조회 완료 - 소요시간: {}ms, 결과 개수: {}",
+                stopWatch.getLastTaskTimeMillis(), recommendations.size());
         return ResponseEntity.ok(recommendations);
     }
 
@@ -48,7 +56,14 @@ public class AiController {
     public ResponseEntity<List<PopularPostResponse>> getPopularPosts(
             @RequestParam(name="limit", defaultValue="10") int limit) {
 
+        StopWatch stopWatch = new StopWatch("PopularPosts API");
+        stopWatch.start("getPopularPosts");
+
         List<PopularPostResponse> popularPosts = popularPostService.getPopularPosts(limit);
+
+        stopWatch.stop();
+        log.info("인기글 조회 완료 - 소요시간: {}ms, 결과 개수: {}",
+                stopWatch.getLastTaskTimeMillis(), popularPosts.size());
         return ResponseEntity.ok(popularPosts);
     }
 
