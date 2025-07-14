@@ -111,7 +111,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus,metrics
   endpoint:
     info:
       access: read_only
@@ -144,6 +144,10 @@ otel:
     exporter: otlp
   logs:
     exporter: otlp
+  instrumentation:
+    micrometer:
+      enabled: true
+
   exporter:
     otlp:
       endpoint: ${OTEL_COLLECTOR_URL}
