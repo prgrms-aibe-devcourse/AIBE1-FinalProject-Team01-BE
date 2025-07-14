@@ -242,6 +242,8 @@ class GatheringServiceTest {
             // given
             Long nonExistentId = 999L;
 
+            given(userService.getCurrentLoginUser()).willReturn(studyUser);
+
             // when & then
             assertThatThrownBy(() -> gatheringService.getGatheringPost(nonExistentId, "`"))
                     .isInstanceOf(CustomException.class);
