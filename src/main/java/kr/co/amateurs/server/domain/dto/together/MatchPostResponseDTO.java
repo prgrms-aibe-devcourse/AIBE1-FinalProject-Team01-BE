@@ -36,6 +36,8 @@ public record MatchPostResponseDTO(
         String tags,
         @Schema(description = "조회수", example = "3")
         Integer viewCount,
+        @Schema(description = "댓글수", example = "3")
+        Integer commentCount,
         @Schema(description = "좋아요 수", example = "1")
         Integer likeCount,
         @Schema(description = "북마크 수", example = "1")
@@ -50,14 +52,12 @@ public record MatchPostResponseDTO(
         LocalDateTime createdAt,
         @Schema(description = "수정 일시", example = "2025-06-25T00:08:25")
         LocalDateTime updatedAt,
-        @Schema(description = "썸네일 이미지 존재 여부", example = "false")
-        boolean hasImages,
         @Schema(description = "좋아요 여부", example = "false")
         boolean hasLiked,
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
+    public static MatchPostResponseDTO convertToDTO(MatchingPost mp, Post post) {
         return new MatchPostResponseDTO(
                 mp.getId(),
                 post.getId(),
@@ -69,17 +69,17 @@ public record MatchPostResponseDTO(
                 post.getTitle(),
                 post.getContent(),
                 post.getTags(),
-                postStatistics.getViewCount(),
-                post.getLikeCount(),
-                bookmarkCount,
+                0,
+                0,
+                0,
+                0,
                 mp.getMatchingType(),
                 mp.getStatus(),
                 mp.getExpertiseAreas(),
                 post.getCreatedAt(),
                 post.getUpdatedAt(),
-                post.getPostImages() != null && !post.getPostImages().isEmpty(),
-                hasLiked,
-                hasBookmarked
+                false,
+                false
         );
     }
 
@@ -107,6 +107,7 @@ public record MatchPostResponseDTO(
                                 blindedContent,
                                 "",
                                 this.viewCount,
+                                this.commentCount,
                                 this.likeCount,
                                 this.bookmarkCount,
                                 this.matchingType,
@@ -114,7 +115,6 @@ public record MatchPostResponseDTO(
                                 this.expertiseArea,
                                 this.createdAt,
                                 this.updatedAt,
-                                this.hasImages,
                                 this.hasLiked,
                                 this.hasBookmarked
                         );

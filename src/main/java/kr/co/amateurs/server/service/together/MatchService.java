@@ -4,8 +4,10 @@ package kr.co.amateurs.server.service.together;
 import jakarta.transaction.Transactional;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PaginationSortType;
 import kr.co.amateurs.server.domain.dto.community.CommunityRequestDTO;
 import kr.co.amateurs.server.domain.dto.post.PostViewedEvent;
+import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
@@ -33,6 +35,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -70,34 +74,30 @@ public class MatchService {
     private final ApplicationEventPublisher eventPublisher;
 
     public PageResponseDTO<MatchPostResponseDTO> getMatchPostList(PostPaginationParam paginationParam) {
-        Page<MatchingPost> mpPage = matchRepository.findAllByKeyword(paginationParam.getKeyword(), paginationParam.toPageable());
-        List<Long> postIds = mpPage.getContent().stream()
-                .map(mp -> mp.getPost().getId())
-                .toList();
+        String keyword = paginationParam.getKeyword();
+        Page<MatchPostResponseDTO> mpPage;
+        if (paginationParam.getField() == PaginationSortType.POST_MOST_VIEW) {
+            Pageable pageable = PageRequest.of(paginationParam.getPage(), paginationParam.getSize());
+            mpPage = matchRepository.findDTOByContentOrderByViewCount(keyword, pageable);
+        }else{
+            Pageable pageable = paginationParam.toPageable();
+            mpPage = matchRepository.findDTOByContent(keyword, pageable);
+        }
 
-        List<PostStatistics> statisticsList = postStatisticsRepository.findByPostIdIn(postIds);
-        Map<Long, PostStatistics> statisticsMap = statisticsList.stream()
-                .collect(Collectors.toMap(PostStatistics::getPostId, Function.identity()));
+        Page<MatchPostResponseDTO> processedPage = mpPage.map(MatchPostResponseDTO::applyBlindFilter);
 
-        Page<MatchPostResponseDTO> response = mpPage.map(mp ->
-                MatchPostResponseDTO.convertToDTO(mp, mp.getPost(), statisticsMap.get(mp.getPost().getId()), false, false, bookmarkService.countBookmark(mp.getPost()))
-                        .applyBlindFilter()
-        );
-
-        return convertPageToDTO(response);
+        return convertPageToDTO(processedPage);
     }
 
 
     public MatchPostResponseDTO getMatchPost(Long id, String ipAddress) {
         User user = userService.getCurrentLoginUser();
-        MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
-        Post post = mp.getPost();
 
-        PostStatistics postStatistics = postStatisticsRepository.findById(mp.getPost().getId()).orElseThrow(ErrorCode.NOT_FOUND);
+        MatchPostResponseDTO mp = matchRepository.findDTOByIdAndUserId(id, user.getId())
+                .orElseThrow(ErrorCode.POST_NOT_FOUND);
 
-        eventPublisher.publishEvent(new PostViewedEvent(post.getId(), ipAddress));
-        return convertToDTO(mp, post, postStatistics, likeService.checkHasLiked(post.getId(), user.getId()), bookmarkService.checkHasBookmarked(post.getId(), user.getId()), bookmarkService.countBookmark(post))
-                .applyBlindFilter();
+        eventPublisher.publishEvent(new PostViewedEvent(mp.postId(), ipAddress));
+        return mp.applyBlindFilter();
     }
 
 
@@ -136,7 +136,7 @@ public class MatchService {
         List<String> imgUrls = fileService.extractImageUrls(dto.content());
         fileService.savePostImage(savedPost, imgUrls);
 
-        return convertToDTO(savedMp, savedPost, savedPs, false, false, 0);
+        return convertToDTO(savedMp, savedPost);
     }
 
     @Transactional
