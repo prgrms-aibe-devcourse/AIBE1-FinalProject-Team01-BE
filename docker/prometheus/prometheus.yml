@@ -8,6 +8,11 @@ scrape_configs:
       - targets: ['localhost:9090']
     scrape_interval: 30s
 
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8889']
+    scrape_interval: 30s
+
   - job_name: 'monitoring-server-node'
     static_configs:
       - targets: ['node-exporter:9100']
@@ -32,20 +37,3 @@ scrape_configs:
       - source_labels: [__address__]
         target_label: server_type
         replacement: 'main'
-
-  - job_name: 'spring-boot-app'
-    static_configs:
-      - targets: ['your-domain.co.kr:443']
-    scheme: https
-    metrics_path: '/actuator/prometheus'
-    scrape_interval: 30s
-    scrape_timeout: 20s
-    tls_config:
-      insecure_skip_verify: false
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: application
-        replacement: 'spring-boot-app'
-      - source_labels: [__address__]
-        target_label: environment
-        replacement: 'production'

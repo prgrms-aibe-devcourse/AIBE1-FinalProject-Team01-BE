@@ -39,9 +39,9 @@ public class PostJooqRepository {
                                 .when("MARKET", MARKET_ITEMS.ID)
                                 .as("id"),
                         POSTS.ID.as("postId"),
+                        POSTS.IS_BLINDED,
                         POSTS.BOARD_TYPE,
                         POSTS.TITLE,
-                        POSTS.CONTENT,
                         USERS.NICKNAME,
                         USERS.IMAGE_URL,
                         USERS.DEVCOURSE_NAME.as("devCourseTrack"),

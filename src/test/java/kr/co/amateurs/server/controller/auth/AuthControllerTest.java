@@ -459,7 +459,7 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .email(signupRequest.email())
                 .build();
 
-        String refreshToken = RestAssured.given()
+        io.restassured.response.Response loginResponse = RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(loginRequest)
                 .when()
@@ -467,14 +467,15 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .then()
                 .statusCode(200)
                 .extract()
-                .path("refreshToken");
+                .response();
 
-        Map<String, String> reissueRequest = Map.of("refreshToken", refreshToken);
+        String cookies = loginResponse.getHeader("Set-Cookie");
 
         // when & then
         RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(reissueRequest)
+                .header("Cookie", cookies)
+                .body("{}")
                 .when()
                 .post("/auth/reissue")
                 .then()
@@ -486,34 +487,15 @@ public class AuthControllerTest extends AbstractControllerTest {
 
     @Test
     void 유효하지_않은_리프레시_토큰으로_재발급_요청_시_401_에러가_발생해야_한다() {
-        // given
-        Map<String, String> invalidRequest = Map.of("refreshToken", "invalid.token.here");
-
         // when & then
         RestAssured.given()
                 .contentType(ContentType.JSON)
-                .body(invalidRequest)
+                .body("{}")
                 .when()
                 .post("/auth/reissue")
                 .then()
                 .statusCode(401)
                 .body("message", equalTo("유효하지 않은 인증 정보입니다."));
-    }
-
-    @Test
-    void 빈_리프레시_토큰으로_재발급_요청_시_400_에러가_발생해야_한다() {
-        // given
-        Map<String, String> emptyRequest = Map.of("refreshToken", "");
-
-        // when & then
-        RestAssured.given()
-                .contentType(ContentType.JSON)
-                .body(emptyRequest)
-                .when()
-                .post("/auth/reissue")
-                .then()
-                .statusCode(400)
-                .body("message", equalTo("리프레시 토큰은 필수입니다"));
     }
 
     @Test

@@ -17,6 +17,7 @@ public interface ProjectQueryStrategy {
         return dslContext.select(
                 PROJECTS.ID,
                 PROJECTS.POST_ID,
+                POSTS.IS_BLINDED,
                 PROJECTS.STARTED_AT,
                 PROJECTS.ENDED_AT,
                 PROJECTS.GITHUB_URL,

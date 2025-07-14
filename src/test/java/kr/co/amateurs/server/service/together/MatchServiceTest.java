@@ -213,6 +213,8 @@ class MatchServiceTest {
 
         @Test
         void 존재하지_않는_ID로_조회하면_예외가_발생해야_한다() {
+            given(userService.getCurrentLoginUser()).willReturn(adminUser);
+
             assertThatThrownBy(() -> matchService.getMatchPost(999L, "1"))
                     .isInstanceOf(CustomException.class);
         }

@@ -17,7 +17,10 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -65,6 +68,29 @@ public class FileService {
                 true,
                 "File uploaded",
                 "https://" + publicUrl + "/" + key
+        );
+    }
+
+    public FileResponseDTO uploadFile(MultipartFile file) throws IOException {
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+
+        String fileName = UUID.randomUUID().toString() + extension;
+        String key = "file/" + fileName;
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(file.getContentType())
+                .build();
+        s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
+        return new FileResponseDTO(
+                true,
+                "File uploaded",
+                publicUrl + "/" + key
         );
     }
 
@@ -171,18 +197,48 @@ public class FileService {
             "image/webp"
     );
     private static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-    private void validateImageFile(MultipartFile file) {
+    private void validateImageFile(MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             throw new CustomException(ErrorCode.EMPTY_FILE);
         }
 
         String contentType = file.getContentType();
+        if (!hasValidMagicBytes(file) || !isReadableImage(file)) {
+            throw new CustomException(ErrorCode.INVALID_FILE_TYPE);
+        }
         if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
             throw new CustomException(ErrorCode.INVALID_FILE_TYPE);
         }
-
         if (file.getSize() > MAX_IMAGE_SIZE) {
             throw new CustomException(ErrorCode.FILE_SIZE_EXCEEDED);
+        }
+    }
+
+    private boolean hasValidMagicBytes(MultipartFile file) throws IOException {
+        try (InputStream is = file.getInputStream()) {
+            byte[] header = new byte[8];
+            if (is.read(header) != header.length) return false;
+            // JPEG
+            if (header[0] == (byte)0xFF && header[1] == (byte)0xD8 && header[2] == (byte)0xFF) return true;
+            // PNG
+            if (header[0] == (byte)0x89 && header[1] == 'P' && header[2] == 'N' && header[3] == 'G') return true;
+            // GIF
+            if (header[0]=='G' && header[1]=='I' && header[2]=='F' && header[3]=='8') return true;
+            // WebP
+            if (header[0]=='R' && header[1]=='I' && header[2]=='F' && header[3]=='F') {
+                byte[] webp = new byte[4];
+                is.skip(4);
+                if (is.read(webp)==4 && new String(webp).equals("WEBP")) return true;
+            }
+            return false;
+        }
+    }
+    private boolean isReadableImage(MultipartFile file) {
+        try (InputStream is = file.getInputStream()) {
+            BufferedImage img = ImageIO.read(is);
+            return img != null;    // 디코딩 실패 시 null 리턴
+        } catch (IOException e) {
+            return false;
         }
     }
 
