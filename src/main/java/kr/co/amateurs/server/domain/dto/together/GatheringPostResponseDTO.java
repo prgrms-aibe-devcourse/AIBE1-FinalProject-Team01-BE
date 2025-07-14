@@ -63,7 +63,7 @@ public record GatheringPostResponseDTO(
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-    public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
+    public static GatheringPostResponseDTO convertToDTO(GatheringPost gp, Post post) {
         return new GatheringPostResponseDTO(
                 gp.getId(),
                 post.getId(),

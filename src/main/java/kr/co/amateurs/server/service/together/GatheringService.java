@@ -136,7 +136,7 @@ public class GatheringService {
         List<String> imgUrls = fileService.extractImageUrls(dto.content());
         fileService.savePostImage(savedPost, imgUrls);
 
-        return convertToDTO(savedGp, savedPost,savedps, false, false, 0);
+        return convertToDTO(savedGp, savedPost);
     }
 
 

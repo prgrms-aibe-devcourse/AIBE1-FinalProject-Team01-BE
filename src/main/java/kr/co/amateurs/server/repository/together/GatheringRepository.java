@@ -123,11 +123,7 @@ public interface GatheringRepository extends JpaRepository<GatheringPost, Long> 
         JOIN gp.post p
         JOIN p.user u
         JOIN PostStatistics ps ON ps.postId = p.id
-        WHERE p.boardType = :boardType
-          AND (:keyword IS NULL
-               OR :keyword = ''
-               OR p.title LIKE CONCAT('%', :keyword, '%')
-               OR p.content LIKE CONCAT('%', :keyword, '%'))
+        WHERE gp.id = :id
         """)
     Optional<GatheringPostResponseDTO> findDTOByIdAndUserId(@Param("id") Long id, @Param("userId") Long user);
 
