@@ -31,15 +31,15 @@ public class PopularPostService {
 
     @Transactional
     public void calculateAndSavePopularPosts() {
-        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+        LocalDateTime daysAgo = LocalDateTime.now().minusDays(7);
         LocalDate today = LocalDate.now();
 
         log.info("인기글 계산 시작: 기준일자={}, 대상기간=3일", today);
 
-        List<PopularPostRequest> recentPosts = popularPostRepository.findRecentPostsWithCounts(threeDaysAgo);
+        List<PopularPostRequest> recentPosts = popularPostRepository.findRecentPostsWithCounts(daysAgo);
 
         if (recentPosts.isEmpty()) {
-            log.warn("3일 이내 게시글이 없습니다.");
+            log.warn("7일 이내 게시글이 없습니다.");
             return;
         }
 
@@ -47,7 +47,7 @@ public class PopularPostService {
                 .map(post -> calculatePopularityScore(post, today))
                 .filter(post -> !post.isBlinded() && !post.isDeleted())
                 .sorted((p1, p2) -> Double.compare(p2.popularityScore(), p1.popularityScore()))
-                .limit(10)
+                .limit(12)
                 .collect(Collectors.toList());
 
         popularPostRepository.savePopularPosts(popularPosts);

@@ -72,18 +72,8 @@ public class PopularPostRepository {
                         request.postId(),
                         request.popularityScore(),
                         request.calculatedDate(),
-                        request.viewCount(),
-                        request.likeCount(),
-                        request.commentCount(),
-                        request.authorNickname(),
-                        request.authorDevcourseName() != null ?
-                                request.authorDevcourseName().name() : null,
-                        request.postCreatedAt(),
-                        request.title(),
                         request.boardType().name(),
-                        request.boardId(),
-                        request.isBlinded(),
-                        request.isDeleted()
+                        request.boardId()
                 ))
                 .toList();
 
@@ -92,17 +82,8 @@ public class PopularPostRepository {
                         POPULAR_POSTS.POST_ID,
                         POPULAR_POSTS.POPULARITY_SCORE,
                         POPULAR_POSTS.CALCULATED_DATE,
-                        POPULAR_POSTS.VIEW_COUNT,
-                        POPULAR_POSTS.LIKE_COUNT,
-                        POPULAR_POSTS.COMMENT_COUNT,
-                        POPULAR_POSTS.AUTHOR_NICKNAME,
-                        POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME,
-                        POPULAR_POSTS.POST_CREATED_AT,
-                        POPULAR_POSTS.TITLE,
                         POPULAR_POSTS.BOARD_TYPE,
-                        POPULAR_POSTS.BOARD_ID,
-                        POPULAR_POSTS.IS_BLINDED,
-                        POPULAR_POSTS.IS_DELETED
+                        POPULAR_POSTS.BOARD_ID
                 )
                 .valuesOfRows(rows)
                 .execute();
@@ -118,44 +99,50 @@ public class PopularPostRepository {
         if (latestDate == null) return List.of();
 
         return dsl.select(
-                        POPULAR_POSTS.POST_ID,
-                        POPULAR_POSTS.VIEW_COUNT,
-                        POPULAR_POSTS.LIKE_COUNT,
-                        POPULAR_POSTS.COMMENT_COUNT,
+                        POSTS.ID,
+                        POST_STATISTICS.VIEW_COUNT,
+                        POSTS.LIKE_COUNT,
+                        DSL.count(COMMENTS.ID).as("commentCount"),
                         POPULAR_POSTS.POPULARITY_SCORE,
                         POPULAR_POSTS.CALCULATED_DATE,
-                        POPULAR_POSTS.AUTHOR_NICKNAME,
-                        POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME,
-                        POPULAR_POSTS.POST_CREATED_AT,
-                        POPULAR_POSTS.TITLE,
+                        USERS.NICKNAME,
+                        USERS.DEVCOURSE_NAME,
+                        POSTS.CREATED_AT,
+                        POSTS.TITLE,
                         POPULAR_POSTS.BOARD_TYPE,
                         POPULAR_POSTS.BOARD_ID,
-                        POPULAR_POSTS.IS_BLINDED,
-                        POPULAR_POSTS.IS_DELETED
+                        POSTS.IS_BLINDED,
+                        POSTS.IS_DELETED
                 )
                 .from(POPULAR_POSTS)
+                .join(POSTS).on(POSTS.ID.eq(POPULAR_POSTS.POST_ID))
+                .join(USERS).on(USERS.ID.eq(POSTS.USER_ID))
+                .join(POST_STATISTICS).on(POST_STATISTICS.POST_ID.eq(POSTS.ID))
+                .leftJoin(COMMENTS).on(COMMENTS.POST_ID.eq(POSTS.ID))
                 .where(POPULAR_POSTS.CALCULATED_DATE.eq(latestDate))
-                .and(POPULAR_POSTS.IS_BLINDED.eq(false))
-                .and(POPULAR_POSTS.IS_DELETED.eq(false))
+                .and(POSTS.IS_BLINDED.eq(false))
+                .and(POSTS.IS_DELETED.eq(false))
+                .groupBy(POSTS.ID, POPULAR_POSTS.POPULARITY_SCORE, POPULAR_POSTS.CALCULATED_DATE, 
+                        POPULAR_POSTS.BOARD_TYPE, POPULAR_POSTS.BOARD_ID)
                 .orderBy(POPULAR_POSTS.POPULARITY_SCORE.desc())
                 .limit(limit)
                 .fetch()
                 .map(record -> new PopularPostRequest(
-                        record.get(POPULAR_POSTS.POST_ID),
-                        record.get(POPULAR_POSTS.VIEW_COUNT),
-                        record.get(POPULAR_POSTS.LIKE_COUNT),
-                        record.get(POPULAR_POSTS.COMMENT_COUNT),
+                        record.get(POSTS.ID),
+                        record.get(POST_STATISTICS.VIEW_COUNT),
+                        record.get(POSTS.LIKE_COUNT),
+                        record.get("commentCount", Integer.class),
                         record.get(POPULAR_POSTS.POPULARITY_SCORE),
                         record.get(POPULAR_POSTS.CALCULATED_DATE),
-                        record.get(POPULAR_POSTS.AUTHOR_NICKNAME),
-                        record.get(POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME) != null ?
-                                DevCourseTrack.valueOf(record.get(POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME)) : null,
-                        record.get(POPULAR_POSTS.POST_CREATED_AT),
-                        record.get(POPULAR_POSTS.TITLE),
+                        record.get(USERS.NICKNAME),
+                        record.get(USERS.DEVCOURSE_NAME) != null ?
+                                DevCourseTrack.valueOf(record.get(USERS.DEVCOURSE_NAME)) : null,
+                        record.get(POSTS.CREATED_AT),
+                        record.get(POSTS.TITLE),
                         BoardType.valueOf(record.get(POPULAR_POSTS.BOARD_TYPE)),
                         record.get(POPULAR_POSTS.BOARD_ID),
-                        record.get(POPULAR_POSTS.IS_BLINDED),
-                        record.get(POPULAR_POSTS.IS_DELETED)
+                        record.get(POSTS.IS_BLINDED),
+                        record.get(POSTS.IS_DELETED)
                 ));
     }
 
