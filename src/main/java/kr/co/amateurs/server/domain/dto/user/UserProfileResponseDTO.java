@@ -5,6 +5,7 @@ import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.topic.UserTopic;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import lombok.Builder;
 
@@ -24,6 +25,9 @@ public record UserProfileResponseDTO(
 
         @Schema(description = "이름")
         String name,
+
+        @Schema(description = "사용자 권한")
+        Role role,
 
         @Schema(description = "프로필 이미지 URL")
         String imageUrl,
@@ -47,6 +51,7 @@ public record UserProfileResponseDTO(
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .name(user.getName())
+                .role(user.getRole())
                 .imageUrl(user.getImageUrl())
                 .devcourseName(user.getDevcourseName())
                 .devcourseBatch(user.getDevcourseBatch())

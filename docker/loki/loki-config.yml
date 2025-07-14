@@ -31,6 +31,13 @@ schema_config:
       index:
         prefix: index_
         period: 24h
+    - from: 2025-07-13
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
 
 limits_config:
   retention_period: 168h
@@ -40,7 +47,7 @@ limits_config:
   max_query_parallelism: 32
   reject_old_samples: true
   reject_old_samples_max_age: 168h
-  allow_structured_metadata: false
+  allow_structured_metadata: true
 
 compactor:
   working_directory: /loki/boltdb-shipper-compactor
