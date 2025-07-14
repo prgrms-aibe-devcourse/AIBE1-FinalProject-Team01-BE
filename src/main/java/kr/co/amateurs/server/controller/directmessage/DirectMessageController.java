@@ -27,13 +27,6 @@ public class DirectMessageController {
         return ResponseEntity.status(HttpStatus.CREATED).body(room);
     }
 
-    @PostMapping
-    @Operation(summary = "테스트용 랜덤 유저 채팅방 생성")
-    public ResponseEntity<DirectMessageRoomResponse> createTestChatRoom() {
-        DirectMessageRoomResponse room = directMessageService.createTestRoom();
-        return ResponseEntity.status(HttpStatus.CREATED).body(room);
-    }
-
     @GetMapping("rooms")
     @Operation(summary = "채팅방 목록 조회")
     public ResponseEntity<List<DirectMessageRoomResponse>> getRooms() {
