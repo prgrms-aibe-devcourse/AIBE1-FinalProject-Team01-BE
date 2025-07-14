@@ -19,6 +19,7 @@ import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +65,9 @@ class ITServiceTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private PostEmbeddingService postEmbeddingService;
 
     private User testStudentUser;
     private User testOtherUser;

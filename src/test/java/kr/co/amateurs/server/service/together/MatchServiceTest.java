@@ -19,6 +19,7 @@ import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.like.LikeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -73,6 +74,9 @@ class MatchServiceTest {
 
     @MockitoBean
     private LikeService likeService;
+
+    @MockitoBean
+    private PostEmbeddingService postEmbeddingService;
 
 
     private User coffeeUser;

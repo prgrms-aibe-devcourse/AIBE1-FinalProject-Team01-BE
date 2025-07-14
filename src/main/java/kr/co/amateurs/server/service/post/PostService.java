@@ -7,6 +7,7 @@ import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.post.PostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.Post;
+import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.repository.post.PostJooqRepository;
 import kr.co.amateurs.server.repository.post.PostRepository;
@@ -71,5 +72,9 @@ public class PostService {
         Page<PostResponseDTO> postResponseDTO = postJooqRepository.findPostsByType(user.getId(), pageable, "my");
 
         return convertPageToDTO(postResponseDTO);
+    }
+
+    public Long getBoardId(Long postId, BoardType boardType) {
+        return postJooqRepository.getBoardId(postId, boardType);
     }
 }

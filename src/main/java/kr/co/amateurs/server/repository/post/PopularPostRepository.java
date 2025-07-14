@@ -38,6 +38,7 @@ public class PopularPostRepository {
                 .join(POST_STATISTICS).on(POST_STATISTICS.POST_ID.eq(POSTS.ID))
                 .leftJoin(COMMENTS).on(COMMENTS.POST_ID.eq(POSTS.ID))
                 .where(POSTS.IS_DELETED.eq(false))
+                .and(POSTS.IS_BLINDED.eq(false))
                 .and(POSTS.CREATED_AT.ge(threeDaysAgo))
                 .groupBy(POSTS.ID)
                 .fetch()
@@ -53,7 +54,10 @@ public class PopularPostRepository {
                                 DevCourseTrack.valueOf(record.get(USERS.DEVCOURSE_NAME)) : null,
                         record.get(POSTS.CREATED_AT),
                         record.get(POSTS.TITLE),
-                        BoardType.valueOf(record.get(POSTS.BOARD_TYPE, String.class))
+                        BoardType.valueOf(record.get(POSTS.BOARD_TYPE, String.class)),
+                        null,
+                        false,
+                        false
                 ));
     }
 
@@ -73,7 +77,10 @@ public class PopularPostRepository {
                                 request.authorDevcourseName().name() : null,
                         request.postCreatedAt(),
                         request.title(),
-                        request.boardType().name()
+                        request.boardType().name(),
+                        request.boardId(),
+                        request.isBlinded(),
+                        request.isDeleted()
                 ))
                 .toList();
 
@@ -89,19 +96,15 @@ public class PopularPostRepository {
                         POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME,
                         POPULAR_POSTS.POST_CREATED_AT,
                         POPULAR_POSTS.TITLE,
-                        POPULAR_POSTS.BOARD_TYPE
+                        POPULAR_POSTS.BOARD_TYPE,
+                        POPULAR_POSTS.BOARD_ID,
+                        POPULAR_POSTS.IS_BLINDED,
+                        POPULAR_POSTS.IS_DELETED
                 )
                 .valuesOfRows(rows)
                 .execute();
 
         log.info("인기글 {}개 저장 완료", requests.size());
-    }
-
-    public void deleteBeforeDate(LocalDate date) {
-        int count = dsl.deleteFrom(POPULAR_POSTS)
-                .where(POPULAR_POSTS.CALCULATED_DATE.lt(date))
-                .execute();
-        log.info("날짜 {} 인기글 {}개 삭제", date, count);
     }
 
     public List<PopularPostRequest> findLatestPopularPosts(int limit) {
@@ -122,10 +125,15 @@ public class PopularPostRepository {
                         POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME,
                         POPULAR_POSTS.POST_CREATED_AT,
                         POPULAR_POSTS.TITLE,
-                        POPULAR_POSTS.BOARD_TYPE
+                        POPULAR_POSTS.BOARD_TYPE,
+                        POPULAR_POSTS.BOARD_ID,
+                        POPULAR_POSTS.IS_BLINDED,
+                        POPULAR_POSTS.IS_DELETED
                 )
                 .from(POPULAR_POSTS)
                 .where(POPULAR_POSTS.CALCULATED_DATE.eq(latestDate))
+                .and(POPULAR_POSTS.IS_BLINDED.eq(false))
+                .and(POPULAR_POSTS.IS_DELETED.eq(false))
                 .orderBy(POPULAR_POSTS.POPULARITY_SCORE.desc())
                 .limit(limit)
                 .fetch()
@@ -141,7 +149,10 @@ public class PopularPostRepository {
                                 DevCourseTrack.valueOf(record.get(POPULAR_POSTS.AUTHOR_DEVCOURSE_NAME)) : null,
                         record.get(POPULAR_POSTS.POST_CREATED_AT),
                         record.get(POPULAR_POSTS.TITLE),
-                        BoardType.valueOf(record.get(POPULAR_POSTS.BOARD_TYPE))
+                        BoardType.valueOf(record.get(POPULAR_POSTS.BOARD_TYPE)),
+                        record.get(POPULAR_POSTS.BOARD_ID),
+                        record.get(POPULAR_POSTS.IS_BLINDED),
+                        record.get(POPULAR_POSTS.IS_DELETED)
                 ));
     }
 
@@ -151,4 +162,24 @@ public class PopularPostRepository {
                         .where(POPULAR_POSTS.CALCULATED_DATE.eq(date))
         );
     }
+
+    public void deleteBeforeDate(LocalDate date) {
+        int count = dsl.deleteFrom(POPULAR_POSTS)
+                .where(POPULAR_POSTS.CALCULATED_DATE.lt(date))
+                .execute();
+        log.info("날짜 {} 인기글 {}개 삭제", date, count);
+    }
+
+    public BoardStatus getBoardStatus(Long postId) {
+        var record = dsl.select(POSTS.IS_BLINDED, POSTS.IS_DELETED)
+                .from(POSTS)
+                .where(POSTS.ID.eq(postId))
+                .fetchOne();
+
+        return record != null ?
+                new BoardStatus(record.get(POSTS.IS_BLINDED), record.get(POSTS.IS_DELETED)) :
+                new BoardStatus(false, false);
+    }
+
+    public record BoardStatus(boolean isBlinded, boolean isDeleted) {}
 }
