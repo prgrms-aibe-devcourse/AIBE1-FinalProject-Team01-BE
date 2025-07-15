@@ -98,4 +98,12 @@ public class UserController {
         PageResponseDTO<PostResponseDTO> likePostList = postService.getMyPostList(paginationParam);
         return ResponseEntity.ok(likePostList);
     }
+
+    @GetMapping("/{nickname}/info")
+    @Operation(summary = "유저 모달 정보", description = "유저 정보 모달에 포함될 요약 정보를 가져옵니다.")
+    public ResponseEntity<UserModalInfoResponseDTO> getUserModalInfo(
+            @PathVariable String nickname){
+        UserModalInfoResponseDTO response = userService.getUserModalInfo(nickname);
+        return ResponseEntity.ok(response);
+    }
 }

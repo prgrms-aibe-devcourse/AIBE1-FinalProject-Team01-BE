@@ -10,6 +10,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.follow.FollowRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,6 +33,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FollowRepository followRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public void validateEmailDuplicate(String email) {
@@ -261,5 +263,18 @@ public class UserService {
     public void updateDevCourseInfo(User user, DevCourseTrack devcourseName, String devcourseBatch) {
         user.updateDevCourseInfo(devcourseName, devcourseBatch);
         userRepository.save(user);
+    }
+
+    public UserModalInfoResponseDTO getUserModalInfo(String nickname) {
+        User currentUser = getCurrentLoginUser();
+        User targetUser = userRepository.findByNickname(nickname);
+        boolean isFollowing = followRepository.existsByFromUserAndToUser(currentUser, targetUser);
+        return new UserModalInfoResponseDTO(
+                targetUser.getId(),
+                targetUser.getNickname(),
+                targetUser.getImageUrl(),
+                targetUser.getDevcourseName(),
+                targetUser.getDevcourseBatch(),
+                isFollowing);
     }
 }
