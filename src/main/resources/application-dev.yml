@@ -126,7 +126,7 @@ cookie:
 verification:
   service:
     url: http://localhost:5000
-    endpoint: /verify
+    endpoint: /verify/url
 
 otel:
   service:

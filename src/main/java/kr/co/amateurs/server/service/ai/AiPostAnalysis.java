@@ -57,26 +57,42 @@ public interface AiPostAnalysis {
         선택한 토픽: {{userTopics}}
         
         요구사항:
-        - 선택한 토픽을 기반으로 기본적인 관심사 추론
-        - 해당 프로필은 추후 맞춤 게시글 추천에 활용
-        - 관심 기술 키워드는 선택한 토픽 관련 3-5개로 구성(ex "Java, Spring, 데이터베이스")
-        - 토픽을 바탕으로 사용자의 현재 기술 관심분야를 작성
+        1. interest_keyword: 선택한 토픽과 관련된 핵심 키워드 3-5개를 쉼표로 구분 (예: "백엔드 개발, Spring Boot, API 설계, 데이터베이스")
+    
+        2. persona_description: 선택한 토픽에 관심이 있다는 것을 한 문장으로 자연스럽게 표현 (60-100자)
+            - 예시: "Spring과 자바 개발에 관심이 있고, 백엔드 개발과 서버 아키텍처에 관심이 있는 개발자"
+            - 예시: "react를 활용한 프론트엔드 기술과 사용자 인터페이스 개발을 좋아함"
+            - 예시: "AI/ML 기술과 데이터 분석 분야에 흥미를 느끼고 있음"
+            
+        선택한 토픽을 활용하여 토픽의 내용이 잘 드러날 수 있게 작성.
         """)
     AiProfileResponse generateInitialProfile(@V("userTopics") String userTopics);
 
     @UserMessage("""
-        사용자의 활동 데이터를 분석하여 개인화된 프로필을 생성해주세요.
-        
-        사용자 가입 토픽: {{userTopics}}
-        데브코스 정보: {{devcourseName}}
-        
-        사용자 활동 요약:
-        {{summaries}}
-        
-        요구사항:
-        - 데브코스 정보가 "정보 없음"인 경우 무시하고 다른 정보로 분석
-        - 활동 요약이 부족한 경우 토픽 정보를 더 중점적으로 활용
-        - 관심 기술 키워드는 5~8개 이내로 작성
-        """)
+            사용자의 활동 데이터를 분석하여 개인화된 프로필을 생성해주세요.
+            
+            사용자 가입 토픽: {{userTopics}}
+            데브코스 정보: {{devcourseName}}
+            
+            사용자 활동 요약:
+            {{summaries}}
+            
+                요구사항:
+                1. interest_keyword: 활동 데이터에서 자주 등장하는 기술/키워드를 우선으로 하되, 가입 토픽과 데브코스 정보도 고려하여 5-8개 추출
+                    - 실제 활동에서 나타난 관심사 > 가입 시 선택한 토픽 순으로 우선순위
+                    - 예: "React, TypeScript, AWS, Docker"
+                
+                2. persona_description: 실제 활동 패턴을 반영한 구체적인 설명 (100-150자)
+                   - 어떤 기술 스택을 주로 다루는지
+                   - 어떤 종류의 프로젝트나 주제에 관심이 많은지
+                   - 활동 데이터에서 드러나는 개발 성향이나 특징
+                    - 예: "React와 Node.js로 풀스택 개발을 하며, 팀 프로젝트와 코드 리뷰에 적극적으로 참여하는 개발자"
+                실제 활동 데이터를 최우선으로 반영하여 더 정확하고 개인화된 프로필을 만들어주세요.
+            
+            요구사항:
+            - 데브코스 정보가 "정보 없음"인 경우 무시하고 다른 정보로 분석
+            - 활동 요약이 부족한 경우 토픽 정보를 더 중점적으로 활용
+            - 관심 기술 키워드는 5~8개 이내로 작성
+            """)
     AiProfileResponse generateFinalProfile(@V("userTopics") String userTopics, @V("devcourseName") String devcourseName, @V("summaries") String summaries);
 }

@@ -8,15 +8,19 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.verify.Verify;
 import kr.co.amateurs.server.domain.entity.verify.VerifyStatus;
+import kr.co.amateurs.server.domain.event.VerificationEvent;
 import kr.co.amateurs.server.repository.verify.VerifyRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -26,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -39,6 +44,7 @@ public class VerifyService {
     private final VerifyRepository verifyRepository;
     private final FileService fileService;
     private final UserService userService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${verification.service.url}")
     private String verificationServiceUrl;
@@ -68,30 +74,50 @@ public class VerifyService {
             Verify savedVerify = verifyRepository.save(verify);
             log.info("인증 요청 생성: verifyId={}, userId={}", savedVerify.getId(), user.getId());
 
-            byte[] imageBytes = image.getBytes();
-            String filename = image.getOriginalFilename();
-            
-            CompletableFuture.runAsync(() -> {
-                processVerificationAsync(savedVerify.getId(), imageBytes, filename, user, devcourseName, devcourseBatch);
-            });
+            eventPublisher.publishEvent(new VerificationEvent(
+                    savedVerify.getId(),
+                    imageUrl,
+                    image.getOriginalFilename(),
+                    user,
+                    devcourseName,
+                    devcourseBatch
+            ));
 
             return VerifyResultDTO.processing();
 
         } catch (IOException e) {
-        throw ErrorCode.FILE_PROCESSING_ERROR.get();
+            throw ErrorCode.FILE_PROCESSING_ERROR.get();
         } catch (Exception e) {
-        throw ErrorCode.VERIFICATION_PROCESSING_ERROR.get();
+            throw ErrorCode.VERIFICATION_PROCESSING_ERROR.get();
         }
     }
 
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleVerificationEvent(VerificationEvent event) {
+        log.info("트랜잭션 커밋 후 비동기 처리 시작: verifyId={}", event.verifyId());
+
+        CompletableFuture.runAsync(() -> {
+            processVerificationAsync(
+                    event.verifyId(),
+                    event.imageUrl(),
+                    event.filename(),
+                    event.user(),
+                    event.devcourseName(),
+                    event.devcourseBatch()
+            );
+        });
+    }
+
     @Transactional
-    public void processVerificationAsync(Long verifyId, byte[] imageBytes, String filename, User user, DevCourseTrack devcourseName, String devcourseBatch) {
+    public void processVerificationAsync(Long verifyId, String imageUrl, String filename, User user, DevCourseTrack devcourseName, String devcourseBatch) {
         try {
             log.info("비동기 인증 처리 시작: verifyId={}", verifyId);
             Verify verify = verifyRepository.findById(verifyId)
                     .orElseThrow(() -> ErrorCode.NOT_FOUND.get());
 
-            PythonServiceResponseDTO.DataDTO data = callPythonVerificationService(imageBytes, filename);
+
+            PythonServiceResponseDTO.DataDTO data = callPythonVerificationServiceByUrl(imageUrl, filename);
+
             VerifyStatus status = determineStatusAndUpdateRole(user, data.totalScore(), devcourseName, devcourseBatch);
 
             verify.updateVerification(data, status);
@@ -118,26 +144,23 @@ public class VerifyService {
     }
 
     /**
-     * Python 인증 서비스 호출
+     * Python 인증 서비스 - URL 전달
+     * @param
      */
-    private PythonServiceResponseDTO.DataDTO callPythonVerificationService(byte[] imageBytes, String filename) throws IOException {
+    private PythonServiceResponseDTO.DataDTO callPythonVerificationServiceByUrl(String imageUrl, String filename) {
         String url = verificationServiceUrl + verificationEndpoint;
 
+        log.info("Python 서비스 URL 호출: {}, imageUrl: {}, filename: {}", url, imageUrl, filename);
+
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String fileName = filename != null ? filename : "image.jpg";
-        ByteArrayResource fileResource = new ByteArrayResource(imageBytes) {
-            @Override
-            public String getFilename() {
-                return fileName;
-            }
-        };
+        Map<String, String> requestBody = Map.of(
+                "imageUrl", imageUrl,
+                "filename", filename != null ? filename : "image.jpg"
+        );
 
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("image", fileResource);
-
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
 
         ResponseEntity<PythonServiceResponseDTO> response = restTemplate.postForEntity(
                 url, requestEntity, PythonServiceResponseDTO.class
