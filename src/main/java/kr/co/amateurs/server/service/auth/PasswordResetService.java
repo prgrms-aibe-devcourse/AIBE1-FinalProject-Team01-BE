@@ -7,6 +7,7 @@ import kr.co.amateurs.server.domain.dto.auth.PasswordResetRequestDTO;
 import kr.co.amateurs.server.domain.dto.auth.PasswordResetResponseDTO;
 import kr.co.amateurs.server.domain.entity.auth.PasswordResetToken;
 import kr.co.amateurs.server.domain.entity.user.User;
+import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.repository.auth.PasswordResetTokenRepository;
 import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,14 @@ public class PasswordResetService {
 
         if (user.isDeleted()) {
             throw ErrorCode.USER_NOT_FOUND.get();
+        }
+
+        if (user.getProviderType() != ProviderType.LOCAL) {
+            switch (user.getProviderType()) {
+                case GITHUB -> throw ErrorCode.GITHUB_LOGIN_PASSWORD_RESET_NOT_ALLOWED.get();
+                case KAKAO -> throw ErrorCode.KAKAO_LOGIN_PASSWORD_RESET_NOT_ALLOWED.get();
+                default -> throw ErrorCode.SOCIAL_LOGIN_PASSWORD_RESET_NOT_ALLOWED.get();
+            }
         }
 
         passwordResetTokenRepository.deleteByEmail(request.email());
@@ -111,4 +120,6 @@ public class PasswordResetService {
             return localPart.substring(0, 3) + "***@" + domain;
         }
     }
+
+
 }

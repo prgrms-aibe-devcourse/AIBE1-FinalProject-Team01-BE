@@ -56,6 +56,10 @@ public enum ErrorCode implements Supplier<CustomException> {
     PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     INVALID_RESET_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 재설정 토큰입니다."),
     EXPIRED_RESET_TOKEN(HttpStatus.BAD_REQUEST, "만료된 재설정 토큰입니다."),
+    GITHUB_LOGIN_PASSWORD_RESET_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "GitHub 계정으로 가입하신 사용자입니다. GitHub에서 로그인해 주세요."),
+    KAKAO_LOGIN_PASSWORD_RESET_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "카카오 계정으로 가입하신 사용자입니다. 카카오에서 로그인해 주세요."),
+    SOCIAL_LOGIN_PASSWORD_RESET_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "소셜 로그인 사용자는 비밀번호 재설정을 할 수 없습니다."),
+
 
 
     // 토픽 관련 에러
