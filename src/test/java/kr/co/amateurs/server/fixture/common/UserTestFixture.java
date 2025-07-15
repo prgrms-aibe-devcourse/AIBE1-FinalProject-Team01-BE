@@ -93,4 +93,41 @@ public class UserTestFixture {
                 .nickname(generateUniqueNickname())
                 .build();
     }
+
+    /**
+     * 로컬 사용자를 생성합니다
+     */
+    public static User createLocalUser(String email, String nickname, String encodedPassword) {
+        User user = User.builder()
+                .email(email)
+                .nickname(nickname)
+                .name("테스트사용자")
+                .password(encodedPassword)
+                .role(Role.GUEST)
+                .providerType(ProviderType.LOCAL)
+                .isProfileCompleted(true)
+                .build();
+
+        user.addUserTopics(Set.of(Topic.FRONTEND, Topic.BACKEND));
+        return user;
+    }
+
+    /**
+     * OAuth 사용자를 생성합니다
+     */
+    public static User createOAuthUser(String email, String nickname, ProviderType providerType, String providerId) {
+        User user = User.builder()
+                .email(email)
+                .nickname(nickname)
+                .name("OAuth사용자")
+                .password(null)
+                .role(Role.GUEST)
+                .providerType(providerType)
+                .providerId(providerId)
+                .isProfileCompleted(true)
+                .build();
+
+        user.addUserTopics(Set.of(Topic.FRONTEND, Topic.BACKEND));
+        return user;
+    }
 }

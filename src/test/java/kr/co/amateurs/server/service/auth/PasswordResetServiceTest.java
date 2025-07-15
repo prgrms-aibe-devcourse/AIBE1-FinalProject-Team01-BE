@@ -12,6 +12,7 @@ import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import kr.co.amateurs.server.repository.auth.PasswordResetTokenRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -180,38 +181,14 @@ public class PasswordResetServiceTest {
 
     // 헬퍼 메서드들
     private User createAndSaveLocalUser(String email, String nickname, String password) {
-        User user = User.builder()
-                .email(email)
-                .nickname(nickname)
-                .name("테스트사용자")
-                .password(passwordEncoder.encode(password))
-                .role(Role.GUEST)
-                .providerType(ProviderType.LOCAL)
-                .isProfileCompleted(true)
-                .build();
-
-        user.addUserTopics(Set.of(Topic.FRONTEND, Topic.BACKEND));
-
+        User user = UserTestFixture.createLocalUser(email, nickname, passwordEncoder.encode(password));
         return userRepository.save(user);
     }
 
     private User createAndSaveGitHubUser(String email, String nickname) {
-        User user = User.builder()
-                .email(email)
-                .nickname(nickname)
-                .name("GitHub사용자")
-                .password(null)
-                .role(Role.GUEST)
-                .providerType(ProviderType.GITHUB)
-                .providerId("github123")
-                .isProfileCompleted(true)
-                .build();
-
-        user.addUserTopics(Set.of(Topic.FRONTEND, Topic.BACKEND));
-
+        User user = UserTestFixture.createOAuthUser(email, nickname, ProviderType.GITHUB, "github123");
         return userRepository.save(user);
     }
-
 
     private PasswordResetToken createAndSavePasswordResetToken(String token, String email) {
         PasswordResetToken resetToken = PasswordResetToken.builder()
