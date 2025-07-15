@@ -10,10 +10,12 @@ import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
+import kr.co.amateurs.server.domain.entity.post.GatheringPost;
 import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.PostStatistics;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
+import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
@@ -193,5 +195,13 @@ public class MarketService {
 
     private boolean canEditOrDelete(Post post, User user) {
         return Objects.equals(post.getUser().getId(), user.getId()) || user.getRole() == Role.ADMIN;
+    }
+
+    @Transactional
+    public void updateMarketPostStatus(Long id, MarketStatus status) {
+        MarketItem mi = marketRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
+        Post post = mi.getPost();
+        validateUser(post);
+        mi.updateStatus(status);
     }
 }

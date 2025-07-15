@@ -9,6 +9,7 @@ import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
+import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.service.together.GatheringService;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -60,6 +61,16 @@ public class GatheringController {
             @PathVariable("gatheringId") Long gatheringId,
             @RequestBody @Valid GatheringPostRequestDTO dto){
         gatheringService.updateGatheringPost(gatheringId, dto);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @PutMapping("/{gatheringId}/{status}")
+    @Operation(summary = "팀원 모집 글 상태 수정", description = "팀원 모집 탭의 본인이 작성한 게시글의 상태를 수정합니다.")
+    public ResponseEntity<Void> updateGatheringPostStatus(
+            @PathVariable("gatheringId") Long gatheringId,
+            @PathVariable("status") GatheringStatus status
+    ){
+        gatheringService.updateGatheringPostStatus(gatheringId, status);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
