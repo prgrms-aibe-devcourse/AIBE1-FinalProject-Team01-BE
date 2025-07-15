@@ -10,10 +10,11 @@ public class AuthAuthorizeHttpRequestsConfig implements CustomAuthorizeHttpReque
     @Override
     public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
+                .requestMatchers("/api/v1/auth/password/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/auth/check/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/signup").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/logout").hasAnyRole("ADMIN", "STUDENT", "GUEST")
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/reissue").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/complete-profile").permitAll();
     }
