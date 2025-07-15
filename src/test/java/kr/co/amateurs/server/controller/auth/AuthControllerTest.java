@@ -1,6 +1,8 @@
 package kr.co.amateurs.server.controller.auth;
 
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
+import kr.co.amateurs.server.domain.dto.auth.PasswordResetConfirmDTO;
+import kr.co.amateurs.server.domain.dto.auth.PasswordResetRequestDTO;
 import kr.co.amateurs.server.fixture.auth.AuthTestFixture;
 import kr.co.amateurs.server.fixture.auth.TokenTestFixture;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
@@ -555,5 +557,48 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .post("/auth/logout")
                 .then()
                 .statusCode(401);
+    }
+
+
+    @Test
+    void 유효한_로컬_사용자_이메일로_비밀번호_재설정_요청하면_성공한다() {
+        // Given
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/auth/signup")
+                .then()
+                .statusCode(201);
+
+        PasswordResetRequestDTO request = new PasswordResetRequestDTO(signupRequest.email());
+
+        // When & Then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/auth/password/reset/request")
+                .then()
+                .statusCode(200)
+                .body("message", equalTo("비밀번호 재설정 정보가 확인되었습니다. 새로운 비밀번호를 설정해주세요."))
+                .body("resetToken", notNullValue());
+    }
+
+    @Test
+    void 존재하지_않는_사용자_이메일로_비밀번호_재설정_요청하면_404_에러가_발생한다() {
+        // Given
+        PasswordResetRequestDTO request = new PasswordResetRequestDTO("nonexistent@test.com");
+
+        // When & Then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/auth/password/reset/request")
+                .then()
+                .statusCode(404)
+                .body("message", equalTo("존재하지 않는 사용자입니다."));
     }
 }
