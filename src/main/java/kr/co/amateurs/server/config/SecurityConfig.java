@@ -67,14 +67,14 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> {
                     auth
-                            .requestMatchers("/ws/**").permitAll()
-                            .requestMatchers("/app/**").permitAll()
-                            .requestMatchers("/topic/**").permitAll()
                             .requestMatchers("/favicon.ico", "/").denyAll()
                             .requestMatchers("/error").permitAll()
-                            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                             .requestMatchers("/actuator/**").permitAll()
-                            .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll();
+                            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                            .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                            .requestMatchers("/ws/**").permitAll()
+                            .requestMatchers("/app/**").permitAll()
+                            .requestMatchers("/topic/**").permitAll();
 
                     customAuthorizeHttpRequestsConfigurers.forEach(configurer -> configurer.configure(auth));
 
