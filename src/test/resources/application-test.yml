@@ -40,14 +40,6 @@ oauth:
   success-redirect-url: http://localhost:3000/test
   failure-redirect-url: http://localhost:3000/test
 
-github:
-  client-id: test
-  client-secret: test
-
-kakao:
-  client-id: test
-  client-secret: test
-
 langchain4j:
   google-ai-gemini:
     recommend:
