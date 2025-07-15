@@ -150,6 +150,8 @@ public class VerifyService {
     private PythonServiceResponseDTO.DataDTO callPythonVerificationServiceByUrl(String imageUrl, String filename) {
         String url = verificationServiceUrl + verificationEndpoint;
 
+        log.info("Python 서비스 URL 호출: {}, imageUrl: {}, filename: {}", url, imageUrl, filename);
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
