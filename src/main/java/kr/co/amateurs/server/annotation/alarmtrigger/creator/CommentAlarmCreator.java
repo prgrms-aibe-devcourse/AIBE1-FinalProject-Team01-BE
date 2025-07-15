@@ -127,7 +127,7 @@ public class CommentAlarmCreator implements AlarmCreator {
     /**
      * 댓글 알람의 내용 메시지를 생성합니다.
      *
-     * @param commentAuthorNickname 댓글 작성자의 닉네임
+     * @param commentAuthorNickname 댓글 작성자의 닉ai_profiles네임
      * @param post                  댓글이 달린 게시글
      * @return 알람 내용 메시지
      */
