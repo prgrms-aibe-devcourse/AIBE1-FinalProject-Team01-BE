@@ -2,6 +2,7 @@ package kr.co.amateurs.server.service.directmessage;
 
 import kr.co.amateurs.server.annotation.alarmtrigger.AlarmTrigger;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.directmessage.*;
 import kr.co.amateurs.server.domain.dto.directmessage.event.AnonymizeEvent;
 import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
@@ -11,6 +12,7 @@ import kr.co.amateurs.server.domain.entity.directmessage.Participant;
 import kr.co.amateurs.server.domain.entity.directmessage.enums.MessageType;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.directmessage.DirectMessageCustomRepository;
 import kr.co.amateurs.server.repository.directmessage.DirectMessageRepository;
 import kr.co.amateurs.server.repository.directmessage.DirectMessageRoomRepository;
 import kr.co.amateurs.server.service.UserService;
@@ -30,6 +32,7 @@ import java.util.List;
 public class DirectMessageService {
     private final DirectMessageRepository directMessageRepository;
     private final DirectMessageRoomRepository directMessageRoomRepository;
+    private final DirectMessageCustomRepository customRepository;
 
     private final UserService userService;
     private final FileService fileService;
@@ -85,6 +88,15 @@ public class DirectMessageService {
     public void anonymizeUser(AnonymizeEvent event) {
         User user = event.user();
         directMessageRepository.anonymizeUser(user.getId(), user.getNickname(), user.getImageUrl());
+    }
+
+    public PageResponseDTO<DirectMessageResponse> findMessages(DirectMessageSearchPaginationParam param) {
+        User currentUser = userService.getCurrentLoginUser();
+
+        List<DirectMessageRoom> userRooms = directMessageRoomRepository.findAllRoomsByUserId(currentUser.getId());
+        Page<DirectMessage> searchResult = customRepository.searchMessages(userRooms, currentUser.getId(), param);
+
+        return PageResponseDTO.convertPageToDTO(searchResult.map(DirectMessageResponse::fromCollection));
     }
 
     public void exitRoom(String roomId) {

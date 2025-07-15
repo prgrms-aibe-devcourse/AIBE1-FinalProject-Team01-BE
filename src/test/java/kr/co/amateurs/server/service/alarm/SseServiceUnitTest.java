@@ -68,15 +68,6 @@ class SseServiceUnitTest {
     }
 
     @Test
-    void 연결되지_않은_사용자에게_알람_전송_시_예외가_발생한다() {
-        // given - 연결하지 않음 (connections가 비어있음)
-
-        // when & then
-        assertThatThrownBy(() -> sseService.sendAlarmToUser(testUser.getId(), testAlarm))
-                .isInstanceOf(CustomException.class);
-    }
-
-    @Test
     void 알람_전송_중_IOException_발생_시_연결을_제거한다() throws IOException {
         // given
         connections.put(testUser.getId(), mockEmitter);

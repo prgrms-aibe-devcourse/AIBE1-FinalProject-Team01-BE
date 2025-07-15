@@ -1,9 +1,7 @@
 package kr.co.amateurs.server.service.alarm;
 
-import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.alarm.AlarmDTO;
 import kr.co.amateurs.server.domain.entity.alarm.Alarm;
-import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,7 +72,7 @@ public class SseService {
     public void sendAlarmToUser(long userId, Alarm alarm) {
         SseEmitter emitter = connections.get(userId);
         if (emitter == null) {
-            throw new CustomException(ErrorCode.NOT_FOUND);
+            return;
         }
 
         try {
