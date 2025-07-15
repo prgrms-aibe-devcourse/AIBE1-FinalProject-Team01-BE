@@ -11,8 +11,9 @@ distributor:
           endpoint: 0.0.0.0:4318
 
 ingester:
-  trace_idle_period: 10s
-  max_block_duration: 5m
+  trace_idle_period: 5s
+  flush_check_period: 5s
+  max_block_duration: 1m
 
 compactor:
   compaction:
@@ -36,11 +37,8 @@ metrics_generator:
   processor:
     local_blocks:
       flush_to_storage: true
-  traces:
-    wal:
-      path: /var/tempo/generator/traces_wal
 
 overrides:
   defaults:
     metrics_generator:
-      processors: [service-graphs, span-metrics, local-blocks]
+      processors: [service-graphs, span-metrics]

@@ -34,4 +34,8 @@ public class MatchingPost extends BaseEntity {
         this.status = dto.status();
         this.expertiseAreas = dto.expertiseArea();
     }
+
+    public void updateStatus(MatchingStatus status) {
+        this.status = status;
+    }
 }

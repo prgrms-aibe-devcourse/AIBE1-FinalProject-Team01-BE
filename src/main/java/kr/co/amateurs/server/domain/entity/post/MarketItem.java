@@ -32,4 +32,8 @@ public class MarketItem extends BaseEntity {
         this.place = dto.place();
 
     }
+
+    public void updateStatus(MarketStatus status) {
+        this.status = status;
+    }
 }

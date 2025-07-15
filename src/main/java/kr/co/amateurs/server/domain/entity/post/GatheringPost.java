@@ -39,4 +39,8 @@ public class GatheringPost extends BaseEntity {
         this.period = dto.period();
         this.schedule = dto.schedule();
     }
+
+    public void updateStatus(GatheringStatus status) {
+        this.status = status;
+    }
 }

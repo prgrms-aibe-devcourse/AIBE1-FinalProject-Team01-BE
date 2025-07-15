@@ -123,7 +123,7 @@ public class CheckPostMetaDataPolicyTest {
     void GUEST_권한으로_IT_게시판_쓰기_시_예외가_발생한다() {
         // given
         Role userRole = Role.GUEST;
-        BoardType boardType = BoardType.INFO;
+        BoardType boardType = BoardType.REVIEW;
         OperationType operationType = OperationType.WRITE;
 
         // when & then
@@ -142,7 +142,7 @@ public class CheckPostMetaDataPolicyTest {
         checkPostMetaDataPolicy.validateAccess(userRole, BoardType.QNA, operationType);
         checkPostMetaDataPolicy.validateAccess(userRole, BoardType.MARKET, operationType);
         checkPostMetaDataPolicy.validateAccess(userRole, BoardType.GATHER, operationType);
-        checkPostMetaDataPolicy.validateAccess(userRole, BoardType.INFO, operationType);
+        checkPostMetaDataPolicy.validateAccess(userRole, BoardType.REVIEW, operationType);
         checkPostMetaDataPolicy.validateAccess(userRole, BoardType.REVIEW, operationType);
     }
 

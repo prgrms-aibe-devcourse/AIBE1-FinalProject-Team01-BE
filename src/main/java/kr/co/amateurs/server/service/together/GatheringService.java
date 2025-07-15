@@ -195,5 +195,13 @@ public class GatheringService {
     private boolean canEditOrDelete(Post post, User user) {
         return Objects.equals(post.getUser().getId(), user.getId()) || user.getRole() == Role.ADMIN;
     }
+
+    @Transactional
+    public void updateGatheringPostStatus(Long id, GatheringStatus status) {
+        GatheringPost gp = gatheringRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
+        Post post = gp.getPost();
+        validateUser(post);
+        gp.updateStatus(status);
+    }
 }
 
