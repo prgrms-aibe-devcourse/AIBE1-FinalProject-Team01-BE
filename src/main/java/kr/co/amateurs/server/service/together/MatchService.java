@@ -11,6 +11,7 @@ import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.together.MatchPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
+import kr.co.amateurs.server.domain.entity.post.MarketItem;
 import kr.co.amateurs.server.domain.entity.post.MatchingPost;
 import kr.co.amateurs.server.domain.entity.post.Post;
 import kr.co.amateurs.server.domain.entity.post.PostStatistics;
@@ -193,5 +194,13 @@ public class MatchService {
 
     private boolean canEditOrDelete(Post post, User user) {
         return Objects.equals(post.getUser().getId(), user.getId()) || user.getRole() == Role.ADMIN;
+    }
+
+    @Transactional
+    public void updateMatchPostStatus(Long id, MatchingStatus status) {
+        MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
+        Post post = mp.getPost();
+        validateUser(post);
+        mp.updateStatus(status);
     }
 }
