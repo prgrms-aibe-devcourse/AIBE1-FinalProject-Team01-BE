@@ -13,6 +13,7 @@ public record DirectMessageResponse(
         String content,
         Long senderId,
         String senderNickname,
+        String senderProfileImage,
         MessageType messageType,
         LocalDateTime sentAt
 ) {
@@ -23,6 +24,7 @@ public record DirectMessageResponse(
                 message.getContent(),
                 message.getSenderId(),
                 message.getSenderNickname(),
+                message.getSenderProfileImage(),
                 message.getMessageType(),
                 message.getSentAt()
         );

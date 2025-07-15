@@ -400,6 +400,7 @@ class AlarmControllerTest extends AbstractControllerTest {
                         DirectMessageFixture.MESSAGE_CONTENT_1,
                         testUser.getId(),
                         testUser.getNickname(),
+                        testUser.getImageUrl(),
                         MessageType.TEXT
                 );
 
