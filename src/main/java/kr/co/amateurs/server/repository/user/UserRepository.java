@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.repository.user;
 
+import kr.co.amateurs.server.domain.dto.user.UserModalInfoResponseDTO;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
@@ -20,7 +21,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     Optional<User> findByProviderIdAndProviderType(String providerId, ProviderType providerType);
 
-    Optional<User> findByNickname(String testUser);
+    User findByNickname(String nickname);
 
     @Query("SELECT ut.topic FROM UserTopic ut WHERE ut.user.id = :userId")
     List<Topic> findTopicDisplayNamesByUserId(@Param("userId") Long userId);
