@@ -2,6 +2,8 @@ package kr.co.amateurs.server.service.auth;
 
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.auth.PasswordResetConfirmDTO;
+import kr.co.amateurs.server.domain.dto.auth.PasswordResetConfirmResponseDTO;
 import kr.co.amateurs.server.domain.dto.auth.PasswordResetRequestDTO;
 import kr.co.amateurs.server.domain.dto.auth.PasswordResetResponseDTO;
 import kr.co.amateurs.server.domain.entity.auth.PasswordResetToken;
@@ -89,6 +91,61 @@ public class PasswordResetServiceTest {
         assertThatThrownBy(() -> passwordResetService.requestPasswordReset(request))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.GITHUB_LOGIN_PASSWORD_RESET_NOT_ALLOWED.getMessage());
+    }
+
+    @Test
+    void 비밀번호가_일치하지_않으면_실패한다() {
+        // Given
+        createAndSaveLocalUser("user@test.com", "nickname", "oldPassword123");
+        createAndSavePasswordResetToken("valid-token", "user@test.com");
+
+        PasswordResetConfirmDTO request = new PasswordResetConfirmDTO(
+                "valid-token",
+                "newPassword123",
+                "differentPassword123"
+        );
+
+        // When & Then
+        assertThatThrownBy(() -> passwordResetService.confirmPasswordReset(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.PASSWORD_MISMATCH.getMessage());
+    }
+
+    @Test
+    void 유효하지_않은_토큰으로_요청하면_실패한다() {
+        // Given
+        createAndSaveLocalUser("user@test.com", "nickname", "oldPassword123");
+
+        PasswordResetConfirmDTO request = new PasswordResetConfirmDTO(
+                "invalid-token",
+                "newPassword123",
+                "newPassword123"
+        );
+
+        // When & Then
+        assertThatThrownBy(() -> passwordResetService.confirmPasswordReset(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.INVALID_RESET_TOKEN.getMessage());
+    }
+
+    @Test
+    void 만료된_토큰으로_요청하면_실패하고_토큰이_삭제된다() {
+        // Given
+        createAndSaveLocalUser("user@test.com", "nickname", "oldPassword123");
+        PasswordResetToken expiredToken = createAndSaveExpiredPasswordResetToken("expired-token", "user@test.com");
+
+        PasswordResetConfirmDTO request = new PasswordResetConfirmDTO(
+                "expired-token",
+                "newPassword123",
+                "newPassword123"
+        );
+
+        // When & Then
+        assertThatThrownBy(() -> passwordResetService.confirmPasswordReset(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.EXPIRED_RESET_TOKEN.getMessage());
+
+        assertThat(passwordResetTokenRepository.findByToken("expired-token")).isEmpty();
     }
 
 
