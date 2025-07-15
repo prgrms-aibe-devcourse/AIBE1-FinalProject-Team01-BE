@@ -17,22 +17,18 @@ public class Participant {
     private String nickname;
     private String profileImage;
     private LocalDateTime lastReadAt;
-    private LocalDateTime leftAt;
+    private LocalDateTime reEntryAt;
 
     @Builder.Default
     private Boolean isActive = true;
 
-    public void updateLastReadAt(LocalDateTime lastReadAt) {
-        this.lastReadAt = lastReadAt;
-    }
-
     public void exitRoom() {
         this.isActive = false;
-        this.leftAt = LocalDateTime.now();
     }
 
     public void reEntry() {
         this.isActive = true;
+        this.reEntryAt = LocalDateTime.now();
     }
 
     public static Participant from(User user) {
