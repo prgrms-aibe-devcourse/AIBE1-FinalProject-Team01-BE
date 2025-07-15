@@ -24,8 +24,8 @@ public class PopularPostRequestFixture {
                 "테스트 제목",
                 BoardType.FREE,
                 1L,
-                null,
-                null
+                false,
+                false
         );
     }
 } 

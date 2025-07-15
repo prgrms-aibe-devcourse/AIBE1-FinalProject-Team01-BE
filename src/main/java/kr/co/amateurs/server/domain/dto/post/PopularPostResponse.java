@@ -22,9 +22,9 @@ public record PopularPostResponse(
                 request.postId(),
                 request.title(),
                 request.authorNickname(),
-                request.likeCount(),
-                request.viewCount(),
-                request.commentCount(),
+                request.likeCount() != null ? request.likeCount() : 0,
+                request.viewCount() != null ? request.viewCount() : 0,
+                request.commentCount() != null ? request.commentCount() : 0,
                 request.boardType(),
                 request.postCreatedAt(),
                 request.boardId()

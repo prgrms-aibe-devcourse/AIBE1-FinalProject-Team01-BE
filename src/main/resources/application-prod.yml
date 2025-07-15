@@ -115,6 +115,10 @@ management:
   endpoint:
     info:
       access: read_only
+  otlp:
+    metrics:
+      export:
+        enabled: false
 
 logging:
   level:

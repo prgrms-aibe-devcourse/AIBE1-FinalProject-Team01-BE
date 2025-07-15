@@ -39,6 +39,9 @@ class PopularPostServiceTest {
     @MockitoBean
     PostService postService;
 
+    @MockitoBean
+    private PopularPostCacheService popularPostCacheService;
+
     @Nested
     class 인기글_계산_및_저장_기능 {
         @Test
@@ -62,6 +65,10 @@ class PopularPostServiceTest {
                     생성(2L, 200, 20, 10, 0.0, LocalDate.now())
             );
             when(popularPostRepository.findRecentPostsWithCounts(any())).thenReturn(posts);
+            when(postService.getBoardId(any(), any())).thenReturn(1L);
+            when(popularPostRepository.getBoardStatus(any())).thenReturn(
+                    new PopularPostRepository.BoardStatus(false, false)
+            );
 
             // when
             popularPostService.calculateAndSavePopularPosts();
@@ -88,7 +95,7 @@ class PopularPostServiceTest {
             // then
             verify(popularPostRepository).savePopularPosts(captor.capture());
             List<PopularPostRequest> saved = captor.getValue();
-            assertThat(saved).hasSize(10);
+            assertThat(saved).hasSize(12);
             // 점수 내림차순 정렬 확인
             for (int i = 0; i < saved.size() - 1; i++) {
                 assertThat(saved.get(i).popularityScore()).isGreaterThanOrEqualTo(saved.get(i + 1).popularityScore());
@@ -104,7 +111,11 @@ class PopularPostServiceTest {
             List<PopularPostRequest> posts = List.of(
                     생성(1L, 100, 10, 5, 123.4, LocalDate.now())
             );
-            when(popularPostRepository.findLatestPopularPosts(anyInt())).thenReturn(posts);
+            List<PopularPostResponse> expectedResponse = posts.stream()
+                    .map(PopularPostResponse::from)
+                    .toList();
+            when(popularPostCacheService.getCachedPopularPosts(anyInt())).thenReturn(expectedResponse);
+
 
             // when
             List<PopularPostResponse> result = popularPostService.getPopularPosts(10);
@@ -117,7 +128,7 @@ class PopularPostServiceTest {
         @Test
         void 인기글이_없으면_빈_리스트를_반환한다() {
             // given
-            when(popularPostRepository.findLatestPopularPosts(anyInt())).thenReturn(List.of());
+            when(popularPostCacheService.getCachedPopularPosts(anyInt())).thenReturn(List.of());
 
             // when
             List<PopularPostResponse> result = popularPostService.getPopularPosts(10);

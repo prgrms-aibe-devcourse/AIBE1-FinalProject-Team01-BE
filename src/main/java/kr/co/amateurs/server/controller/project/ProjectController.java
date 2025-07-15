@@ -48,7 +48,7 @@ public class ProjectController {
 
     @PostMapping
     @Operation(summary = "프로젝트 글쓰기", description = "프로젝트 허브 게시판의 새 글을 생성합니다.")
-    public ResponseEntity<ProjectResponseDTO> createProject(@RequestBody ProjectRequestDTO projectRequestDTO) {
+    public ResponseEntity<ProjectResponseDTO> createProject(@RequestBody @Valid ProjectRequestDTO projectRequestDTO) {
         ProjectResponseDTO projectResponseDTO = projectService.createProject(projectRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(projectResponseDTO);
     }
@@ -56,7 +56,7 @@ public class ProjectController {
     @PutMapping("/{projectId}")
     @Operation(summary = "프로젝트 글 수정", description = "프로젝트 허브 게시판의 특정 글을 수정합니다.")
     public ResponseEntity<Void> updateProject(@PathVariable Long projectId,
-                                              @RequestBody ProjectRequestDTO projectRequestDTO) {
+                                              @RequestBody @Valid ProjectRequestDTO projectRequestDTO) {
         projectService.updateProject(projectId, projectRequestDTO);
         return ResponseEntity.noContent().build();
     }

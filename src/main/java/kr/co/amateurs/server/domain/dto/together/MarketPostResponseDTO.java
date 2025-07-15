@@ -35,6 +35,8 @@ public record MarketPostResponseDTO(
         String tags,
         @Schema(description = "조회수", example = "3")
         Integer viewCount,
+        @Schema(description = "댓글수", example = "3")
+        Integer commentCount,
         @Schema(description = "좋아요 수", example = "1")
         Integer likeCount,
         @Schema(description = "북마크 수", example = "1")
@@ -45,18 +47,18 @@ public record MarketPostResponseDTO(
         Integer price,
         @Schema(description = "물품 판매 지역", example = "서울")
         String place,
+        @Schema(description = "썸네일", example = "http://localimage.com")
+        String thumbnail,
         @Schema(description = "생성 일시", example = "2025-06-25T00:08:25")
         LocalDateTime createdAt,
         @Schema(description = "수정 일시", example = "2025-06-25T00:08:25")
         LocalDateTime updatedAt,
-        @Schema(description = "썸네일 이미지 존재 여부", example = "false")
-        boolean hasImages,
         @Schema(description = "좋아요 여부", example = "false")
         boolean hasLiked,
         @Schema(description = "북마크 여부", example = "false")
         boolean hasBookmarked
 ) {
-            public static MarketPostResponseDTO convertToDTO(MarketItem mi, Post post, PostStatistics postStatistics, boolean hasLiked, boolean hasBookmarked, Integer bookmarkCount) {
+            public static MarketPostResponseDTO convertToDTO(MarketItem mi, Post post) {
                 return new MarketPostResponseDTO(
                         mi.getId(),
                         post.getId(),
@@ -68,17 +70,18 @@ public record MarketPostResponseDTO(
                         post.getTitle(),
                         post.getContent(),
                         post.getTags(),
-                        postStatistics.getViewCount(),
-                        post.getLikeCount(),
-                        bookmarkCount,
+                        0,
+                        0,
+                        0,
+                        0,
                         mi.getStatus(),
                         mi.getPrice(),
                         mi.getPlace(),
+                        "",
                         post.getCreatedAt(),
                         post.getUpdatedAt(),
-                        post.getPostImages() != null && !post.getPostImages().isEmpty(),
-                        hasLiked,
-                        hasBookmarked
+                        false,
+                        false
                 );
             }
 
@@ -106,14 +109,15 @@ public record MarketPostResponseDTO(
                                 blindedContent,
                                 "",
                                 this.viewCount,
+                                this.commentCount,
                                 this.likeCount,
                                 this.bookmarkCount,
                                 this.status,
                                 this.price,
                                 this.place,
+                                this.thumbnail,
                                 this.createdAt,
                                 this.updatedAt,
-                                this.hasImages,
                                 this.hasLiked,
                                 this.hasBookmarked
                         );

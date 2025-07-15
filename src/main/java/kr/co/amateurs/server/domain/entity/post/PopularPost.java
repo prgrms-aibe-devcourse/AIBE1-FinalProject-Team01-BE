@@ -28,37 +28,10 @@ public class PopularPost extends BaseEntity {
     @Column(nullable = false)
     private LocalDate calculatedDate;
 
-    @Column(nullable = false)
-    private Integer viewCount;
-
-    @Column(nullable = false)
-    private Integer likeCount;
-
-    @Column(nullable = false)
-    private Integer commentCount;
-
-    @Column(nullable = false)
-    private String authorNickname;
-
-    @Enumerated(EnumType.STRING)
-    private DevCourseTrack authorDevcourseName;
-
-    @Column(nullable = false)
-    private LocalDateTime postCreatedAt;
-
-    @Column(nullable = false)
-    private String title;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BoardType boardType;
 
     @Column(nullable = false)
     private Long boardId;
-
-    @Column(nullable = false)
-    private Boolean isBlinded = false;
-
-    @Column(nullable = false)
-    private Boolean isDeleted = false;
 }

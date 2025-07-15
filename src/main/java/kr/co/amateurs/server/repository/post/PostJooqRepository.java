@@ -161,12 +161,12 @@ public class PostJooqRepository {
                     .where(PROJECTS.POST_ID.eq(postId))
                     .fetchOneInto(Long.class);
 
-            case NEWS -> dslContext.select(IT_POSTS.ID)
+            case NEWS, REVIEW -> dslContext.select(IT_POSTS.ID)
                     .from(IT_POSTS)
                     .where(IT_POSTS.POST_ID.eq(postId))
                     .fetchOneInto(Long.class);
 
-            case FREE, QNA, RETROSPECT, INFO, REVIEW -> dslContext.select(COMMUNITY_POSTS.ID)
+            case FREE, QNA, RETROSPECT -> dslContext.select(COMMUNITY_POSTS.ID)
                     .from(COMMUNITY_POSTS)
                     .where(COMMUNITY_POSTS.POST_ID.eq(postId))
                     .fetchOneInto(Long.class);

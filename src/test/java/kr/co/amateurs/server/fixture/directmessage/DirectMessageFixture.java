@@ -46,6 +46,22 @@ public class DirectMessageFixture {
         return repository.save(message);
     }
 
+    public DirectMessage createAndSaveMessage(
+            String roomId,
+            String content,
+            Long senderId,
+            String senderName,
+            String senderNickName
+    ) {
+        DirectMessage message = createMessage(
+                roomId,
+                content,
+                senderId,
+                senderName,
+                LocalDateTime.now());
+        return repository.save(message);
+    }
+
     public void createMultipleMessages(String roomId, int count) {
         for (int i = 1; i <= count; i++) {
             DirectMessage message = createMessage(

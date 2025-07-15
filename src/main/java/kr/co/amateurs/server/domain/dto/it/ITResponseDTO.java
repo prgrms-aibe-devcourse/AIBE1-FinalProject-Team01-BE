@@ -34,7 +34,7 @@ public record ITResponseDTO(
         @Schema(description = "작성자 데브코스 기수", example = "1기")
         String devcourseBatch,
 
-        @Schema(description = "게시판 타입", example = "INFO")
+        @Schema(description = "게시판 타입", example = "REVIEW")
         BoardType boardType,
 
         @Schema(description = "불러안두 여부", example = "false")

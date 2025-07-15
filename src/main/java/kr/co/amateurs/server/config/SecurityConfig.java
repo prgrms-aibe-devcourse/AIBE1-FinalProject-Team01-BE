@@ -1,6 +1,6 @@
 package kr.co.amateurs.server.config;
 
-import kr.co.amateurs.server.config.auth.CustomAuthorizeHttpRequestsConfigurer;
+import kr.co.amateurs.server.config.auth.http.CustomAuthorizeHttpRequestsConfigurer;
 import kr.co.amateurs.server.config.jwt.JwtAccessDeniedHandler;
 import kr.co.amateurs.server.config.jwt.JwtAuthenticationEntryPoint;
 import kr.co.amateurs.server.config.jwt.JwtAuthenticationFilter;
@@ -66,8 +66,19 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> {
+                    auth
+                            .requestMatchers("/favicon.ico", "/").denyAll()
+                            .requestMatchers("/error").permitAll()
+                            .requestMatchers("/actuator/**").permitAll()
+                            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                            .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                            .requestMatchers("/ws/**").permitAll()
+                            .requestMatchers("/app/**").permitAll()
+                            .requestMatchers("/topic/**").permitAll();
+
                     customAuthorizeHttpRequestsConfigurers.forEach(configurer -> configurer.configure(auth));
-                    auth.requestMatchers("/**").permitAll();
+
+                    auth.anyRequest().denyAll();
                 })
 
 

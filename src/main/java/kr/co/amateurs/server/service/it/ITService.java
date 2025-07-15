@@ -145,6 +145,14 @@ public class ITService {
         }
 
         post.update(requestDTO);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.updatePostEmbedding(post);
+            } catch (Exception e) {
+                log.warn("게시글 임베딩 업데이트 실패: postId={}", post.getId(), e);
+            }
+        });
     }
 
     @Transactional
@@ -153,6 +161,14 @@ public class ITService {
 
         Post post = itPost.getPost();
         validatePost(post);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.deletePostEmbedding(post.getId());
+            } catch (Exception e) {
+                log.warn("게시글 임베딩 삭제 실패: postId={}", post.getId(), e);
+            }
+        });
 
         postStatisticsRepository.deleteById(post.getId());
         bookmarkRepository.deleteByPost_Id(post.getId());

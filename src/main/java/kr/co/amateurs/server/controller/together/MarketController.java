@@ -9,6 +9,8 @@ import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.together.MarketPostRequestDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
+import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
+import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.service.together.MarketService;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -55,6 +57,16 @@ public class MarketController {
             @PathVariable("marketId") Long marketId,
             @RequestBody @Valid MarketPostRequestDTO dto){
         marketService.updateMarketPost(marketId, dto);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @PutMapping("/{marketId}/{status}")
+    @Operation(summary = "장터 글 상태 수정", description = "장터 탭의 본인이 작성한 게시글의 상태를 수정합니다.")
+    public ResponseEntity<Void> updateGatheringPostStatus(
+            @PathVariable("marketId") Long marketId,
+            @PathVariable("status") MarketStatus status
+    ){
+        marketService.updateMarketPostStatus(marketId, status);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
