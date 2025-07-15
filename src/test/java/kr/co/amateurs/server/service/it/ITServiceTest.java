@@ -107,7 +107,7 @@ class ITServiceTest {
 
         Post testInfoPost = transactionTemplate.execute(status -> {
             Post post = postRepository.save(
-                    ITTestFixtures.createPost(testStudentUser, "정보1", "정보2", BoardType.INFO)
+                    ITTestFixtures.createPost(testStudentUser, "정보1", "정보2", BoardType.REVIEW)
             );
 
             PostStatistics postStatistics = PostStatistics.from(post);
