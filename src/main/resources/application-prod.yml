@@ -143,7 +143,7 @@ otel:
   traces:
     exporter: otlp
     sampler: parentbased_traceidratio
-    sampler.arg: 1.0
+    sampler.arg: 0.1
   metrics:
     exporter: otlp
   logs:
