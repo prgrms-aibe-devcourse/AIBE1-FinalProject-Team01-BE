@@ -148,6 +148,31 @@ public class PasswordResetServiceTest {
         assertThat(passwordResetTokenRepository.findByToken("expired-token")).isEmpty();
     }
 
+    @Test
+    void 유효한_토큰과_일치하는_비밀번호로_재설정하면_성공한다() {
+        // Given
+        User user = createAndSaveLocalUser("user@test.com", "nickname", "oldPassword123");
+        String originalPassword = user.getPassword();
+
+        PasswordResetToken token = createAndSavePasswordResetToken("valid-token", "user@test.com");
+        PasswordResetConfirmDTO request = new PasswordResetConfirmDTO(
+                "valid-token",
+                "newPassword123",
+                "newPassword123"
+        );
+
+        // When
+        PasswordResetConfirmResponseDTO response = passwordResetService.confirmPasswordReset(request);
+
+        // Then
+        assertThat(response.message()).isEqualTo("비밀번호가 성공적으로 변경되었습니다");
+
+        User updatedUser = userRepository.findByEmail("user@test.com").orElseThrow();
+        assertThat(updatedUser.getPassword()).isNotEqualTo(originalPassword);
+        assertThat(passwordEncoder.matches("newPassword123", updatedUser.getPassword())).isTrue();
+        assertThat(passwordResetTokenRepository.findByToken("valid-token")).isEmpty();
+    }
+
 
 
 
