@@ -190,6 +190,7 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0'
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
 	//AI
 	implementation 'dev.langchain4j:langchain4j:1.0.0-alpha1'
@@ -217,10 +218,6 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
-
-	// Mailgun 관련 의존성
-	implementation 'com.mailgun:mailgun-java:2.0.0'
-	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
@@ -267,9 +264,9 @@ tasks.named('test') {
 
 tasks.named('compileJava') {
 	options.encoding = 'UTF-8'
-	if (!System.getenv('DOCKER_BUILD')) {
-		dependsOn('generateJooqClasses')
-	}
+//	if (!System.getenv('DOCKER_BUILD')) {
+//		dependsOn('generateJooqClasses')
+//	}
 }
 
 clean {

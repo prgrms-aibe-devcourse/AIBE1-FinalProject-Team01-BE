@@ -1,12 +1,10 @@
 package kr.co.amateurs.server.service.auth;
 
-import com.mailgun.api.v3.MailgunMessagesApi;
-import com.mailgun.model.message.Message;
-import com.mailgun.model.message.MessageResponse;
-import kr.co.amateurs.server.config.MailgunConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,31 +12,27 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EmailService {
 
-    private final MailgunMessagesApi mailgunMessagesApi;
-    private final MailgunConfig mailgunConfig;
+    private final JavaMailSender mailSender;
 
     @Value("${oauth.success-redirect-url}")
     private String frontendUrl;
+
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
     public void sendPasswordResetEmail(String to, String resetToken) {
         try {
             String resetUrl = frontendUrl + "/reset-password?token=" + resetToken;
 
-            Message message = Message.builder()
-                    .from("Amateurs <noreply@" + mailgunConfig.getDomain() + ">")
-                    .to(to)
-                    .subject("[Amateurs] 비밀번호 재설정 요청")
-                    .text(buildPasswordResetEmailContent(resetUrl))
-                    .build();
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("[Amateurs] 비밀번호 재설정 요청");
+            message.setText(buildPasswordResetEmailContent(resetUrl));
 
-            MessageResponse response = mailgunMessagesApi.sendMessage(mailgunConfig.getDomain(), message);
+            mailSender.send(message);
 
-            if (response != null && response.getMessage() != null) {
-                log.info("비밀번호 재설정 이메일 전송 완료: {} / ID: {}",
-                        maskEmail(to), response.getId());
-            } else {
-                log.warn("비밀번호 재설정 이메일 전송 응답이 비어있음: {}", maskEmail(to));
-            }
+            log.info("비밀번호 재설정 이메일 전송 완료: {}", maskEmail(to));
 
         } catch (Exception e) {
             log.error("비밀번호 재설정 이메일 전송 실패: {}, 오류: {}", maskEmail(to), e.getMessage());

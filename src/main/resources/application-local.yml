@@ -56,6 +56,21 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_USERNAME}
+    password: ${GMAIL_APP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
@@ -116,8 +131,3 @@ verification:
   service:
     url: ${VERIFICATION_SERVICE_URL}
     endpoint: /verify
-
-mailgun:
-  api-key: ${MAILGUN_API_KEY:your-mailgun-api-key}
-  domain: ${MAILGUN_DOMAIN:sandboxXXX.mailgun.org}
-  base-url: ${MAILGUN_BASE_URL:https://api.mailgun.net/v3}
