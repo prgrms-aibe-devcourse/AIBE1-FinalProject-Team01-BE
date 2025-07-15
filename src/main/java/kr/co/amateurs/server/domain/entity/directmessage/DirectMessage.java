@@ -21,6 +21,7 @@ public class DirectMessage {
     private String roomId;
     private Long senderId;
     private String senderNickname;
+    private String senderProfileImage;
     private String content;
 
     @Builder.Default
