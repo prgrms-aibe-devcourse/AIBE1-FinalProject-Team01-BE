@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.auth.*;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.auth.AuthService;
+import kr.co.amateurs.server.service.auth.PasswordResetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserService userService;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/signup")
     @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다")
@@ -75,6 +77,20 @@ public class AuthController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ProfileCompleteResponseDTO> completeProfile(@Valid @RequestBody ProfileCompleteRequestDTO request) {
         ProfileCompleteResponseDTO response = authService.completeProfile(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/password/reset/request")
+    @Operation(summary = "비밀번호 재설정 요청", description = "이메일로 비밀번호 재설정 링크를 전송합니다")
+    public ResponseEntity<PasswordResetResponseDTO> requestPasswordReset(@Valid @RequestBody PasswordResetRequestDTO request) {
+        PasswordResetResponseDTO response = passwordResetService.requestPasswordReset(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/password/reset/confirm")
+    @Operation(summary = "비밀번호 재설정 확인", description = "토큰을 이용하여 새로운 비밀번호로 변경합니다")
+    public ResponseEntity<PasswordResetConfirmResponseDTO> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirmDTO request) {
+        PasswordResetConfirmResponseDTO response = passwordResetService.confirmPasswordReset(request);
         return ResponseEntity.ok(response);
     }
 }
