@@ -601,4 +601,64 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .statusCode(404)
                 .body("message", equalTo("존재하지 않는 사용자입니다."));
     }
+
+    @Test
+    void 유효한_토큰과_일치하는_비밀번호로_재설정하면_성공한다() {
+        // Given
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/auth/signup")
+                .then()
+                .statusCode(201);
+
+        PasswordResetRequestDTO resetRequest = new PasswordResetRequestDTO(signupRequest.email());
+        String resetToken = RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(resetRequest)
+                .when()
+                .post("/auth/password/reset/request")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("resetToken");
+
+        PasswordResetConfirmDTO confirmRequest = new PasswordResetConfirmDTO(
+                resetToken,
+                "newPassword123",
+                "newPassword123"
+        );
+
+        // When & Then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(confirmRequest)
+                .when()
+                .post("/auth/password/reset/confirm")
+                .then()
+                .statusCode(200)
+                .body("message", equalTo("비밀번호가 성공적으로 변경되었습니다"));
+    }
+
+    @Test
+    void 유효하지_않은_토큰으로_비밀번호_재설정_확인하면_400_에러가_발생한다() {
+        // Given
+        PasswordResetConfirmDTO request = new PasswordResetConfirmDTO(
+                "invalid-token",
+                "newPassword123",
+                "newPassword123"
+        );
+
+        // When & Then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/auth/password/reset/confirm")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("유효하지 않은 재설정 토큰입니다."));
+    }
 }
