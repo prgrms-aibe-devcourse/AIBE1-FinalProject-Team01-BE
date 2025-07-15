@@ -141,11 +141,11 @@ class ITServiceTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.content()).hasSize(2);
+        assertThat(result.content()).hasSize(3);
         assertThat(result.pageInfo().getPageNumber()).isEqualTo(page);
         assertThat(result.pageInfo().getPageSize()).isEqualTo(pageSize);
         assertThat(result.pageInfo().getTotalPages()).isEqualTo(1);
-        assertThat(result.content().get(0).title()).isEqualTo("리뷰2");
+        assertThat(result.content().get(0).title()).isEqualTo("정보1");
     }
 
     @Test
@@ -213,7 +213,7 @@ class ITServiceTest {
         PageResponseDTO<ITResponseDTO> result = itService.searchPosts(boardType, param);
 
         // then
-        assertThat(result.content()).hasSize(2);
+        assertThat(result.content()).hasSize(3);
         assertThat(result.content().get(0).likeCount()).isGreaterThanOrEqualTo(
                 result.content().get(1).likeCount()
         );
@@ -238,7 +238,7 @@ class ITServiceTest {
         PageResponseDTO<ITResponseDTO> result = itService.searchPosts(boardType, param);
 
         // then
-        assertThat(result.content()).hasSize(2);
+        assertThat(result.content()).hasSize(3);
         assertThat(result.content().get(0).viewCount()).isGreaterThanOrEqualTo(
                 result.content().get(1).viewCount()
         );
