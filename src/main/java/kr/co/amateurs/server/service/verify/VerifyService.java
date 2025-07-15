@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -73,13 +74,10 @@ public class VerifyService {
             Verify savedVerify = verifyRepository.save(verify);
             log.info("인증 요청 생성: verifyId={}, userId={}", savedVerify.getId(), user.getId());
 
-            byte[] imageBytes = image.getBytes();
-            String filename = image.getOriginalFilename();
-
             eventPublisher.publishEvent(new VerificationEvent(
                     savedVerify.getId(),
-                    imageBytes,
-                    filename,
+                    imageUrl,
+                    image.getOriginalFilename(),
                     user,
                     devcourseName,
                     devcourseBatch
@@ -101,7 +99,7 @@ public class VerifyService {
         CompletableFuture.runAsync(() -> {
             processVerificationAsync(
                     event.verifyId(),
-                    event.imageBytes(),
+                    event.imageUrl(),
                     event.filename(),
                     event.user(),
                     event.devcourseName(),
@@ -111,13 +109,15 @@ public class VerifyService {
     }
 
     @Transactional
-    public void processVerificationAsync(Long verifyId, byte[] imageBytes, String filename, User user, DevCourseTrack devcourseName, String devcourseBatch) {
+    public void processVerificationAsync(Long verifyId, String imageUrl, String filename, User user, DevCourseTrack devcourseName, String devcourseBatch) {
         try {
             log.info("비동기 인증 처리 시작: verifyId={}", verifyId);
             Verify verify = verifyRepository.findById(verifyId)
                     .orElseThrow(() -> ErrorCode.NOT_FOUND.get());
 
-            PythonServiceResponseDTO.DataDTO data = callPythonVerificationService(imageBytes, filename);
+
+            PythonServiceResponseDTO.DataDTO data = callPythonVerificationServiceByUrl(imageUrl, filename);
+
             VerifyStatus status = determineStatusAndUpdateRole(user, data.totalScore(), devcourseName, devcourseBatch);
 
             verify.updateVerification(data, status);
@@ -144,26 +144,21 @@ public class VerifyService {
     }
 
     /**
-     * Python 인증 서비스 호출
+     * Python 인증 서비스 - URL 전달
+     * @param
      */
-    private PythonServiceResponseDTO.DataDTO callPythonVerificationService(byte[] imageBytes, String filename) throws IOException {
+    private PythonServiceResponseDTO.DataDTO callPythonVerificationServiceByUrl(String imageUrl, String filename) {
         String url = verificationServiceUrl + verificationEndpoint;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String fileName = filename != null ? filename : "image.jpg";
-        ByteArrayResource fileResource = new ByteArrayResource(imageBytes) {
-            @Override
-            public String getFilename() {
-                return fileName;
-            }
-        };
+        Map<String, String> requestBody = Map.of(
+                "imageUrl", imageUrl,
+                "filename", filename != null ? filename : "image.jpg"
+        );
 
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("image", fileResource);
-
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
 
         ResponseEntity<PythonServiceResponseDTO> response = restTemplate.postForEntity(
                 url, requestEntity, PythonServiceResponseDTO.class

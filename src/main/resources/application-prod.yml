@@ -135,7 +135,7 @@ cookie:
 verification:
   service:
     url: ${VERIFICATION_SERVICE_URL}
-    endpoint: /verify
+    endpoint: /verify/url
 
 otel:
   service:

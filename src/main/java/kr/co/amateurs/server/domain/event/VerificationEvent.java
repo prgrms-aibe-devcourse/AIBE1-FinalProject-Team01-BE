@@ -5,7 +5,7 @@ import kr.co.amateurs.server.domain.entity.user.User;
 
 public record VerificationEvent(
         Long verifyId,
-        byte[] imageBytes,
+        String imageUrl,
         String filename,
         User user,
         DevCourseTrack devcourseName,
