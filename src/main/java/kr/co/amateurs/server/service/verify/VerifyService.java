@@ -8,15 +8,19 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.verify.Verify;
 import kr.co.amateurs.server.domain.entity.verify.VerifyStatus;
+import kr.co.amateurs.server.domain.event.VerificationEvent;
 import kr.co.amateurs.server.repository.verify.VerifyRepository;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -39,6 +43,7 @@ public class VerifyService {
     private final VerifyRepository verifyRepository;
     private final FileService fileService;
     private final UserService userService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${verification.service.url}")
     private String verificationServiceUrl;
@@ -70,18 +75,39 @@ public class VerifyService {
 
             byte[] imageBytes = image.getBytes();
             String filename = image.getOriginalFilename();
-            
-            CompletableFuture.runAsync(() -> {
-                processVerificationAsync(savedVerify.getId(), imageBytes, filename, user, devcourseName, devcourseBatch);
-            });
+
+            eventPublisher.publishEvent(new VerificationEvent(
+                    savedVerify.getId(),
+                    imageBytes,
+                    filename,
+                    user,
+                    devcourseName,
+                    devcourseBatch
+            ));
 
             return VerifyResultDTO.processing();
 
         } catch (IOException e) {
-        throw ErrorCode.FILE_PROCESSING_ERROR.get();
+            throw ErrorCode.FILE_PROCESSING_ERROR.get();
         } catch (Exception e) {
-        throw ErrorCode.VERIFICATION_PROCESSING_ERROR.get();
+            throw ErrorCode.VERIFICATION_PROCESSING_ERROR.get();
         }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleVerificationEvent(VerificationEvent event) {
+        log.info("트랜잭션 커밋 후 비동기 처리 시작: verifyId={}", event.verifyId());
+
+        CompletableFuture.runAsync(() -> {
+            processVerificationAsync(
+                    event.verifyId(),
+                    event.imageBytes(),
+                    event.filename(),
+                    event.user(),
+                    event.devcourseName(),
+                    event.devcourseBatch()
+            );
+        });
     }
 
     @Transactional
