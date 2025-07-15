@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.ai.AiProfileResponse;
 import kr.co.amateurs.server.domain.dto.ai.PostRecommendationResponse;
-import kr.co.amateurs.server.domain.entity.ai.AiProfile;
 import kr.co.amateurs.server.service.ai.AiProfileService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingManageService;
 import kr.co.amateurs.server.service.ai.PostEmbeddingService;
@@ -29,9 +28,8 @@ import java.util.List;
 @RequestMapping("/api/v1/ai/dev")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "AI 개발", description = "AI 관련 개발용 컨트롤러")
-@Profile({"local", "dev"})
-public class AiDevController {
+@Tag(name = "[ADMIN] AI 컨트롤러", description = "AI 관리자 컨트롤러")
+public class AiAdminController {
 
     private final AiProfileService aiProfileService;
     private final PostRecommendService postRecommendService;
@@ -123,7 +121,7 @@ public class AiDevController {
 
 
     @PostMapping("/embeddings/initialize")
-    @Operation(summary = "게시글 임베딩 초기화", description = "모든 게시글의 임베딩을 생성하고 저장합니다")
+    @Operation(summary = "게시글 임베딩 초기화", description = "모든 게시글의 임베딩을 초기화하고 다시 저장합니다")
     public ResponseEntity<Void> initializeAllEmbeddings() {
         postEmbeddingManageService.initializeAllPostEmbeddings();
         return ResponseEntity.ok().build();
