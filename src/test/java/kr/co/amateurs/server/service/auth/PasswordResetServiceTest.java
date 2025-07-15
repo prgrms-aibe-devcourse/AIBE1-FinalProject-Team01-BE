@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.service.auth;
 
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
+import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.auth.PasswordResetRequestDTO;
 import kr.co.amateurs.server.domain.dto.auth.PasswordResetResponseDTO;
 import kr.co.amateurs.server.domain.entity.auth.PasswordResetToken;
@@ -8,12 +9,12 @@ import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
+import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.auth.PasswordResetTokenRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -57,6 +59,38 @@ public class PasswordResetServiceTest {
         assertThat(response.resetToken()).isNotNull();
         assertThat(response.resetToken()).isNotBlank();
     }
+
+    @Test
+    void 존재하지_않는_사용자_이메일로_요청하면_실패한다() {
+        // Given
+        User user = createAndSaveLocalUser("deleted@test.com", "nickname", "password123");
+
+        user.anonymizeAndDelete(
+                "anonymous" + System.currentTimeMillis() + "@deleted.com",
+                "탈퇴한사용자" + System.currentTimeMillis()
+        );
+        userRepository.save(user);
+
+        PasswordResetRequestDTO request = new PasswordResetRequestDTO("deleted@test.com");
+
+        // When & Then
+        assertThatThrownBy(() -> passwordResetService.requestPasswordReset(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.USER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    void GitHub_소셜_로그인_사용자가_요청하면_실패한다() {
+        // Given
+        User user = createAndSaveGitHubUser("github@test.com", "githubNick");
+        PasswordResetRequestDTO request = new PasswordResetRequestDTO("github@test.com");
+
+        // When & Then
+        assertThatThrownBy(() -> passwordResetService.requestPasswordReset(request))
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.GITHUB_LOGIN_PASSWORD_RESET_NOT_ALLOWED.getMessage());
+    }
+
 
 
 
