@@ -23,6 +23,31 @@ spring:
     console:
       enabled: true
 
+  mail:
+    host: localhost
+    port: 25
+    username: test@test.com
+    password: testpassword
+    test-connection: false
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+oauth:
+  success-redirect-url: http://localhost:3000/test
+  failure-redirect-url: http://localhost:3000/test
+
+github:
+  client-id: test
+  client-secret: test
+
+kakao:
+  client-id: test
+  client-secret: test
+
 langchain4j:
   google-ai-gemini:
     recommend:
