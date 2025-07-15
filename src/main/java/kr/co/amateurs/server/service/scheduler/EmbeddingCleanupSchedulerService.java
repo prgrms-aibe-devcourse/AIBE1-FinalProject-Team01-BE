@@ -13,7 +13,7 @@ public class EmbeddingCleanupSchedulerService {
 
     private final PostEmbeddingService postEmbeddingService;
 
-    private static final int CLEANUP_DAYS = 3;
+    private static final int CLEANUP_DAYS = 7;
 
     @Scheduled(cron = "0 0 1 * * *")
     public void cleanupOldEmbeddings() {

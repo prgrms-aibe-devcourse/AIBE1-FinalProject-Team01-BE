@@ -21,7 +21,7 @@ public class AiPostRecommendScehdularService {
     private final AiProfileRepository aiProfileRepository;
 
     private static final int BATCH_SIZE = 20;
-    private static final int RECOMMENDATION_LIMIT = 10;
+    private static final int RECOMMENDATION_LIMIT = 12;
 
     @Scheduled(cron = "0 0 5 * * *")
     public void updateAllUsersRecommendations() {

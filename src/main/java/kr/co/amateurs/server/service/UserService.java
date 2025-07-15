@@ -2,6 +2,7 @@ package kr.co.amateurs.server.service;
 
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.directmessage.event.AnonymizeEvent;
 import kr.co.amateurs.server.domain.dto.user.*;
 import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
@@ -12,6 +13,7 @@ import kr.co.amateurs.server.exception.CustomException;
 import kr.co.amateurs.server.repository.follow.FollowRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,9 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +34,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final FollowRepository followRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public void validateEmailDuplicate(String email) {
         if (userRepository.existsByEmail(email)) {
@@ -205,6 +208,7 @@ public class UserService {
 
         userFromDb.anonymizeAndDelete(anonymousEmail, anonymousNickname);
         userRepository.save(userFromDb);
+        eventPublisher.publishEvent(new AnonymizeEvent(userFromDb));
 
         return UserDeleteResponseDTO.success();
     }
@@ -252,6 +256,12 @@ public class UserService {
     @Transactional
     public void changeUserRole(User user, Role newRole) {
         user.changeRole(newRole);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateDevCourseInfo(User user, DevCourseTrack devcourseName, String devcourseBatch) {
+        user.updateDevCourseInfo(devcourseName, devcourseBatch);
         userRepository.save(user);
     }
 

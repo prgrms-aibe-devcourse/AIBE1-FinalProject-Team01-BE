@@ -78,7 +78,6 @@ class MatchServiceTest {
     @MockitoBean
     private PostEmbeddingService postEmbeddingService;
 
-
     private User coffeeUser;
     private User mentoringUser;
     private User adminUser;
