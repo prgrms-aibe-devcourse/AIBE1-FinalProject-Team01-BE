@@ -5,10 +5,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.amateurs.server.config.jwt.CustomUserDetails;
 import kr.co.amateurs.server.domain.dto.verify.VerifyResultDTO;
 import kr.co.amateurs.server.domain.dto.verify.VerifyStatusDTO;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
-import kr.co.amateurs.server.domain.entity.user.enums.Role;
-import kr.co.amateurs.server.domain.entity.verify.VerifyStatus;
-import kr.co.amateurs.server.repository.verify.VerifyRepository;
 import kr.co.amateurs.server.service.verify.VerifyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +28,12 @@ public class VerifyController {
     @Operation(summary = "수강생 인증 요청", description = "프로그래머스 데브코스 수강생 인증을 요청합니다. 비동기로 처리됩니다.")
     public ResponseEntity<VerifyResultDTO> requestVerification(
             @AuthenticationPrincipal CustomUserDetails currentUser,
+            @RequestParam("devcourseName") DevCourseTrack devcourseName,
+            @RequestParam("devcourseBatch") String devcourseBatch,
             @RequestParam("image") MultipartFile image) {
 
         User user = currentUser.getUser();
-        VerifyResultDTO result = verifyService.verifyStudent(user, image);
+        VerifyResultDTO result = verifyService.verifyStudent(user, image, devcourseName, devcourseBatch);
         return ResponseEntity.ok(result);
     }
 

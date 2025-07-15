@@ -3,6 +3,7 @@ package kr.co.amateurs.server.service.directmessage;
 import kr.co.amateurs.server.annotation.alarmtrigger.AlarmTrigger;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.directmessage.*;
+import kr.co.amateurs.server.domain.dto.directmessage.event.AnonymizeEvent;
 import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessage;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessageRoom;
@@ -15,8 +16,10 @@ import kr.co.amateurs.server.repository.directmessage.DirectMessageRoomRepositor
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.file.FileService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -72,9 +75,16 @@ public class DirectMessageService {
 
     public DirectMessagePageResponse getMessages(DirectMessagePaginationParam param) {
         DirectMessageRoom room = validateRoomAccess(param.getRoomId(), param.getUserId());
-        LocalDateTime userLeftAt = room.getParticipantLeftAt(param.getUserId());
+        LocalDateTime userLeftAt = room.getParticipantReEntryAt(param.getUserId());
         Page<DirectMessage> page = getMessagesByRoomId(param, userLeftAt);
         return DirectMessagePageResponse.from(page);
+    }
+
+    @Async
+    @EventListener
+    public void anonymizeUser(AnonymizeEvent event) {
+        User user = event.user();
+        directMessageRepository.anonymizeUser(user.getId(), user.getNickname(), user.getImageUrl());
     }
 
     public void exitRoom(String roomId) {

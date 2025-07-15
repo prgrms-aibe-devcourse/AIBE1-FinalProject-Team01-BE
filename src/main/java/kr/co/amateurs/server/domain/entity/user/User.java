@@ -128,4 +128,13 @@ public class User extends BaseEntity {
     public void changeRole(Role newRole) {
         this.role = newRole;
     }
+
+    public void updateDevCourseInfo(DevCourseTrack devcourseName, String devcourseBatch) {
+        if (devcourseName != null) {
+            this.devcourseName = devcourseName;
+        }
+        if (devcourseBatch != null && !devcourseBatch.trim().isEmpty()) {
+            this.devcourseBatch = devcourseBatch;
+        }
+    }
 }

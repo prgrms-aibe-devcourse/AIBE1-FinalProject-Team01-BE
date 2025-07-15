@@ -40,7 +40,7 @@ public class AiProfileService {
     }
 
     @Transactional
-    public AiProfile generateInitialProfile(Long userId) {
+    public AiProfileResponse generateInitialProfile(Long userId) {
         try {
             log.info("초기 AI 프로필 생성 시작: userId={}", userId);
 
@@ -48,7 +48,8 @@ public class AiProfileService {
             AiProfileResponse profile = aiLlmService.generateInitialProfile(userTopics);
             log.info("초기 AI 프로필 생성 완료: userId={}, profile={}", userId, profile);
 
-            return saveOrUpdateProfile(userId, profile);
+            saveOrUpdateProfile(userId, profile);
+            return profile;
 
         } catch (Exception e) {
             log.error("초기 AI 프로필 생성 실패: userId={}", userId, e);
@@ -58,7 +59,7 @@ public class AiProfileService {
 
 
     @Transactional
-    public AiProfile generateCompleteUserProfile(Long userId) {
+    public AiProfileResponse generateCompleteUserProfile(Long userId) {
         try {
             log.info("사용자 AI 프로필 생성 시작: userId={}", userId);
 
@@ -77,7 +78,8 @@ public class AiProfileService {
             AiProfileResponse profile = aiLlmService.generateFinalProfile(request);
             log.info("AI 프로필 생성 1단계 완료: userId={}, profile={}", userId, profile);
 
-            return saveOrUpdateProfile(userId, profile);
+            saveOrUpdateProfile(userId, profile);
+            return profile;
         } catch (Exception e) {
             log.error("사용자 AI 프로필 생성 실패: userId={}", userId, e);
             throw ErrorCode.ERROR_AI_PROFILE_GENERATION.get();
@@ -120,19 +122,7 @@ public class AiProfileService {
         }
     }
 
-    /**
-     * AI 프로필을 생성하고 Response DTO를 반환합니다.
-     */
-    @Transactional
-    public AiProfileResponse generateUserProfileResponse(Long userId) {
-        AiProfile savedProfile = generateCompleteUserProfile(userId);
-        return new AiProfileResponse(
-                savedProfile.getPersonaDescription(),
-                savedProfile.getInterestKeywords()
-        );
-    }
-
-    private AiProfile saveOrUpdateProfile(Long userId, AiProfileResponse profile) {
+    private void saveOrUpdateProfile(Long userId, AiProfileResponse profile) {
         User user = userService.findById(userId);
         AiProfile aiProfile = aiProfileRepository.findByUserId(userId)
                 .map(exist -> {
@@ -145,7 +135,7 @@ public class AiProfileService {
                         .interestKeywords(profile.interestKeywords())
                         .build());
 
-        return aiProfileRepository.save(aiProfile);
+        aiProfileRepository.save(aiProfile);
     }
 
     /**

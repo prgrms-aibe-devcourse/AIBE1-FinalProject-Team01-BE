@@ -19,6 +19,7 @@ import kr.co.amateurs.server.repository.post.PostRepository;
 import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +66,9 @@ class ITServiceTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private PostEmbeddingService postEmbeddingService;
+
     private User testStudentUser;
     private User testOtherUser;
     private ITPost testReviewITPost;
@@ -103,7 +107,7 @@ class ITServiceTest {
 
         Post testInfoPost = transactionTemplate.execute(status -> {
             Post post = postRepository.save(
-                    ITTestFixtures.createPost(testStudentUser, "정보1", "정보2", BoardType.INFO)
+                    ITTestFixtures.createPost(testStudentUser, "정보1", "정보2", BoardType.REVIEW)
             );
 
             PostStatistics postStatistics = PostStatistics.from(post);
@@ -137,11 +141,11 @@ class ITServiceTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.content()).hasSize(2);
+        assertThat(result.content()).hasSize(3);
         assertThat(result.pageInfo().getPageNumber()).isEqualTo(page);
         assertThat(result.pageInfo().getPageSize()).isEqualTo(pageSize);
         assertThat(result.pageInfo().getTotalPages()).isEqualTo(1);
-        assertThat(result.content().get(0).title()).isEqualTo("리뷰2");
+        assertThat(result.content().get(0).title()).isEqualTo("정보1");
     }
 
     @Test
@@ -209,7 +213,7 @@ class ITServiceTest {
         PageResponseDTO<ITResponseDTO> result = itService.searchPosts(boardType, param);
 
         // then
-        assertThat(result.content()).hasSize(2);
+        assertThat(result.content()).hasSize(3);
         assertThat(result.content().get(0).likeCount()).isGreaterThanOrEqualTo(
                 result.content().get(1).likeCount()
         );
@@ -234,7 +238,7 @@ class ITServiceTest {
         PageResponseDTO<ITResponseDTO> result = itService.searchPosts(boardType, param);
 
         // then
-        assertThat(result.content()).hasSize(2);
+        assertThat(result.content()).hasSize(3);
         assertThat(result.content().get(0).viewCount()).isGreaterThanOrEqualTo(
                 result.content().get(1).viewCount()
         );

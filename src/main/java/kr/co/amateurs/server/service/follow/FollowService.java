@@ -108,7 +108,7 @@ public class FollowService {
             case GUEST -> EnumSet.of(
                     BoardType.REVIEW,
                     BoardType.PROJECT_HUB,
-                    BoardType.INFO,
+                    BoardType.NEWS,
                     BoardType.FREE,
                     BoardType.QNA,
                     BoardType.RETROSPECT
@@ -116,7 +116,7 @@ public class FollowService {
             case ANONYMOUS -> EnumSet.of(
                     BoardType.REVIEW,
                     BoardType.PROJECT_HUB,
-                    BoardType.INFO
+                    BoardType.NEWS
             );
         };
     }

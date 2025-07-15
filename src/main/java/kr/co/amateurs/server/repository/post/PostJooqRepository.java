@@ -3,8 +3,10 @@ package kr.co.amateurs.server.repository.post;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.post.PostResponseDTO;
+import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import static org.jooq.generated.Tables.*;
 
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class PostJooqRepository {
 
     private final DSLContext dslContext;
@@ -131,4 +134,48 @@ public class PostJooqRepository {
             default -> 0;
         };
     }
+
+
+    /**
+     * BoardType별 실제 Board ID 조회
+     */
+    public Long getBoardId(Long postId, BoardType boardType) {
+        return switch (boardType) {
+            case MARKET -> dslContext.select(MARKET_ITEMS.ID)
+                    .from(MARKET_ITEMS)
+                    .where(MARKET_ITEMS.POST_ID.eq(postId))
+                    .fetchOneInto(Long.class);
+
+            case MATCH -> dslContext.select(MATCHING_POSTS.ID)
+                    .from(MATCHING_POSTS)
+                    .where(MATCHING_POSTS.POST_ID.eq(postId))
+                    .fetchOneInto(Long.class);
+
+            case GATHER -> dslContext.select(GATHERING_POSTS.ID)
+                    .from(GATHERING_POSTS)
+                    .where(GATHERING_POSTS.POST_ID.eq(postId))
+                    .fetchOneInto(Long.class);
+
+            case PROJECT_HUB -> dslContext.select(PROJECTS.ID)
+                    .from(PROJECTS)
+                    .where(PROJECTS.POST_ID.eq(postId))
+                    .fetchOneInto(Long.class);
+
+            case NEWS, REVIEW -> dslContext.select(IT_POSTS.ID)
+                    .from(IT_POSTS)
+                    .where(IT_POSTS.POST_ID.eq(postId))
+                    .fetchOneInto(Long.class);
+
+            case FREE, QNA, RETROSPECT -> dslContext.select(COMMUNITY_POSTS.ID)
+                    .from(COMMUNITY_POSTS)
+                    .where(COMMUNITY_POSTS.POST_ID.eq(postId))
+                    .fetchOneInto(Long.class);
+
+            default -> {
+                log.warn("지원하지 않는 BoardType: {}", boardType);
+                yield postId;
+            }
+        };
+    }
+
 }

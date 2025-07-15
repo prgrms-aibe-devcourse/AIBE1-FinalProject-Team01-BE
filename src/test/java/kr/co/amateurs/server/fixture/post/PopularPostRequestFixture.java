@@ -22,7 +22,10 @@ public class PopularPostRequestFixture {
                 DevCourseTrack.BACKEND,
                 LocalDateTime.now(),
                 "테스트 제목",
-                BoardType.FREE
+                BoardType.FREE,
+                1L,
+                false,
+                false
         );
     }
 } 
