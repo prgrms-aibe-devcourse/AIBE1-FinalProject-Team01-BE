@@ -152,3 +152,8 @@ verification:
   service:
     url: ${VERIFICATION_SERVICE_URL}
     endpoint: /verify
+
+mailgun:
+  api-key: ${MAILGUN_API_KEY}
+  domain: ${MAILGUN_DOMAIN}
+  base-url: ${MAILGUN_BASE_URL}
