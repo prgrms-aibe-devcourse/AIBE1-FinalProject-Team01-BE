@@ -252,4 +252,10 @@ public class UserService {
         user.changeRole(newRole);
         userRepository.save(user);
     }
+
+    @Transactional
+    public void updateDevCourseInfo(User user, DevCourseTrack devcourseName, String devcourseBatch) {
+        user.updateDevCourseInfo(devcourseName, devcourseBatch);
+        userRepository.save(user);
+    }
 }

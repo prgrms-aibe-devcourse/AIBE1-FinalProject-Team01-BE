@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class PopularPostService {
     private final PopularPostRepository popularPostRepository;
     private final PostService postService;
+    private final PopularPostCacheService popularPostCacheService;
 
     private static final double VIEW_WEIGHT = 0.4;
     private static final double LIKE_WEIGHT = 0.4;
@@ -30,15 +31,15 @@ public class PopularPostService {
 
     @Transactional
     public void calculateAndSavePopularPosts() {
-        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+        LocalDateTime daysAgo = LocalDateTime.now().minusDays(7);
         LocalDate today = LocalDate.now();
 
         log.info("인기글 계산 시작: 기준일자={}, 대상기간=3일", today);
 
-        List<PopularPostRequest> recentPosts = popularPostRepository.findRecentPostsWithCounts(threeDaysAgo);
+        List<PopularPostRequest> recentPosts = popularPostRepository.findRecentPostsWithCounts(daysAgo);
 
         if (recentPosts.isEmpty()) {
-            log.warn("3일 이내 게시글이 없습니다.");
+            log.warn("7일 이내 게시글이 없습니다.");
             return;
         }
 
@@ -46,13 +47,14 @@ public class PopularPostService {
                 .map(post -> calculatePopularityScore(post, today))
                 .filter(post -> !post.isBlinded() && !post.isDeleted())
                 .sorted((p1, p2) -> Double.compare(p2.popularityScore(), p1.popularityScore()))
-                .limit(10)
+                .limit(12)
                 .collect(Collectors.toList());
 
         popularPostRepository.savePopularPosts(popularPosts);
         log.info("인기글 계산 완료: 총 {}개 게시글 처리", popularPosts.size());
 
         popularPostRepository.deleteBeforeDate(today);
+        popularPostCacheService.invalidatePopularPostsCache();
     }
 
     private PopularPostRequest calculatePopularityScore(PopularPostRequest post, LocalDate calculatedDate) {
@@ -95,10 +97,7 @@ public class PopularPostService {
 
     @Transactional(readOnly = true)
     public List<PopularPostResponse> getPopularPosts(int limit) {
-        List<PopularPostRequest> requests = popularPostRepository.findLatestPopularPosts(limit);
-        return requests.stream()
-                .map(PopularPostResponse::from)
-                .collect(Collectors.toList());
+        return popularPostCacheService.getCachedPopularPosts(limit);
     }
 }
 

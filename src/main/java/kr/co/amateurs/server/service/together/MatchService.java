@@ -150,6 +150,14 @@ public class MatchService {
         CommunityRequestDTO updatePostDTO = new CommunityRequestDTO(dto.title(), dto.tags(), dto.content());
         mp.update(dto);
         post.update(updatePostDTO);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.updatePostEmbedding(post);
+            } catch (Exception e) {
+                log.warn("게시글 임베딩 업데이트 실패: postId={}", post.getId(), e);
+            }
+        });
     }
 
     @Transactional
@@ -157,6 +165,14 @@ public class MatchService {
         MatchingPost mp = matchRepository.findById(id).orElseThrow(ErrorCode.POST_NOT_FOUND);
         Post post = mp.getPost();
         validateUser(post);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.deletePostEmbedding(post.getId());
+            } catch (Exception e) {
+                log.warn("게시글 임베딩 삭제 실패: postId={}", post.getId(), e);
+            }
+        });
 
         postStatisticsRepository.deleteById(post.getId());
         bookmarkRepository.deleteByPost_Id(post.getId());
