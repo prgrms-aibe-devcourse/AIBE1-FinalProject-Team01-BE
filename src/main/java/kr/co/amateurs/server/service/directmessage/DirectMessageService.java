@@ -75,7 +75,7 @@ public class DirectMessageService {
 
     public DirectMessagePageResponse getMessages(DirectMessagePaginationParam param) {
         DirectMessageRoom room = validateRoomAccess(param.getRoomId(), param.getUserId());
-        LocalDateTime userLeftAt = room.getParticipantLeftAt(param.getUserId());
+        LocalDateTime userLeftAt = room.getParticipantReEntryAt(param.getUserId());
         Page<DirectMessage> page = getMessagesByRoomId(param, userLeftAt);
         return DirectMessagePageResponse.from(page);
     }

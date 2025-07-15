@@ -22,5 +22,5 @@ public interface DirectMessageRepository extends MongoRepository<DirectMessage, 
 
     @Query("{'senderId': ?0}")
     @Update("{ '$set': { 'senderNickname': ?1, 'senderProfileImage': ?2 } }")
-    void anonymizeUser(long userId, String nickname, String profileImage);
+    void anonymizeUser(long senderId, String nickname, String profileImage);
 }
