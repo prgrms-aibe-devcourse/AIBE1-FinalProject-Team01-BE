@@ -10,9 +10,6 @@ public class CommunityAuthorizeHttpRequestsConfig implements CustomAuthorizeHttp
     @Override
     public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
-                .requestMatchers(HttpMethod.GET, "/api/v1/community/**").hasAnyRole("ADMIN", "STUDENT","GUEST")
-                .requestMatchers(HttpMethod.POST, "/api/v1/community/**").hasAnyRole("ADMIN", "STUDENT")
-                .requestMatchers(HttpMethod.PUT, "/api/v1/community/**").hasAnyRole("ADMIN", "STUDENT")
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/community/**").hasAnyRole("ADMIN", "STUDENT");
+                .requestMatchers("/api/v1/community/**").hasAnyRole("ADMIN", "STUDENT","GUEST");
     }
 }
