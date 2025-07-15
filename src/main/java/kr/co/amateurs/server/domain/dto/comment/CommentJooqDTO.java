@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public record CommentJooqDTO(
         Long id,
         Long postId,
+        boolean isBlinded,
         String nickname,
         String profileImageUrl,
         DevCourseTrack devCourseTrack,
@@ -40,6 +41,7 @@ public record CommentJooqDTO(
         return new CommentResponseDTO(
                 id,
                 postId,
+                isBlinded,
                 nickname,
                 profileImageUrl,
                 devCourseTrack,

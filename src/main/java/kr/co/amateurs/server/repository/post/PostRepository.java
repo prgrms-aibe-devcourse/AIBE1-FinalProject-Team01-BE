@@ -32,4 +32,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p.boardType FROM Post p WHERE p.id = :postId")
     Optional<BoardType> findBoardTypeById(Long postId);
+
+    @Query("""
+    SELECT p.isBlinded
+    FROM Post p
+    WHERE p.id = :postId
+    """)
+    Boolean findIsBlindedByPostId(Long postId);
 }

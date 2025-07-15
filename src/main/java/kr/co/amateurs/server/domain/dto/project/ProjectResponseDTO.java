@@ -22,6 +22,8 @@ public record ProjectResponseDTO(
         Long projectId,
         @Schema(description = "게시글 ID", example = "1")
         Long postId,
+        @Schema(description = "블라인드 여부", example = "false")
+        boolean isBlinded,
         @Schema(description = "프로젝트 시작 일시", example = "2025-06-25T00:08:25")
         LocalDateTime startedAt,
         @Schema(description = "프로젝트 종료 일시", example = "2025-06-25T00:08:25")
@@ -120,5 +122,47 @@ public record ProjectResponseDTO(
                 .thumbnailImageUrl(record.get("thumbnailImageUrl", String.class))
                 .hasBookmarked(Boolean.TRUE.equals(record.get("hasBookmarked", Boolean.class)))
                 .hasLiked(Boolean.TRUE.equals(record.get("hasLiked", Boolean.class)));
+    }
+
+    public ProjectResponseDTO applyBlindFilter() {
+        if (this.isBlinded) {
+            String blindedContent = """
+            <div style="text-align: center; padding: 60px 20px; background-color: #f8f9fa; border-radius: 8px; margin: 20px 0;">
+                <div style="font-size: 24px; font-weight: bold; color: #6c757d; margin-bottom: 10px;">
+                    ⚠️ 블라인드 처리된 게시글입니다
+                </div>
+                <div style="font-size: 16px; color: #868e96;">
+                    관리자가 처리 중입니다.
+                </div>
+            </div>
+            """;
+            return new ProjectResponseDTO(
+                    this.projectId,
+                    this.postId,
+                    this.isBlinded,
+                    this.startedAt,
+                    this.endedAt,
+                    this.githubUrl,
+                    "블라인드 처리된 프로젝트입니다.",
+                    this.demoUrl,
+                    "",
+                    this.authorId,
+                    "블라인드 처리된 게시글입니다.",
+                    blindedContent,
+                    "",
+                    this.viewCount,
+                    this.likeCount,
+                    this.bookmarkCount,
+                    this.createdAt,
+                    this.updatedAt,
+                    this.nickname,
+                    this.devcourseTrack,
+                    this.devcourseBatch,
+                    this.thumbnailImageUrl,
+                    this.hasBookmarked,
+                    this.hasLiked
+            );
+        }
+        return this;
     }
 }

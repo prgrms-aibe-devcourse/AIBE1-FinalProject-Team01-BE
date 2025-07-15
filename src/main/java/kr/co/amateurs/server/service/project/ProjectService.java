@@ -66,7 +66,9 @@ public class ProjectService {
                 .map(user -> projectJooqRepository.findAllByUserId(params, user.getId()))
                 .orElseGet(() -> projectJooqRepository.findAll(params));
 
-        return PageResponseDTO.convertPageToDTO(projects);
+        Page<ProjectResponseDTO> projectsPage = projects.map(ProjectResponseDTO::applyBlindFilter);
+
+        return PageResponseDTO.convertPageToDTO(projectsPage);
     }
 
     public ProjectResponseDTO getProjectDetails(Long projectId, String ipAddress) {
@@ -76,7 +78,7 @@ public class ProjectService {
 
         eventPublisher.publishEvent(new PostViewedEvent(result.postId(), ipAddress));
 
-        return result;
+        return result.applyBlindFilter();
     }
 
     @Transactional
@@ -128,7 +130,13 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(ErrorCode.POST_NOT_FOUND);
 
-        validatePost(project.getPost(), user.getEmail());
+        Post post = project.getPost();
+
+        validatePost(post, user.getEmail());
+
+        if(post.getIsBlinded()){
+            throw ErrorCode.IS_BLINDED_POST.get();
+        }
 
         CommunityRequestDTO postRequestDto = new CommunityRequestDTO(
                 projectRequestDTO.title(),
@@ -136,11 +144,17 @@ public class ProjectService {
                 projectRequestDTO.content()
         );
 
-        Post post = project.getPost();
-
         post.update(postRequestDto);
         project.update(projectRequestDTO);
         project.updateProjectMembers(convertProjectMembersToJSON(projectRequestDTO.projectMembers()));
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.updatePostEmbedding(post);
+            } catch (Exception e) {
+                log.warn("게시글 임베딩 업데이트 실패: postId={}", post.getId(), e);
+            }
+        });
     }
 
     @Transactional
@@ -152,6 +166,14 @@ public class ProjectService {
 
         Post post = project.getPost();
         validatePost(post, user.getEmail());
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.deletePostEmbedding(post.getId());
+            } catch (Exception e) {
+                log.warn("게시글 임베딩 삭제 실패: postId={}", post.getId(), e);
+            }
+        });
 
         postStatisticsRepository.deleteById(post.getId());
         bookmarkRepository.deleteByPost_Id(post.getId());

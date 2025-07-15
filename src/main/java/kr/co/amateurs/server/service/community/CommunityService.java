@@ -80,8 +80,10 @@ public class CommunityService {
             }
         }
 
+        Page<CommunityResponseDTO> processedPage = communityPage.map(CommunityResponseDTO::applyBlindFilter);
 
-        return convertPageToDTO(communityPage);    }
+        return convertPageToDTO(processedPage);
+ }
 
     public CommunityResponseDTO getPost(Long communityId, String ipAddress) {
         User user = userService.getCurrentLoginUser();
@@ -91,7 +93,7 @@ public class CommunityService {
 
         eventPublisher.publishEvent(new PostViewedEvent(result.postId(), ipAddress));
 
-        return result;
+        return result.applyBlindFilter();
     }
 
     @Transactional
@@ -128,8 +130,19 @@ public class CommunityService {
 
         Post post = communityPost.getPost();
         validatePost(post);
+        if(post.getIsBlinded()){
+            throw ErrorCode.IS_BLINDED_POST.get();
+        }
 
         post.update(requestDTO);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.updatePostEmbedding(post);
+            } catch (Exception e) {
+                log.warn("게시글 임베딩 업데이트 실패: postId={}", post.getId(), e);
+            }
+        });
     }
 
     @Transactional
@@ -138,6 +151,14 @@ public class CommunityService {
 
         Post post = communityPost.getPost();
         validatePost(post);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                postEmbeddingService.deletePostEmbedding(post.getId());
+            } catch (Exception e) {
+                log.warn("게시글 임베딩 삭제 실패: postId={}", post.getId(), e);
+            }
+        });
 
         postStatisticsRepository.deleteById(post.getId());
         bookmarkRepository.deleteByPost_Id(post.getId());

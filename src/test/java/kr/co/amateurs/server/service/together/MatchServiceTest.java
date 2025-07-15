@@ -19,6 +19,7 @@ import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.together.MatchRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.like.LikeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -74,6 +75,8 @@ class MatchServiceTest {
     @MockitoBean
     private LikeService likeService;
 
+    @MockitoBean
+    private PostEmbeddingService postEmbeddingService;
 
     private User coffeeUser;
     private User mentoringUser;
@@ -210,6 +213,8 @@ class MatchServiceTest {
 
         @Test
         void 존재하지_않는_ID로_조회하면_예외가_발생해야_한다() {
+            given(userService.getCurrentLoginUser()).willReturn(adminUser);
+
             assertThatThrownBy(() -> matchService.getMatchPost(999L, "1"))
                     .isInstanceOf(CustomException.class);
         }

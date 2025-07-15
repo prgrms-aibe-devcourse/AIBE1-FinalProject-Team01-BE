@@ -14,18 +14,20 @@ public record PopularPostResponse(
         Integer viewCount,
         Integer commentCount,
         BoardType boardType,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        Long boardId
 ) {
     public static PopularPostResponse from(PopularPostRequest request) {
         return new PopularPostResponse(
                 request.postId(),
                 request.title(),
                 request.authorNickname(),
-                request.likeCount(),
-                request.viewCount(),
-                request.commentCount(),
+                request.likeCount() != null ? request.likeCount() : 0,
+                request.viewCount() != null ? request.viewCount() : 0,
+                request.commentCount() != null ? request.commentCount() : 0,
                 request.boardType(),
-                request.postCreatedAt()
+                request.postCreatedAt(),
+                request.boardId()
         );
     }
 
@@ -38,7 +40,8 @@ public record PopularPostResponse(
                 this.viewCount,
                 this.commentCount,
                 this.boardType,
-                this.createdAt
+                this.createdAt,
+                this.boardId
         );
     }
 }

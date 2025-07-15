@@ -13,6 +13,9 @@ public record CommentResponseDTO(
         @Schema(description = "게시글 ID", example = "1")
         Long postId,
 
+        @Schema(description = "블라인드 여부", example = "false")
+        boolean isBlinded,
+
         @Schema(description = "작성자 닉네임", example = "testUser")
         String nickname,
 
@@ -48,6 +51,7 @@ public record CommentResponseDTO(
         return new CommentResponseDTO(
                 comment.getId(),
                 comment.getPostId(),
+                false,
                 comment.getUser().getNickname(),
                 comment.getUser().getImageUrl(),
                 comment.getUser().getDevcourseName(),
@@ -59,5 +63,27 @@ public record CommentResponseDTO(
                 comment.getCreatedAt(),
                 comment.getUpdatedAt()
         );
+    }
+
+    public CommentResponseDTO applyBlindFilter() {
+        if (isBlinded) {
+            String blindedContent = "⚠️ 블라인드 처리된 댓글입니다";
+            return new CommentResponseDTO(
+                    this.id,
+                    this.postId,
+                    this.isBlinded,
+                    this.nickname,
+                    this.profileImageUrl,
+                    this.devCourseTrack,
+                    this.parentCommentId,
+                    blindedContent,
+                    this.replyCount,
+                    this.likeCount,
+                    this.hasLiked,
+                    this.createdAt,
+                    this.updatedAt
+            );
+        }
+        return this;
     }
 }

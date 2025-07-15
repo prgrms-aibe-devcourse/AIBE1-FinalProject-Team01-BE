@@ -18,6 +18,7 @@ import kr.co.amateurs.server.repository.post.PostStatisticsRepository;
 import kr.co.amateurs.server.repository.together.MarketRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.UserService;
+import kr.co.amateurs.server.service.ai.PostEmbeddingService;
 import kr.co.amateurs.server.service.like.LikeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -72,6 +73,9 @@ class MarketServiceTest {
 
     @Autowired
     private PostStatisticsRepository postStatisticsRepository;
+
+    @MockitoBean
+    private PostEmbeddingService postEmbeddingService;
 
     private User sellerUser;
     private User otherUser;
@@ -208,6 +212,8 @@ class MarketServiceTest {
 
         @Test
         void 존재하지_않는_ID로_조회하면_예외가_발생해야_한다() {
+            given(userService.getCurrentLoginUser()).willReturn(adminUser);
+
             assertThatThrownBy(() -> marketService.getMarketPost(999L, "1"))
                     .isInstanceOf(CustomException.class);
         }

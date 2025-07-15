@@ -43,11 +43,11 @@ public class DirectMessageRoom {
                 .anyMatch(participant -> participant.getUserId().equals(userId));
     }
 
-    public LocalDateTime getParticipantLeftAt(Long userId) {
+    public LocalDateTime getParticipantReEntryAt(Long userId) {
         return participants.stream()
                 .filter(participant -> participant.getUserId().equals(userId))
                 .findFirst()
-                .map(Participant::getLeftAt)
+                .map(Participant::getReEntryAt)
                 .orElse(null);
     }
 

@@ -2,6 +2,7 @@ package kr.co.amateurs.server.controller.auth;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.auth.*;
@@ -59,9 +60,9 @@ public class AuthController {
 
     @PostMapping("/reissue")
     @Operation(summary = "토큰 재발급", description = "리프레시 토큰을 이용하여 새로운 액세스 토큰을 발급합니다")
-    public ResponseEntity<TokenReissueResponseDTO> reissueToken(@Valid @RequestBody TokenReissueRequestDTO request) {
-        TokenReissueResponseDTO response = authService.reissueToken(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<TokenReissueResponseDTO> reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        TokenReissueResponseDTO tokenResponse = authService.reissueToken(request, response);
+        return ResponseEntity.ok(tokenResponse);
     }
 
     @PostMapping("/logout")

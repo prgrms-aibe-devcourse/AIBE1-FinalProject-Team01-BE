@@ -3,6 +3,7 @@ package kr.co.amateurs.server.service.verify;
 import kr.co.amateurs.server.domain.dto.verify.PythonServiceResponseDTO;
 import kr.co.amateurs.server.domain.dto.verify.VerifyResultDTO;
 import kr.co.amateurs.server.domain.dto.verify.VerifyStatusDTO;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.verify.Verify;
@@ -46,7 +47,7 @@ public class VerifyService {
     private String verificationEndpoint;
 
     @Transactional
-    public VerifyResultDTO verifyStudent(User user, MultipartFile image) {
+    public VerifyResultDTO verifyStudent(User user, MultipartFile image, DevCourseTrack devcourseName, String devcourseBatch) {
         validateUserForVerification(user);
 
         try {
@@ -71,7 +72,7 @@ public class VerifyService {
             String filename = image.getOriginalFilename();
             
             CompletableFuture.runAsync(() -> {
-                processVerificationAsync(savedVerify.getId(), imageBytes, filename, user);
+                processVerificationAsync(savedVerify.getId(), imageBytes, filename, user, devcourseName, devcourseBatch);
             });
 
             return VerifyResultDTO.processing();
@@ -84,14 +85,14 @@ public class VerifyService {
     }
 
     @Transactional
-    public void processVerificationAsync(Long verifyId, byte[] imageBytes, String filename, User user) {
+    public void processVerificationAsync(Long verifyId, byte[] imageBytes, String filename, User user, DevCourseTrack devcourseName, String devcourseBatch) {
         try {
             log.info("비동기 인증 처리 시작: verifyId={}", verifyId);
             Verify verify = verifyRepository.findById(verifyId)
                     .orElseThrow(() -> ErrorCode.NOT_FOUND.get());
 
             PythonServiceResponseDTO.DataDTO data = callPythonVerificationService(imageBytes, filename);
-            VerifyStatus status = determineStatusAndUpdateRole(user, data.totalScore());
+            VerifyStatus status = determineStatusAndUpdateRole(user, data.totalScore(), devcourseName, devcourseBatch);
 
             verify.updateVerification(data, status);
             verifyRepository.save(verify);
@@ -125,7 +126,6 @@ public class VerifyService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-        // 파일명을 포함한 커스텀 리소스 생성
         String fileName = filename != null ? filename : "image.jpg";
         ByteArrayResource fileResource = new ByteArrayResource(imageBytes) {
             @Override
@@ -163,9 +163,10 @@ public class VerifyService {
         }
     }
 
-    private VerifyStatus determineStatusAndUpdateRole(User user, int totalScore) {
+    private VerifyStatus determineStatusAndUpdateRole(User user, int totalScore, DevCourseTrack devcourseName, String devcourseBatch) {
         if (totalScore >= 85) {
             userService.changeUserRole(user, Role.STUDENT);
+            userService.updateDevCourseInfo(user, devcourseName, devcourseBatch);
             return VerifyStatus.COMPLETED;
         } else if (totalScore >= 65) {
             return VerifyStatus.PENDING;

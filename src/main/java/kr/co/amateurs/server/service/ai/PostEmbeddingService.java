@@ -8,6 +8,7 @@ import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.filter.Filter;
+import dev.langchain4j.store.embedding.filter.comparison.IsEqualTo;
 import dev.langchain4j.store.embedding.filter.comparison.IsLessThan;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -21,6 +22,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +32,10 @@ public class PostEmbeddingService {
     private final EmbeddingModel embeddingModel;
     private final EmbeddingStore<TextSegment> embeddingStore;
     private final PostService postService;
+
+    private static final Pattern IMG_TAG_PATTERN =
+            Pattern.compile("<img[^>]*>", Pattern.CASE_INSENSITIVE);
+
 
     /**
      * 게시글 임베딩을 생성하고 저장합니다.
@@ -80,6 +86,35 @@ public class PostEmbeddingService {
     }
 
     /**
+     * 특정 게시글의 임베딩을 삭제합니다.
+     * @param postId 게시글 ID
+     */
+    public void deletePostEmbedding(Long postId) {
+        try {
+            Filter postIdFilter = new IsEqualTo("postId", postId.toString());
+            embeddingStore.removeAll(postIdFilter);
+            log.info("게시글 임베딩 삭제 완료: postId={}", postId);
+        } catch (Exception e) {
+            log.error("게시글 임베딩 삭제 실패: postId={}", postId, e);
+        }
+    }
+
+    /**
+     * 특정 게시글의 임베딩을 업데이트합니다 (삭제 후 재생성).
+     * @param post 게시글 정보
+     */
+    public void updatePostEmbedding(Post post) {
+        try {
+            deletePostEmbedding(post.getId());
+            createPostEmbeddings(post);
+
+            log.info("게시글 임베딩 업데이트 완료: postId={}", post.getId());
+        } catch (Exception e) {
+            log.error("게시글 임베딩 업데이트 실패: postId={}", post.getId(), e);
+        }
+    }
+
+    /**
      * 게시글 임베딩을 기반으로 유사한 게시글을 검색합니다.
      * @param query 검색어
      * @param limit 최대 검색 결과 개수
@@ -97,11 +132,17 @@ public class PostEmbeddingService {
                 search(request).matches();
     }
 
+    /**
+     * 게시글 내용을 포맷팅합니다.
+     * 이미지 태그는 제거하고, 내용이 없을 경우 빈 문자열로 처리합니다.
+     * @param post 게시글 정보
+     * @return 포맷된 게시글 내용
+     */
     private String formatPostContent(Post post) {
-        return String.format("제목: %s\n내용: %s",
-                post.getTitle(),
-                post.getContent() != null ? post.getContent() : ""
-        );
+        String content = post.getContent() != null ? post.getContent() : "";
+        content = IMG_TAG_PATTERN.matcher(content).replaceAll("");
+        content = content.replaceAll("\\s+", " ").trim();
+        return String.format("제목: %s\n내용: %s", post.getTitle(), content);
     }
 
     /**

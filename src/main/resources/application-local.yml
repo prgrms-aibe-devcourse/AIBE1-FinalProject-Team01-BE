@@ -6,7 +6,7 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
     properties:
@@ -126,8 +126,17 @@ swagger:
   server:
     url: ${SERVER_URL}
 
-
 verification:
   service:
     url: ${VERIFICATION_SERVICE_URL}
     endpoint: /verify
+
+otel:
+  service:
+    name: amateurs-api-server
+  traces:
+    exporter: console
+  metrics:
+    exporter: none
+  logs:
+    exporter: none

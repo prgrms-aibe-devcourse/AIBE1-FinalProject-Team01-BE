@@ -92,6 +92,7 @@ public enum ErrorCode implements Supplier<CustomException> {
     // POST
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "유효하지 않은 인증 정보입니다."),
+    IS_BLINDED_POST(HttpStatus.BAD_REQUEST, "블라인드 된 글입니다."),
 
     // REPORT
     REPORT_NOT_FOUND(HttpStatus.BAD_REQUEST, "신고 글을 찾을 수 없습니다."),
@@ -100,6 +101,7 @@ public enum ErrorCode implements Supplier<CustomException> {
     // 댓글
     INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "자식 댓글에는 댓글을 달 수 없습니다."),
     INVALID_COMMENT_POST_RELATION(HttpStatus.BAD_REQUEST, "게시글안에 해당하는 댓글이 없습니다"),
+    IS_BLINDED_COMMENT(HttpStatus.BAD_REQUEST, "블라인드 된 댓글입니다."),
 
     // AI 프로필 관련
     ERROR_SUMMARIZE(HttpStatus.INTERNAL_SERVER_ERROR, "활동 요약 생성 중 오류가 발생했습니다."),

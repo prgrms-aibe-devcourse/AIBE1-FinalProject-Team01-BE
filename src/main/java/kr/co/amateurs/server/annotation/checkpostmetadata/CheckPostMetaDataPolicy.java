@@ -35,7 +35,7 @@ public class CheckPostMetaDataPolicy {
             BoardType.GATHER, BoardCategory.TOGETHER,
             BoardType.MATCH, BoardCategory.TOGETHER,
 
-            BoardType.INFO, BoardCategory.IT,
+            BoardType.NEWS, BoardCategory.IT,
             BoardType.REVIEW, BoardCategory.IT,
 
             BoardType.PROJECT_HUB, BoardCategory.PROJECT

@@ -1,5 +1,7 @@
 package kr.co.amateurs.server.service.auth;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.co.amateurs.server.config.auth.CookieUtils;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
@@ -90,8 +92,12 @@ public class AuthService {
     }
 
     @Transactional
-    public TokenReissueResponseDTO reissueToken (TokenReissueRequestDTO request){
-        String refreshToken = request.refreshToken();
+    public TokenReissueResponseDTO reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = getRefreshTokenFromCookie(request);
+
+        if (refreshToken == null) {
+            throw ErrorCode.UNAUTHORIZED.get();
+        }
 
         if (!jwtProvider.validateToken(refreshToken)) {
             throw ErrorCode.UNAUTHORIZED.get();
@@ -106,7 +112,23 @@ public class AuthService {
         String newAccessToken = jwtProvider.generateAccessToken(email);
         Long expiresIn = jwtProvider.getAccessTokenExpirationMs();
 
+        if (response != null) {
+            TokenInfoDTO tokenInfoDTO = TokenInfoDTO.of(newAccessToken, expiresIn, refreshToken, jwtProvider.getRefreshTokenExpirationMs());
+            cookieUtils.setAuthTokenCookie(response, tokenInfoDTO);
+        }
+
         return TokenReissueResponseDTO.of(newAccessToken, expiresIn);
+    }
+
+    private String getRefreshTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if (CookieUtils.REFRESH_TOKEN_COOKIE_NAME.equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 
     @Transactional

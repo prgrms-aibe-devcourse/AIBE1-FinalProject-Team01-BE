@@ -1,9 +1,6 @@
 package kr.co.amateurs.server.service.ai;
 
 import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.store.embedding.EmbeddingMatch;
-import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import kr.co.amateurs.server.domain.common.ErrorCode;
 import kr.co.amateurs.server.domain.entity.post.Post;
@@ -13,9 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
 
+/**
+ * 게시글 임베딩 관리를 위한 유틸리티 서비스
+ * CompletableFuture 비동기 처리를 공통화하여 코드 중복을 제거합니다.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -45,7 +45,3 @@ public class PostEmbeddingManageService {
         }
     }
 }
-
-
-
-
