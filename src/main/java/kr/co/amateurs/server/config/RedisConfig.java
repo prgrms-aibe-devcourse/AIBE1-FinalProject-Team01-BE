@@ -10,10 +10,7 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericToStringSerializer;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.*;
 
 import java.time.Duration;
 
@@ -45,7 +42,12 @@ public class RedisConfig {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.findAndRegisterModules();
 
-        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
+        objectMapper.activateDefaultTyping(
+                objectMapper.getPolymorphicTypeValidator(),
+                ObjectMapper.DefaultTyping.NON_FINAL
+        );
+
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(10))
@@ -60,7 +62,6 @@ public class RedisConfig {
 
     /**
      * JSON 직렬화를 사용하는 RedisTemplate 설정
-     * Jackson2JsonRedisSerializer를 사용하여 객체를 JSON으로 직렬화합니다.
      */
     @Bean("jsonRedisTemplate")
     public RedisTemplate<String, Object> jsonRedisTemplate(RedisConnectionFactory connectionFactory) {
@@ -68,7 +69,7 @@ public class RedisConfig {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.findAndRegisterModules();
 
-        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);

@@ -49,7 +49,8 @@ public class PopularPostRepository {
                         record.get(POSTS.ID),
                         record.get(POST_STATISTICS.VIEW_COUNT),
                         record.get(POSTS.LIKE_COUNT),
-                        record.get("commentCount", Integer.class),
+                        record.get("commentCount", Integer.class) != null ?
+                                record.get("commentCount", Integer.class) : 0,
                         null,
                         null,
                         record.get(USERS.NICKNAME),
@@ -102,7 +103,7 @@ public class PopularPostRepository {
                         POSTS.ID,
                         POST_STATISTICS.VIEW_COUNT,
                         POSTS.LIKE_COUNT,
-                        DSL.count(COMMENTS.ID).as("commentCount"),
+                        DSL.coalesce(DSL.count(COMMENTS.ID), 0).as("commentCount"),
                         POPULAR_POSTS.POPULARITY_SCORE,
                         POPULAR_POSTS.CALCULATED_DATE,
                         USERS.NICKNAME,
@@ -122,27 +123,31 @@ public class PopularPostRepository {
                 .where(POPULAR_POSTS.CALCULATED_DATE.eq(latestDate))
                 .and(POSTS.IS_BLINDED.eq(false))
                 .and(POSTS.IS_DELETED.eq(false))
-                .groupBy(POSTS.ID, POPULAR_POSTS.POPULARITY_SCORE, POPULAR_POSTS.CALCULATED_DATE, 
-                        POPULAR_POSTS.BOARD_TYPE, POPULAR_POSTS.BOARD_ID)
+                .groupBy(POSTS.ID, POPULAR_POSTS.POPULARITY_SCORE, POPULAR_POSTS.CALCULATED_DATE,
+                        POPULAR_POSTS.BOARD_TYPE, POPULAR_POSTS.BOARD_ID,
+                        POST_STATISTICS.VIEW_COUNT, POSTS.LIKE_COUNT, USERS.NICKNAME,
+                        USERS.DEVCOURSE_NAME, POSTS.CREATED_AT, POSTS.TITLE,
+                        POSTS.IS_BLINDED, POSTS.IS_DELETED)
                 .orderBy(POPULAR_POSTS.POPULARITY_SCORE.desc())
                 .limit(limit)
                 .fetch()
                 .map(record -> new PopularPostRequest(
-                        record.get(POSTS.ID),
-                        record.get(POST_STATISTICS.VIEW_COUNT),
-                        record.get(POSTS.LIKE_COUNT),
-                        record.get("commentCount", Integer.class),
-                        record.get(POPULAR_POSTS.POPULARITY_SCORE),
-                        record.get(POPULAR_POSTS.CALCULATED_DATE),
-                        record.get(USERS.NICKNAME),
-                        record.get(USERS.DEVCOURSE_NAME) != null ?
-                                DevCourseTrack.valueOf(record.get(USERS.DEVCOURSE_NAME)) : null,
-                        record.get(POSTS.CREATED_AT),
-                        record.get(POSTS.TITLE),
-                        BoardType.valueOf(record.get(POPULAR_POSTS.BOARD_TYPE)),
-                        record.get(POPULAR_POSTS.BOARD_ID),
-                        record.get(POSTS.IS_BLINDED),
-                        record.get(POSTS.IS_DELETED)
+                        record.get(POSTS.ID, Long.class),
+                        record.get(POST_STATISTICS.VIEW_COUNT, Integer.class),
+                        record.get(POSTS.LIKE_COUNT, Integer.class),
+                        record.get("commentCount", Integer.class) != null ?
+                                record.get("commentCount", Integer.class) : 0,
+                        record.get(POPULAR_POSTS.POPULARITY_SCORE, Double.class),
+                        record.get(POPULAR_POSTS.CALCULATED_DATE, LocalDate.class),
+                        record.get(USERS.NICKNAME, String.class),
+                        record.get(USERS.DEVCOURSE_NAME, String.class) != null ?
+                                DevCourseTrack.valueOf(record.get(USERS.DEVCOURSE_NAME, String.class)) : null,
+                        record.get(POSTS.CREATED_AT, LocalDateTime.class),
+                        record.get(POSTS.TITLE, String.class),
+                        BoardType.valueOf(record.get(POPULAR_POSTS.BOARD_TYPE, String.class)),
+                        record.get(POPULAR_POSTS.BOARD_ID, Long.class),
+                        record.get(POSTS.IS_BLINDED, Boolean.class),
+                        record.get(POSTS.IS_DELETED, Boolean.class)
                 ));
     }
 
