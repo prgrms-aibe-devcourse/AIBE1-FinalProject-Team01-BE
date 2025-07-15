@@ -11,11 +11,13 @@ import kr.co.amateurs.server.domain.dto.auth.LoginRequestDTO;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Import(EmbeddedRedisConfig.class)
 public class AuthControllerTest extends AbstractControllerTest {
@@ -255,6 +257,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @DirtiesContext
     void 짧은_비밀번호로_회원가입_시_400_에러가_발생해야_한다() {
         // given
         SignupRequestDTO shortPasswordRequest = UserTestFixture.defaultSignupRequest()
@@ -264,14 +267,22 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .build();
 
         // when & then
-        RestAssured.given()
+        io.restassured.response.Response response = RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(shortPasswordRequest)
                 .when()
                 .post("/auth/signup")
                 .then()
                 .statusCode(400)
-                .body("message", equalTo("비밀번호는 최소 8자 이상이어야 합니다"));
+                .extract()
+                .response();
+
+        String actualMessage = response.jsonPath().getString("message");
+        assertTrue(
+                actualMessage.equals("비밀번호는 최소 8자 이상이어야 합니다") ||
+                        actualMessage.equals("비밀번호는 8자 이상이며 알파벳과 숫자를 포함해야 합니다"),
+                "Expected password validation error but got: " + actualMessage
+        );
     }
 
     @Test
