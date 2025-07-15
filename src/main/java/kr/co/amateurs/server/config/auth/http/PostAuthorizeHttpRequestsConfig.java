@@ -1,4 +1,4 @@
-package kr.co.amateurs.server.config.auth;
+package kr.co.amateurs.server.config.auth.http;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -6,7 +6,7 @@ import org.springframework.security.config.annotation.web.configurers.AuthorizeH
 import org.springframework.stereotype.Component;
 
 @Component
-public class PostAuthorizeHttpRequestsConfig implements CustomAuthorizeHttpRequestsConfigurer{
+public class PostAuthorizeHttpRequestsConfig implements CustomAuthorizeHttpRequestsConfigurer {
     @Override
     public void configure(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth

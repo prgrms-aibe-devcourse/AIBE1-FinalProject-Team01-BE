@@ -1,6 +1,6 @@
 package kr.co.amateurs.server.config;
 
-import kr.co.amateurs.server.config.auth.CustomAuthorizeHttpRequestsConfigurer;
+import kr.co.amateurs.server.config.auth.http.CustomAuthorizeHttpRequestsConfigurer;
 import kr.co.amateurs.server.config.jwt.JwtAccessDeniedHandler;
 import kr.co.amateurs.server.config.jwt.JwtAuthenticationEntryPoint;
 import kr.co.amateurs.server.config.jwt.JwtAuthenticationFilter;
@@ -22,7 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -66,8 +66,16 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> {
+                    auth
+                            .requestMatchers("/favicon.ico", "/").denyAll()
+                            .requestMatchers("/error").permitAll()
+                            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                            .requestMatchers("/actuator/**").permitAll()
+                            .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll();
+
                     customAuthorizeHttpRequestsConfigurers.forEach(configurer -> configurer.configure(auth));
-                    auth.requestMatchers("/**").permitAll();
+
+                    auth.anyRequest().denyAll();
                 })
 
 
