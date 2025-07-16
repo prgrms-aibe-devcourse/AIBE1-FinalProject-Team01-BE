@@ -10,10 +10,12 @@ import kr.co.amateurs.server.domain.dto.auth.*;
 import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
+import kr.co.amateurs.server.domain.event.AiProfileEvent;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.ai.AiProfileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,7 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final AiProfileService aiProfileService;
     private final CookieUtils cookieUtils;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public SignupResponseDTO signup(SignupRequestDTO request){
@@ -53,7 +56,7 @@ public class AuthService {
 
         User savedUser = userService.saveUser(user);
 
-        generateAiProfileAsync(savedUser.getId(), "회원가입");
+        publishAiProfileGenerationEvent(savedUser.getId(), "회원가입");
 
         return SignupResponseDTO.fromEntity(savedUser, request.topics());
     }
@@ -155,19 +158,12 @@ public class AuthService {
 
         User savedUser = userService.saveUser(managedUser);
 
-        generateAiProfileAsync(savedUser.getId(), "소셜 프로필 완성");
+        publishAiProfileGenerationEvent(savedUser.getId(), "소셜 프로필 완성");
 
         return ProfileCompleteResponseDTO.fromEntity(savedUser);
     }
 
-    private void generateAiProfileAsync(Long userId, String context) {
-        CompletableFuture.runAsync(() -> {
-            try {
-                aiProfileService.generateInitialProfile(userId);
-                log.info("{} 시 AI 프로필 생성 완료: userId={}", context, userId);
-            } catch (Exception e) {
-                log.warn("{} 시 AI 프로필 생성 실패: userId={}", context, userId, e);
-            }
-        });
+    private void publishAiProfileGenerationEvent(Long userId, String context) {
+        eventPublisher.publishEvent(new AiProfileEvent(userId, context));
     }
 }
