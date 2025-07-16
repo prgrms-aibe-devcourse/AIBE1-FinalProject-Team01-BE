@@ -60,22 +60,25 @@ public class JwtProvider {
                     .parseSignedClaims(token);
             return true;
         }  catch (SecurityException e) {
-            log.error("JWT 서명이 유효하지 않습니다: {}", e.getMessage());
+            log.warn("JWT 서명이 유효하지 않습니다: {}", e.getMessage());
             return false;
         } catch (MalformedJwtException e) {
-            log.error("JWT 토큰이 올바르지 않습니다: {}", e.getMessage());
+            log.warn("JWT 토큰이 올바르지 않습니다: {}", e.getMessage());
             return false;
         } catch (ExpiredJwtException e) {
-            log.error("JWT 토큰이 만료되었습니다: {}", e.getMessage());
+            log.warn("JWT 토큰이 만료되었습니다: {}", e.getMessage());
             return false;
         } catch (UnsupportedJwtException e) {
-            log.error("지원하지 않는 JWT 토큰입니다: {}", e.getMessage());
+            log.warn("지원하지 않는 JWT 토큰입니다: {}", e.getMessage());
             return false;
         } catch (JwtException e) {
             log.error("기타 JWT 토큰 오류: {}", e.getMessage());
             return false;
         } catch (IllegalArgumentException e) {
-            log.error("JWT 토큰이 잘못되었습니다: {}", e.getMessage());
+            log.warn("JWT 토큰이 잘못되었습니다: {}", e.getMessage());
+            return false;
+        } catch (Exception e) {
+            log.error("토큰 검증 과정에서 오류가 발생햇습니다: {}", e.getMessage());
             return false;
         }
     }

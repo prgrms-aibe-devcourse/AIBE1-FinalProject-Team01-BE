@@ -29,14 +29,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CustomException.class)
     protected ResponseEntity<ErrorResponse> handleCustom(final CustomException e, HttpServletRequest request) {
-        logError(request, e, "CustomException");
+        logWarn(request, e, "CustomException");
         ErrorResponse error = ErrorResponse.from(e, e.getErrorCode().getHttpStatus());
         return ResponseEntity.status(e.getErrorCode().getHttpStatus()).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     protected ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(final MethodArgumentNotValidException e, HttpServletRequest request) {
-        logError(request, e, "MethodArgumentNotValidException");
+        logWarn(request, e, "MethodArgumentNotValidException");
         ErrorResponse error = ErrorResponse.from(e, HttpStatus.BAD_REQUEST);
         return ResponseEntity.badRequest().body(error);
     }
@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
             final MethodArgumentTypeMismatchException e,
             HttpServletRequest request) {
 
-        logError(request, e, "MethodArgumentTypeMismatchException");
+        logWarn(request, e, "MethodArgumentTypeMismatchException");
         ErrorResponse error = ErrorResponse.from(e, HttpStatus.BAD_REQUEST);
         return ResponseEntity.badRequest().body(error);
     }
@@ -56,7 +56,7 @@ public class GlobalExceptionHandler {
             final HandlerMethodValidationException e,
             HttpServletRequest request) {
 
-        logError(request, e, "HandlerMethodValidationException");
+        logWarn(request, e, "HandlerMethodValidationException");
         ErrorResponse error = ErrorResponse.from(e, HttpStatus.BAD_REQUEST);
         return ResponseEntity.badRequest().body(error);
     }
@@ -65,7 +65,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleValidationException(
             final HttpMessageNotReadableException e,
             HttpServletRequest request) {
-        logError(request, e, "HttpMessageNotReadableException");
+        logWarn(request, e, "HttpMessageNotReadableException");
         ErrorResponse error = ErrorResponse.from(e, HttpStatus.BAD_REQUEST);
         return ResponseEntity.badRequest().body(error);
     }
@@ -74,7 +74,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
             final IllegalArgumentException e,
             HttpServletRequest request) {
-        logError(request, e, "IllegalArgumentException");
+        logWarn(request, e, "IllegalArgumentException");
         ErrorResponse error = ErrorResponse.from(e, HttpStatus.BAD_REQUEST);
         return ResponseEntity.badRequest().body(error);
     }
@@ -84,11 +84,19 @@ public class GlobalExceptionHandler {
             final AuthorizationDeniedException e,
             HttpServletRequest request) {
 
-        logError(request, e, "AuthorizationDeniedException");
+        logWarn(request, e, "AuthorizationDeniedException");
         ErrorResponse error = ErrorResponse.from(e, HttpStatus.FORBIDDEN);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
+    private void logWarn(HttpServletRequest request, Exception e, String errorMessage) {
+        String method = request.getMethod();
+        String uri = getFullRequestPath(request);
+        String userInfo = getCurrentUser(request);
+
+        log.warn("[{}] occurred | {} {} | User: {} | Error: {}",
+                errorMessage, method, uri, userInfo, e.getMessage(), e);
+    }
 
     private void logError(HttpServletRequest request, Exception e, String errorMessage) {
         String method = request.getMethod();
