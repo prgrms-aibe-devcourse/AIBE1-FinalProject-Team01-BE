@@ -4,8 +4,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.co.amateurs.server.domain.dto.follow.FollowPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.follow.FollowResponseDTO;
+import kr.co.amateurs.server.domain.dto.post.PostResponseDTO;
 import kr.co.amateurs.server.service.follow.FollowService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,14 +34,7 @@ public class FollowController {
         List<FollowResponseDTO> followerList = followService.getFollowerList();
         return ResponseEntity.ok(followerList);
     }
-
-    @GetMapping("/users/followPost")
-    @Operation(summary = "팔로우 하는 유저의 게시글 목록 조회", description = "팔로우 하고 있는 유저들의 게시글을 모아 목록으로 조회합니다.")
-    public ResponseEntity<List<FollowPostResponseDTO>> getFollowPostList() {
-        List<FollowPostResponseDTO> followPostList = followService.getFollowPostList();
-        return ResponseEntity.ok(followPostList);
-    }
-
+    
     @PostMapping("/users/{targetUserId}/follow")
     @Operation(summary = "팔로우 추가", description = "특정 유저를 팔로우합니다.")
     public ResponseEntity<FollowResponseDTO> addFollow(@PathVariable Long targetUserId) {
