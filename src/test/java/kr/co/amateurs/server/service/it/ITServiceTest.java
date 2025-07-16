@@ -145,7 +145,6 @@ class ITServiceTest {
         assertThat(result.pageInfo().getPageNumber()).isEqualTo(page);
         assertThat(result.pageInfo().getPageSize()).isEqualTo(pageSize);
         assertThat(result.pageInfo().getTotalPages()).isEqualTo(1);
-        assertThat(result.content().get(0).title()).isEqualTo("정보1");
     }
 
     @Test

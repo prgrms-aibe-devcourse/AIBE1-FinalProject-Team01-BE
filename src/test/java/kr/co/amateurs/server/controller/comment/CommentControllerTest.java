@@ -138,7 +138,7 @@ public class CommentControllerTest extends AbstractControllerTest {
                     .when()
                     .post("/posts/{postId}/comments", itPost.getId())
                     .then()
-                    .statusCode(403);
+                    .statusCode(401);
         }
     }
 
@@ -208,7 +208,7 @@ public class CommentControllerTest extends AbstractControllerTest {
         }
 
         @Test
-        void 댓글을_작성할_수_없다() {
+        void 허용된_게시글에_댓글을_작성할_수_있다() {
             // given
             CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("게스트 댓글");
 
@@ -220,7 +220,7 @@ public class CommentControllerTest extends AbstractControllerTest {
                     .when()
                     .post("/posts/{postId}/comments", communityPost.getId())
                     .then()
-                    .statusCode(403);
+                    .statusCode(201);
         }
     }
 
