@@ -12,6 +12,7 @@ import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MarketStatus;
 import kr.co.amateurs.server.domain.entity.post.enums.MatchingStatus;
 import kr.co.amateurs.server.service.together.MatchService;
+import kr.co.amateurs.server.utils.ClientIPUtils;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
@@ -41,7 +42,7 @@ public class MatchController {
     public ResponseEntity<MatchPostResponseDTO> getMatchPost(
             @PathVariable("matchId") Long matchId,
             HttpServletRequest request){
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = ClientIPUtils.getClientIP(request);
         MatchPostResponseDTO gatherPost = matchService.getMatchPost(matchId, ipAddress);
         return ResponseEntity.ok(gatherPost);
     }
