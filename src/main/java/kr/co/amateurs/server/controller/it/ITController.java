@@ -48,15 +48,9 @@ public class ITController {
             @PathVariable BoardType boardType,
             @PathVariable Long itId,
             HttpServletRequest request) {
-        long startTime = System.currentTimeMillis();
-
         String ipAddress = request.getRemoteAddr();
 
         ITResponseDTO post = itService.getPost(itId, ipAddress);
-
-        long endTime = System.currentTimeMillis();
-        long duration = endTime - startTime;
-        log.info("처리 시간" + duration + "ms");
 
         return ResponseEntity.ok(post);
     }

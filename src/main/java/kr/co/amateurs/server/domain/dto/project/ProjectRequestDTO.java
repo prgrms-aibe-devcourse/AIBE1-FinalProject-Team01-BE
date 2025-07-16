@@ -27,14 +27,14 @@ public record ProjectRequestDTO(
         LocalDateTime endedAt,
         @Schema(description = "깃허브 URL", example = "https://github.com/test")
         @Pattern(
-                regexp = "^https://github\\.com/[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+/?$",
+                regexp = "^https://github\\.com/[a-zA-Z0-9-]+/[a-zA-Z0-9._-]+/?$",
                 message = "올바른 깃허브 URL 형식이 아닙니다"
         )
         String githubUrl,
         @Schema(description = "프로젝트 요약", example = "test 프로젝트입니다.")
         String simpleContent,
         @Pattern(
-                regexp = "^https://(www\\.)?[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}(/.*)?$",
+                regexp = "^https://(www\\.)?[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*\\.[a-zA-Z]{2,}(/.*)?$",
                 message = "올바른 URL 형식이 아닙니다 (https://example.com 또는 https://www.example.com)"
         )
         @Schema(description = "데모 사이트 배포 URL", example = "https://test.com")

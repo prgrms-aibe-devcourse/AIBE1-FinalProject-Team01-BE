@@ -25,7 +25,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
                        AccessDeniedException accessDeniedException
     ) throws IOException, ServletException {
 
-        log.error("권한이 없는 사용자가 접근을 시도했습니다: {}", accessDeniedException.getMessage());
+        log.warn("권한이 없는 사용자가 접근을 시도했습니다: {}", accessDeniedException.getMessage());
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");

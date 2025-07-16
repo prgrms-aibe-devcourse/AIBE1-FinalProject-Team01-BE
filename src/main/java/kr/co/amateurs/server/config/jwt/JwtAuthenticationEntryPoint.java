@@ -25,7 +25,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
                          AuthenticationException authException
     ) throws IOException, ServletException {
 
-        log.error("인증되지 않은 사용자가 접근을 시도했습니다: {}", authException.getMessage());
+        log.warn("인증되지 않은 사용자가 접근을 시도했습니다: {}", authException.getMessage());
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");

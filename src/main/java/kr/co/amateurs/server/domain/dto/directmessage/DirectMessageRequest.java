@@ -9,6 +9,7 @@ public record DirectMessageRequest(
         String content,
         Long senderId,
         String senderName,
+        String senderProfileImage,
         MessageType messageType
 ) {
     public DirectMessage toCollection(String roomId) {
@@ -16,6 +17,7 @@ public record DirectMessageRequest(
                 .content(content)
                 .senderId(senderId)
                 .senderNickname(senderName)
+                .senderProfileImage(senderProfileImage)
                 .roomId(roomId)
                 .messageType(messageType)
                 .build();

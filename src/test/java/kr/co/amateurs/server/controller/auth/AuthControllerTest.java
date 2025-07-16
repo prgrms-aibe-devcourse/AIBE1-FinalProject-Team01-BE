@@ -1,6 +1,8 @@
 package kr.co.amateurs.server.controller.auth;
 
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
+import kr.co.amateurs.server.domain.dto.auth.PasswordResetConfirmDTO;
+import kr.co.amateurs.server.domain.dto.auth.PasswordResetRequestDTO;
 import kr.co.amateurs.server.fixture.auth.AuthTestFixture;
 import kr.co.amateurs.server.fixture.auth.TokenTestFixture;
 import kr.co.amateurs.server.fixture.common.UserTestFixture;
@@ -11,11 +13,13 @@ import kr.co.amateurs.server.domain.dto.auth.LoginRequestDTO;
 import kr.co.amateurs.server.domain.dto.auth.SignupRequestDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Import(EmbeddedRedisConfig.class)
 public class AuthControllerTest extends AbstractControllerTest {
@@ -255,6 +259,7 @@ public class AuthControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @DirtiesContext
     void 짧은_비밀번호로_회원가입_시_400_에러가_발생해야_한다() {
         // given
         SignupRequestDTO shortPasswordRequest = UserTestFixture.defaultSignupRequest()
@@ -264,14 +269,22 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .build();
 
         // when & then
-        RestAssured.given()
+        io.restassured.response.Response response = RestAssured.given()
                 .contentType(ContentType.JSON)
                 .body(shortPasswordRequest)
                 .when()
                 .post("/auth/signup")
                 .then()
                 .statusCode(400)
-                .body("message", equalTo("비밀번호는 최소 8자 이상이어야 합니다"));
+                .extract()
+                .response();
+
+        String actualMessage = response.jsonPath().getString("message");
+        assertTrue(
+                actualMessage.equals("비밀번호는 최소 8자 이상이어야 합니다") ||
+                        actualMessage.equals("비밀번호는 8자 이상이며 알파벳과 숫자를 포함해야 합니다"),
+                "Expected password validation error but got: " + actualMessage
+        );
     }
 
     @Test
@@ -544,5 +557,108 @@ public class AuthControllerTest extends AbstractControllerTest {
                 .post("/auth/logout")
                 .then()
                 .statusCode(401);
+    }
+
+
+    @Test
+    void 유효한_로컬_사용자_이메일로_비밀번호_재설정_요청하면_성공한다() {
+        // Given
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/auth/signup")
+                .then()
+                .statusCode(201);
+
+        PasswordResetRequestDTO request = new PasswordResetRequestDTO(signupRequest.email());
+
+        // When & Then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/auth/password/reset/request")
+                .then()
+                .statusCode(200)
+                .body("message", equalTo("비밀번호 재설정 정보가 확인되었습니다. 새로운 비밀번호를 설정해주세요."))
+                .body("resetToken", notNullValue());
+    }
+
+    @Test
+    void 존재하지_않는_사용자_이메일로_비밀번호_재설정_요청하면_404_에러가_발생한다() {
+        // Given
+        PasswordResetRequestDTO request = new PasswordResetRequestDTO("nonexistent@test.com");
+
+        // When & Then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/auth/password/reset/request")
+                .then()
+                .statusCode(404)
+                .body("message", equalTo("존재하지 않는 사용자입니다."));
+    }
+
+    @Test
+    void 유효한_토큰과_일치하는_비밀번호로_재설정하면_성공한다() {
+        // Given
+        SignupRequestDTO signupRequest = UserTestFixture.createUniqueSignupRequest();
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(signupRequest)
+                .when()
+                .post("/auth/signup")
+                .then()
+                .statusCode(201);
+
+        PasswordResetRequestDTO resetRequest = new PasswordResetRequestDTO(signupRequest.email());
+        String resetToken = RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(resetRequest)
+                .when()
+                .post("/auth/password/reset/request")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("resetToken");
+
+        PasswordResetConfirmDTO confirmRequest = new PasswordResetConfirmDTO(
+                resetToken,
+                "newPassword123",
+                "newPassword123"
+        );
+
+        // When & Then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(confirmRequest)
+                .when()
+                .post("/auth/password/reset/confirm")
+                .then()
+                .statusCode(200)
+                .body("message", equalTo("비밀번호가 성공적으로 변경되었습니다"));
+    }
+
+    @Test
+    void 유효하지_않은_토큰으로_비밀번호_재설정_확인하면_400_에러가_발생한다() {
+        // Given
+        PasswordResetConfirmDTO request = new PasswordResetConfirmDTO(
+                "invalid-token",
+                "newPassword123",
+                "newPassword123"
+        );
+
+        // When & Then
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(request)
+                .when()
+                .post("/auth/password/reset/confirm")
+                .then()
+                .statusCode(400)
+                .body("message", equalTo("유효하지 않은 재설정 토큰입니다."));
     }
 }

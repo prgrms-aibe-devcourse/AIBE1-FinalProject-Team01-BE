@@ -7,9 +7,9 @@ import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.post.PostResponseDTO;
 import kr.co.amateurs.server.domain.dto.user.*;
-import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
+import kr.co.amateurs.server.service.follow.FollowService;
 import kr.co.amateurs.server.service.like.LikeService;
 import kr.co.amateurs.server.service.post.PostService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +28,7 @@ public class UserController {
     private final BookmarkService bookmarkService;
     private final LikeService likeService;
     private final PostService postService;
+    private final FollowService followService;
 
     @Operation(summary = "내 정보 조회", description = "현재 로그인 한 사용자의 프로필 정보를 조회합니다")
     @GetMapping("/me")
@@ -97,6 +98,15 @@ public class UserController {
     ) {
         PageResponseDTO<PostResponseDTO> likePostList = postService.getMyPostList(paginationParam);
         return ResponseEntity.ok(likePostList);
+    }
+
+    @GetMapping("/me/followPost")
+    @Operation(summary = "팔로우 하는 유저의 게시글 목록 조회", description = "팔로우 하고 있는 유저들의 게시글을 모아 목록으로 조회합니다.")
+    public ResponseEntity<PageResponseDTO<PostResponseDTO>> getFollowPostList(
+            @ParameterObject @Valid PaginationParam paginationParam
+    ) {
+        PageResponseDTO<PostResponseDTO> followPostList = followService.getFollowPostList(paginationParam);
+        return ResponseEntity.ok(followPostList);
     }
 
     @GetMapping("/{nickname}/info")
