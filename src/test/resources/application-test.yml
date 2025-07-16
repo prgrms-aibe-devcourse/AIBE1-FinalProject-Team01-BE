@@ -100,5 +100,4 @@ app:
 
 verification:
   service:
-    url: http://localhost:5000
-    endpoint: /verify
+    url: http://localhost:5000/verify/url

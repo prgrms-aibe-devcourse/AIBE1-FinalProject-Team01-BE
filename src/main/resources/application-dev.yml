@@ -125,8 +125,7 @@ cookie:
 
 verification:
   service:
-    url: http://localhost:5000
-    endpoint: /verify/url
+    url: https://ai.amateurs.co.kr/verify/url
 
 otel:
   service:
