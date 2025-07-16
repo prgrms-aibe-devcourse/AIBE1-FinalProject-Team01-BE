@@ -25,15 +25,12 @@ public class PopularPostCacheService {
     @Transactional(readOnly = true)
     public List<PopularPostResponse> getCachedPopularPosts(int limit) {
         try {
-            log.info("인기글 DB 조회 시작 - Redis 캐시 MISS: limit={}", limit);
-
             List<PopularPostRequest> requests = popularPostRepository.findLatestPopularPosts(limit);
 
             List<PopularPostResponse> result = requests.stream()
                     .map(PopularPostResponse::from)
                     .collect(Collectors.toList());
 
-            log.info("인기글 DB 조회 완료: {}개 → Redis 캐싱됨", result.size());
             return result;
 
         } catch (Exception e) {
