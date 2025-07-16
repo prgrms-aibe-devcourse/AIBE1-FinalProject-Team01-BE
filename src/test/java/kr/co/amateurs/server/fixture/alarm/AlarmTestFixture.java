@@ -3,6 +3,7 @@ package kr.co.amateurs.server.fixture.alarm;
 import kr.co.amateurs.server.domain.entity.alarm.Alarm;
 import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
 import kr.co.amateurs.server.domain.entity.alarm.metadata.CommentMetaData;
+import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.fixture.common.TestConstants;
 import kr.co.amateurs.server.repository.alarm.AlarmRepository;
 import org.springframework.stereotype.Component;
@@ -27,6 +28,7 @@ public class AlarmTestFixture {
 
     public static final Long POST_ID = 123L;
     public static final Long COMMENT_ID = 456L;
+    public static final BoardType DEFAULT_BOARD_TYPE = BoardType.FREE;
 
     public AlarmTestFixture(AlarmRepository alarmRepository) {
         this.alarmRepository = alarmRepository;
@@ -44,7 +46,11 @@ public class AlarmTestFixture {
     }
 
     public static CommentMetaData createCommentMetaData() {
-        return new CommentMetaData(POST_ID, COMMENT_ID);
+        return new CommentMetaData(POST_ID, DEFAULT_BOARD_TYPE, COMMENT_ID);
+    }
+
+    public static CommentMetaData createCommentMetaData(Long postId, BoardType boardType, Long commentId) {
+        return new CommentMetaData(postId, boardType, commentId);
     }
 
     public void createMultipleAlarms(Long userId, int count) {

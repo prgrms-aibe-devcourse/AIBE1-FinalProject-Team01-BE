@@ -9,6 +9,7 @@ import kr.co.amateurs.server.domain.dto.project.ProjectRequestDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.service.project.ProjectService;
+import kr.co.amateurs.server.utils.ClientIPUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
@@ -34,7 +35,7 @@ public class ProjectController {
     @GetMapping("/{projectId}")
     @Operation(summary = "프로젝트 글 정보", description = "특정 프로젝트 글의 세부 정보를 불러옵니다.")
     public ResponseEntity<ProjectResponseDTO> getProjectDetails(@PathVariable(name = "projectId") Long projectId, HttpServletRequest request) {
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = ClientIPUtils.getClientIP(request);
         ProjectResponseDTO projectResponseDTO = projectService.getProjectDetails(projectId, ipAddress);
         return ResponseEntity.ok(projectResponseDTO);
     }

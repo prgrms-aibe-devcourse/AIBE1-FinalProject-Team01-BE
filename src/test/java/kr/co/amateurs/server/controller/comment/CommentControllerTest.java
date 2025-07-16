@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.controller.comment;
 
 import io.restassured.http.ContentType;
+import kr.co.amateurs.server.annotation.alarmtrigger.AlarmAspect;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
@@ -43,6 +44,9 @@ public class CommentControllerTest extends AbstractControllerTest {
 
     @Autowired
     private JwtProvider jwtProvider;
+
+    @MockitoBean
+    private AlarmAspect alarmAspect;
 
     @MockitoBean
     private SseService sseService;
