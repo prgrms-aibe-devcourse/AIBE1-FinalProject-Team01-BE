@@ -34,7 +34,7 @@ public class PopularPostService {
         LocalDateTime daysAgo = LocalDateTime.now().minusDays(7);
         LocalDate today = LocalDate.now();
 
-        log.info("인기글 계산 시작: 기준일자={}, 대상기간=3일", today);
+        log.info("인기글 계산 시작: 기준일자={}, 대상기간=7일", today);
 
         List<PopularPostRequest> recentPosts = popularPostRepository.findRecentPostsWithCounts(daysAgo);
 
@@ -51,8 +51,6 @@ public class PopularPostService {
                 .collect(Collectors.toList());
 
         popularPostRepository.savePopularPosts(popularPosts);
-        log.info("인기글 계산 완료: 총 {}개 게시글 처리", popularPosts.size());
-
         popularPostRepository.deleteBeforeDate(today);
         popularPostCacheService.invalidatePopularPostsCache();
     }
