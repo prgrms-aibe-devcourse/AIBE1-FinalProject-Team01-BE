@@ -42,7 +42,10 @@ public record UserProfileResponseDTO(
         ProviderType providerType,
 
         @Schema(description = "관심 토픽 목록")
-        Set<Topic> topics
+        Set<Topic> topics,
+
+        @Schema(description = "프로필 완성 여부")
+        Boolean isProfileCompleted
 ) {
 
     public static UserProfileResponseDTO from(User user) {
@@ -59,6 +62,7 @@ public record UserProfileResponseDTO(
                 .topics(user.getUserTopics().stream()
                         .map(UserTopic::getTopic)
                         .collect(Collectors.toSet()))
+                .isProfileCompleted(user.isProfileCompleted())
                 .build();
     }
 }
