@@ -22,7 +22,6 @@ public class ViewCountScheduler {
     public void syncViewCountsToDatabase() {
 
         try {
-            log.info("조회수 동기화 시작");
             viewCountService.syncViewCountsToDB();
         } catch (Exception e) {
             log.error("조회수 동기화 오류 발생");
