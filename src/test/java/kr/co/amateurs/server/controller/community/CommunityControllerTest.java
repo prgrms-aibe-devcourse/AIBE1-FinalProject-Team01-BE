@@ -203,7 +203,7 @@ public class CommunityControllerTest extends AbstractControllerTest {
         }
 
         @Test
-        void 일반_유저는_게시글을_작성할_수_없다() {
+        void 일반_유저는_커뮤니티_게시글을_작성할_수_있다() {
             // given
             CommunityRequestDTO requestDTO = CommunityTestFixtures.createRequestDTO(
                     "일반 유저 게시글", "태그", "일반 유저 내용");
@@ -216,7 +216,7 @@ public class CommunityControllerTest extends AbstractControllerTest {
                     .when()
                     .post("/community/{boardType}", BoardType.FREE)
                     .then()
-                    .statusCode(HttpStatus.FORBIDDEN.value());
+                    .statusCode(201);
         }
 
         @Test
@@ -238,7 +238,7 @@ public class CommunityControllerTest extends AbstractControllerTest {
                     .when()
                     .put("/community/{boardType}/{communityId}", BoardType.FREE, guestCommunityPost.getId())
                     .then()
-                    .statusCode(HttpStatus.FORBIDDEN.value());
+                    .statusCode(204);
         }
 
         @Test
@@ -255,7 +255,7 @@ public class CommunityControllerTest extends AbstractControllerTest {
                     .when()
                     .delete("/community/{boardType}/{communityId}", BoardType.FREE, guestCommunityPost.getId())
                     .then()
-                    .statusCode(HttpStatus.FORBIDDEN.value());
+                    .statusCode(204);
         }
     }
 

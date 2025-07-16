@@ -10,6 +10,7 @@ import kr.co.amateurs.server.domain.dto.it.ITRequestDTO;
 import kr.co.amateurs.server.domain.dto.it.ITResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.service.it.ITService;
+import kr.co.amateurs.server.utils.ClientIPUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
@@ -48,15 +49,9 @@ public class ITController {
             @PathVariable BoardType boardType,
             @PathVariable Long itId,
             HttpServletRequest request) {
-        long startTime = System.currentTimeMillis();
-
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = ClientIPUtils.getClientIP(request);
 
         ITResponseDTO post = itService.getPost(itId, ipAddress);
-
-        long endTime = System.currentTimeMillis();
-        long duration = endTime - startTime;
-        log.info("처리 시간" + duration + "ms");
 
         return ResponseEntity.ok(post);
     }

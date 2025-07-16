@@ -3,6 +3,7 @@ package kr.co.amateurs.server.controller.directmessage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.directmessage.*;
 import kr.co.amateurs.server.service.directmessage.DirectMessageService;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,13 @@ public class DirectMessageController {
     public ResponseEntity<DirectMessagePageResponse> getMessages(@Valid @ParameterObject DirectMessagePaginationParam param) {
         DirectMessagePageResponse message = directMessageService.getMessages(param);
         return ResponseEntity.ok(message);
+    }
+
+    @GetMapping("messages/search")
+    @Operation(summary = "채팅 검색")
+    public ResponseEntity<PageResponseDTO<DirectMessageResponse>> findMessages(@Valid @ParameterObject DirectMessageSearchPaginationParam param) {
+        PageResponseDTO<DirectMessageResponse> messages = directMessageService.findMessages(param);
+        return ResponseEntity.ok(messages);
     }
 
     @DeleteMapping("{roomId}")

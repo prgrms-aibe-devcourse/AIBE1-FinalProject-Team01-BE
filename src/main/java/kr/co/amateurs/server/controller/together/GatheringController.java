@@ -11,6 +11,7 @@ import kr.co.amateurs.server.domain.dto.together.GatheringPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.GatheringStatus;
 import kr.co.amateurs.server.service.together.GatheringService;
+import kr.co.amateurs.server.utils.ClientIPUtils;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
@@ -41,7 +42,7 @@ public class GatheringController {
     public ResponseEntity<GatheringPostResponseDTO> getGatheringPost(
             @PathVariable("gatheringId") Long gatheringId,
             HttpServletRequest request){
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = ClientIPUtils.getClientIP(request);
         GatheringPostResponseDTO gatherPost = gatheringService.getGatheringPost(gatheringId, ipAddress);
         return ResponseEntity.ok(gatherPost);
     }

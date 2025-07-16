@@ -56,7 +56,7 @@ public class CommentController {
         return ResponseEntity.ok(replies);
     }
 
-    @CheckPostMetaData(operation = OperationType.WRITE)
+    @CheckPostMetaData
     @PostMapping("/{postId}/comments")
     @Operation(
             summary = "댓글 작성",
@@ -70,7 +70,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(comment);
     }
 
-    @CheckPostMetaData(operation = OperationType.WRITE)
+    @CheckPostMetaData
     @PutMapping("/{postId}/comments/{commentId}")
     @Operation(
             summary = "댓글 수정",
@@ -85,7 +85,7 @@ public class CommentController {
         return ResponseEntity.noContent().build();
     }
 
-    @CheckPostMetaData(operation = OperationType.WRITE)
+    @CheckPostMetaData
     @DeleteMapping("/{postId}/comments/{commentId}")
     @Operation(
             summary = "댓글 삭제",

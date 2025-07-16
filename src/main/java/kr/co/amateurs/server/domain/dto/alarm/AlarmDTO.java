@@ -2,6 +2,7 @@ package kr.co.amateurs.server.domain.dto.alarm;
 
 import kr.co.amateurs.server.domain.entity.alarm.Alarm;
 import kr.co.amateurs.server.domain.entity.alarm.enums.AlarmType;
+import kr.co.amateurs.server.domain.entity.alarm.metadata.AlarmMetaData;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +11,7 @@ public record AlarmDTO(
         AlarmType type,
         String title,
         String content,
+        AlarmMetaData metaData,
         boolean isRead,
         LocalDateTime sentAt
 ) {
@@ -19,6 +21,7 @@ public record AlarmDTO(
                 alarm.getType(),
                 alarm.getTitle(),
                 alarm.getContent(),
+                alarm.getMetaData(),
                 alarm.isRead(),
                 alarm.getSentAt()
         );

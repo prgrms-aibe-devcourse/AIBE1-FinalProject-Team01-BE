@@ -10,6 +10,7 @@ import kr.co.amateurs.server.domain.dto.community.CommunityResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PostPaginationParam;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
 import kr.co.amateurs.server.service.community.CommunityService;
+import kr.co.amateurs.server.utils.ClientIPUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.annotations.ParameterObject;
@@ -49,7 +50,7 @@ public class CommunityController {
             @PathVariable("boardType") BoardType boardType,
             @PathVariable Long communityId,
             HttpServletRequest request) {
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = ClientIPUtils.getClientIP(request);
         CommunityResponseDTO post = communityService.getPost(communityId, ipAddress);
 
         return ResponseEntity.ok(post);

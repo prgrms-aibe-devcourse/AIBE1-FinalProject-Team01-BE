@@ -2,6 +2,7 @@ package kr.co.amateurs.server.service.directmessage;
 
 import kr.co.amateurs.server.config.EmbeddedRedisConfig;
 import kr.co.amateurs.server.domain.common.ErrorCode;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.directmessage.*;
 import kr.co.amateurs.server.domain.dto.directmessage.event.AnonymizeEvent;
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessage;
@@ -26,8 +27,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -49,10 +51,10 @@ class DirectMessageServiceTest {
 
     @Autowired
     private DirectMessageRoomRepository directMessageRoomRepository;
-    
+
     @Autowired
     private DirectMessageFixture messageFixture;
-    
+
     @Autowired
     private DirectMessageRoomFixture roomFixture;
 
@@ -86,6 +88,18 @@ class DirectMessageServiceTest {
         when(userService.findById(TestConstants.USER_ID_3)).thenReturn(deletedUser);
     }
 
+    private User createTestUserWithId(Long id, String nickname, String email) {
+        User user = UserTestFixture.defaultUser()
+                .email(email)
+                .nickname(nickname)
+                .name(nickname)
+                .build();
+
+        // ReflectionTestUtils를 사용하여 id 필드 설정
+        ReflectionTestUtils.setField(user, "id", id);
+        return user;
+    }
+
     @Nested
     class SaveMessage {
 
@@ -93,11 +107,12 @@ class DirectMessageServiceTest {
         void 정상적인_메시지_저장_시_DirectMessageResponse를_반환한다() {
             // given
             DirectMessageRoom room = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
-            DirectMessageRequest request = createMessageRequest(
-                DirectMessageFixture.MESSAGE_CONTENT_1, 
-                TestConstants.USER_ID_1, 
-                TestConstants.USER_NAME_1
-            );
+            DirectMessageRequest request = DirectMessageRequest.builder()
+                    .content(DirectMessageFixture.MESSAGE_CONTENT_1)
+                    .senderId(TestConstants.USER_ID_1)
+                    .senderName(TestConstants.USER_NAME_1)
+                    .messageType(MessageType.TEXT)
+                    .build();
 
             // when
             DirectMessageResponse response = directMessageService.saveMessage(room.getId(), request);
@@ -113,11 +128,12 @@ class DirectMessageServiceTest {
         @Test
         void 존재하지_않는_채팅방에_메시지_저장_시_NOT_FOUND_ROOM_예외가_발생한다() {
             // given
-            DirectMessageRequest request = createMessageRequest(
-                DirectMessageFixture.MESSAGE_CONTENT_1, 
-                TestConstants.USER_ID_1, 
-                TestConstants.USER_NAME_1
-            );
+            DirectMessageRequest request = DirectMessageRequest.builder()
+                    .content(DirectMessageFixture.MESSAGE_CONTENT_1)
+                    .senderId(TestConstants.USER_ID_1)
+                    .senderName(TestConstants.USER_NAME_1)
+                    .messageType(MessageType.TEXT)
+                    .build();
 
             // when & then
             assertThatThrownBy(() -> directMessageService.saveMessage("nonexistent", request))
@@ -148,7 +164,7 @@ class DirectMessageServiceTest {
                     .isInstanceOf(CustomException.class)
                     .extracting("errorCode")
                     .isEqualTo(ErrorCode.CANNOT_CHAT_WITH_SELF);
-        }  
+        }
     }
 
     @Nested
@@ -166,8 +182,8 @@ class DirectMessageServiceTest {
             assertThat(responses).hasSize(2);
             assertThat(responses).extracting("lastMessage")
                     .containsExactlyInAnyOrder(
-                        DirectMessageFixture.LAST_MESSAGE_1, 
-                        DirectMessageFixture.LAST_MESSAGE_2
+                            DirectMessageFixture.LAST_MESSAGE_1,
+                            DirectMessageFixture.LAST_MESSAGE_2
                     );
         }
     }
@@ -180,7 +196,7 @@ class DirectMessageServiceTest {
             // given
             DirectMessageRoom room = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
             messageFixture.createMultipleMessages(room.getId(), 5);
-            
+
             DirectMessagePaginationParam param = DirectMessagePaginationParam.builder()
                     .roomId(room.getId())
                     .userId(TestConstants.USER_ID_1)
@@ -200,13 +216,13 @@ class DirectMessageServiceTest {
             // given
             DirectMessageRoom room = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
             messageFixture.createMessagesBeforeAndAfterUserLeft(room.getId());
-            
+
             // 사용자가 방을 나간 후
             directMessageService.exitRoom(room.getId());
-            
+
             // 사용자가 다시 방에 들어옴 (createRoom 호출하면 reEntry 처리됨)
             directMessageService.createRoom(TestConstants.USER_ID_2);
-            
+
             DirectMessagePaginationParam param = DirectMessagePaginationParam.builder()
                     .roomId(room.getId())
                     .userId(TestConstants.USER_ID_1)
@@ -247,10 +263,10 @@ class DirectMessageServiceTest {
             // given
             DirectMessageRoom room = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
             messageFixture.createTestMessages(room.getId());
-            
+
             // 첫 번째 사용자가 방을 나감
             directMessageService.exitRoom(room.getId());
-            
+
             // Mock 설정 변경 - 두 번째 사용자로 전환
             when(userService.getCurrentLoginUser()).thenReturn(testUser2);
 
@@ -271,11 +287,11 @@ class DirectMessageServiceTest {
             // given
             DirectMessageRoom room1 = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
             DirectMessageRoom room2 = roomFixture.createAndSaveRoom(
-                DirectMessageRoomFixture.ROOM_2,
-                TestConstants.USER_ID_2,
-                TestConstants.USER_NAME_2,
-                TestConstants.USER_ID_3,
-                TestConstants.USER_NAME_3
+                    DirectMessageRoomFixture.ROOM_2,
+                    TestConstants.USER_ID_2,
+                    TestConstants.USER_NAME_2,
+                    TestConstants.USER_ID_3,
+                    TestConstants.USER_NAME_3
             );
 
             // 여러 방에 사용자2의 메시지 생성
@@ -294,7 +310,7 @@ class DirectMessageServiceTest {
 
             // then
             List<DirectMessage> allMessages = directMessageRepository.findAll();
-            
+
             // 사용자2의 메시지들이 익명화되었는지 확인
             List<DirectMessage> user2Messages = allMessages.stream()
                     .filter(msg -> msg.getSenderId().equals(TestConstants.USER_ID_2))
@@ -358,13 +374,13 @@ class DirectMessageServiceTest {
 
             // 익명화된 사용자들의 메시지 확인
             List<DirectMessage> anonymizedMessages = allMessages.stream()
-                    .filter(msg -> msg.getSenderId().equals(TestConstants.USER_ID_2) || 
-                                 msg.getSenderId().equals(TestConstants.USER_ID_3))
+                    .filter(msg -> msg.getSenderId().equals(TestConstants.USER_ID_2) ||
+                            msg.getSenderId().equals(TestConstants.USER_ID_3))
                     .toList();
 
             assertThat(anonymizedMessages).hasSize(2)
-                    .allSatisfy(msg -> 
-                        assertThat(msg.getSenderNickname()).isEqualTo("알수없음")
+                    .allSatisfy(msg ->
+                            assertThat(msg.getSenderNickname()).isEqualTo("알수없음")
                     );
 
             // 익명화되지 않은 사용자 메시지 확인
@@ -377,25 +393,232 @@ class DirectMessageServiceTest {
         }
     }
 
-    // Helper Methods - UserTestFixture와 픽스처 활용
-    private User createTestUserWithId(Long id, String nickname, String email) {
-        User user = UserTestFixture.defaultUser()
-                .email(email)
-                .nickname(nickname)
-                .name(nickname)
-                .build();
-        
-        // ReflectionTestUtils를 사용하여 id 필드 설정
-        ReflectionTestUtils.setField(user, "id", id);
-        return user;
-    }
+    @Nested
+    class FindMessages {
 
-    private DirectMessageRequest createMessageRequest(String content, Long senderId, String senderNickname) {
-        return DirectMessageRequest.builder()
-                .senderId(senderId)
-                .senderName(senderNickname)
-                .content(content)
-                .messageType(MessageType.TEXT)
-                .build();
+        @Test
+        void 키워드로_메시지_검색_시_관련_메시지들이_반환된다() {
+            // given
+            DirectMessageRoom room1 = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
+            DirectMessageRoom room2 = roomFixture.createAndSaveRoom(
+                    DirectMessageRoomFixture.ROOM_2,
+                    TestConstants.USER_ID_1,
+                    TestConstants.USER_NAME_1,
+                    TestConstants.USER_ID_3,
+                    TestConstants.USER_NAME_3
+            );
+
+            // 픽스처를 활용한 검색 테스트 메시지 생성
+            messageFixture.createAndSaveMessage(room1.getId(), DirectMessageFixture.SEARCH_CONTENT_1, TestConstants.USER_ID_2, TestConstants.USER_NAME_2);
+            messageFixture.createAndSaveMessage(room1.getId(), "오늘 날씨가 좋네요", TestConstants.USER_ID_1, TestConstants.USER_NAME_1);
+            messageFixture.createAndSaveMessage(room2.getId(), DirectMessageFixture.SEARCH_CONTENT_2, TestConstants.USER_ID_3, TestConstants.USER_NAME_3);
+            messageFixture.createAndSaveMessage(room2.getId(), "내일 봐요", TestConstants.USER_ID_1, TestConstants.USER_NAME_1);
+
+            DirectMessageSearchPaginationParam param = DirectMessageFixture.createSearchPaginationParam(DirectMessageFixture.SEARCH_KEYWORD_HELLO);
+
+            // when
+            PageResponseDTO<DirectMessageResponse> response = directMessageService.findMessages(param);
+
+            // then
+            assertThat(response.content()).hasSize(2);
+            assertThat(response.content())
+                    .extracting(DirectMessageResponse::content)
+                    .containsExactlyInAnyOrder(DirectMessageFixture.SEARCH_CONTENT_1, DirectMessageFixture.SEARCH_CONTENT_2);
+        }
+
+        @Test
+        void 참여하지_않은_방의_메시지는_검색되지_않는다() {
+            // given
+            DirectMessageRoom room1 = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1); // user1, user2
+            DirectMessageRoom room2 = roomFixture.createAndSaveRoom(
+                    DirectMessageRoomFixture.ROOM_2,
+                    TestConstants.USER_ID_2,
+                    TestConstants.USER_NAME_2,
+                    TestConstants.USER_ID_3,
+                    TestConstants.USER_NAME_3
+            ); // user2, user3 (user1은 참여 안함)
+
+            messageFixture.createAndSaveMessage(room1.getId(), "참여한 방 테스트", TestConstants.USER_ID_2, TestConstants.USER_NAME_2);
+            messageFixture.createAndSaveMessage(room2.getId(), "참여하지 않은 방 테스트", TestConstants.USER_ID_3, TestConstants.USER_NAME_3);
+
+            DirectMessageSearchPaginationParam param = DirectMessageSearchPaginationParam.builder()
+                    .keyword("테스트")
+                    .page(0)
+                    .size(10)
+                    .build();
+
+            // when
+            PageResponseDTO<DirectMessageResponse> response = directMessageService.findMessages(param);
+
+            // then
+            assertThat(response.content()).hasSize(1);
+            assertThat(response.content().get(0).content()).isEqualTo("참여한 방 테스트");
+        }
+
+        @Test
+        void 재입장한_방에서는_재입장_이후_메시지만_검색된다() {
+            // given
+            DirectMessageRoom room = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
+
+            // 재입장 전 메시지
+            messageFixture.createAndSaveMessage(room.getId(), DirectMessageFixture.SEARCH_REENTRY_BEFORE, TestConstants.USER_ID_2, TestConstants.USER_NAME_2);
+
+            // 사용자가 방을 나감
+            directMessageService.exitRoom(room.getId());
+
+            // 사용자가 다시 방에 들어옴
+            directMessageService.createRoom(TestConstants.USER_ID_2);
+
+            // 재입장 후 메시지
+            messageFixture.createAndSaveMessage(room.getId(), DirectMessageFixture.SEARCH_REENTRY_AFTER, TestConstants.USER_ID_2, TestConstants.USER_NAME_2);
+
+            DirectMessageSearchPaginationParam param = DirectMessageFixture.createSearchPaginationParam("검색 테스트");
+
+            // when
+            PageResponseDTO<DirectMessageResponse> response = directMessageService.findMessages(param);
+
+            // then
+            assertThat(response.content()).hasSize(1);
+            assertThat(response.content().get(0).content()).isEqualTo(DirectMessageFixture.SEARCH_REENTRY_AFTER);
+        }
+
+        @Test
+        void 검색_결과가_최신순으로_정렬된다() {
+            // given
+            DirectMessageRoom room = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
+
+            // 픽스처를 활용한 시간 순서 테스트 메시지 생성
+            messageFixture.createTimeSortedMessages(room.getId());
+
+            DirectMessageSearchPaginationParam param = DirectMessageFixture.createSearchPaginationParam("테스트");
+
+            // when
+            PageResponseDTO<DirectMessageResponse> response = directMessageService.findMessages(param);
+
+            // then
+            assertThat(response.content()).hasSize(2);
+            assertThat(response.content().get(0).content()).isEqualTo("두 번째 테스트"); // 최신순 첫 번째
+            assertThat(response.content().get(1).content()).isEqualTo("첫 번째 테스트"); // 최신순 두 번째
+        }
+
+        @Test
+        void 검색어가_없는_경우_모든_메시지가_검색된다() {
+            // given
+            DirectMessageRoom room = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
+            messageFixture.createAndSaveMessage(room.getId(), "첫 번째 메시지", TestConstants.USER_ID_1, TestConstants.USER_NAME_1);
+            messageFixture.createAndSaveMessage(room.getId(), "두 번째 메시지", TestConstants.USER_ID_2, TestConstants.USER_NAME_2);
+
+            DirectMessageSearchPaginationParam param = DirectMessageFixture.createSearchPaginationParam("");
+
+            // when
+            PageResponseDTO<DirectMessageResponse> response = directMessageService.findMessages(param);
+
+            // then
+            assertThat(response.content()).hasSize(2);
+        }
+
+        @Test
+        void MongoDB_정규표현식_검색이_올바르게_동작한다() {
+            // given
+            DirectMessageRoom room = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
+            messageFixture.createEnglishSearchTestMessages(room.getId());
+
+            DirectMessageSearchPaginationParam param = DirectMessageFixture.createSearchPaginationParam("hello");
+
+            // when
+            PageResponseDTO<DirectMessageResponse> response = directMessageService.findMessages(param);
+
+            // then - 대소문자 구분 없이 모든 hello 메시지가 검색되어야 함
+            assertThat(response.content()).hasSize(3);
+            assertThat(response.content())
+                    .extracting(DirectMessageResponse::content)
+                    .containsExactlyInAnyOrder(
+                            DirectMessageFixture.SEARCH_CONTENT_EN_1,
+                            DirectMessageFixture.SEARCH_CONTENT_EN_2,
+                            DirectMessageFixture.SEARCH_CONTENT_EN_3
+                    );
+        }
+
+        @Test
+        void 부분_문자열_검색이_동작한다() {
+            // given
+            DirectMessageRoom room = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
+            messageFixture.createSearchTestMessages(room.getId());
+
+            DirectMessageSearchPaginationParam param = DirectMessageFixture.createSearchPaginationParam(DirectMessageFixture.SEARCH_KEYWORD_HELLO);
+
+            // when
+            PageResponseDTO<DirectMessageResponse> response = directMessageService.findMessages(param);
+
+            // then
+            assertThat(response.content()).hasSize(2);
+            assertThat(response.content())
+                    .extracting(DirectMessageResponse::content)
+                    .containsExactlyInAnyOrder(DirectMessageFixture.SEARCH_CONTENT_1, DirectMessageFixture.SEARCH_CONTENT_2);
+        }
+
+        @Test
+        void 복합_조건_검색이_올바르게_동작한다() {
+            // given
+            DirectMessageRoom room1 = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
+            DirectMessageRoom room2 = roomFixture.createAndSaveRoom(
+                    DirectMessageRoomFixture.ROOM_2,
+                    TestConstants.USER_ID_1,
+                    TestConstants.USER_NAME_1,
+                    TestConstants.USER_ID_3,
+                    TestConstants.USER_NAME_3
+            );
+
+            // 픽스처를 활용한 다중 방 검색 테스트 메시지 생성
+            messageFixture.createMultipleRoomSearchMessages(room1.getId(), room2.getId());
+
+            DirectMessageSearchPaginationParam param = DirectMessageFixture.createSearchPaginationParam("테스트");
+
+            // when
+            PageResponseDTO<DirectMessageResponse> response = directMessageService.findMessages(param);
+
+            // then - 두 방 모두에서 "테스트"가 포함된 메시지가 검색되어야 함
+            assertThat(response.content()).hasSize(2);
+            assertThat(response.content())
+                    .extracting(DirectMessageResponse::content)
+                    .containsExactlyInAnyOrder(DirectMessageFixture.SEARCH_CONTENT_MIXED + " 1", DirectMessageFixture.SEARCH_CONTENT_MIXED + " 2");
+
+            // 각 메시지가 올바른 방에서 온 것인지 확인
+            assertThat(response.content())
+                    .extracting(DirectMessageResponse::roomId)
+                    .containsExactlyInAnyOrder(room1.getId(), room2.getId());
+        }
+
+        @Test
+        void 페이징이_올바르게_동작한다() {
+            // given
+            DirectMessageRoom room = roomFixture.createAndSaveRoom(DirectMessageRoomFixture.ROOM_1);
+
+            // 픽스처를 활용한 페이징 테스트 메시지 생성
+            messageFixture.createPaginationTestMessages(room.getId(), 5);
+
+            DirectMessageSearchPaginationParam param = DirectMessageFixture.createSearchPaginationParam("페이징", 0, 3);
+
+            // when
+            PageResponseDTO<DirectMessageResponse> response = directMessageService.findMessages(param);
+
+            // then
+            assertThat(response.content()).hasSize(3);
+            assertThat(response.pageInfo().getTotalElements()).isEqualTo(5);
+            assertThat(response.pageInfo().getTotalPages()).isEqualTo(2);
+        }
+
+        @Test
+        void 참여한_방이_없으면_빈_결과를_반환한다() {
+            // given - 현재 사용자가 참여한 방이 없음
+            DirectMessageSearchPaginationParam param = DirectMessageFixture.createSearchPaginationParam("테스트");
+
+            // when
+            PageResponseDTO<DirectMessageResponse> response = directMessageService.findMessages(param);
+
+            // then
+            assertThat(response.content()).isEmpty();
+            assertThat(response.pageInfo().getTotalElements()).isZero();
+        }
     }
 }

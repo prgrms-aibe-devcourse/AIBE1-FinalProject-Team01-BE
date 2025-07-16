@@ -1,6 +1,7 @@
 package kr.co.amateurs.server.controller.comment;
 
 import io.restassured.http.ContentType;
+import kr.co.amateurs.server.annotation.alarmtrigger.AlarmAspect;
 import kr.co.amateurs.server.config.jwt.JwtProvider;
 import kr.co.amateurs.server.controller.common.AbstractControllerTest;
 import kr.co.amateurs.server.domain.dto.comment.CommentRequestDTO;
@@ -43,6 +44,9 @@ public class CommentControllerTest extends AbstractControllerTest {
 
     @Autowired
     private JwtProvider jwtProvider;
+
+    @MockitoBean
+    private AlarmAspect alarmAspect;
 
     @MockitoBean
     private SseService sseService;
@@ -138,7 +142,7 @@ public class CommentControllerTest extends AbstractControllerTest {
                     .when()
                     .post("/posts/{postId}/comments", itPost.getId())
                     .then()
-                    .statusCode(403);
+                    .statusCode(401);
         }
     }
 
@@ -208,7 +212,7 @@ public class CommentControllerTest extends AbstractControllerTest {
         }
 
         @Test
-        void 댓글을_작성할_수_없다() {
+        void 허용된_게시글에_댓글을_작성할_수_있다() {
             // given
             CommentRequestDTO requestDTO = CommentTestFixtures.createRootCommentRequestDTO("게스트 댓글");
 
@@ -220,7 +224,7 @@ public class CommentControllerTest extends AbstractControllerTest {
                     .when()
                     .post("/posts/{postId}/comments", communityPost.getId())
                     .then()
-                    .statusCode(403);
+                    .statusCode(201);
         }
     }
 

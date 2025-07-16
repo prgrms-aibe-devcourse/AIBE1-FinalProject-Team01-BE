@@ -43,6 +43,7 @@ spring:
             client-id: ${GIT_CLIENT_ID}
             client-secret: ${GIT_CLIENT_SECRET}
             scope: read:user,user:email
+            redirect-uri: ${SERVER_URL}login/oauth2/code/github
           kakao:
             client-id: ${KAKAO_CLIENT_ID}
             client-secret: ${KAKAO_CLIENT_SECRET}
@@ -57,6 +58,22 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
+
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${GMAIL_USERNAME}
+    password: ${GMAIL_APP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 
 springdoc:
@@ -143,7 +160,7 @@ otel:
   traces:
     exporter: otlp
     sampler: parentbased_traceidratio
-    sampler.arg: 1.0
+    sampler.arg: 0.1
   metrics:
     exporter: otlp
   logs:

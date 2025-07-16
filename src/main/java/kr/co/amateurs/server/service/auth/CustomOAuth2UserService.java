@@ -310,7 +310,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     private Map<String, Object> validateAndGetAttributes(OAuth2User oAuth2User, ProviderType providerType) {
         if (providerType != ProviderType.GITHUB && providerType != ProviderType.KAKAO) {
-            log.error("지원하지 않는 OAuth Provider: {}", providerType.getProviderName());
+            log.warn("지원하지 않는 OAuth Provider: {}", providerType.getProviderName());
             throw ErrorCode.OAUTH_PROVIDER_NOT_SUPPORTED.get();
         }
 
