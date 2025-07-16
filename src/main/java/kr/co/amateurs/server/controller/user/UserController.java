@@ -5,10 +5,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
 import kr.co.amateurs.server.domain.dto.common.PaginationParam;
-import kr.co.amateurs.server.domain.dto.follow.FollowPostResponseDTO;
 import kr.co.amateurs.server.domain.dto.post.PostResponseDTO;
 import kr.co.amateurs.server.domain.dto.user.*;
-import kr.co.amateurs.server.domain.entity.user.User;
 import kr.co.amateurs.server.service.UserService;
 import kr.co.amateurs.server.service.bookmark.BookmarkService;
 import kr.co.amateurs.server.service.follow.FollowService;
@@ -16,12 +14,9 @@ import kr.co.amateurs.server.service.like.LikeService;
 import kr.co.amateurs.server.service.post.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "User", description = "사용자 프로필 관리 API")
 @RestController
