@@ -63,7 +63,7 @@ public class CommentAlarmCreator implements AlarmCreator {
         createCommentAlarm(currentUser, post, response);
 
         if (response.parentCommentId() != null) {
-            createReplyAlarm(currentUser, response);
+            createReplyAlarm(currentUser, post, response);
         }
     }
 
@@ -83,7 +83,7 @@ public class CommentAlarmCreator implements AlarmCreator {
                 .type(AlarmType.COMMENT)
                 .title(AlarmType.COMMENT.getTitle())
                 .content(getCommentAlarmContent(commentAuthor.getNickname(), post))
-                .metaData(getMetaData(response))
+                .metaData(getMetaData(response, post))
                 .build();
 
         alarmService.saveAlarm(alarm);
@@ -93,7 +93,7 @@ public class CommentAlarmCreator implements AlarmCreator {
      * 원댓글 작성자에게 답글 알람을 전송합니다.
      * 자신의 댓글에 자신이 답글을 단 경우 알람을 전송하지 않습니다.
      */
-    private void createReplyAlarm(User replyAuthor, CommentResponseDTO response) {
+    private void createReplyAlarm(User replyAuthor, Post post, CommentResponseDTO response) {
         Comment parentComment = commentService.findCommentById(response.parentCommentId());
         User commentAuthor = parentComment.getUser();
 
@@ -106,7 +106,7 @@ public class CommentAlarmCreator implements AlarmCreator {
                 .type(AlarmType.REPLY)
                 .title(AlarmType.REPLY.getTitle())
                 .content(getReplyAlarmContent(replyAuthor.getNickname(), parentComment))
-                .metaData(getMetaData(response))
+                .metaData(getMetaData(response, post))
                 .build();
 
         alarmService.saveAlarm(alarm);
@@ -158,7 +158,16 @@ public class CommentAlarmCreator implements AlarmCreator {
      * @param response 댓글 응답 DTO
      * @return 게시글 ID와 댓글 ID를 포함한 메타데이터
      */
-    public AlarmMetaData getMetaData(CommentResponseDTO response) {
-        return new CommentMetaData(response.postId(), response.id());
+    public AlarmMetaData getMetaData(CommentResponseDTO response, Post post) {
+        long postId = switch (post.getBoardType()) {
+            case FREE, QNA, RETROSPECT -> post.getCommunityPost().getId();
+            case MARKET -> post.getMarketItem().getId();
+            case GATHER -> post.getGatheringPost().getId();
+            case MATCH -> post.getMatchingPost().getId();
+            case PROJECT_HUB -> post.getProject().getId();
+            case REVIEW, NEWS -> post.getItPost().getId();
+        };
+
+        return new CommentMetaData(postId, post.getBoardType(), response.id());
     }
 }
