@@ -1,12 +1,13 @@
 package kr.co.amateurs.server.repository.post;
 
 import kr.co.amateurs.server.domain.common.ErrorCode;
-import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.post.PostResponseDTO;
 import kr.co.amateurs.server.domain.entity.post.enums.BoardType;
-import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.springframework.data.domain.Page;
@@ -14,7 +15,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.EnumSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.jooq.generated.Tables.*;
 
@@ -26,6 +29,10 @@ public class PostJooqRepository {
     private final DSLContext dslContext;
 
     public Page<PostResponseDTO> findPostsByType(Long userId, Pageable pageable, String type) {
+        return findPostsByType(userId, pageable, type, Role.STUDENT);
+    }
+
+    public Page<PostResponseDTO> findPostsByType(Long userId, Pageable pageable, String type, Role userRole) {
         var selectQuery = dslContext.select(
                         DSL.case_(POSTS.BOARD_TYPE)
                                 .when("FREE", COMMUNITY_POSTS.ID)
@@ -64,7 +71,6 @@ public class PostJooqRepository {
                 .leftJoin(COMMENTS).on(COMMENTS.POST_ID.eq(POSTS.ID));
 
 
-
         var results = switch (type) {
             case "my" -> selectQuery
                     .where(POSTS.USER_ID.eq(userId))
@@ -98,15 +104,29 @@ public class PostJooqRepository {
                     .offset(pageable.getOffset())
                     .fetchInto(PostResponseDTO.class);
 
+            case "follow" -> selectQuery
+                    .where(POSTS.USER_ID.in(
+                            dslContext.select(FOLLOWS.TO_USER_ID)
+                                    .from(FOLLOWS)
+                                    .where(FOLLOWS.FROM_USER_ID.eq(userId))
+                    ))
+                    .and(getRoleBasedBoardTypeCondition(userRole))
+                    .groupBy(POSTS.ID)
+                    .orderBy(POSTS.CREATED_AT.desc())
+                    .limit(pageable.getPageSize())
+                    .offset(pageable.getOffset())
+                    .fetchInto(PostResponseDTO.class);
+
+
             default -> throw ErrorCode.NOT_FOUND.get();
         };
 
-        int total = getTotalCount(userId, type);
+        int total = getTotalCount(userId, type, userRole);
 
         return new PageImpl<>(results, pageable, total);
     }
 
-    private int getTotalCount(Long userId, String type) {
+    private int getTotalCount(Long userId, String type, Role userRole) {
         return switch (type) {
             case "my" -> dslContext.selectCount()
                     .from(POSTS)
@@ -131,7 +151,46 @@ public class PostJooqRepository {
                     ))
                     .fetchOne(0, int.class);
 
+            case "follow" -> dslContext.selectCount()
+                    .from(POSTS)
+                    .where(POSTS.USER_ID.in(
+                            dslContext.select(FOLLOWS.TO_USER_ID)
+                                    .from(FOLLOWS)
+                                    .where(FOLLOWS.FROM_USER_ID.eq(userId))
+                    ))
+                    .and(getRoleBasedBoardTypeCondition(userRole))
+                    .fetchOne(0, int.class);
+
             default -> 0;
+        };
+    }
+
+    private @NotNull Condition getRoleBasedBoardTypeCondition(Role role) {
+        Set<BoardType> accessibleTypes = accessibleBoardType(role);
+
+        return POSTS.BOARD_TYPE.in(
+                accessibleTypes.stream()
+                        .map(BoardType::name)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    private Set<BoardType> accessibleBoardType(Role role) {
+        return switch (role) {
+            case ADMIN, STUDENT -> EnumSet.allOf(BoardType.class);
+            case GUEST -> EnumSet.of(
+                    BoardType.REVIEW,
+                    BoardType.PROJECT_HUB,
+                    BoardType.NEWS,
+                    BoardType.FREE,
+                    BoardType.QNA,
+                    BoardType.RETROSPECT
+            );
+            case ANONYMOUS -> EnumSet.of(
+                    BoardType.REVIEW,
+                    BoardType.PROJECT_HUB,
+                    BoardType.NEWS
+            );
         };
     }
 

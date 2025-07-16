@@ -2,10 +2,13 @@ package kr.co.amateurs.server.controller.follow;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kr.co.amateurs.server.domain.dto.follow.FollowPostResponseDTO;
+import jakarta.validation.Valid;
+import kr.co.amateurs.server.domain.dto.common.PageResponseDTO;
+import kr.co.amateurs.server.domain.dto.common.PaginationParam;
 import kr.co.amateurs.server.domain.dto.follow.FollowResponseDTO;
 import kr.co.amateurs.server.service.follow.FollowService;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,30 +24,18 @@ public class FollowController {
 
     @GetMapping("/users/following")
     @Operation(summary = "팔로잉 목록 조회", description = "특정 유저가 팔로우 하는 유저 목록을 조회합니다.")
-    public ResponseEntity<List<FollowResponseDTO>> getFollowingList() {
-        List<FollowResponseDTO> followingList = followService.getFollowingList();
+    public ResponseEntity<PageResponseDTO<FollowResponseDTO>> getFollowingList(
+            @ParameterObject @Valid PaginationParam paginationParam
+    ) {
+        PageResponseDTO<FollowResponseDTO> followingList = followService.getFollowingList(paginationParam);
         return ResponseEntity.ok(followingList);
-    }
-
-    @GetMapping("/users/follower")
-    @Operation(summary = "팔로워 목록 조회", description = "특정 유저를 팔로우 하는 유저 목록을 조회합니다.")
-    public ResponseEntity<List<FollowResponseDTO>> getFollowerList() {
-        List<FollowResponseDTO> followerList = followService.getFollowerList();
-        return ResponseEntity.ok(followerList);
-    }
-
-    @GetMapping("/users/followPost")
-    @Operation(summary = "팔로우 하는 유저의 게시글 목록 조회", description = "팔로우 하고 있는 유저들의 게시글을 모아 목록으로 조회합니다.")
-    public ResponseEntity<List<FollowPostResponseDTO>> getFollowPostList() {
-        List<FollowPostResponseDTO> followPostList = followService.getFollowPostList();
-        return ResponseEntity.ok(followPostList);
     }
 
     @PostMapping("/users/{targetUserId}/follow")
     @Operation(summary = "팔로우 추가", description = "특정 유저를 팔로우합니다.")
-    public ResponseEntity<FollowResponseDTO> addFollow(@PathVariable Long targetUserId) {
-        FollowResponseDTO result = followService.followUser(targetUserId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    public ResponseEntity<Void> addFollow(@PathVariable Long targetUserId) {
+        followService.followUser(targetUserId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping("/users/{targetUserId}/follow")
