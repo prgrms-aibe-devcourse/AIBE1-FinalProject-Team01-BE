@@ -125,7 +125,7 @@ cookie:
 
 verification:
   service:
-    url: https://ai.amateurs.co.kr/verify/url
+    url: ${VERIFICATION_SERVICE_URL}
 
 otel:
   service:
