@@ -49,9 +49,6 @@ public class VerifyService {
     @Value("${verification.service.url}")
     private String verificationServiceUrl;
 
-    @Value("${verification.service.endpoint}")
-    private String verificationEndpoint;
-
     @Transactional
     public VerifyResultDTO verifyStudent(User user, MultipartFile image, DevCourseTrack devcourseName, String devcourseBatch) {
         validateUserForVerification(user);
@@ -148,7 +145,7 @@ public class VerifyService {
      * @param
      */
     private PythonServiceResponseDTO.DataDTO callPythonVerificationServiceByUrl(String imageUrl, String filename) {
-        String url = verificationServiceUrl + verificationEndpoint;
+        String url = verificationServiceUrl;
 
         log.info("Python 서비스 URL 호출: {}, imageUrl: {}, filename: {}", url, imageUrl, filename);
 
