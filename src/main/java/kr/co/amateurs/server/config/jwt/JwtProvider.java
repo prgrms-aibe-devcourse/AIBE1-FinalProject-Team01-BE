@@ -77,9 +77,6 @@ public class JwtProvider {
         } catch (IllegalArgumentException e) {
             log.warn("JWT 토큰이 잘못되었습니다: {}", e.getMessage());
             return false;
-        } catch (Exception e) {
-            log.error("토큰 검증 과정에서 오류가 발생햇습니다: {}", e.getMessage());
-            return false;
         }
     }
 
