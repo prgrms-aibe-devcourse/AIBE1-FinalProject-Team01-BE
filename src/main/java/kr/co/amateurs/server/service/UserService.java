@@ -10,7 +10,9 @@ import kr.co.amateurs.server.domain.entity.user.enums.ProviderType;
 import kr.co.amateurs.server.domain.entity.user.enums.Role;
 import kr.co.amateurs.server.domain.entity.user.enums.Topic;
 import kr.co.amateurs.server.exception.CustomException;
+import kr.co.amateurs.server.repository.follow.FollowJooqRepository;
 import kr.co.amateurs.server.repository.follow.FollowRepository;
+import kr.co.amateurs.server.repository.user.UserJooqRepository;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,6 +37,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final FollowRepository followRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final UserJooqRepository userJooqRepository;
 
     public void validateEmailDuplicate(String email) {
         if (userRepository.existsByEmail(email)) {
@@ -266,15 +269,17 @@ public class UserService {
     }
 
     public UserModalInfoResponseDTO getUserModalInfo(String nickname) {
+        if (nickname == null || nickname.trim().isEmpty()) {
+            throw ErrorCode.EMPTY_NICKNAME.get();
+        }
+
         User currentUser = getCurrentLoginUser();
-        User targetUser = userRepository.findByNickname(nickname);
-        boolean isFollowing = followRepository.existsByFromUserAndToUser(currentUser, targetUser);
-        return new UserModalInfoResponseDTO(
-                targetUser.getId(),
-                targetUser.getNickname(),
-                targetUser.getImageUrl(),
-                targetUser.getDevcourseName(),
-                targetUser.getDevcourseBatch(),
-                isFollowing);
+        UserModalInfoResponseDTO userInfo = userJooqRepository.findUserModalInfoByNickname(nickname, currentUser.getId());
+
+        if (userInfo == null) {
+            throw ErrorCode.USER_NOT_FOUND.get();
+        }
+
+        return userInfo;
     }
 }
