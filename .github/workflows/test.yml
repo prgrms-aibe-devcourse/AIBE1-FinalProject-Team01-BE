@@ -67,7 +67,7 @@ jobs:
           generate-summary: true
 
       - name: 커버리지 뱃지 커밋
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
         run: |
           if [[ `git status --porcelain` ]]; then
             git config --global user.name 'kjyy08'
