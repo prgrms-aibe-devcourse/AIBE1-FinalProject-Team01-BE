@@ -2,6 +2,7 @@ package kr.co.amateurs.server.domain.dto.directmessage;
 
 import kr.co.amateurs.server.domain.entity.directmessage.DirectMessageRoom;
 import kr.co.amateurs.server.domain.entity.directmessage.Participant;
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
 import lombok.Builder;
 
@@ -14,6 +15,8 @@ public record DirectMessageRoomResponse(
         Long partnerId,
         String partnerNickname,
         String partnerProfileImage,
+        DevCourseTrack devcourseName,
+        String devcourseBatch,
         String lastMessage,
         LocalDateTime sentAt
 ) {
@@ -28,6 +31,8 @@ public record DirectMessageRoomResponse(
                 partner.getUserId(),
                 partner.getNickname(),
                 partner.getProfileImage(),
+                partner.getDevcourseName(),
+                partner.getDevcourseBatch(),
                 room.getLastMessage(),
                 room.getSentAt()
         );

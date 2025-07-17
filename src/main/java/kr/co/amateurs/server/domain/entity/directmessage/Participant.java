@@ -1,5 +1,6 @@
 package kr.co.amateurs.server.domain.entity.directmessage;
 
+import kr.co.amateurs.server.domain.entity.post.enums.DevCourseTrack;
 import kr.co.amateurs.server.domain.entity.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +17,8 @@ public class Participant {
     private Long userId;
     private String nickname;
     private String profileImage;
+    private DevCourseTrack devcourseName;
+    private String devcourseBatch;
     private LocalDateTime lastReadAt;
     private LocalDateTime reEntryAt;
 
@@ -36,6 +39,8 @@ public class Participant {
                 .userId(user.getId())
                 .nickname(user.getNickname())
                 .profileImage(user.getImageUrl())
+                .devcourseName(user.getDevcourseName())
+                .devcourseBatch(user.getDevcourseBatch())
                 .build();
     }
 }
