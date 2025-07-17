@@ -33,7 +33,7 @@ public class ViewCountService {
         String ipKey = VIEW_IP_KEY + postId + ":" + clientIp;
 
         Boolean isNewView = redisTemplate.opsForValue()
-                .setIfAbsent(ipKey, "1", Duration.ofHours(24));
+                .setIfAbsent(ipKey, "1", Duration.ofHours(1));
 
         if (Boolean.TRUE.equals(isNewView)) {
             redisTemplate.opsForHash().increment(VIEW_COUNT_HASH, postId.toString(), 1);
