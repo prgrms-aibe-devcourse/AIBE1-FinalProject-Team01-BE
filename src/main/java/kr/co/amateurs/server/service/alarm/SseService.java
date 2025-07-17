@@ -82,7 +82,6 @@ public class SseService {
         } catch (IOException e) {
             connections.remove(currentUserId);
             log.error("SSE 초기 연결 메시지 전송 실패: userId={}", currentUserId, e);
-            throw new RuntimeException("SSE 연결 실패", e);
         }
 
         return emitter;
