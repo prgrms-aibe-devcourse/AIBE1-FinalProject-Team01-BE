@@ -103,18 +103,6 @@ jwt:
   access-token-expiration-ms: 3600000
   refresh-token-expiration-ms: 1209600000
 
-cloud:
-  aws:
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret_key: ${AWS_SECRET_KEY}
-    region:
-      static: ${S3_REGION}
-    s3:
-      bucket: ${S3_BUCKET_NAME}
-    cloudfront:
-      domain: ${CLOUD_FRONT_DOMAIN_NAME}
-
 oauth:
   success-redirect-url: http://localhost:5173
 
@@ -139,3 +127,11 @@ otel:
     exporter: none
   logs:
     exporter: none
+
+cloudflare:
+  r2:
+    endpoint: https://c50a1c33eadf7272948ce35cde67aed2.r2.cloudflarestorage.com
+    access-key: 0001a766c37a2d744a461c00b400aaad
+    secret-key: 7360ce98ca8a8f78f9543ff287ead34644f5b95d8b779e6f7a2f0e7db1fa3f08
+    bucket: amateurs-bucket
+    public-url: pub-73aa20f9c02b434b9385f7c7b1437b0b.r2.dev
