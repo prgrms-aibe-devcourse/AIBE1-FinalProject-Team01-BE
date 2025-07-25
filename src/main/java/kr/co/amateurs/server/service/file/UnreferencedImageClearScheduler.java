@@ -23,10 +23,10 @@ public class UnreferencedImageClearScheduler {
     private final PostImageRepository postImageRepository;
     private final FileService fileService;
 
-    @Value("${cloud.aws.cloudfront.domain}")
+    @Value("${cloudflare.r2.public-url}")
     public String publicUrl;
 
-    @Value("${cloud.aws.s3.bucket}")
+    @Value("${cloudflare.r2.bucket}")
     private String bucket;
 
     // 한번에 처리할 작업의 크기(메모리 오버 대비)

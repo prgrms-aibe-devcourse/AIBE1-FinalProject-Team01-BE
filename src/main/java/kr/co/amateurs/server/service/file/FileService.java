@@ -36,10 +36,10 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class FileService {
 
-    @Value("${cloud.aws.cloudfront.domain}")
+    @Value("${cloudflare.r2.public-url}")
     public String publicUrl;
 
-    @Value("${cloud.aws.s3.bucket}")
+    @Value("${cloudflare.r2.bucket}")
     private String bucket;
 
     private final S3Client s3Client;
