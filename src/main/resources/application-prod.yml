@@ -112,18 +112,6 @@ jwt:
   access-token-expiration-ms: 3600000
   refresh-token-expiration-ms: 1209600000
 
-cloud:
-  aws:
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret_key: ${AWS_SECRET_KEY}
-    region:
-      static: ${S3_REGION}
-    s3:
-      bucket: ${S3_BUCKET_NAME}
-    cloudfront:
-      domain: ${CLOUD_FRONT_DOMAIN_NAME}
-
 management:
   endpoints:
     web:
@@ -173,3 +161,11 @@ otel:
       endpoint: ${OTEL_COLLECTOR_URL}
       compression: gzip
       timeout: 10s
+
+cloudflare:
+  r2:
+    endpoint: ${CLOUDFLARE_R2_ENDPOINT}
+    access-key: ${CLOUDFLARE_R2_ACCESS_KEY}
+    secret-key: ${CLOUDFLARE_R2_SECRET_KEY}
+    bucket: ${CLOUDFLARE_R2_BUCKET}
+    public-url: ${CLOUDFLARE_R2_PUBLIC_URL}

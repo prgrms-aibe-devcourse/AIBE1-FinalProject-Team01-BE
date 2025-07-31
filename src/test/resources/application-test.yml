@@ -72,18 +72,6 @@ jwt:
   access-token-expiration-ms: 3600000
   refresh-token-expiration-ms: 1209600000
 
-cloud:
-  aws:
-    credentials:
-      access-key: testAccessKey
-      secret_key: testSecretKey
-    region:
-      static: test-region
-    s3:
-      bucket: test-bucket-name
-    cloudfront:
-      domain: testdomain.net
-
 de:
   flapdoodle:
     mongodb:
@@ -101,3 +89,11 @@ app:
 verification:
   service:
     url: http://localhost:5000/verify/url
+
+cloudflare:
+  r2:
+    endpoint: http://test-endpoint
+    access-key: test-access-key
+    secret-key: test-secret-key
+    bucket: test-bucket
+    public-url: test-public-url
