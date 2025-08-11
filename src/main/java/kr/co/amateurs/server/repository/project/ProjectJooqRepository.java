@@ -5,11 +5,8 @@ import kr.co.amateurs.server.domain.dto.project.ProjectResponseDTO;
 import kr.co.amateurs.server.domain.dto.project.ProjectSearchParam;
 import kr.co.amateurs.server.repository.project.strategy.ProjectQueryStrategy;
 import lombok.RequiredArgsConstructor;
-import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.OrderField;
-import org.jooq.SelectJoinStep;
-import org.jooq.SelectSelectStep;
+import org.jooq.*;
+import org.jooq.generated.enums.UsersDevcourseName;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Sort;
@@ -17,9 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static org.jooq.generated.Tables.BOOKMARKS;
 import static org.jooq.generated.Tables.POST_STATISTICS;
-import static org.jooq.generated.Tables.POST_IMAGES;
 import static org.jooq.generated.tables.Posts.POSTS;
 import static org.jooq.generated.tables.Projects.PROJECTS;
 import static org.jooq.generated.tables.Users.USERS;
@@ -105,7 +100,7 @@ public class ProjectJooqRepository {
         Condition condition = noCondition();
 
         if (params.getCourse() != null) {
-            condition = condition.and(USERS.DEVCOURSE_NAME.eq(params.getCourse().name()));
+            condition = condition.and(USERS.DEVCOURSE_NAME.eq(UsersDevcourseName.valueOf(params.getCourse().name())));
         }
 
         if (params.getBatch() != null) {
