@@ -6,6 +6,7 @@ import kr.co.amateurs.server.fixture.common.UserTestFixture;
 import kr.co.amateurs.server.repository.user.UserRepository;
 import kr.co.amateurs.server.service.alarm.SseService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -15,10 +16,12 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @Sql(scripts = "/reset.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 @Sql(scripts = "/reset.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)

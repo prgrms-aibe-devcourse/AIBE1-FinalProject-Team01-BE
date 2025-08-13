@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.generated.enums.PostsBoardType;
 import org.jooq.impl.DSL;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -35,15 +36,15 @@ public class PostJooqRepository {
     public Page<PostResponseDTO> findPostsByType(Long userId, Pageable pageable, String type, Role userRole) {
         var selectQuery = dslContext.select(
                         DSL.case_(POSTS.BOARD_TYPE)
-                                .when("FREE", COMMUNITY_POSTS.ID)
-                                .when("QNA", COMMUNITY_POSTS.ID)
-                                .when("RETROSPECT", COMMUNITY_POSTS.ID)
-                                .when("REVIEW", IT_POSTS.ID)
-                                .when("NEWS", IT_POSTS.ID)
-                                .when("PROJECT_HUB", PROJECTS.ID)
-                                .when("GATHER", GATHERING_POSTS.ID)
-                                .when("MATCH", MATCHING_POSTS.ID)
-                                .when("MARKET", MARKET_ITEMS.ID)
+                                .when(PostsBoardType.FREE, COMMUNITY_POSTS.ID)
+                                .when(PostsBoardType.QNA, COMMUNITY_POSTS.ID)
+                                .when(PostsBoardType.RETROSPECT, COMMUNITY_POSTS.ID)
+                                .when(PostsBoardType.REVIEW, IT_POSTS.ID)
+                                .when(PostsBoardType.NEWS, IT_POSTS.ID)
+                                .when(PostsBoardType.PROJECT_HUB, PROJECTS.ID)
+                                .when(PostsBoardType.GATHER, GATHERING_POSTS.ID)
+                                .when(PostsBoardType.MATCH, MATCHING_POSTS.ID)
+                                .when(PostsBoardType.MARKET, MARKET_ITEMS.ID)
                                 .as("id"),
                         POSTS.ID.as("postId"),
                         POSTS.IS_BLINDED,

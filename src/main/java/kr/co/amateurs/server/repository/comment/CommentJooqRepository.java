@@ -7,13 +7,14 @@ import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
-import org.jooq.impl.DSL;
+import org.jooq.generated.enums.UsersDevcourseName;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static org.jooq.generated.Tables.*;
+import static org.jooq.generated.Tables.COMMENTS;
+import static org.jooq.generated.Tables.USERS;
 
 @Repository
 @RequiredArgsConstructor
@@ -119,12 +120,12 @@ public class CommentJooqRepository {
                 .build();
     }
 
-    private DevCourseTrack parseDevCourseTrack(String devCourseNameStr) {
-        if (devCourseNameStr == null) {
+    private DevCourseTrack parseDevCourseTrack(UsersDevcourseName devCourseName) {
+        if (devCourseName == null) {
             return null;
         }
         try {
-            return DevCourseTrack.valueOf(devCourseNameStr);
+            return DevCourseTrack.valueOf(devCourseName.getLiteral());
         } catch (IllegalArgumentException e) {
             return null;
         }
