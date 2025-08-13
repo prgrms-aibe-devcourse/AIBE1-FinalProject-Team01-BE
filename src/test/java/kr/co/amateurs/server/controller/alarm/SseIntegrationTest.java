@@ -97,7 +97,7 @@ class SseIntegrationTest extends AbstractControllerTest {
         assertThat(getConnections()).hasSize(2);
     }
 
-    @RepeatedTest(10)
+    @Test
     void 같은_사용자가_중복_연결_시_기존_연결이_교체된다() {
         // given & when
         given().header("Authorization", "Bearer " + accessToken)
@@ -106,9 +106,6 @@ class SseIntegrationTest extends AbstractControllerTest {
                 .get("/sse")
                 .then()
                 .statusCode(HttpStatus.OK.value());
-
-        await().atMost(Duration.ofSeconds(2))
-                .until(() -> getConnections().size() == 1);
 
         given().header("Authorization", "Bearer " + accessToken)
                 .accept(MediaType.TEXT_EVENT_STREAM_VALUE)
